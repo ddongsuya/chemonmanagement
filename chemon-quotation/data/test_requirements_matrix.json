@@ -1,0 +1,392 @@
+{
+  "version": "1.0",
+  "created_date": "2024-12-11",
+  "description": "CHEMON 모달리티별 시험 요구사항 매트릭스",
+  "test_requirements_matrix": {
+    "SM": {
+      "modality_name": "저분자화합물",
+      "tests": {
+        "single_dose": { "required": "REQUIRED", "species": ["rodent", "non-rodent"], "notes": "" },
+        "drf": { "required": "RECOMMENDED", "species": ["rodent", "non-rodent"], "notes": "본시험 용량 설정" },
+        "repeat_dose": { "required": "REQUIRED", "species": ["rodent", "non-rodent"], "duration_by_phase": { "phase1": "2-4w", "phase2": "13w", "phase3": "26w" } },
+        "genetic_tox": { "required": "REQUIRED", "tests": ["ames", "chromosome", "micronucleus_vivo"], "notes": "3종 배터리" },
+        "safety_pharm": { "required": "REQUIRED", "tests": ["herg", "cv_telemetry", "cns", "respiratory"], "notes": "Core battery" },
+        "repro_tox": { "required": "CONDITIONAL", "timing": "before_phase3", "tests": ["fertility", "eft", "ppnd"], "condition": "WOCBP" },
+        "carcinogenicity": { "required": "CONDITIONAL", "timing": "nda", "condition": "6개월 이상 투여" },
+        "tk": { "required": "REQUIRED", "notes": "반복투여에 포함" },
+        "local_tox": { "required": "CONDITIONAL", "condition": "투여경로에 따라" },
+        "immunogenicity": { "required": "EXEMPT", "notes": "" },
+        "biodistribution": { "required": "EXEMPT", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "BIO-AB": {
+      "modality_name": "항체의약품",
+      "tests": {
+        "single_dose": { "required": "REQUIRED", "species": ["relevant_species"], "notes": "약리학적 관련 종" },
+        "drf": { "required": "OPTIONAL", "species": ["relevant_species"], "notes": "항체는 생략 가능" },
+        "repeat_dose": { "required": "REQUIRED", "species": ["relevant_species"], "notes": "1종으로 충분한 경우 많음", "duration_by_phase": { "phase1": "4w", "phase2": "13w", "phase3": "26w" } },
+        "genetic_tox": { "required": "EXEMPT", "notes": "DNA 직접 상호작용 없음" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "반복투여에 통합" },
+        "repro_tox": { "required": "CONDITIONAL", "timing": "before_phase3", "tests": ["eppnd"], "condition": "WOCBP", "notes": "ePPND 권장" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "" },
+        "tk": { "required": "REQUIRED", "notes": "" },
+        "immunogenicity": { "required": "REQUIRED", "tests": ["ada", "nab"], "notes": "필수" },
+        "tcr": { "required": "RECOMMENDED", "notes": "조직교차반응성" },
+        "local_tox": { "required": "CONDITIONAL", "condition": "SC/IM 투여 시" },
+        "biodistribution": { "required": "EXEMPT", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      },
+      "subtypes": {
+        "BIO-AB-ADC": {
+          "additional_tests": {
+            "payload_tox": { "required": "REQUIRED", "notes": "Payload 별도 평가" },
+            "genetic_tox_payload": { "required": "REQUIRED", "notes": "Payload에 대해" }
+          }
+        }
+      }
+    },
+    "BIO-RP": {
+      "modality_name": "재조합단백질",
+      "tests": {
+        "single_dose": { "required": "REQUIRED", "species": ["relevant_species"], "notes": "" },
+        "drf": { "required": "RECOMMENDED", "species": ["relevant_species"], "notes": "" },
+        "repeat_dose": { "required": "REQUIRED", "species": ["relevant_species"], "duration_by_phase": { "phase1": "2-4w", "phase2": "13w", "phase3": "26w" } },
+        "genetic_tox": { "required": "EXEMPT", "notes": "" },
+        "safety_pharm": { "required": "CONDITIONAL", "notes": "반복투여에 통합 가능" },
+        "repro_tox": { "required": "CONDITIONAL", "timing": "before_phase3", "condition": "WOCBP" },
+        "carcinogenicity": { "required": "CONDITIONAL", "condition": "성장촉진 단백질" },
+        "tk": { "required": "REQUIRED", "notes": "" },
+        "immunogenicity": { "required": "REQUIRED", "tests": ["ada", "nab"], "notes": "NAb 중요" },
+        "local_tox": { "required": "CONDITIONAL", "condition": "SC/IM 투여 시" },
+        "biodistribution": { "required": "EXEMPT", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "BIO-PEP": {
+      "modality_name": "펩타이드의약품",
+      "tests": {
+        "single_dose": { "required": "REQUIRED", "species": ["rodent", "non-rodent"], "notes": "" },
+        "drf": { "required": "RECOMMENDED", "notes": "" },
+        "repeat_dose": { "required": "REQUIRED", "species": ["rodent", "non-rodent"], "duration_by_phase": { "phase1": "2-4w", "phase2": "13w", "phase3": "26w" } },
+        "genetic_tox": { "required": "CONDITIONAL", "notes": "합성펩타이드/불순물에 따라" },
+        "safety_pharm": { "required": "CONDITIONAL", "notes": "접근법에 따라" },
+        "repro_tox": { "required": "CONDITIONAL", "timing": "before_phase3", "condition": "WOCBP" },
+        "carcinogenicity": { "required": "CONDITIONAL", "condition": "장기 투여, 접근법에 따라" },
+        "tk": { "required": "REQUIRED", "notes": "" },
+        "immunogenicity": { "required": "RECOMMENDED", "tests": ["ada"], "notes": "" },
+        "local_tox": { "required": "CONDITIONAL", "condition": "주사제" },
+        "biodistribution": { "required": "EXEMPT", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "BIO-VAC": {
+      "modality_name": "백신",
+      "tests": {
+        "single_dose": { "required": "EXEMPT", "notes": "반복투여에 포함" },
+        "repeat_dose": { "required": "REQUIRED", "species": ["rodent"], "notes": "임상 스케줄 반영, 1종" },
+        "local_tox": { "required": "REQUIRED", "notes": "주사부위 반응 필수" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "repro_tox": { "required": "CONDITIONAL", "tests": ["eft"], "condition": "예방백신, 가임기 여성" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "" },
+        "immunogenicity": { "required": "REQUIRED", "notes": "효능 지표" },
+        "adjuvant_tox": { "required": "CONDITIONAL", "condition": "신규 아쥬번트" },
+        "biodistribution": { "required": "EXEMPT", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "CONDITIONAL", "condition": "생백신" }
+      }
+    },
+    "CELL-SOM": {
+      "modality_name": "체세포치료제",
+      "tests": {
+        "characterization": { "required": "REQUIRED", "notes": "세포 특성화" },
+        "single_dose": { "required": "REQUIRED", "species": ["immunodeficient"], "notes": "" },
+        "repeat_dose": { "required": "REQUIRED", "species": ["immunodeficient"], "notes": "장기 관찰" },
+        "biodistribution": { "required": "REQUIRED", "notes": "세포 분포/정착" },
+        "tumorigenicity": { "required": "CONDITIONAL", "condition": "증식능 있는 세포" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "독성시험 내 평가" },
+        "repro_tox": { "required": "EXEMPT", "notes": "생체분포로 대체" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "종양원성으로 대체" },
+        "immunogenicity": { "required": "CONDITIONAL", "condition": "동종유래" },
+        "local_tox": { "required": "REQUIRED", "notes": "투여부위" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "CELL-STE": {
+      "modality_name": "줄기세포치료제",
+      "tests": {
+        "characterization": { "required": "REQUIRED", "notes": "핵형분석, 유전체안정성 필수" },
+        "in_vitro_char": { "required": "REQUIRED", "tests": ["karyotype", "genomic_stability", "pluripotency_markers", "tumorigenicity_invitro"] },
+        "single_dose": { "required": "REQUIRED", "species": ["immunodeficient"], "notes": "" },
+        "repeat_dose": { "required": "REQUIRED", "species": ["immunodeficient"], "notes": "6개월 이상 권장" },
+        "biodistribution": { "required": "REQUIRED", "notes": "장기 추적" },
+        "tumorigenicity": { "required": "REQUIRED", "notes": "iPSC/ESC 유래 필수", "duration": "6-12개월" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "repro_tox": { "required": "CONDITIONAL", "notes": "생식기관 분포 시" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "종양원성으로 대체" },
+        "immunogenicity": { "required": "CONDITIONAL", "notes": "" },
+        "local_tox": { "required": "REQUIRED", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "CELL-IMM": {
+      "modality_name": "면역세포치료제",
+      "tests": {
+        "characterization": { "required": "REQUIRED", "notes": "CAR/TCR 발현, VCN, 삽입부위" },
+        "in_vitro_char": { "required": "REQUIRED", "tests": ["car_expression", "cytotoxicity", "cytokine_release", "specificity"] },
+        "single_dose": { "required": "REQUIRED", "species": ["immunodeficient_tumor"], "notes": "" },
+        "repeat_dose": { "required": "CONDITIONAL", "notes": "반복 투여 계획 시" },
+        "biodistribution": { "required": "REQUIRED", "notes": "CAR-T 분포/확장" },
+        "tumorigenicity": { "required": "REQUIRED", "notes": "삽입돌연변이 평가" },
+        "insertional_mutagenesis": { "required": "REQUIRED", "notes": "바이러스 벡터 사용 시" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "repro_tox": { "required": "EXEMPT", "notes": "암환자 대상" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "" },
+        "immunogenicity": { "required": "CONDITIONAL", "notes": "" },
+        "rcl_testing": { "required": "REQUIRED", "notes": "렌티/레트로바이러스" },
+        "local_tox": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "GENE-VIR": {
+      "modality_name": "바이러스벡터 유전자치료제",
+      "tests": {
+        "single_dose": { "required": "REQUIRED", "species": ["rodent"], "notes": "" },
+        "repeat_dose": { "required": "CONDITIONAL", "notes": "반복 투여 계획 시" },
+        "biodistribution": { "required": "REQUIRED", "notes": "벡터 DNA + 발현" },
+        "shedding": { "required": "REQUIRED", "notes": "바이러스 배출" },
+        "germline": { "required": "REQUIRED", "notes": "생식세포 전달 평가" },
+        "insertional_mutagenesis": { "required": "CONDITIONAL", "condition": "통합형 벡터 (렌티, 레트로)" },
+        "immunogenicity": { "required": "REQUIRED", "tests": ["anti_capsid", "anti_transgene"], "notes": "" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "독성시험 내 평가" },
+        "repro_tox": { "required": "CONDITIONAL", "notes": "생식기관 분포 양성 시" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "삽입돌연변이로 대체" },
+        "local_tox": { "required": "CONDITIONAL", "notes": "투여경로에 따라" },
+        "tumorigenicity": { "required": "CONDITIONAL", "notes": "" }
+      },
+      "subtypes": {
+        "GENE-VIR-AAV": { "notes": "비통합, 배출/면역원성 중요" },
+        "GENE-VIR-LEN": { "notes": "통합형, 삽입돌연변이 필수" },
+        "GENE-VIR-RET": { "notes": "통합형, 높은 삽입 위험" }
+      }
+    },
+    "GENE-NON": {
+      "modality_name": "비바이러스벡터 유전자치료제",
+      "tests": {
+        "single_dose": { "required": "REQUIRED", "species": ["rodent"], "notes": "" },
+        "repeat_dose": { "required": "REQUIRED", "notes": "반복 투여 가능" },
+        "biodistribution": { "required": "REQUIRED", "notes": "" },
+        "germline": { "required": "REQUIRED", "notes": "생식기관 분포" },
+        "immunogenicity": { "required": "REQUIRED", "notes": "LNP: 보체활성화" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "repro_tox": { "required": "CONDITIONAL", "notes": "" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "비감염성" },
+        "insertional_mutagenesis": { "required": "EXEMPT", "notes": "통합 위험 매우 낮음" },
+        "local_tox": { "required": "CONDITIONAL", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "GENE-EDT": {
+      "modality_name": "유전자편집",
+      "tests": {
+        "off_target": { "required": "REQUIRED", "tests": ["in_silico", "in_vitro", "in_vivo"], "notes": "필수" },
+        "on_target": { "required": "REQUIRED", "notes": "편집 효율/정확성" },
+        "single_dose": { "required": "REQUIRED", "notes": "" },
+        "repeat_dose": { "required": "CONDITIONAL", "notes": "" },
+        "biodistribution": { "required": "REQUIRED", "notes": "편집 분포" },
+        "germline": { "required": "REQUIRED", "notes": "생식세포 편집 위험" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "Off-target으로 대체" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "repro_tox": { "required": "CONDITIONAL", "notes": "생식기관 편집 시" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "Off-target/종양원성으로 대체" },
+        "tumorigenicity": { "required": "REQUIRED", "notes": "염색체 안정성" },
+        "local_tox": { "required": "CONDITIONAL", "notes": "" },
+        "shedding": { "required": "CONDITIONAL", "notes": "바이러스 전달 시" }
+      }
+    },
+    "OLIGO-ASO": {
+      "modality_name": "ASO",
+      "tests": {
+        "single_dose": { "required": "REQUIRED", "species": ["rodent", "non-rodent"], "notes": "" },
+        "repeat_dose": { "required": "REQUIRED", "species": ["rodent", "nhp"], "duration_by_phase": { "phase1": "4w", "phase2": "13w", "phase3": "26w" } },
+        "tissue_distribution": { "required": "REQUIRED", "notes": "간/신장 축적" },
+        "genetic_tox": { "required": "REQUIRED", "tests": ["ames", "chromosome", "micronucleus"], "notes": "" },
+        "safety_pharm": { "required": "REQUIRED", "notes": "Core battery 권장" },
+        "repro_tox": { "required": "CONDITIONAL", "timing": "before_phase3", "condition": "WOCBP" },
+        "carcinogenicity": { "required": "CONDITIONAL", "condition": "6개월 이상 투여" },
+        "tk": { "required": "REQUIRED", "notes": "혈장 + 조직" },
+        "immunogenicity": { "required": "CONDITIONAL", "notes": "" },
+        "local_tox": { "required": "CONDITIONAL", "notes": "주사부위" },
+        "biodistribution": { "required": "EXEMPT", "notes": "조직분포로 평가" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "OLIGO-SIR": {
+      "modality_name": "siRNA",
+      "tests": {
+        "single_dose": { "required": "REQUIRED", "species": ["rodent", "non-rodent"], "notes": "" },
+        "repeat_dose": { "required": "REQUIRED", "species": ["rodent", "nhp"], "notes": "" },
+        "tissue_distribution": { "required": "REQUIRED", "notes": "간 축적 (GalNAc)" },
+        "genetic_tox": { "required": "REQUIRED", "notes": "" },
+        "safety_pharm": { "required": "REQUIRED", "notes": "" },
+        "repro_tox": { "required": "CONDITIONAL", "condition": "WOCBP" },
+        "carcinogenicity": { "required": "CONDITIONAL", "condition": "만성 투여" },
+        "tk": { "required": "REQUIRED", "notes": "" },
+        "immunogenicity": { "required": "CONDITIONAL", "notes": "" },
+        "local_tox": { "required": "CONDITIONAL", "notes": "" },
+        "biodistribution": { "required": "EXEMPT", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "OLIGO-MRN": {
+      "modality_name": "mRNA",
+      "tests": {
+        "single_dose": { "required": "REQUIRED", "species": ["rodent", "non-rodent"], "notes": "" },
+        "repeat_dose": { "required": "REQUIRED", "notes": "" },
+        "tissue_distribution": { "required": "REQUIRED", "notes": "LNP/mRNA/발현단백질" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "게놈 통합 없음" },
+        "safety_pharm": { "required": "REQUIRED", "notes": "" },
+        "repro_tox": { "required": "CONDITIONAL", "condition": "WOCBP" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "일시적 발현" },
+        "immunogenicity": { "required": "REQUIRED", "tests": ["anti_lnp", "anti_protein"], "notes": "" },
+        "local_tox": { "required": "CONDITIONAL", "notes": "" },
+        "biodistribution": { "required": "EXEMPT", "notes": "조직분포로 평가" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "RADIO-DX": {
+      "modality_name": "진단용 방사성의약품",
+      "tests": {
+        "biodistribution": { "required": "REQUIRED", "notes": "핵심" },
+        "dosimetry": { "required": "REQUIRED", "notes": "선량측정" },
+        "single_dose": { "required": "CONDITIONAL", "notes": "리간드에 대해" },
+        "repeat_dose": { "required": "EXEMPT", "notes": "단회 투여" },
+        "genetic_tox": { "required": "CONDITIONAL", "condition": "신규 리간드" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "repro_tox": { "required": "EXEMPT", "notes": "" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "" },
+        "local_tox": { "required": "EXEMPT", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "RADIO-TX": {
+      "modality_name": "치료용 방사성의약품",
+      "tests": {
+        "biodistribution": { "required": "REQUIRED", "notes": "핵심" },
+        "dosimetry": { "required": "REQUIRED", "notes": "종양/정상조직 선량" },
+        "single_dose": { "required": "REQUIRED", "notes": "방사선 독성" },
+        "repeat_dose": { "required": "CONDITIONAL", "condition": "반복 cycle 계획 시" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "방사선 자체가 유전독성" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "repro_tox": { "required": "EXEMPT", "notes": "선량측정으로 대체" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "암환자 대상" },
+        "efficacy": { "required": "REQUIRED", "notes": "항종양 효과" },
+        "local_tox": { "required": "CONDITIONAL", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "DEVICE-IMP": {
+      "modality_name": "이식형 의료기기",
+      "tests": {
+        "cytotoxicity": { "required": "REQUIRED", "standard": "ISO 10993-5" },
+        "sensitization": { "required": "REQUIRED", "standard": "ISO 10993-10" },
+        "irritation": { "required": "REQUIRED", "standard": "ISO 10993-23" },
+        "acute_systemic": { "required": "CONDITIONAL", "standard": "ISO 10993-11", "condition": "장기 접촉" },
+        "subchronic_systemic": { "required": "CONDITIONAL", "standard": "ISO 10993-11", "condition": "장기/영구" },
+        "implantation": { "required": "REQUIRED", "standard": "ISO 10993-6" },
+        "hemocompatibility": { "required": "CONDITIONAL", "standard": "ISO 10993-4", "condition": "혈액 접촉" },
+        "genotoxicity": { "required": "CONDITIONAL", "standard": "ISO 10993-3", "condition": "장기/영구, 신규재료" },
+        "carcinogenicity": { "required": "CONDITIONAL", "standard": "ISO 10993-3", "condition": "특수 조건" },
+        "degradation": { "required": "CONDITIONAL", "standard": "ISO 10993-9,13,14,15", "condition": "분해성 재료" }
+      }
+    },
+    "MICRO-LBP": {
+      "modality_name": "생균치료제",
+      "tests": {
+        "strain_characterization": { "required": "REQUIRED", "tests": ["identification", "wgs", "amr_genes", "virulence_genes"] },
+        "in_vitro_safety": { "required": "REQUIRED", "tests": ["cytotoxicity", "barrier_function", "cytokine"] },
+        "single_dose": { "required": "REQUIRED", "species": ["normal", "immunocompromised"], "notes": "균혈증/전위 평가" },
+        "repeat_dose": { "required": "REQUIRED", "notes": "미생물총 변화 평가" },
+        "immunocompromised_model": { "required": "REQUIRED", "notes": "취약집단 안전성" },
+        "colonization": { "required": "REQUIRED", "notes": "정착/지속성" },
+        "amr_transfer": { "required": "REQUIRED", "notes": "항생제 내성 전달" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "repro_tox": { "required": "CONDITIONAL", "condition": "임산부 대상" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "" },
+        "local_tox": { "required": "EXEMPT", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "ADV-EXO": {
+      "modality_name": "엑소좀",
+      "tests": {
+        "characterization": { "required": "REQUIRED", "tests": ["size", "markers", "proteomics", "rna_profile"] },
+        "in_vitro_safety": { "required": "REQUIRED", "notes": "세포독성, 면역반응" },
+        "biodistribution": { "required": "REQUIRED", "notes": "" },
+        "single_dose": { "required": "REQUIRED", "notes": "" },
+        "repeat_dose": { "required": "REQUIRED", "notes": "" },
+        "tumorigenicity": { "required": "CONDITIONAL", "condition": "줄기/종양세포 유래" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "repro_tox": { "required": "CONDITIONAL", "notes": "" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "" },
+        "local_tox": { "required": "CONDITIONAL", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "ADV-VLP": {
+      "modality_name": "VLP",
+      "tests": {
+        "characterization": { "required": "REQUIRED", "notes": "핵산 부재 확인" },
+        "repeat_dose": { "required": "REQUIRED", "notes": "백신: 임상 스케줄" },
+        "local_tox": { "required": "REQUIRED", "notes": "백신" },
+        "immunogenicity": { "required": "REQUIRED", "notes": "백신 효능" },
+        "repro_tox": { "required": "CONDITIONAL", "condition": "예방백신, 가임기" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "유전체 없음" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "" },
+        "biodistribution": { "required": "CONDITIONAL", "condition": "전달체 VLP" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" },
+        "shedding": { "required": "EXEMPT", "notes": "" }
+      }
+    },
+    "ADV-ONC": {
+      "modality_name": "온콜리틱바이러스",
+      "tests": {
+        "in_vitro_selectivity": { "required": "REQUIRED", "notes": "종양 선택성" },
+        "biodistribution": { "required": "REQUIRED", "notes": "종양 내 복제" },
+        "shedding": { "required": "REQUIRED", "notes": "감염성 평가 중요" },
+        "single_dose": { "required": "REQUIRED", "species": ["permissive", "non-permissive"], "notes": "" },
+        "repeat_dose": { "required": "CONDITIONAL", "condition": "반복 투여 계획" },
+        "neurovirulence": { "required": "CONDITIONAL", "condition": "신경친화성 바이러스" },
+        "attenuation_stability": { "required": "REQUIRED", "notes": "병원성 복귀" },
+        "immunogenicity": { "required": "REQUIRED", "notes": "중화항체" },
+        "efficacy": { "required": "REQUIRED", "notes": "항종양 효과" },
+        "genetic_tox": { "required": "EXEMPT", "notes": "" },
+        "safety_pharm": { "required": "EXEMPT", "notes": "" },
+        "repro_tox": { "required": "EXEMPT", "notes": "암환자 대상" },
+        "carcinogenicity": { "required": "EXEMPT", "notes": "" },
+        "local_tox": { "required": "CONDITIONAL", "notes": "" },
+        "tumorigenicity": { "required": "EXEMPT", "notes": "" }
+      }
+    }
+  }
+}

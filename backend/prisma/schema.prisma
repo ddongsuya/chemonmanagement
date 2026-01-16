@@ -1,0 +1,342 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum QuotationType {
+  TOXICITY
+  EFFICACY
+}
+
+enum AnnouncementPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NotificationType {
+  ANNOUNCEMENT
+  SYSTEM
+  REMINDER
+}
+
+model User {
+  id            String       @id @default(uuid())
+  email         String       @unique
+  password      String
+  name          String
+  phone         String?
+  department    String?
+  position      String?
+  role          UserRole     @default(USER)
+  status        UserStatus   @default(ACTIVE)
+  loginAttempts Int          @default(0)
+  lockedUntil   DateTime?
+  lastLoginAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  quotations    Quotation[]
+  customers     Customer[]
+  notifications Notification[]
+  activityLogs  ActivityLog[]
+  announcements Announcement[] @relation("CreatedAnnouncements")
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+
+model Customer {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  company   String?
+  email     String?
+  phone     String?
+  address   String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  quotations Quotation[]
+}
+
+model Quotation {
+  id              String          @id @default(uuid())
+  quotationNumber String          @unique
+  quotationType   QuotationType   @default(TOXICITY)
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId      String?
+  customer        Customer?       @relation(fields: [customerId], references: [id])
+  customerName    String          // 고객사명 (스냅샷)
+  projectName     String          // 프로젝트명
+  modality        String?         // 모달리티 (독성시험) 또는 모델명 (효력시험)
+  
+  // 효력시험 전용 필드
+  modelId         String?         // 효력시험 모델 ID
+  modelCategory   String?         // 모델 카테고리
+  indication      String?         // 적응증
+  
+  items           Json            // 견적 항목 배열
+  
+  // 금액 정보
+  subtotalTest    Decimal?        @db.Decimal(15, 2) // 시험비 소계
+  subtotalAnalysis Decimal?       @db.Decimal(15, 2) // 분석비 소계
+  subtotal        Decimal?        @db.Decimal(15, 2) // 소계
+  discountRate    Decimal?        @db.Decimal(5, 2)  // 할인율
+  discountAmount  Decimal?        @db.Decimal(15, 2) // 할인금액
+  vat             Decimal?        @db.Decimal(15, 2) // VAT
+  totalAmount     Decimal         @db.Decimal(15, 2) // 총액
+  
+  validDays       Int             @default(30)       // 유효기간 (일)
+  validUntil      DateTime?                          // 유효만료일
+  notes           String?                            // 비고
+  status          QuotationStatus @default(DRAFT)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+}
+
+model Announcement {
+  id        String               @id @default(uuid())
+  title     String
+  content   String
+  priority  AnnouncementPriority @default(NORMAL)
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean              @default(true)
+  viewCount Int                  @default(0)
+  createdBy String
+  creator   User                 @relation("CreatedAnnouncements", fields: [createdBy], references: [id])
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  deletedAt DateTime?
+
+  views     AnnouncementView[]
+}
+
+
+model AnnouncementView {
+  id             String       @id @default(uuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  viewedAt       DateTime     @default(now())
+
+  @@unique([announcementId, userId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action     String
+  resource   String
+  resourceId String?
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model SettingHistory {
+  id        String   @id @default(uuid())
+  key       String
+  oldValue  String?
+  newValue  String
+  changedBy String
+  changedAt DateTime @default(now())
+}
+
+model Backup {
+  id        String   @id @default(uuid())
+  filename  String
+  size      BigInt
+  status    String   @default("COMPLETED")
+  type      String   @default("AUTO")
+  createdAt DateTime @default(now())
+}
+
+// ==================== Master Data Models ====================
+
+// 독성시험 마스터데이터 (새 구조)
+model ToxicityTest {
+  id                    String    @id @default(uuid())
+  itemId                Int       @unique              // 원본 id (1, 2, 3...)
+  sheet                 String                         // 시트명 (단회투여독성시험, 반복투여독성시험 등)
+  category              String                         // 일반독성시험
+  subcategory           String                         // 단회투여 독성시험, 독성동태시험 등
+  testName              String?                        // 시험명 (Dose escalation method, DRF 시험 등)
+  oecd                  String?                        // OECD 여부 (Y, N, null)
+  testType              String?                        // in vivo, in vitro
+  animalClass           String?                        // 설치류, 비설치류, Cell 등
+  species               String?                        // SD Rat, Beagle dog 등
+  sexConfig             String?                        // 암수 각각, 수컷만 등
+  animalsPerSex         Int?                           // 성별당 동물 수
+  controlGroups         Int?                           // 대조군 수
+  testGroups            Int?                           // 시험군 수
+  totalGroups           Int?                           // 총 군 수
+  routeGroup            String?                        // 투여경로 그룹 (경구피하근육독성, 정맥경피독성)
+  routes                String?                        // 투여경로 (경구/피하/근육, 정맥/경피)
+  duration              String?                        // 투여기간 (1회, 2주, 4주 등)
+  leadTime              String?                        // 소요기간 (7주, 16주 등)
+  price                 Decimal?  @db.Decimal(15, 2)   // 기본 가격
+  // 독성동태시험 관련 필드
+  samplingPointsTest    Int?                           // 시험군 채혈 포인트
+  samplingPointsControl Int?                           // 대조군 채혈 포인트
+  samplingCount         Int?                           // 채혈 횟수
+  samplingDays          String?                        // 채혈일 (1일차/마지막일 등)
+  totalSamplingPoints   Int?                           // 총 채혈 포인트
+  priceWithAnalysis     Decimal?  @db.Decimal(15, 2)   // 분석 포함 가격
+  priceSamplingOnly     String?                        // 채혈만 가격 (숫자 또는 "-")
+  optionNote            String?                        // 옵션 노트
+  remarks               String?                        // 비고
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+// 독성시험 카테고리 마스터
+model ToxicityCategory {
+  id          String    @id @default(uuid())
+  categoryId  Int       @unique
+  sheet       String                         // 시트명
+  category    String                         // 카테고리명
+  subcategory String                         // 서브카테고리명
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// 동물 분류 마스터
+model AnimalClass {
+  id        String    @id @default(uuid())
+  classId   Int       @unique
+  name      String
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// 동물 종 마스터
+model Species {
+  id        String    @id @default(uuid())
+  speciesId Int       @unique
+  name      String
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// 투여경로 마스터
+model Route {
+  id        String    @id @default(uuid())
+  routeId   Int       @unique
+  name      String
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// 효력시험 가격 마스터데이터
+model EfficacyPriceItem {
+  id          String    @id @default(uuid())
+  itemId      String    @unique  // ANI-001 형식
+  category    String               // 동물비, 사육비, 측정 등
+  subcategory String?
+  itemName    String               // 항목명
+  itemDetail  String?              // 상세 설명
+  unitPrice   Decimal   @db.Decimal(15, 2)
+  unit        String?              // /head, /head/일 등
+  remarks     String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// 효력시험 모델 마스터데이터
+model EfficacyModel {
+  id              String    @id @default(uuid())
+  modelId         String    @unique  // MOD-001 형식
+  modelName       String               // 모델명
+  category        String               // 항암, 대사질환 등
+  indication      String?              // 적응증
+  animalType      String?              // 마우스, 랫드 등
+  inductionMethod String?              // 유발 방법
+  duration        String?              // 시험 기간
+  description     String?              // 설명
+  defaultItems    Json?                // 기본 포함 항목 ID 배열
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// 모달리티 마스터데이터
+model Modality {
+  id          String    @id @default(uuid())
+  code        String    @unique  // SM, BIO 등
+  name        String               // 저분자화합물, 바이오의약품 등
+  level       Int       @default(1)  // 계층 레벨
+  parentCode  String?              // 부모 코드
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

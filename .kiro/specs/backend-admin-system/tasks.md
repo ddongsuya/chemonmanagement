@@ -1,0 +1,287 @@
+# Implementation Plan: Backend & Admin System
+
+## Overview
+
+CHEMON 견적관리시스템의 백엔드 API 서버, 사용자 인증 시스템, 관리자 페이지를 구현합니다. Express.js + PostgreSQL + Prisma 기반으로 구축하며, 기존 Next.js 프론트엔드와 통합합니다.
+
+## Tasks
+
+- [x] 1. 백엔드 프로젝트 초기 설정
+
+  - [x] 1.1 Express.js 프로젝트 구조 생성 및 TypeScript 설정
+    - `backend/` 디렉토리 생성
+    - package.json, tsconfig.json 설정
+    - 필수 의존성 설치 (express, cors, helmet, dotenv, zod, bcrypt, jsonwebtoken)
+    - _Requirements: 8.2, 8.5_
+  - [x] 1.2 Prisma ORM 설정 및 데이터베이스 스키마 정의
+    - prisma/schema.prisma 파일 생성
+    - User, RefreshToken, Customer, Quotation, Announcement, Notification, ActivityLog, SystemSetting 모델 정의
+    - _Requirements: 2.1, 2.5_
+  - [x] 1.3 기본 미들웨어 설정
+    - CORS, Helmet, JSON 파서, 에러 핸들러 미들웨어 구성
+    - 로깅 미들웨어 구현
+    - _Requirements: 5.4, 8.2_
+
+- [x] 2. 인증 시스템 구현
+
+  - [x] 2.1 AuthService 구현
+    - 회원가입 (이메일 중복 확인, 비밀번호 해싱)
+    - 로그인 (자격 증명 검증, JWT 발급, 로그인 시도 추적)
+    - 토큰 갱신, 로그아웃, 비밀번호 변경
+    - _Requirements: 1.1, 1.2, 1.4, 1.5_
+  - [x] 2.2 Property test: 비밀번호 암호화 저장
+    - **Property 3: 비밀번호 암호화 저장**
+    - **Validates: Requirements 1.2, 8.6**
+  - [x] 2.3 인증 미들웨어 구현
+    - JWT 토큰 검증 미들웨어
+    - 역할 기반 접근 제어 미들웨어 (USER, ADMIN)
+    - _Requirements: 1.3, 3.6_
+  - [x] 2.4 Property test: 무효한 토큰 거부
+    - **Property 2: 무효한 토큰 거부**
+    - **Validates: Requirements 1.3, 1.5**
+  - [x] 2.5 계정 잠금 로직 구현
+    - 5회 연속 실패 시 15분 잠금
+    - 잠금 상태 확인 및 해제 로직
+    - _Requirements: 1.6_
+  - [x] 2.6 Property test: 계정 잠금
+    - **Property 5: 계정 잠금**
+    - **Validates: Requirements 1.6**
+  - [x] 2.7 Auth API 라우트 구현
+    - POST /api/auth/register, /api/auth/login, /api/auth/logout
+    - POST /api/auth/refresh, /api/auth/change-password
+    - GET /api/auth/me
+    - _Requirements: 1.1, 1.2, 1.4, 1.5_
+
+- [x] 3. Checkpoint - 인증 시스템 검증
+
+  - 모든 인증 관련 테스트 통과 확인
+  - Postman/curl로 API 동작 확인
+  - 문제 발생 시 사용자에게 질문
+
+- [x] 4. 사용자 데이터 관리 구현
+
+  - [x] 4.1 DataService 구현 - 견적서 CRUD
+    - 생성, 조회(목록/상세), 수정, 삭제(소프트)
+    - 소유권 검증 로직 포함
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+  - [x] 4.2 Property test: 데이터 소유권 격리
+    - **Property 6: 데이터 소유권 격리**
+    - **Validates: Requirements 2.2, 2.3, 2.4**
+  - [x] 4.3 DataService 구현 - 고객 CRUD
+    - 생성, 조회(목록/상세), 수정, 삭제(소프트)
+    - 소유권 검증 로직 포함
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+  - [x] 4.4 Property test: 소프트 삭제
+    - **Property 9: 소프트 삭제**
+    - **Validates: Requirements 2.4, 4.3**
+  - [x] 4.5 타임스탬프 자동 기록 검증
+    - Prisma의 @default(now())와 @updatedAt 동작 확인
+    - _Requirements: 2.5_
+  - [x] 4.6 Property test: 타임스탬프 자동 기록
+    - **Property 8: 타임스탬프 자동 기록**
+    - **Validates: Requirements 2.5**
+  - [x] 4.7 데이터 API 라우트 구현
+    - GET/POST /api/quotations, GET/PUT/DELETE /api/quotations/:id
+    - GET/POST /api/customers, GET/PUT/DELETE /api/customers/:id
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+- [x] 5. Checkpoint - 데이터 관리 검증
+
+  - 모든 데이터 관련 테스트 통과 확인
+  - 소유권 격리 동작 확인
+  - 문제 발생 시 사용자에게 질문
+
+- [x] 6. 관리자 기능 구현
+
+  - [x] 6.1 AdminService 구현 - 사용자 관리
+    - 사용자 목록 조회 (페이지네이션, 검색, 필터)
+    - 사용자 상태 변경 (활성화/비활성화)
+    - 사용자 권한 변경, 비밀번호 초기화
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+  - [x] 6.2 Property test: 페이지네이션 정확성
+    - **Property 10: 페이지네이션 정확성**
+    - **Validates: Requirements 3.1**
+  - [x] 6.3 Property test: 검색 필터 정확성
+    - **Property 11: 검색 필터 정확성**
+    - **Validates: Requirements 3.2**
+  - [x] 6.4 Property test: 계정 상태와 로그인
+    - **Property 12: 계정 상태와 로그인**
+    - **Validates: Requirements 3.3, 3.4**
+  - [x] 6.5 AdminService 구현 - 통계
+    - 시스템 통계 (총 사용자, 활성 사용자, 오늘 견적서)
+    - 기간별 사용량 통계
+    - _Requirements: 5.1, 5.2_
+  - [x] 6.6 ActivityLog 서비스 구현
+    - 활동 로그 기록 미들웨어
+    - 활동 로그 조회 API
+    - _Requirements: 5.3_
+  - [x] 6.7 Admin API 라우트 구현
+    - GET /api/admin/users, GET/PATCH /api/admin/users/:id/\*
+    - GET /api/admin/stats, GET /api/admin/logs
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 5.1, 5.2, 5.3_
+
+- [x] 7. 공지사항 시스템 구현
+
+  - [x] 7.1 AnnouncementService 구현
+    - 공지사항 CRUD (관리자)
+    - 활성 공지사항 조회 (사용자)
+    - 조회수 증가 로직
+    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+  - [x] 7.2 Property test: 공지사항 게시 기간 필터링
+    - **Property 13: 공지사항 게시 기간 필터링**
+    - **Validates: Requirements 4.4**
+  - [x] 7.3 Announcement API 라우트 구현
+    - GET /api/announcements (사용자용)
+    - GET/POST/PUT/DELETE /api/admin/announcements (관리자용)
+    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+
+- [x] 8. 알림 시스템 구현
+
+  - [x] 8.1 NotificationService 구현
+    - 알림 생성 (단일/대량)
+    - 알림 조회 (최신순 정렬)
+    - 읽음 처리, 읽지 않은 알림 수 조회
+    - _Requirements: 6.1, 6.2, 6.3, 6.5_
+  - [x] 8.2 Property test: 알림 정렬
+    - **Property 15: 알림 정렬**
+    - **Validates: Requirements 6.3**
+  - [x] 8.3 Property test: 로그인 응답에 읽지 않은 알림 수 포함
+    - **Property 17: 로그인 응답에 읽지 않은 알림 수 포함**
+    - **Validates: Requirements 6.5**
+  - [x] 8.4 중요 공지 알림 자동 생성 로직
+    - HIGH/URGENT 공지 생성 시 모든 활성 사용자에게 알림
+    - _Requirements: 4.5_
+  - [x] 8.5 Property test: 중요 공지 알림 생성
+    - **Property 14: 중요 공지 알림 생성**
+    - **Validates: Requirements 4.5**
+  - [x] 8.6 Notification API 라우트 구현
+    - GET /api/notifications
+    - PATCH /api/notifications/:id/read
+    - POST /api/notifications/read-all
+    - GET /api/notifications/unread-count
+    - _Requirements: 6.1, 6.2, 6.3, 6.5_
+
+- [x] 9. Checkpoint - 관리자 및 알림 기능 검증
+
+  - 모든 관리자 기능 테스트 통과 확인
+  - 공지사항, 알림 시스템 동작 확인
+  - 문제 발생 시 사용자에게 질문
+
+- [x] 10. 보안 및 설정 기능 구현
+
+  - [x] 10.1 Rate Limiting 미들웨어 구현
+    - 분당 100회 제한
+    - IP 기반 추적
+    - _Requirements: 8.1_
+  - [x] 10.2 Property test: Rate Limiting
+    - **Property 18: Rate Limiting**
+    - **Validates: Requirements 8.1**
+  - [x] 10.3 입력 유효성 검사 미들웨어 구현
+    - Zod 스키마 기반 검증
+    - 상세 에러 메시지 반환
+    - _Requirements: 8.3_
+  - [x] 10.4 Property test: 입력 유효성 검사
+    - **Property 19: 입력 유효성 검사**
+    - **Validates: Requirements 8.3**
+  - [x] 10.5 SettingsService 구현
+    - 시스템 설정 조회/변경
+    - 변경 이력 기록
+    - _Requirements: 9.1, 9.3_
+  - [x] 10.6 Property test: 설정 변경 이력 기록
+    - **Property 20: 설정 변경 이력 기록**
+    - **Validates: Requirements 9.3**
+  - [x] 10.7 Settings API 라우트 구현
+    - GET/PUT /api/admin/settings
+    - _Requirements: 9.1, 9.3_
+
+- [x] 11. 프론트엔드 통합 - 인증 UI
+
+  - [x] 11.1 로그인 페이지 구현
+    - 이메일/비밀번호 입력 폼
+    - 에러 메시지 표시
+    - JWT 토큰 저장 (httpOnly cookie 또는 메모리)
+    - _Requirements: 1.1_
+  - [x] 11.2 회원가입 페이지 구현
+    - 이메일, 비밀번호, 이름 입력 폼
+    - 유효성 검사 및 에러 표시
+    - _Requirements: 1.2_
+  - [x] 11.3 인증 상태 관리 (Zustand store)
+    - 로그인 상태, 사용자 정보 관리
+    - 토큰 갱신 로직
+    - 로그아웃 처리
+    - _Requirements: 1.1, 1.5_
+  - [x] 11.4 Protected Route 구현
+    - 인증 필요 페이지 접근 제어
+    - 미인증 시 로그인 페이지 리다이렉트
+    - _Requirements: 1.3_
+
+- [x] 12. 프론트엔드 통합 - 관리자 페이지
+
+  - [x] 12.1 관리자 레이아웃 및 네비게이션
+    - 관리자 전용 사이드바
+    - 권한 체크 및 접근 제어
+    - _Requirements: 3.1_
+  - [x] 12.2 관리자 대시보드 페이지
+    - 시스템 통계 카드 (사용자 수, 견적서 수 등)
+    - 최근 활동 로그 표시
+    - _Requirements: 5.1_
+  - [x] 12.3 사용자 관리 페이지
+    - 사용자 목록 테이블 (페이지네이션, 검색)
+    - 상태 변경, 권한 변경, 비밀번호 초기화 기능
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+  - [x] 12.4 공지사항 관리 페이지
+    - 공지사항 목록, 생성, 수정, 삭제
+    - 중요도 설정, 게시 기간 설정
+    - _Requirements: 4.1, 4.2, 4.3_
+  - [x] 12.5 시스템 설정 페이지
+    - 설정 값 조회 및 변경 폼
+    - 변경 이력 표시
+    - _Requirements: 9.1, 9.2, 9.3_
+
+- [x] 13. 프론트엔드 통합 - 사용자 기능
+
+  - [x] 13.1 알림 컴포넌트
+    - 헤더에 알림 아이콘 및 읽지 않은 수 표시
+    - 알림 드롭다운 목록
+    - 읽음 처리 기능
+    - _Requirements: 6.1, 6.2, 6.3, 6.5_
+  - [x] 13.2 공지사항 표시 컴포넌트
+    - 활성 공지사항 배너/모달
+    - 중요 공지 강조 표시
+    - _Requirements: 4.4_
+  - [x] 13.3 기존 견적서/고객 컴포넌트 API 연동
+    - 로컬 스토리지 → API 호출로 변경
+    - 데이터 동기화 로직
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+- [x] 14. Checkpoint - 전체 시스템 통합 검증
+
+  - 프론트엔드-백엔드 통합 테스트
+  - 전체 사용자 플로우 확인
+  - 문제 발생 시 사용자에게 질문
+
+- [ ] 15. 백업 및 마무리
+
+  - [ ] 15.1 백업 서비스 구현
+    - 수동 백업 생성 API
+    - 백업 목록 조회
+    - _Requirements: 7.2, 7.4_
+  - [ ] 15.2 Backup API 라우트 구현
+    - GET /api/admin/backups
+    - POST /api/admin/backups
+    - _Requirements: 7.2, 7.4_
+  - [ ] 15.3 API 문서화 (Swagger/OpenAPI)
+    - 모든 엔드포인트 문서화
+    - 요청/응답 스키마 정의
+
+- [ ] 16. Final Checkpoint - 최종 검증
+  - 모든 테스트 통과 확인
+  - 보안 점검 (인증, 권한, Rate Limiting)
+  - 문제 발생 시 사용자에게 질문
+
+## Notes
+
+- 각 태스크는 특정 요구사항을 참조하여 추적 가능
+- Checkpoint에서 문제 발생 시 진행 전 해결 필요
+- Property test는 fast-check 라이브러리 사용
+- 프론트엔드 통합은 기존 Next.js 프로젝트에 추가

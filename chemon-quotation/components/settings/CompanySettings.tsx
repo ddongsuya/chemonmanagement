@@ -1,0 +1,303 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, Save, Upload, X, Building2, Phone, Globe } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+const DEFAULT_COMPANY = {
+  name: '주식회사 켐온',
+  name_en: 'CHEMON Inc.',
+  business_number: '123-45-67890',
+  ceo_name: '대표이사',
+  address: '경기도 수원시 영통구 광교로 156',
+  address_en: '156, Gwanggyo-ro, Yeongtong-gu, Suwon-si, Gyeonggi-do, Korea',
+  tel: '031-888-9900',
+  fax: '031-888-9901',
+  email: 'contact@chemon.co.kr',
+  website: 'www.chemon.co.kr',
+  logo: '',
+};
+
+export default function CompanySettings() {
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 회사 정보
+  const [company, setCompany] = useState(DEFAULT_COMPANY);
+
+  // localStorage에서 로드
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem('company_info');
+    if (saved) {
+      try {
+        setCompany(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse company info:', e);
+      }
+    }
+  }, []);
+
+  // 로고 업로드
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 1024 * 1024) {
+        toast({
+          title: '파일 크기 초과',
+          description: '로고 이미지는 1MB 이하로 업로드해주세요.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setCompany({ ...company, logo: event.target?.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // 로고 삭제
+  const handleRemoveLogo = () => {
+    setCompany({ ...company, logo: '' });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // 저장
+  const handleSave = async () => {
+    setSaving(true);
+    localStorage.setItem('company_info', JSON.stringify(company));
+    await new Promise((r) => setTimeout(r, 1000));
+    setSaving(false);
+    toast({
+      title: '저장 완료',
+      description: '회사 정보가 업데이트되었습니다.',
+    });
+  };
+
+  if (!mounted) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* 기본 정보 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="w-5 h-5" />
+            회사 기본 정보
+          </CardTitle>
+          <CardDescription>견적서에 표시될 회사 정보입니다</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>
+                회사명 (국문) <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                value={company.name}
+                onChange={(e) =>
+                  setCompany({ ...company, name: e.target.value })
+                }
+                placeholder="주식회사 켐온"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>회사명 (영문)</Label>
+              <Input
+                value={company.name_en}
+                onChange={(e) =>
+                  setCompany({ ...company, name_en: e.target.value })
+                }
+                placeholder="CHEMON Inc."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>사업자등록번호</Label>
+              <Input
+                value={company.business_number}
+                onChange={(e) =>
+                  setCompany({ ...company, business_number: e.target.value })
+                }
+                placeholder="000-00-00000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>대표자명</Label>
+              <Input
+                value={company.ceo_name}
+                onChange={(e) =>
+                  setCompany({ ...company, ceo_name: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>주소 (국문)</Label>
+            <Textarea
+              value={company.address}
+              onChange={(e) =>
+                setCompany({ ...company, address: e.target.value })
+              }
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>주소 (영문)</Label>
+            <Textarea
+              value={company.address_en}
+              onChange={(e) =>
+                setCompany({ ...company, address_en: e.target.value })
+              }
+              rows={2}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 연락처 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Phone className="w-5 h-5" />
+            연락처 정보
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>전화번호</Label>
+              <Input
+                value={company.tel}
+                onChange={(e) =>
+                  setCompany({ ...company, tel: e.target.value })
+                }
+                placeholder="031-000-0000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>팩스번호</Label>
+              <Input
+                value={company.fax}
+                onChange={(e) =>
+                  setCompany({ ...company, fax: e.target.value })
+                }
+                placeholder="031-000-0000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>이메일</Label>
+              <Input
+                type="email"
+                value={company.email}
+                onChange={(e) =>
+                  setCompany({ ...company, email: e.target.value })
+                }
+                placeholder="contact@chemon.co.kr"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>웹사이트</Label>
+              <Input
+                value={company.website}
+                onChange={(e) =>
+                  setCompany({ ...company, website: e.target.value })
+                }
+                placeholder="www.chemon.co.kr"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 로고 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="w-5 h-5" />
+            회사 로고
+          </CardTitle>
+          <CardDescription>
+            견적서 상단에 표시될 로고 이미지 (권장: 200x60px, 최대 1MB)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row items-start gap-6">
+            {/* 로고 미리보기 */}
+            <div className="w-48 h-16 border rounded-lg flex items-center justify-center bg-gray-50">
+              {company.logo ? (
+                <img
+                  src={company.logo}
+                  alt="Company Logo"
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <span className="text-gray-400 text-sm">로고 없음</span>
+              )}
+            </div>
+
+            {/* 업로드 버튼 */}
+            <div className="space-y-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  업로드
+                </Button>
+                {company.logo && (
+                  <Button variant="outline" onClick={handleRemoveLogo}>
+                    <X className="w-4 h-4 mr-2" />
+                    삭제
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500">PNG, JPG, SVG 형식 지원</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 저장 버튼 */}
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={saving} size="lg">
+          {saving ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4 mr-2" />
+          )}
+          회사정보 저장
+        </Button>
+      </div>
+    </div>
+  );
+}

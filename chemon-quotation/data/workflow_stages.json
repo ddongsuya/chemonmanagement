@@ -1,0 +1,228 @@
+{
+  "version": "1.0",
+  "created_date": "2024-12-11",
+  "description": "CHEMON 비임상 시험 워크플로우 단계 및 카테고리 정의",
+  "workflow_stages": [
+    {
+      "stage_id": "CHAR",
+      "stage_name": "특성분석",
+      "stage_name_en": "Characterization",
+      "order": 1,
+      "description": "제품 특성 분석 및 사전 평가",
+      "applicable_modalities": ["CELL", "GENE", "MICRO", "ADV"]
+    },
+    {
+      "stage_id": "SINGLE",
+      "stage_name": "단회투여독성",
+      "stage_name_en": "Single-dose Toxicity",
+      "order": 2,
+      "description": "급성 독성, 표적장기, 안전 범위 파악"
+    },
+    {
+      "stage_id": "DRF",
+      "stage_name": "용량설정",
+      "stage_name_en": "Dose Range Finding",
+      "order": 3,
+      "description": "본시험 용량(저/중/고) 설정을 위한 탐색"
+    },
+    {
+      "stage_id": "REPEAT",
+      "stage_name": "반복투여독성",
+      "stage_name_en": "Repeat-dose Toxicity",
+      "order": 4,
+      "description": "NOAEL, 표적장기 확립 (핵심 시험)"
+    },
+    {
+      "stage_id": "GENETIC",
+      "stage_name": "유전독성",
+      "stage_name_en": "Genetic Toxicity",
+      "order": 5,
+      "description": "유전자 손상 평가"
+    },
+    {
+      "stage_id": "SAFETY_PHARM",
+      "stage_name": "안전성약리",
+      "stage_name_en": "Safety Pharmacology",
+      "order": 6,
+      "description": "심혈관, CNS, 호흡기 기능 평가"
+    },
+    {
+      "stage_id": "REPRO",
+      "stage_name": "생식독성",
+      "stage_name_en": "Reproductive Toxicity",
+      "order": 7,
+      "description": "수태능, 배태자발생, 출생전후 평가"
+    },
+    {
+      "stage_id": "CARC",
+      "stage_name": "발암성",
+      "stage_name_en": "Carcinogenicity",
+      "order": 8,
+      "description": "장기 발암 위험 평가"
+    },
+    {
+      "stage_id": "BIODIST",
+      "stage_name": "생체분포",
+      "stage_name_en": "Biodistribution",
+      "order": 9,
+      "description": "체내 분포, 정착, 지속성 평가",
+      "applicable_modalities": ["CELL", "GENE", "OLIGO", "RADIO", "ADV"]
+    },
+    {
+      "stage_id": "IMMUNO",
+      "stage_name": "면역원성",
+      "stage_name_en": "Immunogenicity",
+      "order": 10,
+      "description": "ADA, NAb 평가",
+      "applicable_modalities": ["BIO", "CELL", "GENE"]
+    },
+    {
+      "stage_id": "TUMOR",
+      "stage_name": "종양원성",
+      "stage_name_en": "Tumorigenicity",
+      "order": 11,
+      "description": "종양 형성 위험 평가",
+      "applicable_modalities": ["CELL", "GENE"]
+    },
+    {
+      "stage_id": "SHEDDING",
+      "stage_name": "바이러스배출",
+      "stage_name_en": "Viral Shedding",
+      "order": 12,
+      "description": "체외 바이러스 배출 평가",
+      "applicable_modalities": ["GENE", "ADV"]
+    },
+    {
+      "stage_id": "LOCAL",
+      "stage_name": "국소독성",
+      "stage_name_en": "Local Toxicity",
+      "order": 13,
+      "description": "투여부위 국소 반응 평가"
+    },
+    {
+      "stage_id": "SPECIAL",
+      "stage_name": "특수독성",
+      "stage_name_en": "Special Toxicity",
+      "order": 14,
+      "description": "광독성, 면역독성, 의존성 등"
+    },
+    {
+      "stage_id": "PK",
+      "stage_name": "약동학",
+      "stage_name_en": "Pharmacokinetics",
+      "order": 15,
+      "description": "흡수, 분포, 대사, 배설 평가"
+    },
+    {
+      "stage_id": "BIOCOMPAT",
+      "stage_name": "생체적합성",
+      "stage_name_en": "Biocompatibility",
+      "order": 16,
+      "description": "의료기기 생체적합성 평가 (ISO 10993)",
+      "applicable_modalities": ["DEVICE"]
+    }
+  ],
+  "test_categories": [
+    {
+      "category_id": "TOX",
+      "category_name": "독성시험",
+      "category_name_en": "Toxicology",
+      "subcategories": [
+        { "subcategory_id": "TOX-SINGLE", "subcategory_name": "단회투여독성", "subcategory_name_en": "Single-dose Toxicity" },
+        { "subcategory_id": "TOX-DRF", "subcategory_name": "용량설정시험", "subcategory_name_en": "Dose Range Finding" },
+        { "subcategory_id": "TOX-REPEAT", "subcategory_name": "반복투여독성", "subcategory_name_en": "Repeat-dose Toxicity" },
+        { "subcategory_id": "TOX-GENETIC", "subcategory_name": "유전독성", "subcategory_name_en": "Genetic Toxicity" },
+        { "subcategory_id": "TOX-REPRO", "subcategory_name": "생식독성", "subcategory_name_en": "Reproductive Toxicity" },
+        { "subcategory_id": "TOX-CARC", "subcategory_name": "발암성", "subcategory_name_en": "Carcinogenicity" },
+        { "subcategory_id": "TOX-LOCAL", "subcategory_name": "국소독성", "subcategory_name_en": "Local Toxicity" },
+        { "subcategory_id": "TOX-IMMUNO", "subcategory_name": "면역독성", "subcategory_name_en": "Immunotoxicity" },
+        { "subcategory_id": "TOX-PHOTO", "subcategory_name": "광독성", "subcategory_name_en": "Phototoxicity" },
+        { "subcategory_id": "TOX-DEPEND", "subcategory_name": "의존성", "subcategory_name_en": "Dependence" }
+      ]
+    },
+    {
+      "category_id": "PHARM",
+      "category_name": "약리시험",
+      "category_name_en": "Pharmacology",
+      "subcategories": [
+        { "subcategory_id": "PHARM-SAFETY", "subcategory_name": "안전성약리", "subcategory_name_en": "Safety Pharmacology" },
+        { "subcategory_id": "PHARM-CV", "subcategory_name": "심혈관계", "subcategory_name_en": "Cardiovascular" },
+        { "subcategory_id": "PHARM-CNS", "subcategory_name": "중추신경계", "subcategory_name_en": "Central Nervous System" },
+        { "subcategory_id": "PHARM-RESP", "subcategory_name": "호흡기계", "subcategory_name_en": "Respiratory" }
+      ]
+    },
+    {
+      "category_id": "PK",
+      "category_name": "약동학",
+      "category_name_en": "Pharmacokinetics",
+      "subcategories": [
+        { "subcategory_id": "PK-SINGLE", "subcategory_name": "단회PK", "subcategory_name_en": "Single-dose PK" },
+        { "subcategory_id": "PK-REPEAT", "subcategory_name": "반복PK", "subcategory_name_en": "Repeat-dose PK" },
+        { "subcategory_id": "PK-TK", "subcategory_name": "독성동태", "subcategory_name_en": "Toxicokinetics" },
+        { "subcategory_id": "PK-DIST", "subcategory_name": "조직분포", "subcategory_name_en": "Tissue Distribution" },
+        { "subcategory_id": "PK-META", "subcategory_name": "대사", "subcategory_name_en": "Metabolism" },
+        { "subcategory_id": "PK-EXCR", "subcategory_name": "배설", "subcategory_name_en": "Excretion" }
+      ]
+    },
+    {
+      "category_id": "IMMUNO",
+      "category_name": "면역원성",
+      "category_name_en": "Immunogenicity",
+      "subcategories": [
+        { "subcategory_id": "IMMUNO-ADA", "subcategory_name": "ADA", "subcategory_name_en": "Anti-Drug Antibody" },
+        { "subcategory_id": "IMMUNO-NAB", "subcategory_name": "NAb", "subcategory_name_en": "Neutralizing Antibody" },
+        { "subcategory_id": "IMMUNO-TCR", "subcategory_name": "조직교차반응", "subcategory_name_en": "Tissue Cross-Reactivity" }
+      ]
+    },
+    {
+      "category_id": "SPECIAL",
+      "category_name": "특수시험",
+      "category_name_en": "Special Studies",
+      "subcategories": [
+        { "subcategory_id": "SPECIAL-BIODIST", "subcategory_name": "생체분포", "subcategory_name_en": "Biodistribution" },
+        { "subcategory_id": "SPECIAL-TUMOR", "subcategory_name": "종양원성", "subcategory_name_en": "Tumorigenicity" },
+        { "subcategory_id": "SPECIAL-SHED", "subcategory_name": "바이러스배출", "subcategory_name_en": "Viral Shedding" },
+        { "subcategory_id": "SPECIAL-INSERT", "subcategory_name": "삽입돌연변이", "subcategory_name_en": "Insertional Mutagenesis" },
+        { "subcategory_id": "SPECIAL-OFFTARGET", "subcategory_name": "Off-target분석", "subcategory_name_en": "Off-target Analysis" },
+        { "subcategory_id": "SPECIAL-GERMLINE", "subcategory_name": "생식세포전달", "subcategory_name_en": "Germline Transmission" },
+        { "subcategory_id": "SPECIAL-DOSIMETRY", "subcategory_name": "선량측정", "subcategory_name_en": "Dosimetry" }
+      ]
+    },
+    {
+      "category_id": "BIOCOMPAT",
+      "category_name": "생체적합성",
+      "category_name_en": "Biocompatibility",
+      "subcategories": [
+        { "subcategory_id": "BIOCOMPAT-CYTO", "subcategory_name": "세포독성", "subcategory_name_en": "Cytotoxicity" },
+        { "subcategory_id": "BIOCOMPAT-SENS", "subcategory_name": "감작성", "subcategory_name_en": "Sensitization" },
+        { "subcategory_id": "BIOCOMPAT-IRRI", "subcategory_name": "자극성", "subcategory_name_en": "Irritation" },
+        { "subcategory_id": "BIOCOMPAT-SYST", "subcategory_name": "전신독성", "subcategory_name_en": "Systemic Toxicity" },
+        { "subcategory_id": "BIOCOMPAT-IMPL", "subcategory_name": "이식시험", "subcategory_name_en": "Implantation" },
+        { "subcategory_id": "BIOCOMPAT-HEMO", "subcategory_name": "혈액적합성", "subcategory_name_en": "Hemocompatibility" },
+        { "subcategory_id": "BIOCOMPAT-GENO", "subcategory_name": "유전독성", "subcategory_name_en": "Genotoxicity" }
+      ]
+    },
+    {
+      "category_id": "ANALYSIS",
+      "category_name": "분석시험",
+      "category_name_en": "Analytical Studies",
+      "subcategories": [
+        { "subcategory_id": "ANALYSIS-FORM", "subcategory_name": "조제물분석", "subcategory_name_en": "Formulation Analysis" },
+        { "subcategory_id": "ANALYSIS-BIO", "subcategory_name": "바이오분석", "subcategory_name_en": "Bioanalysis" }
+      ]
+    }
+  ],
+  "required_levels": [
+    { "level_id": "REQUIRED", "level_name": "필수", "level_name_en": "Required" },
+    { "level_id": "RECOMMENDED", "level_name": "권장", "level_name_en": "Recommended" },
+    { "level_id": "OPTIONAL", "level_name": "선택", "level_name_en": "Optional" },
+    { "level_id": "CONDITIONAL", "level_name": "조건부", "level_name_en": "Conditional" },
+    { "level_id": "EXEMPT", "level_name": "면제", "level_name_en": "Exempt" }
+  ],
+  "clinical_phases": [
+    { "phase_id": "PHASE1", "phase_name": "Phase 1", "description": "First-in-human" },
+    { "phase_id": "PHASE2", "phase_name": "Phase 2", "description": "Proof of concept" },
+    { "phase_id": "PHASE3", "phase_name": "Phase 3", "description": "Pivotal" },
+    { "phase_id": "NDA", "phase_name": "NDA/BLA", "description": "Registration" }
+  ]
+}

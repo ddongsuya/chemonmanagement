@@ -1,0 +1,36 @@
+{
+  "test_type_class": {
+    "repeat_dose": "반복투여독성",
+    "genotox": "유전독성",
+    "repro": "생식독성",
+    "safety_pharm": "안전성약리",
+    "local_tox": "국소독성",
+    "immuno": "항원성/면역독성",
+    "photo": "광독성",
+    "carcino": "발암성",
+    "analysis": "조제물분석"
+  },
+  "animal_class": {
+    "rodent": "설치류",
+    "non_rodent": "비설치류",
+    "rabbit": "토끼",
+    "primate": "영장류",
+    "in_vitro": "In vitro",
+    "other": "기타"
+  },
+  "route_class": {
+    "oral": "경구",
+    "iv": "정맥",
+    "sc": "피하",
+    "im": "근육",
+    "dermal": "경피",
+    "inhalation": "흡입",
+    "other": "기타"
+  },
+  "safety_pharm_class": {
+    "cns": "중추신경계 (CNS)",
+    "cv": "심혈관계 (hERG/Telemetry)",
+    "resp": "호흡기계",
+    "general": "일반"
+  }
+}

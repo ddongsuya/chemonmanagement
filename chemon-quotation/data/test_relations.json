@@ -1,0 +1,801 @@
+{
+  "CN-01-005": [
+    {
+      "option_id": "CN-01-006",
+      "option_type": "회복시험(2주)"
+    },
+    {
+      "option_id": "CN-01-007",
+      "option_type": "TK(6pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-008",
+      "option_type": "TK(8pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-009",
+      "option_type": "TK(6pt,채혈만)"
+    },
+    {
+      "option_id": "CN-01-010",
+      "option_type": "TK(8pt,채혈만)"
+    }
+  ],
+  "CN-01-011": [
+    {
+      "option_id": "CN-01-012",
+      "option_type": "회복시험(2주)"
+    },
+    {
+      "option_id": "CN-01-013",
+      "option_type": "TK(6pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-014",
+      "option_type": "TK(8pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-015",
+      "option_type": "TK(6pt,채혈만)"
+    },
+    {
+      "option_id": "CN-01-016",
+      "option_type": "TK(8pt,채혈만)"
+    }
+  ],
+  "CN-01-017": [
+    {
+      "option_id": "CN-01-018",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-019",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-020",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-021",
+      "option_type": "TK(6pt,2회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-022",
+      "option_type": "TK(8pt,2회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-023",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-024",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-025",
+      "option_type": "TK(6pt,3회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-026",
+      "option_type": "TK(8pt,3회,채혈만)"
+    }
+  ],
+  "CN-01-027": [
+    {
+      "option_id": "CN-01-028",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-029",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-030",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-031",
+      "option_type": "TK(6pt,2회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-032",
+      "option_type": "TK(8pt,2회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-033",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-034",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-035",
+      "option_type": "TK(6pt,3회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-036",
+      "option_type": "TK(8pt,3회,채혈만)"
+    }
+  ],
+  "CN-01-044": [
+    {
+      "option_id": "CN-01-045",
+      "option_type": "회복시험(2주)"
+    },
+    {
+      "option_id": "CN-01-046",
+      "option_type": "TK(6pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-047",
+      "option_type": "TK(8pt,채혈+분석)"
+    }
+  ],
+  "CN-01-048": [
+    {
+      "option_id": "CN-01-049",
+      "option_type": "회복시험(2주)"
+    },
+    {
+      "option_id": "CN-01-050",
+      "option_type": "TK(252pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-051",
+      "option_type": "TK(8pt,채혈+분석)"
+    }
+  ],
+  "CN-01-052": [
+    {
+      "option_id": "CN-01-053",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-054",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-055",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-056",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-057",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-058": [
+    {
+      "option_id": "CN-01-059",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-060",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-061",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-062",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-063",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-064": [
+    {
+      "option_id": "CN-01-065",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-066",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-067",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-068",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-069",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-081": [
+    {
+      "option_id": "CN-01-082",
+      "option_type": "TK(배태자)"
+    },
+    {
+      "option_id": "CN-01-083",
+      "option_type": "TK(태반이행)"
+    },
+    {
+      "option_id": "CN-01-085",
+      "option_type": "TK(배태자)"
+    }
+  ],
+  "CN-01-098": [],
+  "CN-01-101": [],
+  "CN-01-102": [],
+  "CN-01-104": [
+    {
+      "option_id": "CN-01-105",
+      "option_type": "TK(6pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-106",
+      "option_type": "TK(8pt,채혈+분석)"
+    }
+  ],
+  "CN-01-107": [
+    {
+      "option_id": "CN-01-108",
+      "option_type": "TK(6pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-109",
+      "option_type": "TK(8pt,채혈+분석)"
+    }
+  ],
+  "CN-01-110": [
+    {
+      "option_id": "CN-01-111",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-112",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-113",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-114",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-115": [
+    {
+      "option_id": "CN-01-116",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-117",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-118",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-119",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-120": [
+    {
+      "option_id": "CN-01-121",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-122",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-123",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-124",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-130": [
+    {
+      "option_id": "CN-01-131",
+      "option_type": "회복시험(2주)"
+    },
+    {
+      "option_id": "CN-01-132",
+      "option_type": "TK(6pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-133",
+      "option_type": "TK(8pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-134",
+      "option_type": "TK(6pt,채혈만)"
+    },
+    {
+      "option_id": "CN-01-135",
+      "option_type": "TK(8pt,채혈만)"
+    }
+  ],
+  "CN-01-136": [
+    {
+      "option_id": "CN-01-137",
+      "option_type": "회복시험(2주)"
+    },
+    {
+      "option_id": "CN-01-138",
+      "option_type": "TK(6pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-139",
+      "option_type": "TK(8pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-140",
+      "option_type": "TK(6pt,채혈만)"
+    },
+    {
+      "option_id": "CN-01-141",
+      "option_type": "TK(8pt,채혈만)"
+    }
+  ],
+  "CN-01-142": [
+    {
+      "option_id": "CN-01-143",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-144",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-145",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-146",
+      "option_type": "TK(6pt,2회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-147",
+      "option_type": "TK(8pt,2회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-148",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-149",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-150",
+      "option_type": "TK(6pt,3회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-151",
+      "option_type": "TK(8pt,3회,채혈만)"
+    }
+  ],
+  "CN-01-152": [
+    {
+      "option_id": "CN-01-153",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-154",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-155",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-156",
+      "option_type": "TK(6pt,2회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-157",
+      "option_type": "TK(8pt,2회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-158",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-159",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-160",
+      "option_type": "TK(6pt,3회,채혈만)"
+    },
+    {
+      "option_id": "CN-01-161",
+      "option_type": "TK(8pt,3회,채혈만)"
+    }
+  ],
+  "CN-01-169": [
+    {
+      "option_id": "CN-01-170",
+      "option_type": "회복시험(2주)"
+    },
+    {
+      "option_id": "CN-01-171",
+      "option_type": "TK(6pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-172",
+      "option_type": "TK(8pt,채혈+분석)"
+    }
+  ],
+  "CN-01-173": [
+    {
+      "option_id": "CN-01-174",
+      "option_type": "회복시험(2주)"
+    },
+    {
+      "option_id": "CN-01-175",
+      "option_type": "TK(252pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-176",
+      "option_type": "TK(8pt,채혈+분석)"
+    }
+  ],
+  "CN-01-177": [
+    {
+      "option_id": "CN-01-178",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-179",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-180",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-181",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-182",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-183": [
+    {
+      "option_id": "CN-01-184",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-185",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-186",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-187",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-188",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-189": [
+    {
+      "option_id": "CN-01-190",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-191",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-192",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-193",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-194",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-206": [
+    {
+      "option_id": "CN-01-207",
+      "option_type": "TK(배태자)"
+    },
+    {
+      "option_id": "CN-01-208",
+      "option_type": "TK(태반이행)"
+    },
+    {
+      "option_id": "CN-01-210",
+      "option_type": "TK(배태자)"
+    }
+  ],
+  "CN-01-223": [],
+  "CN-01-226": [],
+  "CN-01-227": [],
+  "CN-01-229": [
+    {
+      "option_id": "CN-01-230",
+      "option_type": "TK(6pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-231",
+      "option_type": "TK(8pt,채혈+분석)"
+    }
+  ],
+  "CN-01-232": [
+    {
+      "option_id": "CN-01-233",
+      "option_type": "TK(6pt,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-234",
+      "option_type": "TK(8pt,채혈+분석)"
+    }
+  ],
+  "CN-01-235": [
+    {
+      "option_id": "CN-01-236",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-237",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-238",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-239",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-240": [
+    {
+      "option_id": "CN-01-241",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-242",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-243",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-244",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-245": [
+    {
+      "option_id": "CN-01-246",
+      "option_type": "TK(6pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-247",
+      "option_type": "TK(8pt,2회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-248",
+      "option_type": "TK(6pt,3회,채혈+분석)"
+    },
+    {
+      "option_id": "CN-01-249",
+      "option_type": "TK(8pt,3회,채혈+분석)"
+    }
+  ],
+  "CN-01-254": [
+    {
+      "option_id": "CN-01-255",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-256",
+      "option_type": "TK(396pt,채혈+분석)"
+    }
+  ],
+  "CN-01-260": [
+    {
+      "option_id": "CN-01-261",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-262",
+      "option_type": "TK(396pt,채혈+분석)"
+    }
+  ],
+  "CN-01-266": [
+    {
+      "option_id": "CN-01-267",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-268",
+      "option_type": "TK(516pt,채혈+분석)"
+    }
+  ],
+  "CN-01-272": [
+    {
+      "option_id": "CN-01-273",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-274",
+      "option_type": "TK(516pt,채혈+분석)"
+    }
+  ],
+  "CN-01-278": [
+    {
+      "option_id": "CN-01-279",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-280",
+      "option_type": "TK(468pt,채혈+분석)"
+    }
+  ],
+  "CN-01-284": [
+    {
+      "option_id": "CN-01-285",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-286",
+      "option_type": "TK(468pt,채혈+분석)"
+    }
+  ],
+  "CN-01-290": [
+    {
+      "option_id": "CN-01-291",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-292",
+      "option_type": "TK(612pt,채혈+분석)"
+    }
+  ],
+  "CN-01-296": [
+    {
+      "option_id": "CN-01-297",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-298",
+      "option_type": "TK(612pt,채혈+분석)"
+    }
+  ],
+  "CN-01-302": [
+    {
+      "option_id": "CN-01-303",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-304",
+      "option_type": "TK(540pt,채혈+분석)"
+    }
+  ],
+  "CN-01-308": [
+    {
+      "option_id": "CN-01-309",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-310",
+      "option_type": "TK(540pt,채혈+분석)"
+    }
+  ],
+  "CN-01-314": [
+    {
+      "option_id": "CN-01-315",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-316",
+      "option_type": "TK(708pt,채혈+분석)"
+    }
+  ],
+  "CN-01-320": [
+    {
+      "option_id": "CN-01-321",
+      "option_type": "회복시험(4주)"
+    },
+    {
+      "option_id": "CN-01-322",
+      "option_type": "TK(708pt,채혈+분석)"
+    }
+  ],
+  "CN-01-327": [
+    {
+      "option_id": "CN-01-328",
+      "option_type": "회복시험(4주)"
+    }
+  ],
+  "CN-01-336": [
+    {
+      "option_id": "CN-01-337",
+      "option_type": "회복시험(4주)"
+    }
+  ],
+  "CN-01-341": [
+    {
+      "option_id": "CN-01-342",
+      "option_type": "회복시험(?주)"
+    }
+  ],
+  "CN-01-360": [
+    {
+      "option_id": "CN-10-003",
+      "option_type": "회복시험(?주)"
+    },
+    {
+      "option_id": "CN-10-007",
+      "option_type": "회복시험(?주)"
+    },
+    {
+      "option_id": "CN-10-034",
+      "option_type": "회복시험(?주)"
+    },
+    {
+      "option_id": "CN-10-038",
+      "option_type": "회복시험(?주)"
+    }
+  ],
+  "CN-01-375": [],
+  "CN-01-378": [],
+  "CN-01-381": [],
+  "CN-01-384": [],
+  "CN-04-003": [],
+  "CN-07-011": [],
+  "CN-07-015": [
+    {
+      "option_id": "CN-07-019",
+      "option_type": "회복시험(2주)"
+    }
+  ],
+  "CN-07-022": [],
+  "CN-07-026": [
+    {
+      "option_id": "CN-07-030",
+      "option_type": "회복시험(4주)"
+    }
+  ],
+  "CN-07-033": [],
+  "CN-07-038": [
+    {
+      "option_id": "CN-07-043",
+      "option_type": "회복시험(4주)"
+    }
+  ],
+  "CN-07-047": [],
+  "CN-07-052": [
+    {
+      "option_id": "CN-07-057",
+      "option_type": "회복시험(4주)"
+    }
+  ]
+}

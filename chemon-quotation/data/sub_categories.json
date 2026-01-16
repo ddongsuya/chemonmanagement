@@ -1,0 +1,65 @@
+[
+  {
+    "category_code": "CN-01",
+    "sub_category": "2군",
+    "modalities": [
+      "백신"
+    ]
+  },
+  {
+    "category_code": "CN-01",
+    "sub_category": "3군",
+    "modalities": [
+      "백신"
+    ]
+  },
+  {
+    "category_code": "CN-01",
+    "sub_category": "4군",
+    "modalities": [
+      "백신"
+    ]
+  },
+  {
+    "category_code": "CN-01",
+    "sub_category": "5군",
+    "modalities": [
+      "백신"
+    ]
+  },
+  {
+    "category_code": "CN-01",
+    "sub_category": "경구피하근육독성",
+    "modalities": [
+      "저분자화합물"
+    ]
+  },
+  {
+    "category_code": "CN-01",
+    "sub_category": "정맥경피독성",
+    "modalities": [
+      "저분자화합물"
+    ]
+  },
+  {
+    "category_code": "CN-07",
+    "sub_category": "토끼26주39주",
+    "modalities": [
+      "저분자화합물"
+    ]
+  },
+  {
+    "category_code": "CN-07",
+    "sub_category": "토끼4주13주",
+    "modalities": [
+      "저분자화합물"
+    ]
+  },
+  {
+    "category_code": "CN-10",
+    "sub_category": "일반",
+    "modalities": [
+      "문서/서비스"
+    ]
+  }
+]

@@ -1,0 +1,231 @@
+[
+  {
+    "package_id": "PKG-001",
+    "package_name": "IND 기본 패키지 (저분자)",
+    "modality": "저분자화합물",
+    "description": "FDA/식약처 IND 신청을 위한 기본 비임상시험 패키지",
+    "clinical_phase": "IND",
+    "tests": [
+      {
+        "test_id": "CN-01-001",
+        "category": "일반독성",
+        "name": "단회투여독성",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-004",
+        "category": "일반독성",
+        "name": "4주 DRF",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-017",
+        "category": "일반독성",
+        "name": "13주 반복독성",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-070",
+        "category": "유전독성",
+        "name": "복귀돌연변이",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-071",
+        "category": "유전독성",
+        "name": "염색체이상시험",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-072",
+        "category": "유전독성",
+        "name": "소핵시험",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-075",
+        "category": "안전성약리",
+        "name": "CNS",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-076",
+        "category": "안전성약리",
+        "name": "호흡기",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-077",
+        "category": "안전성약리",
+        "name": "hERG",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-079",
+        "category": "안전성약리",
+        "name": "Telemetry",
+        "required": true
+      }
+    ],
+    "optional_tests": [
+      {
+        "test_id": "CN-01-018",
+        "name": "13주 회복시험(4주)",
+        "parent": "CN-01-017"
+      },
+      {
+        "test_id": "CN-01-019",
+        "name": "13주 TK",
+        "parent": "CN-01-017"
+      }
+    ]
+  },
+  {
+    "package_id": "PKG-002",
+    "package_name": "NDA 패키지 (저분자)",
+    "modality": "저분자화합물",
+    "description": "FDA/식약처 NDA 신청을 위한 추가 비임상시험 패키지 (IND 완료 후)",
+    "clinical_phase": "NDA",
+    "tests": [
+      {
+        "test_id": "CN-01-027",
+        "category": "일반독성",
+        "name": "26주 만성독성",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-080",
+        "category": "생식독성",
+        "name": "수태능 및 초기배 발생",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-081",
+        "category": "생식독성",
+        "name": "배태자 발생 (Rat)",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-084",
+        "category": "생식독성",
+        "name": "배태자 발생 (Rabbit)",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-086",
+        "category": "생식독성",
+        "name": "출생전후 발생",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-087",
+        "category": "발암성",
+        "name": "발암성시험 (Rat)",
+        "required": false
+      }
+    ],
+    "optional_tests": []
+  },
+  {
+    "package_id": "PKG-003",
+    "package_name": "화장품 안전성 패키지",
+    "modality": "화장품",
+    "description": "화장품 안전성 평가를 위한 기본 패키지",
+    "clinical_phase": "해당분야별",
+    "tests": [
+      {
+        "test_id": "CN-01-348",
+        "category": "국소독성",
+        "name": "1차 피부자극시험",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-349",
+        "category": "국소독성",
+        "name": "안점막자극시험",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-350",
+        "category": "면역독성",
+        "name": "피부감작성시험",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-093",
+        "category": "광독성",
+        "name": "광독성시험 (3T3)",
+        "required": true
+      }
+    ],
+    "optional_tests": []
+  },
+  {
+    "package_id": "PKG-004",
+    "package_name": "건강기능식품 패키지",
+    "modality": "건강기능식품",
+    "description": "건강기능식품 안전성 평가 패키지",
+    "clinical_phase": "해당분야별",
+    "tests": [
+      {
+        "test_id": "CN-01-001",
+        "category": "일반독성",
+        "name": "단회투여독성",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-070",
+        "category": "유전독성",
+        "name": "복귀돌연변이",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-071",
+        "category": "유전독성",
+        "name": "염색체이상시험",
+        "required": true
+      },
+      {
+        "test_id": "CN-01-017",
+        "category": "일반독성",
+        "name": "13주 반복독성",
+        "required": false
+      }
+    ],
+    "optional_tests": []
+  },
+  {
+    "package_id": "PKG-005",
+    "package_name": "의료기기 생물학적 안전성 패키지",
+    "modality": "의료기기",
+    "description": "ISO 10993 기반 의료기기 생물학적 안전성 평가",
+    "clinical_phase": "해당분야별",
+    "tests": [
+      {
+        "test_id": "CN-08-001",
+        "category": "의료기기",
+        "name": "세포독성시험",
+        "required": true
+      },
+      {
+        "test_id": "CN-08-002",
+        "category": "의료기기",
+        "name": "감작성시험",
+        "required": true
+      },
+      {
+        "test_id": "CN-08-003",
+        "category": "의료기기",
+        "name": "자극시험",
+        "required": true
+      },
+      {
+        "test_id": "CN-08-004",
+        "category": "의료기기",
+        "name": "유전독성시험",
+        "required": true
+      }
+    ],
+    "optional_tests": []
+  }
+]
