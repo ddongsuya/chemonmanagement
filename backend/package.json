@@ -14,6 +14,9 @@
     "prisma:studio": "prisma studio",
     "seed:master": "ts-node prisma/seed-master-data.ts"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "keywords": [
     "express",
     "typescript",
