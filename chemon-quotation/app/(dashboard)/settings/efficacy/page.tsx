@@ -441,10 +441,6 @@ export default function EfficacySettingsPage() {
                             {model.description}
                           </p>
                         )}
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">기본 아이템: </span>
-                          <span className="font-medium">{model.default_items?.length || 0}개</span>
-                        </div>
                         <div className="flex justify-end gap-1 pt-2">
                           <Button
                             variant="ghost"
@@ -658,8 +654,6 @@ function ModelDialog({
         category: '',
         indication: '',
         description: '',
-        default_items: [],
-        optional_items: [],
         is_active: true,
       });
     }
