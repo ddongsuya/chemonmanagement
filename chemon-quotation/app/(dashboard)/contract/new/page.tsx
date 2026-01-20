@@ -13,11 +13,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuotationStore } from '@/stores/quotationStore';
 import { ContractData, ContractFormData, QuotationItem } from '@/lib/contract/types';
 import { numberToKorean, formatDateKorean, calculateWeeks } from '@/lib/contract/number-to-korean';
-import { getQuotationById, SavedQuotation } from '@/lib/quotation-storage';
-import { getEfficacyQuotationById } from '@/lib/efficacy-storage';
+import { getQuotationById } from '@/lib/data-api';
+import { efficacyQuotationApi } from '@/lib/efficacy-api';
 import { SavedEfficacyQuotation } from '@/types/efficacy';
 import { ArrowLeft, FileText, Check, Eye, Edit, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+
+// SavedQuotation 타입 정의
+interface SavedQuotation {
+  id: string;
+  quotation_number: string;
+  customer_name: string;
+  project_name: string;
+  items: Array<{
+    test_name: string;
+    species?: string;
+    duration?: string;
+    route?: string;
+    unit_price: number;
+    quantity: number;
+    total_price: number;
+  }>;
+  total_amount: number;
+}
 
 function ContractNewContent() {
   const router = useRouter();
@@ -36,20 +54,44 @@ function ContractNewContent() {
 
   // 견적서 데이터 로드
   useEffect(() => {
-    if (quotationId) {
-      // localStorage에서 독성시험 견적 데이터 로드
-      const quotation = getQuotationById(quotationId);
-      if (quotation) {
-        setLoadedQuotation(quotation);
+    const loadData = async () => {
+      try {
+        if (quotationId) {
+          // API에서 독성시험 견적 데이터 로드
+          const response = await getQuotationById(quotationId);
+          if (response.success && response.data) {
+            const q = response.data;
+            setLoadedQuotation({
+              id: q.id,
+              quotation_number: q.quotationNumber,
+              customer_name: q.customerName,
+              project_name: q.projectName,
+              items: (q.items as any[]).map((item: any) => ({
+                test_name: item.testName || item.test_name,
+                species: item.species,
+                duration: item.duration,
+                route: item.route,
+                unit_price: item.unitPrice || item.unit_price,
+                quantity: item.quantity,
+                total_price: item.totalPrice || item.total_price,
+              })),
+              total_amount: Number(q.totalAmount),
+            });
+          }
+        } else if (efficacyQuotationId) {
+          // API에서 효력시험 견적 데이터 로드
+          const efficacyQuotation = await efficacyQuotationApi.getById(efficacyQuotationId);
+          if (efficacyQuotation) {
+            setLoadedEfficacyQuotation(efficacyQuotation);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load quotation:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } else if (efficacyQuotationId) {
-      // localStorage에서 효력시험 견적 데이터 로드
-      const efficacyQuotation = getEfficacyQuotationById(efficacyQuotationId);
-      if (efficacyQuotation) {
-        setLoadedEfficacyQuotation(efficacyQuotation);
-      }
-    }
-    setIsLoading(false);
+    };
+    loadData();
   }, [quotationId, efficacyQuotationId]);
 
   // 데이터 소스 결정 (로드된 견적 또는 store)
@@ -81,21 +123,21 @@ function ContractNewContent() {
     }));
     subtotal = loadedEfficacyQuotation.subtotal;
   } else if (hasLoadedData && loadedQuotation) {
-    // localStorage에서 로드된 독성시험 데이터 사용
+    // API에서 로드된 독성시험 데이터 사용
     quotationNo = loadedQuotation.quotation_number;
     customerName = loadedQuotation.customer_name;
     projectName = loadedQuotation.project_name;
     items = loadedQuotation.items.map((item, index) => ({
       no: index + 1,
-      testName: item.test.test_name.split('\n')[0],
-      species: item.test.animal_species || undefined,
-      duration: item.test.dosing_period || undefined,
-      route: item.test.route || undefined,
+      testName: item.test_name.split('\n')[0],
+      species: item.species || undefined,
+      duration: item.duration || undefined,
+      route: item.route || undefined,
       unitPrice: item.unit_price,
       quantity: item.quantity,
-      totalPrice: item.amount,
+      totalPrice: item.total_price,
     }));
-    subtotal = loadedQuotation.subtotal_test + loadedQuotation.subtotal_analysis;
+    subtotal = loadedQuotation.total_amount;
   } else if (hasStoreData) {
     // store에서 데이터 가져오기
     quotationNo = `QT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;

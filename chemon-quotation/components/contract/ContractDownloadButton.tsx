@@ -7,7 +7,7 @@ import { ContractData } from '@/lib/contract/types';
 import { saveAs } from 'file-saver';
 import { Download, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { saveContract, createSavedContractFromData } from '@/lib/contract-storage';
+import { contractApi, createSavedContractFromData } from '@/lib/contract-api';
 
 interface ContractDownloadButtonProps {
   data: ContractData;
@@ -33,13 +33,17 @@ export default function ContractDownloadButton({
       const fileName = `위탁연구계약서${data.contract.isDraft ? '(안)' : ''}_${data.customer.companyName}_${dateStr}.docx`;
       saveAs(blob, fileName);
       
-      // 계약서 정보 저장
-      const savedContract = createSavedContractFromData(data, quotationId);
-      saveContract(savedContract);
+      // 계약서 정보를 API로 저장
+      try {
+        const savedContract = createSavedContractFromData(data, quotationId);
+        await contractApi.create(savedContract);
+      } catch (saveError) {
+        console.warn('계약서 저장 실패 (다운로드는 완료됨):', saveError);
+      }
       
       toast({
         title: '다운로드 완료',
-        description: '계약서가 다운로드되고 저장되었습니다.',
+        description: '계약서가 다운로드되었습니다.',
       });
     } catch (error) {
       console.error('계약서 생성 실패:', error);

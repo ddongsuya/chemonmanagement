@@ -18,12 +18,8 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { Customer, ProgressStage } from '@/types/customer';
-import {
-  getProgressStageByCustomerId,
-  createProgressStage,
-  WorkflowStage,
-} from '@/lib/progress-stage-storage';
-import ProgressWorkflow from '../ProgressWorkflow';
+import { progressStageApi } from '@/lib/customer-data-api';
+import ProgressWorkflow, { WorkflowStage } from '../ProgressWorkflow';
 import WorkflowChecklist from '../WorkflowChecklist';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
@@ -43,17 +39,16 @@ export default function OverviewTab({
   const [progressStage, setProgressStage] = useState<ProgressStage | null>(null);
   const [selectedStage, setSelectedStage] = useState<WorkflowStage | undefined>();
 
-  // 진행 단계 로드
+  // 진행 단계 로드 - API 사용
   useEffect(() => {
-    const loadProgressStage = () => {
-      let stage = getProgressStageByCustomerId(customer.id);
-      
-      // 진행 단계가 없으면 새로 생성
-      if (!stage) {
-        stage = createProgressStage(customer.id);
+    const loadProgressStage = async () => {
+      try {
+        // API에서 진행 단계 조회 (없으면 자동 생성됨)
+        const stage = await progressStageApi.getByCustomerId(customer.id);
+        setProgressStage(stage);
+      } catch (error) {
+        console.error('Failed to load progress stage:', error);
       }
-      
-      setProgressStage(stage);
     };
 
     loadProgressStage();

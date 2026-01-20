@@ -9,3 +9,4 @@ export { default as pipelineRoutes } from './pipeline';
 export { default as contractRoutes } from './contracts';
 export { default as studyRoutes } from './studies';
 export { default as consultationRoutes } from './consultations';
+export { default as customerDataRoutes } from './customerData';

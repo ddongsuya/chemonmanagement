@@ -26,9 +26,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { MeetingRecord, TestReception, InvoiceSchedule } from '@/types/customer';
-import { getMeetingRecordsByCustomerId } from '@/lib/meeting-record-storage';
-import { getTestReceptionsByCustomerId } from '@/lib/test-reception-storage';
-import { getInvoiceSchedulesByCustomerId } from '@/lib/invoice-schedule-storage';
+import { meetingRecordApi, testReceptionApi, invoiceScheduleApi } from '@/lib/customer-data-api';
 import { getQuotations, Quotation } from '@/lib/data-api';
 import { formatDate, formatCurrency } from '@/lib/utils';
 
@@ -106,12 +104,19 @@ export default function TimelineTab({ customerId }: TimelineTabProps) {
 
   useEffect(() => {
     const loadData = async () => {
-      setMeetingRecords(getMeetingRecordsByCustomerId(customerId));
-      setTestReceptions(getTestReceptionsByCustomerId(customerId));
-      setInvoiceSchedules(getInvoiceSchedulesByCustomerId(customerId));
-      
-      // API에서 견적서 로드
       try {
+        // API에서 데이터 로드
+        const [meetings, tests, invoices] = await Promise.all([
+          meetingRecordApi.getByCustomerId(customerId),
+          testReceptionApi.getByCustomerId(customerId),
+          invoiceScheduleApi.getByCustomerId(customerId),
+        ]);
+        
+        setMeetingRecords(meetings);
+        setTestReceptions(tests);
+        setInvoiceSchedules(invoices);
+        
+        // API에서 견적서 로드
         const response = await getQuotations({ customerId, limit: 100 });
         if (response.success && response.data) {
           const mappedQuotations: LocalQuotation[] = response.data.data.map((q: Quotation) => ({
@@ -126,7 +131,7 @@ export default function TimelineTab({ customerId }: TimelineTabProps) {
           setQuotations(mappedQuotations);
         }
       } catch (error) {
-        console.error('Failed to load quotations:', error);
+        console.error('Failed to load timeline data:', error);
       }
     };
 

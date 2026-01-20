@@ -368,3 +368,78 @@ export async function deleteBackup(id: string): Promise<ApiResponse<void>> {
     method: 'DELETE',
   });
 }
+
+// ============ Sales Statistics APIs ============
+
+export interface SalesStats {
+  period: {
+    startDate: string;
+    endDate: string;
+  };
+  summary: {
+    totalQuotations: number;
+    totalContracts: number;
+    totalQuotationAmount: number;
+    totalContractAmount: number;
+    totalPaidAmount: number;
+    conversionRate: number;
+  };
+  quotationsByStatus: Record<string, number>;
+  contractsByStatus: Record<string, number>;
+  byUser: SalesUserStats[];
+  byMonth: SalesMonthStats[];
+}
+
+export interface SalesUserStats {
+  userId: string;
+  userName: string;
+  department: string | null;
+  quotationCount: number;
+  contractCount: number;
+  quotationAmount: number;
+  contractAmount: number;
+  conversionRate: number;
+}
+
+export interface SalesMonthStats {
+  month: string;
+  quotationCount: number;
+  contractCount: number;
+  quotationAmount: number;
+  contractAmount: number;
+}
+
+export interface SalesStatsFilters {
+  startDate: string;
+  endDate: string;
+  groupBy?: 'day' | 'month' | 'user' | 'modality';
+}
+
+export async function getSalesStats(
+  filters: SalesStatsFilters
+): Promise<ApiResponse<SalesStats>> {
+  const query = buildQueryString(filters);
+  return adminFetch<SalesStats>(`/api/admin/stats/sales?${query}`);
+}
+
+// ============ User Permissions APIs ============
+
+export interface UserPermissions {
+  canViewAllSales: boolean;
+}
+
+export interface AdminUserWithPermissions extends AdminUser {
+  canViewAllSales?: boolean;
+  department?: string;
+  position?: string;
+}
+
+export async function updateUserPermissions(
+  id: string,
+  permissions: UserPermissions
+): Promise<ApiResponse<AdminUserWithPermissions>> {
+  return adminFetch<AdminUserWithPermissions>(`/api/admin/users/${id}/permissions`, {
+    method: 'PATCH',
+    body: JSON.stringify(permissions),
+  });
+}

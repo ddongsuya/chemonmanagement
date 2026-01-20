@@ -10,6 +10,9 @@ import {
   ActivityLogFilters,
   ActivityLogResponse,
   CreateActivityLogDTO,
+  SalesStats,
+  SalesUserStats,
+  SalesMonthStats,
 } from '../types/admin';
 import { PaginatedResult } from '../types';
 
@@ -379,6 +382,176 @@ export class AdminService {
       startDate,
       endDate,
       data,
+    };
+  }
+
+  // ==================== Sales Statistics ====================
+
+  /**
+   * Get sales statistics (admin only - requires canViewAllSales permission)
+   */
+  async getSalesStats(
+    startDate: Date,
+    endDate: Date,
+    groupBy: 'day' | 'month' | 'user' | 'modality' = 'month'
+  ): Promise<SalesStats> {
+    // 전체 견적 통계
+    const quotations = await this.prisma.quotation.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+        deletedAt: null,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            department: true,
+          },
+        },
+      },
+    });
+
+    // 전체 계약 통계
+    const contracts = await this.prisma.contract.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+        deletedAt: null,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            department: true,
+          },
+        },
+      },
+    });
+
+    // 총계 계산
+    const totalQuotationAmount = quotations.reduce(
+      (sum, q) => sum + Number(q.totalAmount || 0),
+      0
+    );
+    const totalContractAmount = contracts.reduce(
+      (sum, c) => sum + Number(c.totalAmount || 0),
+      0
+    );
+    const totalPaidAmount = contracts.reduce(
+      (sum, c) => sum + Number(c.paidAmount || 0),
+      0
+    );
+
+    // 상태별 견적 수
+    const quotationsByStatus = quotations.reduce((acc, q) => {
+      acc[q.status] = (acc[q.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // 상태별 계약 수
+    const contractsByStatus = contracts.reduce((acc, c) => {
+      acc[c.status] = (acc[c.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // 사용자별 통계
+    const byUser: SalesUserStats[] = [];
+    const userMap = new Map<string, { name: string; department: string | null; quotations: number; contracts: number; quotationAmount: number; contractAmount: number }>();
+
+    quotations.forEach((q) => {
+      const existing = userMap.get(q.userId) || {
+        name: q.user.name,
+        department: q.user.department,
+        quotations: 0,
+        contracts: 0,
+        quotationAmount: 0,
+        contractAmount: 0,
+      };
+      existing.quotations += 1;
+      existing.quotationAmount += Number(q.totalAmount || 0);
+      userMap.set(q.userId, existing);
+    });
+
+    contracts.forEach((c) => {
+      const existing = userMap.get(c.userId) || {
+        name: c.user.name,
+        department: c.user.department,
+        quotations: 0,
+        contracts: 0,
+        quotationAmount: 0,
+        contractAmount: 0,
+      };
+      existing.contracts += 1;
+      existing.contractAmount += Number(c.totalAmount || 0);
+      userMap.set(c.userId, existing);
+    });
+
+    userMap.forEach((stats, userId) => {
+      byUser.push({
+        userId,
+        userName: stats.name,
+        department: stats.department,
+        quotationCount: stats.quotations,
+        contractCount: stats.contracts,
+        quotationAmount: stats.quotationAmount,
+        contractAmount: stats.contractAmount,
+        conversionRate: stats.quotations > 0 ? (stats.contracts / stats.quotations) * 100 : 0,
+      });
+    });
+
+    // 월별 통계
+    const byMonth: SalesMonthStats[] = [];
+    const monthMap = new Map<string, { quotations: number; contracts: number; quotationAmount: number; contractAmount: number }>();
+
+    quotations.forEach((q) => {
+      const month = q.createdAt.toISOString().slice(0, 7); // YYYY-MM
+      const existing = monthMap.get(month) || { quotations: 0, contracts: 0, quotationAmount: 0, contractAmount: 0 };
+      existing.quotations += 1;
+      existing.quotationAmount += Number(q.totalAmount || 0);
+      monthMap.set(month, existing);
+    });
+
+    contracts.forEach((c) => {
+      const month = c.createdAt.toISOString().slice(0, 7);
+      const existing = monthMap.get(month) || { quotations: 0, contracts: 0, quotationAmount: 0, contractAmount: 0 };
+      existing.contracts += 1;
+      existing.contractAmount += Number(c.totalAmount || 0);
+      monthMap.set(month, existing);
+    });
+
+    monthMap.forEach((stats, month) => {
+      byMonth.push({
+        month,
+        quotationCount: stats.quotations,
+        contractCount: stats.contracts,
+        quotationAmount: stats.quotationAmount,
+        contractAmount: stats.contractAmount,
+      });
+    });
+
+    byMonth.sort((a, b) => a.month.localeCompare(b.month));
+
+    return {
+      period: { startDate, endDate },
+      summary: {
+        totalQuotations: quotations.length,
+        totalContracts: contracts.length,
+        totalQuotationAmount,
+        totalContractAmount,
+        totalPaidAmount,
+        conversionRate: quotations.length > 0 ? (contracts.length / quotations.length) * 100 : 0,
+      },
+      quotationsByStatus,
+      contractsByStatus,
+      byUser: byUser.sort((a, b) => b.contractAmount - a.contractAmount),
+      byMonth,
     };
   }
 

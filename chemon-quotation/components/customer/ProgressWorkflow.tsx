@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,15 +22,53 @@ import {
   Settings,
   Wallet,
 } from 'lucide-react';
-import { ProgressStage } from '@/types/customer';
-import {
-  WORKFLOW_STAGES,
-  STAGE_LABELS,
-  WorkflowStage,
-  getStageIndex,
-  isStageChecklistComplete,
-} from '@/lib/progress-stage-storage';
+import { ProgressStage, ChecklistItem } from '@/types/customer';
 import { cn } from '@/lib/utils';
+
+// 7단계 워크플로우 정의 (API 전환 후에도 동일하게 사용)
+export const WORKFLOW_STAGES = [
+  'inquiry',           // 문의접수
+  'quotation_sent',    // 견적서 송부
+  'test_request',      // 시험 의뢰 요청
+  'contract_signed',   // 계약 체결
+  'test_reception',    // 시험접수
+  'test_management',   // 시험관리
+  'fund_management',   // 자금관리
+] as const;
+
+export type WorkflowStage = typeof WORKFLOW_STAGES[number];
+
+// 단계별 한글 라벨
+export const STAGE_LABELS: Record<WorkflowStage, string> = {
+  inquiry: '문의접수',
+  quotation_sent: '견적서 송부',
+  test_request: '시험 의뢰 요청',
+  contract_signed: '계약 체결',
+  test_reception: '시험접수',
+  test_management: '시험관리',
+  fund_management: '자금관리',
+};
+
+// 단계 인덱스 가져오기
+export function getStageIndex(stage: WorkflowStage): number {
+  return WORKFLOW_STAGES.indexOf(stage);
+}
+
+// 다음 단계 가져오기
+export function getNextStage(currentStage: WorkflowStage): WorkflowStage | null {
+  const currentIndex = WORKFLOW_STAGES.indexOf(currentStage);
+  if (currentIndex < 0 || currentIndex >= WORKFLOW_STAGES.length - 1) {
+    return null;
+  }
+  return WORKFLOW_STAGES[currentIndex + 1];
+}
+
+// 특정 단계의 체크리스트 완료 여부 확인
+export function isStageChecklistComplete(checklist: ChecklistItem[], stage: WorkflowStage): boolean {
+  const stageItems = checklist.filter(item => item.stage === stage);
+  if (stageItems.length === 0) return false;
+  return stageItems.every(item => item.is_completed);
+}
 
 interface ProgressWorkflowProps {
   progressStage: ProgressStage | null;
@@ -74,7 +112,7 @@ export default function ProgressWorkflow({
       const isCompleted = index < currentStageIndex;
       const isCurrent = index === currentStageIndex;
       const isUpcoming = index > currentStageIndex;
-      const checklistComplete = isStageChecklistComplete(progressStage.id, stage);
+      const checklistComplete = isStageChecklistComplete(progressStage.checklist || [], stage);
 
       return {
         isCompleted,

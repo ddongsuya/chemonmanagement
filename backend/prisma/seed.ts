@@ -3,11 +3,38 @@
 // 실행: npx prisma db seed
 
 import { PrismaClient, CustomerGrade } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
+const SALT_ROUNDS = 10;
 
 async function main() {
   console.log('🌱 Seeding database...');
+
+  // ==================== 0. 초기 관리자 계정 생성 ====================
+  console.log('👤 Creating admin user...');
+
+  const adminPassword = await bcrypt.hash('admin1234!', SALT_ROUNDS);
+  
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@chemon.co.kr' },
+    update: {},
+    create: {
+      email: 'admin@chemon.co.kr',
+      password: adminPassword,
+      name: '시스템관리자',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      department: 'SUPPORT',
+      position: '관리자',
+      canViewAllSales: true,
+    },
+  });
+
+  console.log(`✅ Admin user created: ${adminUser.email}`);
+  console.log('   📧 Email: admin@chemon.co.kr');
+  console.log('   🔑 Password: admin1234!');
+  console.log('   ⚠️  Please change the password after first login!');
 
   // ==================== 1. 파이프라인 단계 생성 ====================
   console.log('📋 Creating pipeline stages...');
@@ -251,14 +278,18 @@ async function main() {
   console.log('🎉 Seeding completed successfully!');
   console.log('');
   console.log('📊 Summary:');
+  console.log(`   - Admin User: admin@chemon.co.kr (password: admin1234!)`);
   console.log(`   - Pipeline Stages: ${stages.length}`);
   console.log(`   - Stage Tasks: ${createdTasks.count}`);
   console.log(`   - System Settings: ${settings.length}`);
   console.log('');
+  console.log('⚠️  IMPORTANT: Change the admin password after first login!');
+  console.log('');
   console.log('💡 Next steps:');
   console.log('   1. Run `npx prisma studio` to view the data');
-  console.log('   2. Start developing Lead Management features');
-  console.log('   3. Customize pipeline stages in Settings > 파이프라인 관리');
+  console.log('   2. Login with admin@chemon.co.kr / admin1234!');
+  console.log('   3. Change the admin password in Settings');
+  console.log('   4. Create additional users as needed');
 }
 
 main()

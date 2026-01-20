@@ -107,3 +107,50 @@ export interface CreateActivityLogDTO {
   ipAddress?: string;
   userAgent?: string;
 }
+
+// Sales Statistics Types
+export interface SalesStats {
+  period: {
+    startDate: Date;
+    endDate: Date;
+  };
+  summary: {
+    totalQuotations: number;
+    totalContracts: number;
+    totalQuotationAmount: number;
+    totalContractAmount: number;
+    totalPaidAmount: number;
+    conversionRate: number;
+  };
+  quotationsByStatus: Record<string, number>;
+  contractsByStatus: Record<string, number>;
+  byUser: SalesUserStats[];
+  byMonth: SalesMonthStats[];
+}
+
+export interface SalesUserStats {
+  userId: string;
+  userName: string;
+  department: string | null;
+  quotationCount: number;
+  contractCount: number;
+  quotationAmount: number;
+  contractAmount: number;
+  conversionRate: number;
+}
+
+export interface SalesMonthStats {
+  month: string;
+  quotationCount: number;
+  contractCount: number;
+  quotationAmount: number;
+  contractAmount: number;
+}
+
+export const salesStatsSchema = z.object({
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  groupBy: z.enum(['day', 'month', 'user', 'modality']).optional().default('month'),
+});
+
+export type SalesStatsParams = z.infer<typeof salesStatsSchema>;

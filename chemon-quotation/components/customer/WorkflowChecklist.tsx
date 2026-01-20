@@ -21,16 +21,17 @@ import {
   AlertTriangle,
   ListChecks,
   Clock,
+  Loader2,
 } from 'lucide-react';
 import { ProgressStage, ChecklistItem } from '@/types/customer';
+import { progressStageApi } from '@/lib/customer-data-api';
 import {
+  WORKFLOW_STAGES,
   STAGE_LABELS,
   WorkflowStage,
-  updateChecklist,
-  advanceToNextStage,
   getNextStage,
   isStageChecklistComplete,
-} from '@/lib/progress-stage-storage';
+} from './ProgressWorkflow';
 import { cn } from '@/lib/utils';
 
 interface WorkflowChecklistProps {
@@ -48,13 +49,14 @@ export default function WorkflowChecklist({
 }: WorkflowChecklistProps) {
   const [showForceAdvanceDialog, setShowForceAdvanceDialog] = useState(false);
   const [advanceWarning, setAdvanceWarning] = useState<string>('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // 표시할 단계 (선택된 단계 또는 현재 단계)
   const displayStage = selectedStage || progressStage.current_stage;
   const isCurrentStage = displayStage === progressStage.current_stage;
 
   // 해당 단계의 체크리스트 필터링
-  const stageChecklist = progressStage.checklist.filter(
+  const stageChecklist = (progressStage.checklist || []).filter(
     (item) => item.stage === displayStage
   );
 
@@ -66,41 +68,63 @@ export default function WorkflowChecklist({
   // 다음 단계 정보
   const nextStage = getNextStage(progressStage.current_stage);
 
-  // 체크리스트 항목 토글 - Requirements 4.3
-  const handleChecklistToggle = (item: ChecklistItem) => {
-    if (!isCurrentStage) return; // 현재 단계만 수정 가능
+  // 체크리스트 항목 토글 - API 사용
+  const handleChecklistToggle = async (item: ChecklistItem) => {
+    if (!isCurrentStage || isUpdating) return;
 
-    const updatedProgress = updateChecklist(
-      progressStage.id,
-      item.id,
-      !item.is_completed,
-      'current_user' // 실제로는 로그인된 사용자 정보 사용
-    );
-
-    if (updatedProgress) {
+    setIsUpdating(true);
+    try {
+      const updatedProgress = await progressStageApi.updateChecklist(
+        progressStage.id,
+        item.id,
+        !item.is_completed,
+        'current_user' // 실제로는 로그인된 사용자 정보 사용
+      );
       onUpdate?.(updatedProgress);
+    } catch (error) {
+      console.error('Failed to update checklist:', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
-  // 다음 단계로 진행 시도 - Requirements 4.4, 4.5
-  const handleAdvanceStage = () => {
-    const result = advanceToNextStage(progressStage.id, false);
+  // 다음 단계로 진행 시도 - API 사용
+  const handleAdvanceStage = async () => {
+    if (isUpdating) return;
 
-    if (result.success && result.progress) {
-      onUpdate?.(result.progress);
-    } else if (result.warning) {
-      setAdvanceWarning(result.warning);
+    const isComplete = isStageChecklistComplete(progressStage.checklist || [], progressStage.current_stage);
+    
+    if (!isComplete) {
+      setAdvanceWarning('현재 단계의 체크리스트가 완료되지 않았습니다. 강제 진행하시겠습니까?');
       setShowForceAdvanceDialog(true);
+      return;
+    }
+
+    await performAdvance();
+  };
+
+  // 실제 단계 전환 수행
+  const performAdvance = async (notes?: string) => {
+    if (!nextStage) return;
+
+    setIsUpdating(true);
+    try {
+      const updatedProgress = await progressStageApi.updateStage(
+        progressStage.id,
+        nextStage,
+        notes
+      );
+      onUpdate?.(updatedProgress);
+    } catch (error) {
+      console.error('Failed to advance stage:', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
-  // 강제 진행 - Requirements 4.5
-  const handleForceAdvance = () => {
-    const result = advanceToNextStage(progressStage.id, true);
-
-    if (result.success && result.progress) {
-      onUpdate?.(result.progress);
-    }
+  // 강제 진행
+  const handleForceAdvance = async () => {
+    await performAdvance('체크리스트 미완료 상태에서 강제 진행');
     setShowForceAdvanceDialog(false);
   };
 
@@ -162,7 +186,7 @@ export default function WorkflowChecklist({
                     id={item.id}
                     checked={item.is_completed}
                     onCheckedChange={() => handleChecklistToggle(item)}
-                    disabled={!isCurrentStage}
+                    disabled={!isCurrentStage || isUpdating}
                     className={cn(
                       'mt-0.5',
                       item.is_completed && 'data-[state=checked]:bg-green-500'
@@ -203,15 +227,21 @@ export default function WorkflowChecklist({
             </div>
           )}
 
-          {/* 다음 단계 진행 버튼 - Requirements 4.4 */}
+          {/* 다음 단계 진행 버튼 */}
           {isCurrentStage && nextStage && (
             <div className="mt-6 pt-4 border-t">
               <Button
                 onClick={handleAdvanceStage}
                 className="w-full"
                 variant={isAllComplete ? 'default' : 'outline'}
+                disabled={isUpdating}
               >
-                {isAllComplete ? (
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    처리 중...
+                  </>
+                ) : isAllComplete ? (
                   <>
                     <ChevronRight className="w-4 h-4 mr-2" />
                     다음 단계로 진행 ({STAGE_LABELS[nextStage]})

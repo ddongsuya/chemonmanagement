@@ -62,11 +62,10 @@ export default function StudiesPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const res = await getStudies({
+      const data = await getStudies({
         status: statusFilter !== 'all' ? statusFilter : undefined,
-        search: search || undefined,
       });
-      setStudies(res.data.studies);
+      setStudies(data);
     } catch (error) {
       toast({ title: '오류', description: '데이터를 불러오는데 실패했습니다.', variant: 'destructive' });
     } finally {
@@ -217,55 +216,64 @@ export default function StudiesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {studies.map((study) => (
-                  <TableRow
-                    key={study.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => router.push(`/contracts/${study.contractId}`)}
-                  >
-                    <TableCell className="font-medium">{study.studyNumber}</TableCell>
-                    <TableCell>{study.testName}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-muted-foreground" />
-                        {study.contract?.customer?.company || study.contract?.customer?.name || '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {study.studyType === 'TOXICITY' ? '독성' : '효력'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={statusColors[study.status]}>
-                        {statusLabels[study.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-blue-500 rounded-full transition-all"
-                            style={{ width: `${getProgress(study)}%` }}
-                          />
+                {studies.map((study) => {
+                  const studyNumber = (study as any).studyNumber || study.study_number || '';
+                  const testName = (study as any).testName || study.test_name || '';
+                  const studyType = (study as any).studyType || study.study_type || 'TOXICITY';
+                  const contractId = (study as any).contractId || study.contract_id || '';
+                  const startDate = (study as any).startDate || study.start_date;
+                  const expectedEndDate = (study as any).expectedEndDate || study.expected_end_date;
+                  
+                  return (
+                    <TableRow
+                      key={study.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => router.push(`/contracts/${contractId}`)}
+                    >
+                      <TableCell className="font-medium">{studyNumber}</TableCell>
+                      <TableCell>{testName}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-muted-foreground" />
+                          {(study as any).contract?.customer?.company || (study as any).contract?.customer?.name || '-'}
                         </div>
-                        <span className="text-xs text-muted-foreground">{getProgress(study)}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(study.startDate)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(study.expectedEndDate)}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {studyType === 'TOXICITY' ? '독성' : '효력'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={statusColors[study.status]}>
+                          {statusLabels[study.status]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-500 rounded-full transition-all"
+                              style={{ width: `${getProgress(study)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-muted-foreground">{getProgress(study)}%</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(startDate)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(expectedEndDate)}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

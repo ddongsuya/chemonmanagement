@@ -41,8 +41,55 @@ import {
   getStatusColor,
 } from '@/lib/utils';
 import { QUOTATION_STATUSES } from '@/lib/constants';
-import { getQuotationById, updateQuotationStatus, SavedQuotation } from '@/lib/quotation-storage';
+import { getQuotationById, updateQuotation, Quotation, QuotationStatus } from '@/lib/data-api';
 import { useToast } from '@/hooks/use-toast';
+
+// SavedQuotation 타입 정의 (기존 호환성 유지)
+interface SavedQuotation {
+  id: string;
+  quotation_number: string;
+  customer_id: string;
+  customer_name: string;
+  project_name: string;
+  modality: string;
+  status: string;
+  valid_days: number;
+  valid_until: string;
+  items: any[];
+  subtotal_test: number;
+  subtotal_analysis: number;
+  discount_rate: number;
+  discount_amount: number;
+  total_amount: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+}
+
+function mapQuotationToSaved(q: Quotation): SavedQuotation {
+  return {
+    id: q.id,
+    quotation_number: q.quotationNumber,
+    customer_id: q.customerId || '',
+    customer_name: q.customerName,
+    project_name: q.projectName,
+    modality: q.modality || '',
+    status: q.status.toLowerCase(),
+    valid_days: q.validDays,
+    valid_until: q.validUntil || '',
+    items: q.items as any[],
+    subtotal_test: Number(q.subtotalTest) || 0,
+    subtotal_analysis: Number(q.subtotalAnalysis) || 0,
+    discount_rate: Number(q.discountRate) || 0,
+    discount_amount: Number(q.discountAmount) || 0,
+    total_amount: Number(q.totalAmount),
+    notes: q.notes || '',
+    created_at: q.createdAt,
+    updated_at: q.updatedAt,
+    created_by: q.userId,
+  };
+}
 
 export default function QuotationDetailPage() {
   const params = useParams();
@@ -50,26 +97,43 @@ export default function QuotationDetailPage() {
   const [quotation, setQuotation] = useState<SavedQuotation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // localStorage에서 견적 데이터 로드
+  // API에서 견적 데이터 로드
   useEffect(() => {
-    const loadQuotation = () => {
-      const id = params.id as string;
-      const data = getQuotationById(id);
-      setQuotation(data);
-      setIsLoading(false);
+    const loadQuotation = async () => {
+      try {
+        const id = params.id as string;
+        const response = await getQuotationById(id);
+        if (response.success && response.data) {
+          setQuotation(mapQuotationToSaved(response.data));
+        }
+      } catch (error) {
+        console.error('Failed to load quotation:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadQuotation();
   }, [params.id]);
 
-  const handleStatusChange = (newStatus: string) => {
+  const handleStatusChange = async (newStatus: string) => {
     if (!quotation) return;
     
-    const updated = updateQuotationStatus(quotation.id, newStatus as SavedQuotation['status']);
-    if (updated) {
-      setQuotation(updated);
+    try {
+      const response = await updateQuotation(quotation.id, { 
+        status: newStatus.toUpperCase() as QuotationStatus 
+      });
+      if (response.success && response.data) {
+        setQuotation(mapQuotationToSaved(response.data));
+        toast({
+          title: '상태 변경',
+          description: `견적서 상태가 '${getStatusLabel(newStatus)}'로 변경되었습니다.`,
+        });
+      }
+    } catch (error) {
       toast({
-        title: '상태 변경',
-        description: `견적서 상태가 '${getStatusLabel(newStatus)}'로 변경되었습니다.`,
+        title: '상태 변경 실패',
+        description: '상태 변경 중 오류가 발생했습니다.',
+        variant: 'destructive',
       });
     }
   };

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { Requester } from '@/types/customer';
-import { saveRequester, updateRequester } from '@/lib/requester-storage';
+import { requesterApi } from '@/lib/customer-data-api';
 
 interface RequesterFormProps {
   customerId: string;
@@ -63,11 +63,9 @@ export default function RequesterForm({
 
     setSaving(true);
     try {
-      const now = new Date().toISOString();
-
       if (isEditMode && requester) {
         // 수정 모드: Requirements 1.4
-        updateRequester(requester.id, {
+        await requesterApi.update(requester.id, {
           name: formData.name,
           position: formData.position,
           department: formData.department,
@@ -77,9 +75,7 @@ export default function RequesterForm({
         });
       } else {
         // 등록 모드: Requirements 1.1
-        const newRequester: Requester = {
-          id: crypto.randomUUID(),
-          customer_id: customerId,
+        await requesterApi.create(customerId, {
           name: formData.name,
           position: formData.position,
           department: formData.department,
@@ -87,10 +83,7 @@ export default function RequesterForm({
           email: formData.email,
           is_primary: formData.is_primary,
           is_active: true,
-          created_at: now,
-          updated_at: now,
-        };
-        saveRequester(newRequester);
+        });
       }
 
       onSuccess();

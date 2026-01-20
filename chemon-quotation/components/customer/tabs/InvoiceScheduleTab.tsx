@@ -17,12 +17,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Receipt, AlertCircle, AlertTriangle } from 'lucide-react';
 import { InvoiceSchedule, TestReception } from '@/types/customer';
-import {
-  getInvoiceSchedulesByCustomerId,
-  getUpcomingInvoices,
-  isScheduledWithinDays,
-} from '@/lib/invoice-schedule-storage';
-import { getTestReceptionsByCustomerId } from '@/lib/test-reception-storage';
+import { invoiceScheduleApi, testReceptionApi } from '@/lib/customer-data-api';
 import InvoiceScheduleForm from '../InvoiceScheduleForm';
 import InvoiceScheduleTable from '../InvoiceScheduleTable';
 
@@ -30,21 +25,38 @@ interface InvoiceScheduleTabProps {
   customerId: string;
 }
 
+// 7일 이내 발행 예정인지 확인
+function isScheduledWithinDays(scheduledDate: string, days: number): boolean {
+  const now = new Date();
+  const scheduled = new Date(scheduledDate);
+  const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  return scheduled >= now && scheduled <= futureDate;
+}
+
 export default function InvoiceScheduleTab({ customerId }: InvoiceScheduleTabProps) {
   const [invoiceSchedules, setInvoiceSchedules] = useState<InvoiceSchedule[]>([]);
   const [testReceptions, setTestReceptions] = useState<TestReception[]>([]);
+  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'all' | InvoiceSchedule['status']>('all');
   const [testReceptionFilter, setTestReceptionFilter] = useState<string>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<InvoiceSchedule | undefined>();
   const [selectedTestReception, setSelectedTestReception] = useState<TestReception | undefined>();
 
-  const loadData = () => {
-    const schedules = getInvoiceSchedulesByCustomerId(customerId);
-    setInvoiceSchedules(schedules);
-
-    const receptions = getTestReceptionsByCustomerId(customerId);
-    setTestReceptions(receptions);
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [schedules, receptions] = await Promise.all([
+        invoiceScheduleApi.getByCustomerId(customerId),
+        testReceptionApi.getByCustomerId(customerId),
+      ]);
+      setInvoiceSchedules(schedules);
+      setTestReceptions(receptions);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

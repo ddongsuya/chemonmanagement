@@ -1,19 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
 import { AppError, ErrorCodes } from '../types/error';
 import { TokenPayload } from '../types/auth';
 
 const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || 'access-secret-key';
+const prisma = new PrismaClient();
 
 /**
  * Middleware to authenticate JWT tokens
  * Extracts and verifies the access token from Authorization header
  */
-export const authenticate = (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -33,11 +35,22 @@ export const authenticate = (
 
     const payload = jwt.verify(token, ACCESS_TOKEN_SECRET) as TokenPayload;
 
+    // Fetch user from DB to get canViewAllSales
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, email: true, role: true, canViewAllSales: true },
+    });
+
+    if (!user) {
+      throw new AppError('사용자를 찾을 수 없습니다', 401, ErrorCodes.AUTH_TOKEN_INVALID);
+    }
+
     // Attach user info to request
     req.user = {
-      id: payload.userId,
-      email: payload.email,
-      role: payload.role,
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      canViewAllSales: user.canViewAllSales,
     };
 
     next();
@@ -95,11 +108,11 @@ export const requireUser = authorize('USER', 'ADMIN');
  * Optional authentication middleware
  * Attaches user info if token is valid, but doesn't fail if no token
  */
-export const optionalAuth = (
+export const optionalAuth = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -122,11 +135,19 @@ export const optionalAuth = (
 
     const payload = jwt.verify(token, ACCESS_TOKEN_SECRET) as TokenPayload;
 
-    req.user = {
-      id: payload.userId,
-      email: payload.email,
-      role: payload.role,
-    };
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, email: true, role: true, canViewAllSales: true },
+    });
+
+    if (user) {
+      req.user = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        canViewAllSales: user.canViewAllSales,
+      };
+    }
 
     next();
   } catch {

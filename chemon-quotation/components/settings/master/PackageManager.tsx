@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,41 +36,25 @@ import {
   Package,
   Search,
   X,
-  RotateCcw,
   ChevronRight,
+  Loader2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  getPackages,
+  createPackage,
+  updatePackage,
+  deletePackage,
+  PackageTemplate,
+  PackageTest,
+  CreatePackageDTO,
+  UpdatePackageDTO,
+} from '@/lib/package-api';
 
 // 데이터 import (v2)
-import defaultPackageTemplates from '@/data/package_templates.json';
 import masterData from '@/data/chemon_master_data.json';
 import categoriesData from '@/data/categories.json';
 import modalitiesData from '@/data/modalities.json';
-
-const STORAGE_KEY = 'chemon_package_templates';
-
-interface PackageTest {
-  test_id: string;
-  category: string;
-  name: string;
-  required: boolean;
-}
-
-interface OptionalTest {
-  test_id: string;
-  name: string;
-  parent: string;
-}
-
-interface PackageTemplate {
-  package_id: string;
-  package_name: string;
-  description: string;
-  modality: string;
-  clinical_phase: string;
-  tests: PackageTest[];
-  optional_tests: OptionalTest[];
-}
 
 interface MasterTest {
   test_id: string;
@@ -82,48 +66,86 @@ interface MasterTest {
   modality: string;
 }
 
-const emptyPackage: PackageTemplate = {
-  package_id: '',
-  package_name: '',
+interface FormPackageTest {
+  test_id: string;
+  category: string;
+  name: string;
+  required: boolean;
+}
+
+interface FormData {
+  packageId: string;
+  packageName: string;
+  description: string;
+  modality: string;
+  clinicalPhase: string;
+  tests: FormPackageTest[];
+}
+
+const emptyFormData: FormData = {
+  packageId: '',
+  packageName: '',
   description: '',
   modality: '',
-  clinical_phase: '',
+  clinicalPhase: '',
   tests: [],
-  optional_tests: [],
 };
-
 
 export default function PackageManager() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [packages, setPackages] = useState<PackageTemplate[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState<PackageTemplate | null>(null);
-  const [formData, setFormData] = useState<PackageTemplate>(emptyPackage);
+  const [formData, setFormData] = useState<FormData>(emptyFormData);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  // localStorage에서 로드
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        setPackages(JSON.parse(saved));
-      } catch {
-        setPackages(defaultPackageTemplates as unknown as PackageTemplate[]);
-      }
-    } else {
-      setPackages(defaultPackageTemplates as unknown as PackageTemplate[]);
-    }
-  }, []);
+  // API에서 패키지 목록 조회
+  const { data: packagesResponse, isLoading } = useQuery({
+    queryKey: ['packages'],
+    queryFn: () => getPackages(true),
+  });
 
-  // 저장 및 캐시 무효화
-  const savePackages = (newPackages: PackageTemplate[]) => {
-    setPackages(newPackages);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newPackages));
-    queryClient.invalidateQueries({ queryKey: ['packages'] });
-    queryClient.invalidateQueries({ queryKey: ['allPackages'] });
-  };
+  const packages = packagesResponse?.data || [];
+
+  // 패키지 생성 mutation
+  const createMutation = useMutation({
+    mutationFn: (data: CreatePackageDTO) => createPackage(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
+      setIsDialogOpen(false);
+      toast({ title: '저장 완료', description: '새 패키지가 추가되었습니다.' });
+    },
+    onError: () => {
+      toast({ title: '오류', description: '패키지 생성에 실패했습니다.', variant: 'destructive' });
+    },
+  });
+
+  // 패키지 수정 mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ packageId, data }: { packageId: string; data: UpdatePackageDTO }) =>
+      updatePackage(packageId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
+      setIsDialogOpen(false);
+      toast({ title: '저장 완료', description: '패키지가 수정되었습니다.' });
+    },
+    onError: () => {
+      toast({ title: '오류', description: '패키지 수정에 실패했습니다.', variant: 'destructive' });
+    },
+  });
+
+  // 패키지 삭제 mutation
+  const deleteMutation = useMutation({
+    mutationFn: (packageId: string) => deletePackage(packageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
+      toast({ title: '삭제 완료', description: '패키지가 삭제되었습니다.' });
+    },
+    onError: () => {
+      toast({ title: '오류', description: '패키지 삭제에 실패했습니다.', variant: 'destructive' });
+    },
+  });
 
   // 마스터데이터 필터링 (v2)
   const filteredMasterTests = useMemo(() => {
@@ -161,8 +183,8 @@ export default function PackageManager() {
   const handleAddNew = () => {
     setEditingPackage(null);
     setFormData({
-      ...emptyPackage,
-      package_id: `PKG-${Date.now()}`,
+      ...emptyFormData,
+      packageId: `PKG-${Date.now()}`,
     });
     setIsDialogOpen(true);
   };
@@ -170,16 +192,26 @@ export default function PackageManager() {
   // 패키지 수정
   const handleEdit = (pkg: PackageTemplate) => {
     setEditingPackage(pkg);
-    setFormData({ ...pkg });
+    setFormData({
+      packageId: pkg.packageId,
+      packageName: pkg.packageName,
+      description: pkg.description || '',
+      modality: pkg.modality || '',
+      clinicalPhase: pkg.clinicalPhase || '',
+      tests: (pkg.tests || []).map((t) => ({
+        test_id: t.test_id,
+        category: t.category,
+        name: t.name,
+        required: t.required,
+      })),
+    });
     setIsDialogOpen(true);
   };
 
   // 패키지 삭제
   const handleDelete = (packageId: string) => {
     if (confirm('이 패키지를 삭제하시겠습니까?')) {
-      const newPackages = packages.filter((p) => p.package_id !== packageId);
-      savePackages(newPackages);
-      toast({ title: '삭제 완료', description: '패키지가 삭제되었습니다.' });
+      deleteMutation.mutate(packageId);
     }
   };
 
@@ -228,7 +260,7 @@ export default function PackageManager() {
 
   // 저장
   const handleSave = () => {
-    if (!formData.package_name.trim()) {
+    if (!formData.packageName.trim()) {
       toast({
         title: '오류',
         description: '패키지명을 입력해주세요.',
@@ -246,33 +278,46 @@ export default function PackageManager() {
       return;
     }
 
-    let newPackages: PackageTemplate[];
+    const apiTests: PackageTest[] = formData.tests.map((t) => ({
+      test_id: t.test_id,
+      category: t.category,
+      name: t.name,
+      required: t.required,
+    }));
+
     if (editingPackage) {
-      newPackages = packages.map((p) =>
-        p.package_id === editingPackage.package_id ? formData : p
-      );
+      updateMutation.mutate({
+        packageId: editingPackage.packageId,
+        data: {
+          packageName: formData.packageName,
+          description: formData.description || undefined,
+          modality: formData.modality || undefined,
+          clinicalPhase: formData.clinicalPhase || undefined,
+          tests: apiTests,
+        },
+      });
     } else {
-      newPackages = [...packages, formData];
-    }
-
-    savePackages(newPackages);
-    setIsDialogOpen(false);
-    toast({
-      title: '저장 완료',
-      description: editingPackage
-        ? '패키지가 수정되었습니다.'
-        : '새 패키지가 추가되었습니다.',
-    });
-  };
-
-  // 초기화
-  const handleReset = () => {
-    if (confirm('모든 패키지를 기본값으로 초기화하시겠습니까?')) {
-      localStorage.removeItem(STORAGE_KEY);
-      setPackages(defaultPackageTemplates as unknown as PackageTemplate[]);
-      toast({ title: '초기화 완료', description: '기본 패키지로 복원되었습니다.' });
+      createMutation.mutate({
+        packageId: formData.packageId,
+        packageName: formData.packageName,
+        description: formData.description || undefined,
+        modality: formData.modality || undefined,
+        clinicalPhase: formData.clinicalPhase || undefined,
+        tests: apiTests,
+      });
     }
   };
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin mr-2" />
+        <span>패키지 목록을 불러오는 중...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -280,37 +325,34 @@ export default function PackageManager() {
         <p className="text-sm text-gray-500 dark:text-gray-400">
           {packages.length}개의 패키지 템플릿
         </p>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleReset}>
-            <RotateCcw className="w-4 h-4 mr-2" />
-            초기화
-          </Button>
-          <Button onClick={handleAddNew}>
-            <Plus className="w-4 h-4 mr-2" />
-            새 패키지
-          </Button>
-        </div>
+        <Button onClick={handleAddNew}>
+          <Plus className="w-4 h-4 mr-2" />
+          새 패키지
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {packages.map((pkg) => (
-          <Card key={pkg.package_id}>
+          <Card key={pkg.id}>
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <Package className="w-4 h-4 text-primary" />
-                {pkg.package_name}
+                {pkg.packageName}
+                {!pkg.isActive && (
+                  <Badge variant="outline" className="text-xs">비활성</Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                {pkg.description}
+                {pkg.description || '설명 없음'}
               </p>
               <div className="flex items-center justify-between">
                 <div className="flex gap-2 flex-wrap">
-                  <Badge variant="outline">{pkg.tests.length}개 시험</Badge>
-                  <Badge variant="secondary">{pkg.modality}</Badge>
-                  {pkg.clinical_phase && (
-                    <Badge variant="outline">{pkg.clinical_phase}</Badge>
+                  <Badge variant="outline">{(pkg.tests || []).length}개 시험</Badge>
+                  {pkg.modality && <Badge variant="secondary">{pkg.modality}</Badge>}
+                  {pkg.clinicalPhase && (
+                    <Badge variant="outline">{pkg.clinicalPhase}</Badge>
                   )}
                 </div>
                 <div className="flex gap-1">
@@ -324,7 +366,8 @@ export default function PackageManager() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDelete(pkg.package_id)}
+                    onClick={() => handleDelete(pkg.packageId)}
+                    disabled={deleteMutation.isPending}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -335,6 +378,12 @@ export default function PackageManager() {
         ))}
       </div>
 
+      {packages.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p>등록된 패키지가 없습니다.</p>
+        </div>
+      )}
 
       {/* 패키지 편집 다이얼로그 */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -351,9 +400,9 @@ export default function PackageManager() {
               <div className="space-y-2">
                 <Label>패키지명 *</Label>
                 <Input
-                  value={formData.package_name}
+                  value={formData.packageName}
                   onChange={(e) =>
-                    setFormData({ ...formData, package_name: e.target.value })
+                    setFormData({ ...formData, packageName: e.target.value })
                   }
                   placeholder="예: IND 기본 패키지"
                 />
@@ -384,9 +433,9 @@ export default function PackageManager() {
               <div className="space-y-2">
                 <Label>임상단계</Label>
                 <Select
-                  value={formData.clinical_phase}
+                  value={formData.clinicalPhase}
                   onValueChange={(v) =>
-                    setFormData({ ...formData, clinical_phase: v })
+                    setFormData({ ...formData, clinicalPhase: v })
                   }
                 >
                   <SelectTrigger>
@@ -557,7 +606,10 @@ export default function PackageManager() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               취소
             </Button>
-            <Button onClick={handleSave}>저장</Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              저장
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

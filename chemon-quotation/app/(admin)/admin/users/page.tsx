@@ -47,13 +47,16 @@ import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
+  Eye,
 } from 'lucide-react';
 import {
   getUsers,
   updateUserStatus,
   updateUserRole,
   resetUserPassword,
+  updateUserPermissions,
   AdminUser,
+  AdminUserWithPermissions,
   UserListFilters,
   PaginatedResult,
 } from '@/lib/admin-api';
@@ -117,6 +120,12 @@ export default function UsersPage() {
     user: AdminUser | null;
     tempPassword: string | null;
   }>({ open: false, user: null, tempPassword: null });
+
+  const [permissionDialog, setPermissionDialog] = useState<{
+    open: boolean;
+    user: AdminUser | null;
+    canViewAllSales: boolean;
+  }>({ open: false, user: null, canViewAllSales: false });
 
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -254,6 +263,39 @@ export default function UsersPage() {
       });
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handlePermissionChange = async () => {
+    if (!permissionDialog.user) return;
+
+    setActionLoading(true);
+    try {
+      const response = await updateUserPermissions(permissionDialog.user.id, {
+        canViewAllSales: permissionDialog.canViewAllSales,
+      });
+      if (response.success) {
+        toast({
+          title: '성공',
+          description: `매출 조회 권한이 ${permissionDialog.canViewAllSales ? '부여' : '해제'}되었습니다`,
+        });
+        fetchUsers();
+      } else {
+        toast({
+          title: '오류',
+          description: response.error?.message || '권한 변경에 실패했습니다',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: '오류',
+        description: '권한 변경에 실패했습니다',
+        variant: 'destructive',
+      });
+    } finally {
+      setActionLoading(false);
+      setPermissionDialog({ open: false, user: null, canViewAllSales: false });
     }
   };
 
@@ -441,6 +483,21 @@ export default function UsersPage() {
                                 <Key className="w-4 h-4 mr-2" />
                                 비밀번호 초기화
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setPermissionDialog({
+                                    open: true,
+                                    user,
+                                    canViewAllSales: !(user as AdminUserWithPermissions).canViewAllSales,
+                                  })
+                                }
+                              >
+                                <Eye className="w-4 h-4 mr-2" />
+                                {(user as AdminUserWithPermissions).canViewAllSales
+                                  ? '매출 조회 권한 해제'
+                                  : '매출 조회 권한 부여'}
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -593,6 +650,42 @@ export default function UsersPage() {
               }
             >
               확인
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 매출 조회 권한 변경 다이얼로그 */}
+      <Dialog
+        open={permissionDialog.open}
+        onOpenChange={(open) =>
+          !open && setPermissionDialog({ open: false, user: null, canViewAllSales: false })
+        }
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>매출 조회 권한 변경</DialogTitle>
+            <DialogDescription>
+              {permissionDialog.user?.name}님의 전체 매출 조회 권한을{' '}
+              {permissionDialog.canViewAllSales ? '부여' : '해제'}하시겠습니까?
+              {permissionDialog.canViewAllSales && (
+                <span className="block mt-2 text-amber-600">
+                  이 권한을 부여하면 모든 담당자의 매출 정보를 조회할 수 있습니다.
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setPermissionDialog({ open: false, user: null, canViewAllSales: false })
+              }
+            >
+              취소
+            </Button>
+            <Button onClick={handlePermissionChange} disabled={actionLoading}>
+              {actionLoading ? '처리 중...' : '변경'}
             </Button>
           </DialogFooter>
         </DialogContent>

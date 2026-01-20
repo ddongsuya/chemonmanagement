@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { TestReception, Requester } from '@/types/customer';
-import { saveTestReception, updateTestReception } from '@/lib/test-reception-storage';
+import { testReceptionApi } from '@/lib/customer-data-api';
 
 interface TestReceptionFormProps {
   customerId: string;
@@ -101,47 +101,31 @@ export default function TestReceptionForm({
 
     setSaving(true);
     try {
-      const now = new Date().toISOString();
+      const receptionData = {
+        requester_id: formData.requester_id,
+        contract_id: contractId,
+        quotation_id: quotationId,
+        substance_code: formData.substance_code,
+        project_code: formData.project_code,
+        substance_name: formData.substance_name,
+        institution_name: formData.institution_name,
+        test_number: formData.test_number,
+        test_title: formData.test_title,
+        test_director: formData.test_director,
+        total_amount: formData.total_amount,
+        paid_amount: 0,
+        remaining_amount: formData.total_amount,
+        status: 'received' as const,
+        reception_date: new Date().toISOString(),
+        expected_completion_date: new Date(formData.expected_completion_date).toISOString(),
+      };
 
       if (isEditMode && testReception) {
         // 수정 모드: Requirements 2.5
-        updateTestReception(testReception.id, {
-          requester_id: formData.requester_id,
-          substance_code: formData.substance_code,
-          project_code: formData.project_code,
-          substance_name: formData.substance_name,
-          institution_name: formData.institution_name,
-          test_number: formData.test_number,
-          test_title: formData.test_title,
-          test_director: formData.test_director,
-          total_amount: formData.total_amount,
-          expected_completion_date: new Date(formData.expected_completion_date).toISOString(),
-        });
+        await testReceptionApi.update(testReception.id, receptionData);
       } else {
         // 등록 모드: Requirements 2.2
-        const newTestReception: TestReception = {
-          id: crypto.randomUUID(),
-          customer_id: customerId,
-          requester_id: formData.requester_id,
-          contract_id: contractId,
-          quotation_id: quotationId,
-          substance_code: formData.substance_code,
-          project_code: formData.project_code,
-          substance_name: formData.substance_name,
-          institution_name: formData.institution_name,
-          test_number: formData.test_number,
-          test_title: formData.test_title,
-          test_director: formData.test_director,
-          total_amount: formData.total_amount,
-          paid_amount: 0,
-          remaining_amount: formData.total_amount,
-          status: 'received',
-          reception_date: now,
-          expected_completion_date: new Date(formData.expected_completion_date).toISOString(),
-          created_at: now,
-          updated_at: now,
-        };
-        saveTestReception(newTestReception);
+        await testReceptionApi.create(customerId, receptionData as any);
       }
 
       onSuccess();

@@ -13,8 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { InvoiceSchedule, MeetingRecord } from '@/types/customer';
-import { getInvoiceSchedulesByCustomerId } from '@/lib/invoice-schedule-storage';
-import { getPendingRequestsByCustomerId } from '@/lib/meeting-record-storage';
+import { invoiceScheduleApi, meetingRecordApi } from '@/lib/customer-data-api';
 import { formatCurrency } from '@/lib/utils';
 import { getUrgentItems, AlertItem } from '@/lib/urgent-items';
 
@@ -37,9 +36,17 @@ export default function CustomerAlerts({
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const loadData = () => {
-      setInvoiceSchedules(getInvoiceSchedulesByCustomerId(customerId));
-      setPendingRequests(getPendingRequestsByCustomerId(customerId));
+    const loadData = async () => {
+      try {
+        const [invoices, meetings] = await Promise.all([
+          invoiceScheduleApi.getByCustomerId(customerId),
+          meetingRecordApi.getByCustomerId(customerId, { pendingOnly: true }),
+        ]);
+        setInvoiceSchedules(invoices);
+        setPendingRequests(meetings);
+      } catch (error) {
+        console.error('Failed to load alert data:', error);
+      }
     };
 
     loadData();

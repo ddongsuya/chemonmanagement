@@ -57,11 +57,7 @@ import {
   getStatusLabel,
   getStatusColor,
 } from '@/lib/utils';
-import {
-  getAllEfficacyQuotations,
-  deleteEfficacyQuotation,
-  copyEfficacyQuotation,
-} from '@/lib/efficacy-storage';
+import { efficacyQuotationApi } from '@/lib/efficacy-api';
 import { SavedEfficacyQuotation, EfficacyQuotationStatus } from '@/types/efficacy';
 import { useToast } from '@/hooks/use-toast';
 
@@ -113,25 +109,29 @@ function EfficacyQuotationsContent() {
     quotation: EfficacyQuotationListItem | null;
   }>({ open: false, quotation: null });
 
-  // localStorage에서 견적 데이터 로드
+  // API에서 견적 데이터 로드
   useEffect(() => {
     loadQuotations();
   }, []);
 
-  const loadQuotations = () => {
-    const savedQuotations = getAllEfficacyQuotations();
-    const mapped: EfficacyQuotationListItem[] = savedQuotations.map((q) => ({
-      id: q.id,
-      quotation_number: q.quotation_number,
-      customer_name: q.customer_name,
-      project_name: q.project_name,
-      model_name: q.model_name,
-      model_category: q.model_category,
-      status: q.status,
-      grand_total: q.grand_total,
-      created_at: q.created_at.split('T')[0],
-    }));
-    setQuotations(mapped);
+  const loadQuotations = async () => {
+    try {
+      const savedQuotations = await efficacyQuotationApi.getAll();
+      const mapped: EfficacyQuotationListItem[] = savedQuotations.map((q) => ({
+        id: q.id,
+        quotation_number: q.quotation_number,
+        customer_name: q.customer_name,
+        project_name: q.project_name,
+        model_name: q.model_name,
+        model_category: q.model_category,
+        status: q.status,
+        grand_total: q.grand_total,
+        created_at: q.created_at.split('T')[0],
+      }));
+      setQuotations(mapped);
+    } catch (error) {
+      console.error('Failed to load efficacy quotations:', error);
+    }
   };
 
   // URL 파라미터 변경 시 필터 업데이트
@@ -185,18 +185,26 @@ function EfficacyQuotationsContent() {
     setDeleteDialog({ open: true, quotation });
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteDialog.quotation) {
-      const success = deleteEfficacyQuotation(deleteDialog.quotation.id);
-      if (success) {
-        setQuotations((prev) =>
-          prev.filter((q) => q.id !== deleteDialog.quotation?.id)
-        );
-        toast({
-          title: '삭제 완료',
-          description: `견적서 ${deleteDialog.quotation.quotation_number}가 삭제되었습니다.`,
-        });
-      } else {
+      try {
+        const success = await efficacyQuotationApi.delete(deleteDialog.quotation.id);
+        if (success) {
+          setQuotations((prev) =>
+            prev.filter((q) => q.id !== deleteDialog.quotation?.id)
+          );
+          toast({
+            title: '삭제 완료',
+            description: `견적서 ${deleteDialog.quotation.quotation_number}가 삭제되었습니다.`,
+          });
+        } else {
+          toast({
+            title: '삭제 실패',
+            description: '견적서 삭제 중 오류가 발생했습니다.',
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
         toast({
           title: '삭제 실패',
           description: '견적서 삭제 중 오류가 발생했습니다.',
@@ -208,19 +216,27 @@ function EfficacyQuotationsContent() {
   };
 
   // 복사 핸들러
-  const handleCopy = (quotationId: string) => {
-    const copied = copyEfficacyQuotation(quotationId);
+  const handleCopy = async (quotationId: string) => {
+    try {
+      const copied = await efficacyQuotationApi.copy(quotationId);
 
-    if (copied) {
-      loadQuotations();
-      toast({
-        title: '복사 완료',
-        description: `견적서가 ${copied.quotation_number}로 복사되었습니다.`,
-      });
-    } else {
+      if (copied) {
+        loadQuotations();
+        toast({
+          title: '복사 완료',
+          description: `견적서가 ${copied.quotation_number}로 복사되었습니다.`,
+        });
+      } else {
+        toast({
+          title: '복사 실패',
+          description: '원본 견적서를 찾을 수 없습니다.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
       toast({
         title: '복사 실패',
-        description: '원본 견적서를 찾을 수 없습니다.',
+        description: '견적서 복사 중 오류가 발생했습니다.',
         variant: 'destructive',
       });
     }

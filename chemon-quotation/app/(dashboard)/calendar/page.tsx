@@ -10,7 +10,7 @@ import {
   DialogContent,
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getTodayEvents, getThisWeekEvents } from '@/lib/calendar-event-storage';
+import { calendarEventApi } from '@/lib/customer-data-api';
 import { useEffect } from 'react';
 import { Calendar, Clock } from 'lucide-react';
 
@@ -21,9 +21,17 @@ export default function CalendarPage() {
   const [weekEvents, setWeekEvents] = useState<CalendarEvent[]>([]);
 
   // 오늘 및 이번 주 이벤트 로드
-  const loadSidebarEvents = () => {
-    setTodayEvents(getTodayEvents());
-    setWeekEvents(getThisWeekEvents());
+  const loadSidebarEvents = async () => {
+    try {
+      const [today, week] = await Promise.all([
+        calendarEventApi.getTodayEvents(),
+        calendarEventApi.getThisWeekEvents(),
+      ]);
+      setTodayEvents(today);
+      setWeekEvents(week);
+    } catch (error) {
+      console.error('Failed to load calendar events:', error);
+    }
   };
 
   useEffect(() => {

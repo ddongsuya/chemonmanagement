@@ -27,10 +27,7 @@ import {
 } from '@/components/ui/select';
 import { Plus, Search, Users } from 'lucide-react';
 import { Requester } from '@/types/customer';
-import {
-  getRequestersByCustomerId,
-  deleteRequester,
-} from '@/lib/requester-storage';
+import { requesterApi } from '@/lib/customer-data-api';
 import { getQuotations } from '@/lib/data-api';
 import RequesterForm from '../RequesterForm';
 import RequesterCard from '../RequesterCard';
@@ -41,6 +38,7 @@ interface RequesterTabProps {
 
 export default function RequesterTab({ customerId }: RequesterTabProps) {
   const [requesters, setRequesters] = useState<Requester[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -48,9 +46,16 @@ export default function RequesterTab({ customerId }: RequesterTabProps) {
   const [deleteTarget, setDeleteTarget] = useState<Requester | null>(null);
   const [hasRelatedData, setHasRelatedData] = useState(false);
 
-  const loadRequesters = () => {
-    const data = getRequestersByCustomerId(customerId);
-    setRequesters(data);
+  const loadRequesters = async () => {
+    setLoading(true);
+    try {
+      const data = await requesterApi.getByCustomerId(customerId);
+      setRequesters(data);
+    } catch (error) {
+      console.error('Failed to load requesters:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -88,19 +93,21 @@ export default function RequesterTab({ customerId }: RequesterTabProps) {
     try {
       const response = await getQuotations({ customerId, limit: 1 });
       const hasQuotations = response.success && response.data && response.data.data.length > 0;
-      setHasRelatedData(hasQuotations);
+      setHasRelatedData(hasQuotations ?? false);
     } catch {
       setHasRelatedData(false);
     }
     setDeleteTarget(requester);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteTarget) return;
 
-    const result = deleteRequester(deleteTarget.id, hasRelatedData);
-    if (result.success) {
+    try {
+      await requesterApi.delete(deleteTarget.id);
       loadRequesters();
+    } catch (error) {
+      console.error('Failed to delete requester:', error);
     }
     setDeleteTarget(null);
   };

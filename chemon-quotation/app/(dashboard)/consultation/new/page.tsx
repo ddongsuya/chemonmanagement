@@ -16,8 +16,8 @@ import {
   ConsultationRecordData,
   QuotationContentItem,
 } from '@/lib/consultation/types';
-import { getQuotationById } from '@/lib/quotation-storage';
-import { getEfficacyQuotationById } from '@/lib/efficacy-storage';
+import { getQuotationById } from '@/lib/data-api';
+import { efficacyQuotationApi } from '@/lib/efficacy-api';
 import {
   ArrowLeft,
   FileText,
@@ -58,26 +58,28 @@ function ConsultationNewContent() {
   } | null>(null);
 
   useEffect(() => {
-    if (efficacyQuotationId) {
-      // 효력시험 견적 데이터 로드
-      const efficacyQuotation = getEfficacyQuotationById(efficacyQuotationId);
-      if (efficacyQuotation) {
-        setQuotationData({
-          projectName: efficacyQuotation.project_name,
-          items: efficacyQuotation.items,
-          customerName: efficacyQuotation.customer_name,
-          isEfficacy: true,
-          modelName: efficacyQuotation.model_name,
-          indication: efficacyQuotation.indication,
-        });
+    const loadData = async () => {
+      try {
+        if (efficacyQuotationId) {
+          // API에서 효력시험 견적 데이터 로드
+          const efficacyQuotation = await efficacyQuotationApi.getById(efficacyQuotationId);
+          if (efficacyQuotation) {
+            setQuotationData({
+              projectName: efficacyQuotation.project_name,
+              items: efficacyQuotation.items,
+              customerName: efficacyQuotation.customer_name,
+              isEfficacy: true,
+              modelName: efficacyQuotation.model_name,
+              indication: efficacyQuotation.indication,
+            });
 
-        // 효력시험 견적 내용 시트용 데이터 준비
-        const contentItems: QuotationContentItem[] = efficacyQuotation.items.map(
-          (item, index) => ({
-            no: index + 1,
-            testName: item.item_name,
-            species: '-',
-            duration: '-',
+            // 효력시험 견적 내용 시트용 데이터 준비
+            const contentItems: QuotationContentItem[] = efficacyQuotation.items.map(
+              (item, index) => ({
+                no: index + 1,
+                testName: item.item_name,
+                species: '-',
+                duration: '-',
             route: '-',
             animalCount: String(item.quantity),
             groupCount: String(item.multiplier),
@@ -86,62 +88,70 @@ function ConsultationNewContent() {
           })
         );
         setQuotationItems(contentItems);
-      }
-    } else if (quotationId) {
-      const quotation = getQuotationById(quotationId);
-      if (quotation) {
-        setQuotationData({
-          projectName: quotation.project_name,
-          items: quotation.items,
-          customerName: quotation.customer_name,
-        });
+          }
+        } else if (quotationId) {
+          const response = await getQuotationById(quotationId);
+          if (response.success && response.data) {
+            const quotation = response.data;
+            setQuotationData({
+              projectName: quotation.projectName,
+              items: quotation.items as any[],
+              customerName: quotation.customerName,
+            });
 
-        // 견적 내용 시트용 데이터 준비
-        const contentItems: QuotationContentItem[] = quotation.items
-          .filter((item) => !item.is_option)
-          .map((item, index) => ({
-            no: index + 1,
-            testName: item.test?.test_name?.split('\n')[0] || '',
-            species: item.test?.animal_species || '-',
-            duration: item.test?.dosing_period || '-',
-            route: item.test?.route || '-',
-            animalCount: '-',
-            groupCount: '-',
-            options: quotation.items
-              .filter((opt) => opt.is_option && opt.parent_item_id === item.id)
-              .map((opt) => opt.test?.test_name?.split('\n')[0])
-              .join(', ') || '-',
-            remarks: '-',
-          }));
-        setQuotationItems(contentItems);
-      }
-    } else if (store.selectedItems.length > 0) {
-      setQuotationData({
-        projectName: store.projectName,
-        items: store.selectedItems,
-        customerName: store.customerName,
-      });
+            // 견적 내용 시트용 데이터 준비
+            const items = quotation.items as any[];
+            const contentItems: QuotationContentItem[] = items
+              .filter((item) => !item.is_option)
+              .map((item, index) => ({
+                no: index + 1,
+                testName: item.test?.test_name?.split('\n')[0] || '',
+                species: item.test?.animal_species || '-',
+                duration: item.test?.dosing_period || '-',
+                route: item.test?.route || '-',
+                animalCount: '-',
+                groupCount: '-',
+                options: items
+                  .filter((opt) => opt.is_option && opt.parent_item_id === item.id)
+                  .map((opt) => opt.test?.test_name?.split('\n')[0])
+                  .join(', ') || '-',
+                remarks: '-',
+              }));
+            setQuotationItems(contentItems);
+          }
+        } else if (store.selectedItems.length > 0) {
+          setQuotationData({
+            projectName: store.projectName,
+            items: store.selectedItems,
+            customerName: store.customerName,
+          });
 
-      const contentItems: QuotationContentItem[] = store.selectedItems
-        .filter((item) => !item.is_option)
-        .map((item, index) => ({
-          no: index + 1,
-          testName: item.test?.test_name?.split('\n')[0] || '',
-          species: item.test?.animal_species || '-',
-          duration: item.test?.dosing_period || '-',
-          route: item.test?.route || '-',
-          animalCount: '-',
-          groupCount: '-',
-          options:
-            store.selectedItems
-              .filter((opt) => opt.is_option && opt.parent_item_id === item.id)
-              .map((opt) => opt.test?.test_name?.split('\n')[0])
-              .join(', ') || '-',
-          remarks: '-',
-        }));
-      setQuotationItems(contentItems);
-    }
-    setIsLoading(false);
+          const contentItems: QuotationContentItem[] = store.selectedItems
+            .filter((item) => !item.is_option)
+            .map((item, index) => ({
+              no: index + 1,
+              testName: item.test?.test_name?.split('\n')[0] || '',
+              species: item.test?.animal_species || '-',
+              duration: item.test?.dosing_period || '-',
+              route: item.test?.route || '-',
+              animalCount: '-',
+              groupCount: '-',
+              options:
+                store.selectedItems
+                  .filter((opt) => opt.is_option && opt.parent_item_id === item.id)
+                  .map((opt) => opt.test?.test_name?.split('\n')[0])
+                  .join(', ') || '-',
+              remarks: '-',
+            }));
+          setQuotationItems(contentItems);
+        }
+      } catch (error) {
+        console.error('Failed to load quotation:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
   }, [quotationId, efficacyQuotationId, store]);
 
   // 폼 제출 처리

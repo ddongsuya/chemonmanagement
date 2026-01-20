@@ -289,6 +289,179 @@ model Customer {
   leads               Lead[]
   contracts           Contract[]
   consultationRecords ConsultationRecord[]
+  requesters          Requester[]
+  meetingRecords      MeetingRecord[]
+  testReceptions      TestReception[]
+  invoiceSchedules    InvoiceSchedule[]
+  calendarEvents      CalendarEvent[]
+  progressStages      CustomerProgressStage[]
+}
+
+// ==================== Requester (의뢰자) ====================
+
+model Requester {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  name       String                              // 이름
+  position   String?                             // 직책
+  department String?                             // 부서
+  phone      String?
+  email      String?
+  isPrimary  Boolean  @default(false)            // 주 담당자 여부
+  isActive   Boolean  @default(true)             // 활성화 상태
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  meetingRecords MeetingRecord[]
+  testReceptions TestReception[]
+}
+
+// ==================== MeetingRecord (미팅 기록) ====================
+
+model MeetingRecord {
+  id          String    @id @default(uuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  requesterId String?
+  requester   Requester? @relation(fields: [requesterId], references: [id])
+  
+  type        String                              // meeting, call, email, visit
+  date        DateTime
+  time        String?
+  duration    Int?                                // 분 단위
+  
+  title       String
+  attendees   Json      @default("[]")            // 참석자 배열
+  content     String                              // 내용 (리치 텍스트)
+  followUpActions String?                         // 후속 조치
+  
+  attachments Json?                               // 첨부파일 배열
+  
+  // 요청사항 관련
+  isRequest         Boolean   @default(false)
+  requestStatus     String?                       // pending, in_progress, completed
+  requestCompletedAt DateTime?
+  requestResponse   String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  calendarEvents CalendarEvent[]
+}
+
+// ==================== TestReception (시험 접수) ====================
+
+model TestReception {
+  id          String    @id @default(uuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  requesterId String?
+  requester   Requester? @relation(fields: [requesterId], references: [id])
+  contractId  String?
+  quotationId String?
+  
+  // 헤더 정보
+  substanceCode   String?                         // 물질코드
+  projectCode     String?                         // 프로젝트코드
+  substanceName   String?                         // 시험물질명
+  institutionName String?                         // 의뢰기관명
+  testNumber      String?   @unique               // 시험번호
+  testTitle       String?                         // 시험제목
+  testDirector    String?                         // 시험책임자
+  
+  // 금액 정보
+  totalAmount     Decimal   @default(0) @db.Decimal(15, 2)
+  paidAmount      Decimal   @default(0) @db.Decimal(15, 2)
+  remainingAmount Decimal   @default(0) @db.Decimal(15, 2)
+  
+  // 상태
+  status                 String    @default("received")  // received, in_progress, completed, cancelled
+  receptionDate          DateTime?
+  expectedCompletionDate DateTime?
+  actualCompletionDate   DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoiceSchedules InvoiceSchedule[]
+  calendarEvents   CalendarEvent[]
+}
+
+// ==================== InvoiceSchedule (세금계산서 발행 일정) ====================
+
+model InvoiceSchedule {
+  id              String        @id @default(uuid())
+  testReceptionId String?
+  testReception   TestReception? @relation(fields: [testReceptionId], references: [id])
+  customerId      String
+  customer        Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  amount          Decimal       @db.Decimal(15, 2)
+  scheduledDate   DateTime                          // 발행 예정일
+  issuedDate      DateTime?                         // 실제 발행일
+  invoiceNumber   String?                           // 세금계산서 번호
+  
+  paymentType     String        @default("full")    // full, partial
+  installmentNumber Int?                            // 분할 회차
+  totalInstallments Int?                            // 총 분할 횟수
+  
+  status          String        @default("pending") // pending, issued, paid, overdue
+  notes           String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  calendarEvents CalendarEvent[]
+}
+
+// ==================== CalendarEvent (캘린더 이벤트) ====================
+
+model CalendarEvent {
+  id                String          @id @default(uuid())
+  customerId        String?
+  customer          Customer?       @relation(fields: [customerId], references: [id])
+  testReceptionId   String?
+  testReception     TestReception?  @relation(fields: [testReceptionId], references: [id])
+  invoiceScheduleId String?
+  invoiceSchedule   InvoiceSchedule? @relation(fields: [invoiceScheduleId], references: [id])
+  meetingRecordId   String?
+  meetingRecord     MeetingRecord?  @relation(fields: [meetingRecordId], references: [id])
+  
+  type              String                          // meeting, invoice, deadline, reminder, other
+  title             String
+  description       String?
+  
+  startDate         DateTime
+  endDate           DateTime?
+  allDay            Boolean         @default(false)
+  
+  color             String?
+  reminderBefore    Int?                            // 분 단위
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+// ==================== CustomerProgressStage (고객 진행 단계) ====================
+
+model CustomerProgressStage {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  quotationId String?
+  contractId  String?
+  
+  currentStage String   @default("inquiry")        // 현재 단계
+  checklist    Json     @default("[]")             // 체크리스트 항목 배열
+  stageHistory Json     @default("[]")             // 단계 이력 배열
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([customerId])
 }
 
 // ==================== Quotation (확장) ====================
@@ -679,4 +852,71 @@ model Modality {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ==================== Package Template (신규) ====================
+
+model PackageTemplate {
+  id            String   @id @default(uuid())
+  packageId     String   @unique                    // PKG-001
+  packageName   String
+  description   String?
+  modality      String?
+  clinicalPhase String?
+  tests         Json     @default("[]")             // 시험 항목 배열
+  optionalTests Json     @default("[]")             // 선택 시험 항목 배열
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ==================== Company Info (신규) ====================
+
+model CompanyInfo {
+  id             String   @id @default(uuid())
+  name           String                              // 회사명 (국문)
+  nameEn         String?                             // 회사명 (영문)
+  businessNumber String?                             // 사업자등록번호
+  ceoName        String?                             // 대표자명
+  address        String?                             // 주소 (국문)
+  addressEn      String?                             // 주소 (영문)
+  tel            String?                             // 전화번호
+  fax            String?                             // 팩스번호
+  email          String?                             // 이메일
+  website        String?                             // 웹사이트
+  logo           String?                             // 로고 (Base64 또는 URL)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ==================== User Settings (신규) ====================
+
+model UserSettings {
+  id                      String   @id @default(uuid())
+  userId                  String   @unique
+  
+  // 견적 설정
+  userCode                String?                     // 사용자 코드 (견적번호용)
+  defaultValidityDays     Int      @default(30)       // 기본 유효기간
+  defaultDiscountRate     Int      @default(0)        // 기본 할인율
+  
+  // 조제물분석 자동계산 설정
+  autoAnalysisCalculation Boolean  @default(true)
+  validationInvivoCost    Int      @default(10000000)
+  validationInvitroCost   Int      @default(10000000)
+  analysisUnitCost        Int      @default(1000000)
+  
+  // 알림 설정
+  emailNotification       Boolean  @default(true)
+  browserNotification     Boolean  @default(false)
+  notifyOnExpiry          Boolean  @default(true)
+  expiryReminderDays      Int      @default(7)
+  
+  // 표시 설정
+  currencyUnit            String   @default("KRW")
+  dateFormat              String   @default("YYYY.MM.DD")
+  showVatNotice           Boolean  @default(true)
+  
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }

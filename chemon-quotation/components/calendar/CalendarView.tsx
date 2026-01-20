@@ -17,7 +17,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { CalendarEvent } from '@/types/customer';
-import { getCalendarEventsByDateRange } from '@/lib/calendar-event-storage';
+import { calendarEventApi } from '@/lib/customer-data-api';
 import MonthView from './MonthView';
 import EventForm from './EventForm';
 import {
@@ -79,20 +79,36 @@ export default function CalendarView({ customerId, onEventClick }: CalendarViewP
     return { start, end };
   }, [currentDate, viewType]);
 
-  // 이벤트 로드
-  const loadEvents = useCallback(() => {
-    const { start, end } = getDateRange();
-    const allEvents = getCalendarEventsByDateRange(
-      start.toISOString(),
-      end.toISOString()
-    );
-    
-    // customerId가 있으면 해당 고객사 이벤트만 필터링
-    const filteredEvents = customerId
-      ? allEvents.filter(e => e.customer_id === customerId)
-      : allEvents;
-    
-    setEvents(filteredEvents);
+  // 이벤트 로드 - API 사용
+  const loadEvents = useCallback(async () => {
+    try {
+      const { start, end } = getDateRange();
+      let allEvents: CalendarEvent[];
+      
+      if (customerId) {
+        // 고객사별 이벤트 조회
+        allEvents = await calendarEventApi.getByCustomerId(customerId);
+        // 날짜 범위 필터링
+        const startTime = start.getTime();
+        const endTime = end.getTime();
+        allEvents = allEvents.filter(e => {
+          const eventStart = new Date(e.start_date).getTime();
+          const eventEnd = e.end_date ? new Date(e.end_date).getTime() : eventStart;
+          return eventStart <= endTime && eventEnd >= startTime;
+        });
+      } else {
+        // 날짜 범위로 전체 이벤트 조회
+        allEvents = await calendarEventApi.getByDateRange(
+          start.toISOString(),
+          end.toISOString()
+        );
+      }
+      
+      setEvents(allEvents);
+    } catch (error) {
+      console.error('Failed to load calendar events:', error);
+      setEvents([]);
+    }
   }, [getDateRange, customerId]);
 
   useEffect(() => {

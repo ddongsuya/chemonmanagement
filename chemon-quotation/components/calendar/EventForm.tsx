@@ -20,11 +20,8 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { CalendarEvent, Customer } from '@/types/customer';
-import {
-  saveCalendarEvent,
-  updateCalendarEvent,
-  deleteCalendarEvent,
-} from '@/lib/calendar-event-storage';
+import { calendarEventApi } from '@/lib/customer-data-api';
+import { getCustomers } from '@/lib/data-api';
 
 interface EventFormProps {
   customerId?: string;
@@ -98,16 +95,34 @@ export default function EventForm({
 
   const isEditMode = !!event;
 
-  // 고객사 목록 로드
+  // 고객사 목록 로드 (API 사용)
   useEffect(() => {
-    try {
-      const storedCustomers = localStorage.getItem('chemon_customers');
-      if (storedCustomers) {
-        setCustomers(JSON.parse(storedCustomers));
+    async function loadCustomers() {
+      try {
+        const response = await getCustomers({ limit: 100 });
+        if (response.success && response.data) {
+          // API 응답을 Customer 타입으로 변환
+          const customerList: Customer[] = response.data.data.map((c) => ({
+            id: c.id,
+            company_name: c.company || c.name,
+            business_number: null,
+            address: c.address || null,
+            contact_person: c.name,
+            contact_email: c.email || null,
+            contact_phone: c.phone || null,
+            notes: c.notes || null,
+            created_at: c.createdAt,
+            updated_at: c.updatedAt,
+            quotation_count: 0,
+            total_amount: 0,
+          }));
+          setCustomers(customerList);
+        }
+      } catch (error) {
+        console.error('Failed to load customers:', error);
       }
-    } catch {
-      console.error('Failed to load customers');
     }
+    loadCustomers();
   }, []);
 
   const validate = () => {
@@ -131,8 +146,6 @@ export default function EventForm({
 
     setSaving(true);
     try {
-      const now = new Date().toISOString();
-
       // 시작 날짜/시간 조합
       let startDateTime = formData.start_date;
       if (!formData.all_day && formData.start_time) {
@@ -148,8 +161,8 @@ export default function EventForm({
       }
 
       if (isEditMode && event) {
-        // 수정 모드
-        updateCalendarEvent(event.id, {
+        // 수정 모드 - API 사용
+        await calendarEventApi.update(event.id, {
           type: formData.type,
           title: formData.title,
           description: formData.description || undefined,
@@ -163,9 +176,8 @@ export default function EventForm({
             : undefined,
         });
       } else {
-        // 등록 모드: Requirements 6.5
-        const newEvent: CalendarEvent = {
-          id: crypto.randomUUID(),
+        // 등록 모드 - API 사용
+        await calendarEventApi.create({
           type: formData.type,
           title: formData.title,
           description: formData.description || undefined,
@@ -177,10 +189,7 @@ export default function EventForm({
           reminder_before: formData.reminder_before
             ? parseInt(formData.reminder_before)
             : undefined,
-          created_at: now,
-          updated_at: now,
-        };
-        saveCalendarEvent(newEvent);
+        });
       }
 
       onSuccess();
@@ -196,7 +205,7 @@ export default function EventForm({
 
     setDeleting(true);
     try {
-      deleteCalendarEvent(event.id);
+      await calendarEventApi.delete(event.id);
       onSuccess();
     } catch (error) {
       console.error('Failed to delete event:', error);

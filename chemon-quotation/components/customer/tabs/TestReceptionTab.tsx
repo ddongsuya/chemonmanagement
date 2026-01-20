@@ -28,11 +28,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Search, FlaskConical, AlertCircle } from 'lucide-react';
 import { TestReception, Requester } from '@/types/customer';
-import {
-  getTestReceptionsByCustomerId,
-  deleteTestReception,
-} from '@/lib/test-reception-storage';
-import { getRequestersByCustomerId } from '@/lib/requester-storage';
+import { testReceptionApi, requesterApi } from '@/lib/customer-data-api';
 import TestReceptionForm from '../TestReceptionForm';
 import TestReceptionTable from '../TestReceptionTable';
 
@@ -51,18 +47,27 @@ export default function TestReceptionTab({
 }: TestReceptionTabProps) {
   const [testReceptions, setTestReceptions] = useState<TestReception[]>([]);
   const [requesters, setRequesters] = useState<Requester[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | TestReception['status']>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingReception, setEditingReception] = useState<TestReception | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<TestReception | null>(null);
 
-  const loadData = () => {
-    const receptions = getTestReceptionsByCustomerId(customerId);
-    setTestReceptions(receptions);
-    
-    const requesterList = getRequestersByCustomerId(customerId);
-    setRequesters(requesterList);
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [receptions, requesterList] = await Promise.all([
+        testReceptionApi.getByCustomerId(customerId),
+        requesterApi.getByCustomerId(customerId),
+      ]);
+      setTestReceptions(receptions);
+      setRequesters(requesterList);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -97,11 +102,15 @@ export default function TestReceptionTab({
     setDeleteTarget(reception);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteTarget) return;
 
-    deleteTestReception(deleteTarget.id);
-    loadData();
+    try {
+      await testReceptionApi.delete(deleteTarget.id);
+      loadData();
+    } catch (error) {
+      console.error('Failed to delete test reception:', error);
+    }
     setDeleteTarget(null);
   };
 

@@ -17,8 +17,10 @@ import {
   contractRoutes,
   studyRoutes,
   consultationRoutes,
+  customerDataRoutes,
 } from './routes';
 import masterDataRoutes from './routes/masterData';
+import packageRoutes from './routes/package';
 
 // Load environment variables
 dotenv.config();
@@ -70,6 +72,10 @@ app.use('/api/pipeline', pipelineRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/studies', studyRoutes);
 app.use('/api/consultations', consultationRoutes);
+app.use('/api/customer-data', customerDataRoutes);
+app.use('/api/packages', packageRoutes);
+app.use('/api/company', packageRoutes);
+app.use('/api/settings', packageRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

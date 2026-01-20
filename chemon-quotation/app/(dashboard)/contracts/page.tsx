@@ -58,11 +58,11 @@ export default function ContractsPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const res = await getContracts({
-        status: statusFilter !== 'all' ? statusFilter : undefined,
+      const data = await getContracts({
+        status: statusFilter !== 'all' ? (statusFilter as any) : undefined,
         search: search || undefined,
       });
-      setContracts(res.data.contracts);
+      setContracts(data);
     } catch (error) {
       toast({ title: '오류', description: '데이터를 불러오는데 실패했습니다.', variant: 'destructive' });
     } finally {
@@ -146,7 +146,7 @@ export default function ContractsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">총 계약금액</p>
                 <p className="text-xl font-bold">
-                  {formatAmount(contracts.reduce((sum, c) => sum + Number(c.totalAmount || 0), 0))}
+                  {formatAmount(contracts.reduce((sum, c) => sum + Number(c.totalAmount ?? c.total_amount ?? 0), 0))}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-muted-foreground" />
@@ -214,42 +214,50 @@ export default function ContractsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contracts.map((contract) => (
-                  <TableRow
-                    key={contract.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => router.push(`/contracts/${contract.id}`)}
-                  >
-                    <TableCell className="font-medium">{contract.contractNumber}</TableCell>
-                    <TableCell>{contract.title}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-muted-foreground" />
-                        {contract.customer?.company || contract.customer?.name || '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {contract.contractType === 'TOXICITY' ? '독성' : '효력'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatAmount(contract.totalAmount)}</TableCell>
-                    <TableCell>
-                      <Badge className={statusColors[contract.status]}>
-                        {statusLabels[contract.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(contract.signedDate)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {contract._count?.studies || 0}건
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {contracts.map((contract) => {
+                  const contractNumber = contract.contractNumber || contract.contract_number || '';
+                  const title = contract.title || contract.project_name || '';
+                  const contractType = contract.contractType || contract.contract_type || 'TOXICITY';
+                  const totalAmount = contract.totalAmount ?? contract.total_amount ?? 0;
+                  const signedDate = contract.signedDate || contract.signed_date;
+                  
+                  return (
+                    <TableRow
+                      key={contract.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => router.push(`/contracts/${contract.id}`)}
+                    >
+                      <TableCell className="font-medium">{contractNumber}</TableCell>
+                      <TableCell>{title}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-muted-foreground" />
+                          {contract.customer?.company || contract.customer?.name || contract.customer_name || '-'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {contractType === 'TOXICITY' ? '독성' : '효력'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatAmount(totalAmount)}</TableCell>
+                      <TableCell>
+                        <Badge className={statusColors[contract.status]}>
+                          {statusLabels[contract.status]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(signedDate)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {(contract as any)._count?.studies || contract.studies?.length || 0}건
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

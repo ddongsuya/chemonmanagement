@@ -115,9 +115,11 @@ export default function ContractDetailPage() {
   const loadContract = async () => {
     try {
       setLoading(true);
-      const res = await getContract(params.id as string);
-      setContract(res.data.contract);
-      setEditForm(res.data.contract);
+      const data = await getContract(params.id as string);
+      if (data) {
+        setContract(data as any);
+        setEditForm(data as any);
+      }
     } catch (error) {
       toast({ title: '오류', description: '계약을 불러오는데 실패했습니다.', variant: 'destructive' });
     } finally {
@@ -151,7 +153,7 @@ export default function ContractDetailPage() {
   const handleStatusChange = async (status: string) => {
     if (!contract) return;
     try {
-      await updateContractStatus(contract.id, status);
+      await updateContractStatus(contract.id, status as any);
       toast({ title: '성공', description: '상태가 변경되었습니다.' });
       loadContract();
     } catch (error) {
@@ -162,7 +164,15 @@ export default function ContractDetailPage() {
   const handleAddStudy = async () => {
     if (!contract || !newStudy.testName) return;
     try {
-      await createStudy({ ...newStudy, contractId: contract.id });
+      await createStudy({
+        contract_id: contract.id,
+        study_type: newStudy.studyType,
+        test_name: newStudy.testName,
+        received_date: newStudy.receivedDate || undefined,
+        expected_end_date: newStudy.expectedEndDate || undefined,
+        notes: newStudy.notes || undefined,
+        status: 'REGISTERED',
+      });
       toast({ title: '성공', description: '시험이 추가되었습니다.' });
       setStudyDialogOpen(false);
       setNewStudy({ testName: '', studyType: 'TOXICITY', receivedDate: '', expectedEndDate: '', notes: '' });
@@ -175,12 +185,15 @@ export default function ContractDetailPage() {
   const handleAddAmendment = async () => {
     if (!contract || !newAmendment.reason) return;
     try {
-      const newTotal = Number(contract.totalAmount) + newAmendment.amountChange;
-      await createAmendment(contract.id, {
+      const newTotal = Number(contract.total_amount) + newAmendment.amountChange;
+      await createAmendment({
+        contract_id: contract.id,
+        version: ((contract as any).amendments?.length || 0) + 1,
         reason: newAmendment.reason,
-        amountChange: newAmendment.amountChange,
-        newTotalAmount: newTotal,
-        newEndDate: newAmendment.newEndDate || undefined,
+        changes: {},
+        amount_change: newAmendment.amountChange,
+        new_total_amount: newTotal,
+        new_end_date: newAmendment.newEndDate || undefined,
       });
       toast({ title: '성공', description: '변경계약이 추가되었습니다.' });
       setAmendmentDialogOpen(false);
@@ -204,6 +217,16 @@ export default function ContractDetailPage() {
   if (loading) return <div className="flex items-center justify-center h-64">로딩 중...</div>;
   if (!contract) return <div className="flex items-center justify-center h-64">계약을 찾을 수 없습니다.</div>;
 
+  // Helper to get display values
+  const contractTitle = contract.title || contract.project_name || '';
+  const contractNumber = contract.contractNumber || contract.contract_number || '';
+  const contractType = contract.contractType || contract.contract_type || 'TOXICITY';
+  const totalAmount = contract.totalAmount ?? contract.total_amount ?? 0;
+  const paidAmount = contract.paidAmount ?? contract.paid_amount ?? 0;
+  const signedDate = contract.signedDate || contract.signed_date;
+  const startDate = contract.startDate || contract.start_date;
+  const endDate = contract.endDate || contract.end_date;
+
   return (
     <div className="space-y-6">
       {/* 헤더 */}
@@ -214,10 +237,10 @@ export default function ContractDetailPage() {
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{contract.title}</h1>
+              <h1 className="text-2xl font-bold">{contractTitle}</h1>
               <Badge className={statusColors[contract.status]}>{statusLabels[contract.status]}</Badge>
             </div>
-            <p className="text-muted-foreground">{contract.contractNumber}</p>
+            <p className="text-muted-foreground">{contractNumber}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -252,12 +275,12 @@ export default function ContractDetailPage() {
                   <>
                     <div className="space-y-2">
                       <Label>계약명</Label>
-                      <Input value={editForm.title || ''} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+                      <Input value={(editForm as any).title || (editForm as any).project_name || ''} onChange={(e) => setEditForm({ ...editForm, project_name: e.target.value })} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>계약 유형</Label>
-                        <Select value={editForm.contractType} onValueChange={(v: any) => setEditForm({ ...editForm, contractType: v })}>
+                        <Select value={(editForm as any).contractType || (editForm as any).contract_type} onValueChange={(v: any) => setEditForm({ ...editForm, contract_type: v })}>
                           <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="TOXICITY">독성시험</SelectItem>
@@ -267,16 +290,16 @@ export default function ContractDetailPage() {
                       </div>
                       <div className="space-y-2">
                         <Label>계약금액</Label>
-                        <Input type="number" value={editForm.totalAmount || ''} onChange={(e) => setEditForm({ ...editForm, totalAmount: Number(e.target.value) })} />
+                        <Input type="number" value={(editForm as any).totalAmount || (editForm as any).total_amount || ''} onChange={(e) => setEditForm({ ...editForm, total_amount: Number(e.target.value) })} />
                       </div>
                     </div>
                   </>
                 ) : (
                   <div className="space-y-3">
-                    <div className="flex justify-between"><span className="text-muted-foreground">계약명</span><span className="font-medium">{contract.title}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">계약 유형</span><Badge variant="outline">{contract.contractType === 'TOXICITY' ? '독성' : '효력'}</Badge></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">계약금액</span><span className="font-medium">{formatAmount(contract.totalAmount)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">수금액</span><span>{formatAmount(contract.paidAmount)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">계약명</span><span className="font-medium">{contractTitle}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">계약 유형</span><Badge variant="outline">{contractType === 'TOXICITY' ? '독성' : '효력'}</Badge></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">계약금액</span><span className="font-medium">{formatAmount(totalAmount)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">수금액</span><span>{formatAmount(paidAmount)}</span></div>
                   </div>
                 )}
               </CardContent>
@@ -290,7 +313,7 @@ export default function ContractDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between"><span className="text-muted-foreground">고객사</span><span className="font-medium">{contract.customer?.company || contract.customer?.name || '-'}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">고객사</span><span className="font-medium">{contract.customer?.company || contract.customer?.name || contract.customer_name || '-'}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">담당자</span><span>{contract.customer?.name || '-'}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">연락처</span><span>{contract.customer?.phone || '-'}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">이메일</span><span>{contract.customer?.email || '-'}</span></div>
@@ -309,22 +332,22 @@ export default function ContractDetailPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>체결일</Label>
-                      <Input type="date" value={editForm.signedDate?.split('T')[0] || ''} onChange={(e) => setEditForm({ ...editForm, signedDate: e.target.value })} />
+                      <Input type="date" value={((editForm as any).signedDate || (editForm as any).signed_date || '')?.split('T')[0] || ''} onChange={(e) => setEditForm({ ...editForm, signed_date: e.target.value })} />
                     </div>
                     <div className="space-y-2">
                       <Label>시작일</Label>
-                      <Input type="date" value={editForm.startDate?.split('T')[0] || ''} onChange={(e) => setEditForm({ ...editForm, startDate: e.target.value })} />
+                      <Input type="date" value={((editForm as any).startDate || (editForm as any).start_date || '')?.split('T')[0] || ''} onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })} />
                     </div>
                     <div className="space-y-2">
                       <Label>종료일</Label>
-                      <Input type="date" value={editForm.endDate?.split('T')[0] || ''} onChange={(e) => setEditForm({ ...editForm, endDate: e.target.value })} />
+                      <Input type="date" value={((editForm as any).endDate || (editForm as any).end_date || '')?.split('T')[0] || ''} onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })} />
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="flex justify-between"><span className="text-muted-foreground">체결일</span><span>{formatDate(contract.signedDate)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">시작일</span><span>{formatDate(contract.startDate)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">종료일</span><span>{formatDate(contract.endDate)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">체결일</span><span>{formatDate(signedDate)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">시작일</span><span>{formatDate(startDate)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">종료일</span><span>{formatDate(endDate)}</span></div>
                   </div>
                 )}
               </CardContent>
@@ -346,7 +369,7 @@ export default function ContractDetailPage() {
             <CardHeader><CardTitle>계약 조건 / 비고</CardTitle></CardHeader>
             <CardContent>
               {isEditing ? (
-                <Textarea value={editForm.terms || ''} onChange={(e) => setEditForm({ ...editForm, terms: e.target.value })} rows={4} />
+                <Textarea value={(editForm as any).terms || ''} onChange={(e) => setEditForm({ ...editForm, terms: e.target.value })} rows={4} />
               ) : (
                 <p className="whitespace-pre-wrap">{contract.terms || '내용이 없습니다.'}</p>
               )}
@@ -454,7 +477,7 @@ export default function ContractDetailPage() {
                     <div className="space-y-2">
                       <Label>금액 증감</Label>
                       <Input type="number" value={newAmendment.amountChange} onChange={(e) => setNewAmendment({ ...newAmendment, amountChange: Number(e.target.value) })} />
-                      <p className="text-sm text-muted-foreground">변경 후 총액: {formatAmount(Number(contract.totalAmount) + newAmendment.amountChange)}</p>
+                      <p className="text-sm text-muted-foreground">변경 후 총액: {formatAmount(totalAmount + newAmendment.amountChange)}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>변경 종료일</Label>

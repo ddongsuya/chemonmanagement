@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   Activity,
   Shield,
+  BarChart3,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,11 @@ const adminMenuItems = [
     title: '사용자 관리',
     href: '/admin/users',
     icon: Users,
+  },
+  {
+    title: '매출 통계',
+    href: '/admin/sales',
+    icon: BarChart3,
   },
   {
     title: '공지사항 관리',

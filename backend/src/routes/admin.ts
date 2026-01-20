@@ -17,6 +17,7 @@ import {
   updateUserRoleSchema,
   activityLogFiltersSchema,
   usageStatsSchema,
+  salesStatsSchema,
 } from '../types/admin';
 import {
   createAnnouncementSchema,
@@ -162,6 +163,51 @@ router.post(
   }
 );
 
+/**
+ * PATCH /api/admin/users/:id/permissions
+ * Update user permissions (canViewAllSales, etc.)
+ */
+router.patch(
+  '/users/:id/permissions',
+  activityLogger('PERMISSION_CHANGE', 'user'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const { canViewAllSales } = req.body;
+      
+      const user = await prisma.user.update({
+        where: { id },
+        data: { canViewAllSales },
+        include: {
+          _count: {
+            select: {
+              quotations: true,
+              customers: true,
+            },
+          },
+        },
+      });
+      
+      res.json({ 
+        success: true, 
+        data: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          status: user.status,
+          canViewAllSales: user.canViewAllSales,
+          department: user.department,
+          position: user.position,
+          _count: user._count,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 
 // ==================== Statistics Routes ====================
 
@@ -192,6 +238,29 @@ router.get(
     try {
       const { period, startDate, endDate } = usageStatsSchema.parse(req.query);
       const stats = await adminService.getUsageStats(period, startDate, endDate);
+      res.json({ success: true, data: stats });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/admin/stats/sales
+ * Get sales statistics (requires canViewAllSales permission)
+ */
+router.get(
+  '/stats/sales',
+  validateQuery(salesStatsSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // Check if user has permission to view all sales
+      if (!req.user?.canViewAllSales && req.user?.role !== 'ADMIN') {
+        throw new AppError('전체 매출 조회 권한이 없습니다', 403, ErrorCodes.RESOURCE_ACCESS_DENIED);
+      }
+      
+      const { startDate, endDate, groupBy } = salesStatsSchema.parse(req.query);
+      const stats = await adminService.getSalesStats(startDate, endDate, groupBy);
       res.json({ success: true, data: stats });
     } catch (error) {
       next(error);

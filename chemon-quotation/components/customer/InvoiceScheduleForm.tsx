@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,12 +21,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { InvoiceSchedule, TestReception } from '@/types/customer';
-import {
-  saveInvoiceSchedule,
-  updateInvoiceSchedule,
-  createInstallmentSchedules,
-  calculateDefaultScheduledDate,
-} from '@/lib/invoice-schedule-storage';
+import { invoiceScheduleApi } from '@/lib/customer-data-api';
 
 interface InvoiceScheduleFormProps {
   customerId: string;
@@ -34,6 +29,13 @@ interface InvoiceScheduleFormProps {
   invoiceSchedule?: InvoiceSchedule;
   onSuccess: () => void;
   onCancel?: () => void;
+}
+
+// 기본 발행 예정일 계산 (접수일로부터 30일 후)
+function calculateDefaultScheduledDate(receptionDate: string): string {
+  const date = new Date(receptionDate);
+  date.setDate(date.getDate() + 30);
+  return date.toISOString();
 }
 
 export default function InvoiceScheduleForm({
@@ -103,11 +105,9 @@ export default function InvoiceScheduleForm({
 
     setSaving(true);
     try {
-      const now = new Date().toISOString();
-
       if (isEditMode && invoiceSchedule) {
         // 수정 모드
-        updateInvoiceSchedule(invoiceSchedule.id, {
+        await invoiceScheduleApi.update(invoiceSchedule.id, {
           amount: formData.amount,
           scheduled_date: new Date(formData.scheduled_date).toISOString(),
           notes: formData.notes,
@@ -115,9 +115,9 @@ export default function InvoiceScheduleForm({
       } else if (testReception) {
         if (isInstallment) {
           // 분할 지급 생성 - Requirements 3.6
-          createInstallmentSchedules(
-            testReception.id,
+          await invoiceScheduleApi.createInstallments(
             customerId,
+            testReception.id,
             formData.amount,
             formData.installments,
             new Date(formData.scheduled_date).toISOString(),
@@ -125,19 +125,14 @@ export default function InvoiceScheduleForm({
           );
         } else {
           // 전액 지급 생성 - Requirements 3.2
-          const newSchedule: InvoiceSchedule = {
-            id: crypto.randomUUID(),
+          await invoiceScheduleApi.create(customerId, {
             test_reception_id: testReception.id,
-            customer_id: customerId,
             amount: formData.amount,
             scheduled_date: new Date(formData.scheduled_date).toISOString(),
             payment_type: 'full',
             status: 'pending',
             notes: formData.notes,
-            created_at: now,
-            updated_at: now,
-          };
-          saveInvoiceSchedule(newSchedule);
+          });
         }
       }
 

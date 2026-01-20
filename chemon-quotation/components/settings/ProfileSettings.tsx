@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -25,26 +26,16 @@ import { Loader2, Key, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthStore } from '@/stores/authStore';
 import { changePassword } from '@/lib/auth-api';
+import { getUserSettings, updateUserSettings } from '@/lib/package-api';
 import UserCodeSetting from './UserCodeSetting';
-
-const USER_SETTINGS_KEY = 'chemon_user_settings';
-
-interface LocalSettings {
-  user_code: string;
-  next_quotation_seq: number;
-}
-
-const defaultLocalSettings: LocalSettings = {
-  user_code: 'DL',
-  next_quotation_seq: 1,
-};
 
 export default function ProfileSettings() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
-  const [localSettings, setLocalSettings] = useState<LocalSettings>(defaultLocalSettings);
+  const [userCode, setUserCode] = useState('DL');
 
   // 비밀번호 변경 데이터
   const [passwordData, setPasswordData] = useState({
@@ -54,23 +45,42 @@ export default function ProfileSettings() {
   });
   const [passwordError, setPasswordError] = useState('');
 
-  // localStorage에서 로컬 설정 로드
+  // API에서 사용자 설정 조회
+  const { data: settingsResponse, isLoading } = useQuery({
+    queryKey: ['userSettings'],
+    queryFn: getUserSettings,
+  });
+
+  // 사용자 코드 로드
   useEffect(() => {
-    const saved = localStorage.getItem(USER_SETTINGS_KEY);
-    if (saved) {
-      try {
-        setLocalSettings({ ...defaultLocalSettings, ...JSON.parse(saved) });
-      } catch {
-        setLocalSettings(defaultLocalSettings);
-      }
+    if (settingsResponse?.data?.userCode) {
+      setUserCode(settingsResponse.data.userCode);
     }
-  }, []);
+  }, [settingsResponse]);
+
+  // 사용자 코드 저장 mutation
+  const saveCodeMutation = useMutation({
+    mutationFn: (code: string) => updateUserSettings({ userCode: code }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userSettings'] });
+      toast({
+        title: '저장 완료',
+        description: '견적서 코드가 저장되었습니다.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: '오류',
+        description: '코드 저장에 실패했습니다.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // 견적서 코드 저장
   const handleSaveUserCode = (code: string) => {
-    const updated = { ...localSettings, user_code: code };
-    setLocalSettings(updated);
-    localStorage.setItem(USER_SETTINGS_KEY, JSON.stringify(updated));
+    setUserCode(code);
+    saveCodeMutation.mutate(code);
   };
 
   // 비밀번호 변경
@@ -117,6 +127,15 @@ export default function ProfileSettings() {
   const userDepartment = user?.department || '';
   const userPosition = user?.position || '';
   const userRole = user?.role || 'USER';
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin mr-2" />
+        <span>설정을 불러오는 중...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -194,8 +213,8 @@ export default function ProfileSettings() {
         </CardHeader>
         <CardContent>
           <UserCodeSetting
-            currentCode={localSettings.user_code}
-            currentSeq={localSettings.next_quotation_seq}
+            currentCode={userCode}
+            currentSeq={1}
             onSave={handleSaveUserCode}
           />
         </CardContent>

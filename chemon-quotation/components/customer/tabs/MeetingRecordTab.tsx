@@ -29,11 +29,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Plus, Search, MessageSquare, Filter } from 'lucide-react';
 import { MeetingRecord } from '@/types/customer';
-import {
-  getMeetingRecordsByCustomerId,
-  deleteMeetingRecord,
-  updateRequestStatus,
-} from '@/lib/meeting-record-storage';
+import { meetingRecordApi } from '@/lib/customer-data-api';
 import MeetingRecordForm from '../MeetingRecordForm';
 import MeetingRecordList from '../MeetingRecordList';
 
@@ -46,6 +42,7 @@ type RequestFilter = 'all' | 'requests_only' | 'pending' | 'completed';
 
 export default function MeetingRecordTab({ customerId }: MeetingRecordTabProps) {
   const [records, setRecords] = useState<MeetingRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<FilterType>('all');
   const [requestFilter, setRequestFilter] = useState<RequestFilter>('all');
@@ -58,9 +55,16 @@ export default function MeetingRecordTab({ customerId }: MeetingRecordTabProps) 
   } | null>(null);
   const [responseText, setResponseText] = useState('');
 
-  const loadRecords = () => {
-    const data = getMeetingRecordsByCustomerId(customerId);
-    setRecords(data);
+  const loadRecords = async () => {
+    setLoading(true);
+    try {
+      const data = await meetingRecordApi.getByCustomerId(customerId);
+      setRecords(data);
+    } catch (error) {
+      console.error('Failed to load meeting records:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -109,14 +113,18 @@ export default function MeetingRecordTab({ customerId }: MeetingRecordTabProps) 
     setDeleteTarget(record);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteTarget) return;
-    deleteMeetingRecord(deleteTarget.id);
-    loadRecords();
+    try {
+      await meetingRecordApi.delete(deleteTarget.id);
+      loadRecords();
+    } catch (error) {
+      console.error('Failed to delete meeting record:', error);
+    }
     setDeleteTarget(null);
   };
 
-  const handleStatusChange = (
+  const handleStatusChange = async (
     record: MeetingRecord,
     newStatus: 'pending' | 'in_progress' | 'completed'
   ) => {
@@ -124,19 +132,27 @@ export default function MeetingRecordTab({ customerId }: MeetingRecordTabProps) 
       setStatusChangeTarget({ record, newStatus });
       setResponseText('');
     } else {
-      updateRequestStatus(record.id, newStatus);
-      loadRecords();
+      try {
+        await meetingRecordApi.updateRequestStatus(record.id, newStatus);
+        loadRecords();
+      } catch (error) {
+        console.error('Failed to update request status:', error);
+      }
     }
   };
 
-  const confirmStatusChange = () => {
+  const confirmStatusChange = async () => {
     if (!statusChangeTarget) return;
-    updateRequestStatus(
-      statusChangeTarget.record.id,
-      statusChangeTarget.newStatus,
-      responseText || undefined
-    );
-    loadRecords();
+    try {
+      await meetingRecordApi.updateRequestStatus(
+        statusChangeTarget.record.id,
+        statusChangeTarget.newStatus,
+        responseText || undefined
+      );
+      loadRecords();
+    } catch (error) {
+      console.error('Failed to update request status:', error);
+    }
     setStatusChangeTarget(null);
     setResponseText('');
   };

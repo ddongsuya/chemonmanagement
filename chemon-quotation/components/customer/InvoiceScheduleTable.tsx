@@ -36,12 +36,20 @@ import {
   Loader2,
 } from 'lucide-react';
 import { InvoiceSchedule } from '@/types/customer';
-import { isScheduledWithinDays, markInvoiceAsIssued } from '@/lib/invoice-schedule-storage';
+import { invoiceScheduleApi } from '@/lib/customer-data-api';
 
 interface InvoiceScheduleTableProps {
   invoiceSchedules: InvoiceSchedule[];
   onEdit?: (schedule: InvoiceSchedule) => void;
   onStatusChange?: () => void;
+}
+
+// 7일 이내 발행 예정인지 확인
+function isScheduledWithinDays(scheduledDate: string, days: number): boolean {
+  const now = new Date();
+  const scheduled = new Date(scheduledDate);
+  const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  return scheduled >= now && scheduled <= futureDate;
 }
 
 // 상태별 배지 스타일 - Requirements 3.3, 3.5
@@ -97,7 +105,7 @@ export default function InvoiceScheduleTable({
 
     setIssuing(true);
     try {
-      markInvoiceAsIssued(selectedSchedule.id, invoiceNumber.trim());
+      await invoiceScheduleApi.markAsIssued(selectedSchedule.id, invoiceNumber.trim());
       setIssueDialogOpen(false);
       setSelectedSchedule(null);
       setInvoiceNumber('');

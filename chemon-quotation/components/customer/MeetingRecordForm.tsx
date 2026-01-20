@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2, X, Plus } from 'lucide-react';
 import { MeetingRecord } from '@/types/customer';
-import { saveMeetingRecord, updateMeetingRecord } from '@/lib/meeting-record-storage';
+import { meetingRecordApi } from '@/lib/customer-data-api';
 
 interface MeetingRecordFormProps {
   customerId: string;
@@ -48,7 +48,7 @@ export default function MeetingRecordForm({
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     type: meetingRecord?.type || 'meeting' as MeetingRecord['type'],
-    date: meetingRecord?.date || new Date().toISOString().split('T')[0],
+    date: meetingRecord?.date?.split('T')[0] || new Date().toISOString().split('T')[0],
     time: meetingRecord?.time || '',
     duration: meetingRecord?.duration?.toString() || '',
     title: meetingRecord?.title || '',
@@ -108,42 +108,26 @@ export default function MeetingRecordForm({
 
     setSaving(true);
     try {
-      const now = new Date().toISOString();
+      const recordData = {
+        type: formData.type,
+        date: formData.date,
+        time: formData.time || undefined,
+        duration: formData.duration ? parseInt(formData.duration) : undefined,
+        title: formData.title,
+        attendees: formData.attendees,
+        content: formData.content,
+        follow_up_actions: formData.follow_up_actions || undefined,
+        is_request: formData.is_request,
+        request_status: formData.is_request ? formData.request_status : undefined,
+        requester_id: requesterId,
+      };
 
       if (isEditMode && meetingRecord) {
         // 수정 모드
-        updateMeetingRecord(meetingRecord.id, {
-          type: formData.type,
-          date: formData.date,
-          time: formData.time || undefined,
-          duration: formData.duration ? parseInt(formData.duration) : undefined,
-          title: formData.title,
-          attendees: formData.attendees,
-          content: formData.content,
-          follow_up_actions: formData.follow_up_actions || undefined,
-          is_request: formData.is_request,
-          request_status: formData.is_request ? formData.request_status : undefined,
-        });
+        await meetingRecordApi.update(meetingRecord.id, recordData);
       } else {
         // 등록 모드: Requirements 5.1, 5.4
-        const newRecord: MeetingRecord = {
-          id: crypto.randomUUID(),
-          customer_id: customerId,
-          requester_id: requesterId,
-          type: formData.type,
-          date: formData.date,
-          time: formData.time || undefined,
-          duration: formData.duration ? parseInt(formData.duration) : undefined,
-          title: formData.title,
-          attendees: formData.attendees,
-          content: formData.content,
-          follow_up_actions: formData.follow_up_actions || undefined,
-          is_request: formData.is_request,
-          request_status: formData.is_request ? 'pending' : undefined,
-          created_at: now,
-          updated_at: now,
-        };
-        saveMeetingRecord(newRecord);
+        await meetingRecordApi.create(customerId, recordData as any);
       }
 
       onSuccess();

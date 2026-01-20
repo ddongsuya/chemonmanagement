@@ -31,10 +31,8 @@ export default function ConsultationsPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const res = await getConsultations({
-        search: search || undefined,
-      });
-      setRecords(res.data.records);
+      const data = await getConsultations();
+      setRecords(data);
     } catch (error) {
       toast({ title: '오류', description: '데이터를 불러오는데 실패했습니다.', variant: 'destructive' });
     } finally {
@@ -84,7 +82,7 @@ export default function ConsultationsPage() {
                 <p className="text-sm text-muted-foreground">이번 달</p>
                 <p className="text-2xl font-bold text-blue-600">
                   {records.filter(r => {
-                    const date = new Date(r.consultDate);
+                    const date = new Date(r.consult_date);
                     const now = new Date();
                     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
                   }).length}
@@ -100,7 +98,7 @@ export default function ConsultationsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">계약 연결</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {records.filter(r => r.contractId).length}
+                  {records.filter(r => (r as any).contractId || r.contract_id).length}
                 </p>
               </div>
               <FileText className="w-8 h-8 text-green-500" />
@@ -156,41 +154,50 @@ export default function ConsultationsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {records.map((record) => (
-                  <TableRow
-                    key={record.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => router.push(`/consultations/${record.id}`)}
-                  >
-                    <TableCell className="font-medium">{record.recordNumber}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-muted-foreground" />
-                        {record.customer?.company || record.customer?.name || '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>{record.substanceName || '-'}</TableCell>
-                    <TableCell>{record.storageStatus || '-'}</TableCell>
-                    <TableCell>
-                      {record.contract ? (
-                        <span className="text-blue-600">{record.contract.contractNumber}</span>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(record.consultDate)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="truncate max-w-[200px] block">
-                        {record.clientRequests || '-'}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {records.map((record) => {
+                  const recordNumber = (record as any).recordNumber || record.record_number || '';
+                  const substanceName = (record as any).substanceName || record.substance_name || '';
+                  const storageStatus = (record as any).storageStatus || record.storage_status || '';
+                  const contractId = (record as any).contractId || record.contract_id;
+                  const consultDate = (record as any).consultDate || record.consult_date;
+                  const clientRequests = (record as any).clientRequests || record.client_requests || '';
+                  
+                  return (
+                    <TableRow
+                      key={record.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => router.push(`/consultations/${record.id}`)}
+                    >
+                      <TableCell className="font-medium">{recordNumber}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-muted-foreground" />
+                          {(record as any).customer?.company || (record as any).customer?.name || '-'}
+                        </div>
+                      </TableCell>
+                      <TableCell>{substanceName || '-'}</TableCell>
+                      <TableCell>{storageStatus || '-'}</TableCell>
+                      <TableCell>
+                        {contractId ? (
+                          <span className="text-blue-600">{(record as any).contract?.contractNumber || '-'}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(consultDate)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="truncate max-w-[200px] block">
+                          {clientRequests || '-'}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useEfficacyQuotationStore } from '@/stores/efficacyQuotationStore';
-import { getEfficacyMasterData } from '@/lib/efficacy-storage';
+import { getEfficacyPriceItems, EfficacyPriceItem } from '@/lib/master-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -27,7 +27,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, Search, Plus, Trash2, Package, ListPlus } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Search, Plus, Trash2, Package, ListPlus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   getOptionalItemsForModel,
@@ -62,14 +62,44 @@ export default function StepItemConfiguration() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('selected');
+  const [priceItems, setPriceItems] = useState<EfficacyPriceItem[]>([]);
+  const [loadingPrices, setLoadingPrices] = useState(true);
 
-  // Get master data for price lookup
-  const masterData = getEfficacyMasterData();
+  // Load price items from API
+  useEffect(() => {
+    async function loadPriceItems() {
+      try {
+        const response = await getEfficacyPriceItems();
+        if (response.success && response.data) {
+          setPriceItems(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to load price items:', error);
+      } finally {
+        setLoadingPrices(false);
+      }
+    }
+    loadPriceItems();
+  }, []);
+
+  // Build price map from API data
   const priceMap = useMemo(() => {
     const map = new Map<string, PriceItem>();
-    masterData.price_master.forEach((p) => map.set(p.item_id, p));
+    priceItems.forEach((p) => {
+      map.set(p.itemId, {
+        item_id: p.itemId,
+        category: p.category,
+        subcategory: p.subcategory || '',
+        item_name: p.itemName,
+        item_detail: p.itemDetail || '',
+        unit_price: p.unitPrice,
+        unit: p.unit || '회',
+        remarks: p.remarks || '',
+        is_active: p.isActive,
+      });
+    });
     return map;
-  }, [masterData.price_master]);
+  }, [priceItems]);
 
   // Get optional items for the selected model
   const optionalItems = useMemo(() => {
@@ -141,6 +171,17 @@ export default function StepItemConfiguration() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             모델 선택으로 돌아가기
           </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (loadingPrices) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-gray-400" />
+          <p className="text-gray-500">가격 정보를 불러오는 중...</p>
         </CardContent>
       </Card>
     );

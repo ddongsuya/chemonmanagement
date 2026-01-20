@@ -40,11 +40,7 @@ import {
   formatDate,
   getStatusColor,
 } from '@/lib/utils';
-import {
-  getEfficacyQuotationById,
-  updateEfficacyQuotationStatus,
-  copyEfficacyQuotation,
-} from '@/lib/efficacy-storage';
+import { efficacyQuotationApi } from '@/lib/efficacy-api';
 import { SavedEfficacyQuotation, EfficacyQuotationStatus } from '@/types/efficacy';
 import { useToast } from '@/hooks/use-toast';
 
@@ -68,45 +64,64 @@ export default function EfficacyQuotationDetailPage() {
   const [quotation, setQuotation] = useState<SavedEfficacyQuotation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // localStorage에서 견적 데이터 로드
+  // API에서 견적 데이터 로드
   useEffect(() => {
-    const loadQuotation = () => {
-      const id = params.id as string;
-      const data = getEfficacyQuotationById(id);
-      setQuotation(data);
-      setIsLoading(false);
+    const loadQuotation = async () => {
+      try {
+        const id = params.id as string;
+        const data = await efficacyQuotationApi.getById(id);
+        setQuotation(data);
+      } catch (error) {
+        console.error('Failed to load efficacy quotation:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadQuotation();
   }, [params.id]);
 
   // 상태 변경 핸들러
-  const handleStatusChange = (newStatus: string) => {
+  const handleStatusChange = async (newStatus: string) => {
     if (!quotation) return;
 
-    const updated = updateEfficacyQuotationStatus(
-      quotation.id,
-      newStatus as EfficacyQuotationStatus
-    );
-    if (updated) {
+    try {
+      const updated = await efficacyQuotationApi.updateStatus(
+        quotation.id,
+        newStatus as EfficacyQuotationStatus
+      );
       setQuotation(updated);
       toast({
         title: '상태 변경',
         description: `견적서 상태가 '${getEfficacyStatusLabel(newStatus)}'로 변경되었습니다.`,
       });
+    } catch (error) {
+      toast({
+        title: '상태 변경 실패',
+        description: '상태 변경 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
     }
   };
 
   // 복사 핸들러
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!quotation) return;
 
-    const copied = copyEfficacyQuotation(quotation.id);
-    if (copied) {
-      toast({
-        title: '복사 완료',
-        description: `견적서가 ${copied.quotation_number}로 복사되었습니다.`,
-      });
-    } else {
+    try {
+      const copied = await efficacyQuotationApi.copy(quotation.id);
+      if (copied) {
+        toast({
+          title: '복사 완료',
+          description: `견적서가 ${copied.quotation_number}로 복사되었습니다.`,
+        });
+      } else {
+        toast({
+          title: '복사 실패',
+          description: '견적서 복사 중 오류가 발생했습니다.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
       toast({
         title: '복사 실패',
         description: '견적서 복사 중 오류가 발생했습니다.',

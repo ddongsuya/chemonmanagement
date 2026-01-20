@@ -32,8 +32,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import { getCustomerById, getQuotations, deleteCustomer } from '@/lib/data-api';
-import { getRequestersByCustomerId } from '@/lib/requester-storage';
-import { Customer } from '@/types/customer';
+import { requesterApi } from '@/lib/customer-data-api';
+import { Customer, Requester } from '@/types/customer';
 import { useToast } from '@/hooks/use-toast';
 
 /**
@@ -52,6 +52,7 @@ export default function CustomerDetailPage() {
   const [showMeetingDialog, setShowMeetingDialog] = useState(false);
   const [showTestReceptionDialog, setShowTestReceptionDialog] = useState(false);
   const [quotations, setQuotations] = useState<any[]>([]);
+  const [requesters, setRequesters] = useState<Requester[]>([]);
   const [activeTab, setActiveTab] = useState<TabValue>('overview');
   const [customer, setCustomer] = useState<Customer | null>(null);
 
@@ -228,7 +229,19 @@ export default function CustomerDetailPage() {
   const quotationId = quotations.find(q => q.status === 'accepted' || q.status === 'won')?.id || '';
 
   // 의뢰자 목록 로드
-  const requesters = getRequestersByCustomerId(customer.id);
+  useEffect(() => {
+    if (!customer) return;
+    
+    async function loadRequesters() {
+      try {
+        const data = await requesterApi.getByCustomerId(customer!.id);
+        setRequesters(data);
+      } catch (error) {
+        console.error('Failed to load requesters:', error);
+      }
+    }
+    loadRequesters();
+  }, [customer]);
 
   return (
     <div>

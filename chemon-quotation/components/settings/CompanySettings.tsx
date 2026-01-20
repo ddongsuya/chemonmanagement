@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -14,14 +15,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Save, Upload, X, Building2, Phone, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  getCompanyInfo,
+  updateCompanyInfo,
+  UpdateCompanyInfoDTO,
+} from '@/lib/package-api';
 
 const DEFAULT_COMPANY = {
   name: '주식회사 켐온',
-  name_en: 'CHEMON Inc.',
-  business_number: '123-45-67890',
-  ceo_name: '대표이사',
+  nameEn: 'CHEMON Inc.',
+  businessNumber: '123-45-67890',
+  ceoName: '대표이사',
   address: '경기도 수원시 영통구 광교로 156',
-  address_en: '156, Gwanggyo-ro, Yeongtong-gu, Suwon-si, Gyeonggi-do, Korea',
+  addressEn: '156, Gwanggyo-ro, Yeongtong-gu, Suwon-si, Gyeonggi-do, Korea',
   tel: '031-888-9900',
   fax: '031-888-9901',
   email: 'contact@chemon.co.kr',
@@ -31,25 +37,54 @@ const DEFAULT_COMPANY = {
 
 export default function CompanySettings() {
   const { toast } = useToast();
-  const [saving, setSaving] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 회사 정보
   const [company, setCompany] = useState(DEFAULT_COMPANY);
 
-  // localStorage에서 로드
+  // API에서 회사 정보 조회
+  const { data: companyResponse, isLoading } = useQuery({
+    queryKey: ['companyInfo'],
+    queryFn: getCompanyInfo,
+  });
+
+  // 회사 정보 로드
   useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem('company_info');
-    if (saved) {
-      try {
-        setCompany(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse company info:', e);
-      }
+    if (companyResponse?.data) {
+      const data = companyResponse.data;
+      setCompany({
+        name: data.name || DEFAULT_COMPANY.name,
+        nameEn: data.nameEn || DEFAULT_COMPANY.nameEn,
+        businessNumber: data.businessNumber || DEFAULT_COMPANY.businessNumber,
+        ceoName: data.ceoName || DEFAULT_COMPANY.ceoName,
+        address: data.address || DEFAULT_COMPANY.address,
+        addressEn: data.addressEn || DEFAULT_COMPANY.addressEn,
+        tel: data.tel || DEFAULT_COMPANY.tel,
+        fax: data.fax || DEFAULT_COMPANY.fax,
+        email: data.email || DEFAULT_COMPANY.email,
+        website: data.website || DEFAULT_COMPANY.website,
+        logo: data.logo || '',
+      });
     }
-  }, []);
+  }, [companyResponse]);
+
+  // 회사 정보 저장 mutation
+  const saveMutation = useMutation({
+    mutationFn: (data: UpdateCompanyInfoDTO) => updateCompanyInfo(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['companyInfo'] });
+      toast({
+        title: '저장 완료',
+        description: '회사 정보가 업데이트되었습니다.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: '오류',
+        description: '회사 정보 저장에 실패했습니다.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // 로고 업로드
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,19 +116,29 @@ export default function CompanySettings() {
   };
 
   // 저장
-  const handleSave = async () => {
-    setSaving(true);
-    localStorage.setItem('company_info', JSON.stringify(company));
-    await new Promise((r) => setTimeout(r, 1000));
-    setSaving(false);
-    toast({
-      title: '저장 완료',
-      description: '회사 정보가 업데이트되었습니다.',
+  const handleSave = () => {
+    saveMutation.mutate({
+      name: company.name,
+      nameEn: company.nameEn,
+      businessNumber: company.businessNumber,
+      ceoName: company.ceoName,
+      address: company.address,
+      addressEn: company.addressEn,
+      tel: company.tel,
+      fax: company.fax,
+      email: company.email,
+      website: company.website,
+      logo: company.logo,
     });
   };
 
-  if (!mounted) {
-    return null;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin mr-2" />
+        <span>회사 정보를 불러오는 중...</span>
+      </div>
+    );
   }
 
   return (
@@ -124,9 +169,9 @@ export default function CompanySettings() {
             <div className="space-y-2">
               <Label>회사명 (영문)</Label>
               <Input
-                value={company.name_en}
+                value={company.nameEn}
                 onChange={(e) =>
-                  setCompany({ ...company, name_en: e.target.value })
+                  setCompany({ ...company, nameEn: e.target.value })
                 }
                 placeholder="CHEMON Inc."
               />
@@ -134,9 +179,9 @@ export default function CompanySettings() {
             <div className="space-y-2">
               <Label>사업자등록번호</Label>
               <Input
-                value={company.business_number}
+                value={company.businessNumber}
                 onChange={(e) =>
-                  setCompany({ ...company, business_number: e.target.value })
+                  setCompany({ ...company, businessNumber: e.target.value })
                 }
                 placeholder="000-00-00000"
               />
@@ -144,9 +189,9 @@ export default function CompanySettings() {
             <div className="space-y-2">
               <Label>대표자명</Label>
               <Input
-                value={company.ceo_name}
+                value={company.ceoName}
                 onChange={(e) =>
-                  setCompany({ ...company, ceo_name: e.target.value })
+                  setCompany({ ...company, ceoName: e.target.value })
                 }
               />
             </div>
@@ -166,9 +211,9 @@ export default function CompanySettings() {
           <div className="space-y-2">
             <Label>주소 (영문)</Label>
             <Textarea
-              value={company.address_en}
+              value={company.addressEn}
               onChange={(e) =>
-                setCompany({ ...company, address_en: e.target.value })
+                setCompany({ ...company, addressEn: e.target.value })
               }
               rows={2}
             />
@@ -289,8 +334,8 @@ export default function CompanySettings() {
 
       {/* 저장 버튼 */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving} size="lg">
-          {saving ? (
+        <Button onClick={handleSave} disabled={saveMutation.isPending} size="lg">
+          {saveMutation.isPending ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
           ) : (
             <Save className="w-4 h-4 mr-2" />
