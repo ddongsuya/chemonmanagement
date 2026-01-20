@@ -326,3 +326,45 @@ export async function getSettingsHistory(
 ): Promise<ApiResponse<SettingChange[]>> {
   return adminFetch<SettingChange[]>(`/api/admin/settings/history?limit=${limit}`);
 }
+
+// ============ Backup APIs ============
+
+export interface Backup {
+  id: string;
+  filename: string;
+  size: number;
+  type: 'FULL' | 'INCREMENTAL';
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+  createdAt: string;
+  completedAt?: string;
+  error?: string;
+}
+
+export interface BackupFilters {
+  status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+  type?: 'FULL' | 'INCREMENTAL';
+  page?: number;
+  limit?: number;
+}
+
+export async function getBackups(
+  filters: BackupFilters = {}
+): Promise<ApiResponse<PaginatedResult<Backup>>> {
+  const query = buildQueryString(filters);
+  return adminFetch<PaginatedResult<Backup>>(`/api/admin/backups?${query}`);
+}
+
+export async function createBackup(
+  type: 'FULL' | 'INCREMENTAL' = 'FULL'
+): Promise<ApiResponse<Backup>> {
+  return adminFetch<Backup>('/api/admin/backups', {
+    method: 'POST',
+    body: JSON.stringify({ type }),
+  });
+}
+
+export async function deleteBackup(id: string): Promise<ApiResponse<void>> {
+  return adminFetch<void>(`/api/admin/backups/${id}`, {
+    method: 'DELETE',
+  });
+}
