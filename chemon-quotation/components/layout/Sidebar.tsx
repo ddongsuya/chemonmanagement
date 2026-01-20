@@ -12,6 +12,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   FileSignature,
   ClipboardList,
   LogOut,
@@ -19,67 +20,69 @@ import {
   Calendar,
   Calculator,
   Shield,
+  UserPlus,
+  Kanban,
+  FlaskConical,
+  MessageSquare,
+  LucideIcon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
-const menuItems = [
+interface MenuItem {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+interface MenuGroup {
+  title: string;
+  icon: LucideIcon;
+  items: MenuItem[];
+}
+
+const menuGroups: MenuGroup[] = [
   {
-    title: '대시보드',
-    href: '/dashboard',
-    icon: LayoutDashboard,
+    title: '영업관리',
+    icon: UserPlus,
+    items: [
+      { title: '리드 관리', href: '/leads', icon: UserPlus },
+      { title: '파이프라인', href: '/pipeline', icon: Kanban },
+      { title: '고객사 관리', href: '/customers', icon: Users },
+    ],
   },
   {
-    title: '견적서 작성',
-    href: '/quotations/new',
+    title: '견적관리',
     icon: FileText,
+    items: [
+      { title: '견적서 작성', href: '/quotations/new', icon: FileText },
+      { title: '견적 목록', href: '/quotations', icon: FolderOpen },
+      { title: '패키지 템플릿', href: '/packages', icon: Package },
+    ],
   },
   {
-    title: '견적 관리',
-    href: '/quotations',
-    icon: FolderOpen,
-  },
-  {
-    title: '고객사 관리',
-    href: '/customers',
-    icon: Users,
-  },
-  {
-    title: '캘린더',
-    href: '/calendar',
-    icon: Calendar,
-  },
-  {
-    title: '패키지 템플릿',
-    href: '/packages',
-    icon: Package,
-  },
-  {
-    title: '계약서 관리',
-    href: '/contracts',
+    title: '계약/시험',
     icon: FileSignature,
+    items: [
+      { title: '계약 관리', href: '/contracts', icon: FileSignature },
+      { title: '시험 관리', href: '/studies', icon: FlaskConical },
+      { title: '상담기록', href: '/consultations', icon: MessageSquare },
+    ],
   },
-  {
-    title: '상담기록지',
-    href: '/consultation/new',
-    icon: ClipboardList,
-  },
-  {
-    title: '통계/리포트',
-    href: '/reports',
-    icon: BarChart3,
-  },
-  {
-    title: '계산기',
-    href: '/calculators',
-    icon: Calculator,
-  },
-  {
-    title: '설정',
-    href: '/settings',
-    icon: Settings,
-  },
+];
+
+const standaloneItems: MenuItem[] = [
+  { title: '대시보드', href: '/dashboard', icon: LayoutDashboard },
+  { title: '캘린더', href: '/calendar', icon: Calendar },
+  { title: '계산기', href: '/calculators', icon: Calculator },
+  { title: '통계/리포트', href: '/reports', icon: BarChart3 },
+  { title: '설정', href: '/settings', icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -87,10 +90,27 @@ export default function Sidebar() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const [collapsed, setCollapsed] = useState(false);
+  const [openGroups, setOpenGroups] = useState<string[]>(['영업관리', '견적관리', '계약/시험']);
 
   const handleLogout = async () => {
     await logout();
     router.push('/login');
+  };
+
+  const toggleGroup = (title: string) => {
+    setOpenGroups(prev =>
+      prev.includes(title)
+        ? prev.filter(t => t !== title)
+        : [...prev, title]
+    );
+  };
+
+  const isActive = (href: string) => {
+    return pathname === href || (href !== '/' && href !== '/quotations/new' && pathname.startsWith(href));
+  };
+
+  const isGroupActive = (group: MenuGroup) => {
+    return group.items.some(item => isActive(item.href));
   };
 
   return (
@@ -138,39 +158,121 @@ export default function Sidebar() {
       {/* 메뉴 */}
       <nav className="flex-1 py-2 overflow-y-auto">
         <ul className="space-y-1 px-3">
-          {menuItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== '/' &&
-                item.href !== '/quotations/new' &&
-                pathname.startsWith(item.href));
+          {/* 대시보드 (단독) */}
+          <li>
+            <Link
+              href="/dashboard"
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl',
+                'transition-all duration-200 ease-in-out group',
+                isActive('/dashboard')
+                  ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                  : 'text-white/70 hover:bg-white/10 hover:text-white',
+                collapsed && 'justify-center px-2'
+              )}
+            >
+              <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
+              {!collapsed && <span className="font-medium text-sm">대시보드</span>}
+            </Link>
+          </li>
 
-            return (
-              <li key={item.href}>
+          {/* 그룹 메뉴 */}
+          {menuGroups.map((group) => (
+            <li key={group.title}>
+              {collapsed ? (
+                // 접힌 상태: 그룹 아이콘만 표시, 첫 번째 항목으로 이동
                 <Link
-                  href={item.href}
+                  href={group.items[0].href}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-xl',
-                    'transition-all duration-200 ease-in-out group',
-                    isActive
+                    'flex items-center justify-center px-2 py-2.5 rounded-xl',
+                    'transition-all duration-200 ease-in-out',
+                    isGroupActive(group)
                       ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
-                      : 'text-white/70 hover:bg-white/10 hover:text-white',
-                    collapsed && 'justify-center px-2'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
                   )}
                 >
-                  <item.icon
-                    className={cn(
-                      'w-5 h-5 flex-shrink-0 transition-transform',
-                      !isActive && 'group-hover:scale-110'
-                    )}
-                  />
-                  {!collapsed && (
-                    <span className="font-medium text-sm">{item.title}</span>
-                  )}
+                  <group.icon className="w-5 h-5" />
                 </Link>
-              </li>
-            );
-          })}
+              ) : (
+                // 펼친 상태: 접을 수 있는 그룹
+                <Collapsible
+                  open={openGroups.includes(group.title)}
+                  onOpenChange={() => toggleGroup(group.title)}
+                >
+                  <CollapsibleTrigger asChild>
+                    <button
+                      className={cn(
+                        'w-full flex items-center justify-between px-3 py-2.5 rounded-xl',
+                        'transition-all duration-200 ease-in-out',
+                        isGroupActive(group)
+                          ? 'bg-white/10 text-white'
+                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <group.icon className="w-5 h-5 flex-shrink-0" />
+                        <span className="font-medium text-sm">{group.title}</span>
+                      </div>
+                      <ChevronDown
+                        className={cn(
+                          'w-4 h-4 transition-transform',
+                          openGroups.includes(group.title) && 'rotate-180'
+                        )}
+                      />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-1 ml-4 space-y-1">
+                    {group.items.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-2 rounded-lg',
+                          'transition-all duration-200 ease-in-out text-sm',
+                          isActive(item.href)
+                            ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                            : 'text-white/60 hover:bg-white/10 hover:text-white'
+                        )}
+                      >
+                        <item.icon className="w-4 h-4 flex-shrink-0" />
+                        <span>{item.title}</span>
+                      </Link>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+            </li>
+          ))}
+
+          {/* 구분선 */}
+          <li className="py-2">
+            <div className="border-t border-white/10" />
+          </li>
+
+          {/* 기타 단독 메뉴 */}
+          {standaloneItems.slice(1).map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-xl',
+                  'transition-all duration-200 ease-in-out group',
+                  isActive(item.href)
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white',
+                  collapsed && 'justify-center px-2'
+                )}
+              >
+                <item.icon
+                  className={cn(
+                    'w-5 h-5 flex-shrink-0 transition-transform',
+                    !isActive(item.href) && 'group-hover:scale-110'
+                  )}
+                />
+                {!collapsed && <span className="font-medium text-sm">{item.title}</span>}
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
 
