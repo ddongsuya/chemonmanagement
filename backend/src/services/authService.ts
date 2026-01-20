@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { PrismaClient, User, UserStatus } from '@prisma/client';
+import { PrismaClient, User, UserStatus, Department } from '@prisma/client';
 import { AppError, ErrorCodes } from '../types/error';
 import {
   RegisterRequest,
@@ -103,6 +103,7 @@ export class AuthService {
       position: user.position,
       role: user.role,
       status: user.status,
+      canViewAllSales: user.canViewAllSales,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -136,6 +137,14 @@ export class AuthService {
     // Hash password
     const hashedPassword = await this.hashPassword(data.password);
 
+    // Validate and convert department to enum
+    let departmentEnum: Department | null = null;
+    if (data.department) {
+      if (['BD1', 'BD2', 'SUPPORT'].includes(data.department)) {
+        departmentEnum = data.department as Department;
+      }
+    }
+
     // Create user
     const user = await this.prisma.user.create({
       data: {
@@ -143,7 +152,7 @@ export class AuthService {
         password: hashedPassword,
         name: data.name,
         phone: data.phone || null,
-        department: data.department || null,
+        department: departmentEnum,
         position: data.position || null,
       },
     });

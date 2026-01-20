@@ -19,6 +19,9 @@ export * from './notification';
 // Re-export settings types
 export * from './settings';
 
+// Re-export backup types
+export * from './backup';
+
 // User types
 export interface User {
   id: string;

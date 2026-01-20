@@ -6,6 +6,8 @@
  * using fast-check for property-based testing.
  */
 
+/// <reference types="jest" />
+
 import * as fc from 'fast-check';
 import { DataService } from '../../src/services/dataService';
 import { PrismaClient, QuotationStatus } from '@prisma/client';
@@ -136,11 +138,11 @@ describe('Data Property Tests', () => {
 
             // Attempting to update should throw access denied error
             await expect(
-              dataService.updateQuotation(requestingUserId, quotation.id, { title: 'New Title' })
+              dataService.updateQuotation(requestingUserId, quotation.id, { customerName: 'New Customer' })
             ).rejects.toThrow(AppError);
 
             try {
-              await dataService.updateQuotation(requestingUserId, quotation.id, { title: 'New Title' });
+              await dataService.updateQuotation(requestingUserId, quotation.id, { customerName: 'New Customer' });
             } catch (error) {
               expect(error).toBeInstanceOf(AppError);
               expect((error as AppError).statusCode).toBe(403);
@@ -572,7 +574,8 @@ describe('Data Property Tests', () => {
   describe('Property 8: 타임스탬프 자동 기록', () => {
     // Arbitrary for generating quotation creation data
     const createQuotationArb = fc.record({
-      title: fc.string({ minLength: 1, maxLength: 100 }),
+      customerName: fc.string({ minLength: 1, maxLength: 100 }),
+      projectName: fc.string({ minLength: 1, maxLength: 100 }),
       items: fc.constant([{ id: '1', name: 'Item', description: '', quantity: 1, unitPrice: 100, amount: 100 }]),
       totalAmount: fc.nat({ max: 1000000 }),
     });
@@ -593,12 +596,25 @@ describe('Data Property Tests', () => {
             const now = new Date();
             const createdQuotation = {
               id: 'new-quotation-id',
+              quotationNumber: 'Q-2026-0001',
+              quotationType: 'TOXICITY',
               userId,
               customerId: null,
-              title: createData.title,
-              description: null,
+              customerName: createData.customerName,
+              projectName: createData.projectName,
+              modality: null,
+              modelId: null,
+              modelCategory: null,
+              indication: null,
               items: createData.items,
+              subtotalTest: null,
+              subtotalAnalysis: null,
+              subtotal: null,
+              discountRate: null,
+              discountAmount: null,
+              vat: null,
               totalAmount: { toNumber: () => createData.totalAmount },
+              validDays: 30,
               status: 'DRAFT',
               validUntil: null,
               notes: null,
@@ -611,7 +627,9 @@ describe('Data Property Tests', () => {
             (mockPrisma.quotation.create as jest.Mock).mockResolvedValue(createdQuotation);
 
             const result = await dataService.createQuotation(userId, {
-              title: createData.title,
+              quotationType: 'TOXICITY' as const,
+              customerName: createData.customerName,
+              projectName: createData.projectName,
               items: createData.items,
               totalAmount: createData.totalAmount,
             });
@@ -669,19 +687,32 @@ describe('Data Property Tests', () => {
           fc.uuid(),
           fc.uuid(),
           fc.string({ minLength: 1, maxLength: 100 }),
-          async (userId, quotationId, newTitle) => {
+          async (userId, quotationId, newCustomerName) => {
             const originalCreatedAt = new Date('2024-01-01T00:00:00Z');
             const originalUpdatedAt = new Date('2024-01-01T00:00:00Z');
             const newUpdatedAt = new Date();
 
             const existingQuotation = {
               id: quotationId,
+              quotationNumber: 'Q-2026-0001',
+              quotationType: 'TOXICITY',
               userId,
               customerId: null,
-              title: 'Original Title',
-              description: null,
+              customerName: 'Original Customer',
+              projectName: 'Original Project',
+              modality: null,
+              modelId: null,
+              modelCategory: null,
+              indication: null,
               items: [{ id: '1', name: 'Item', description: '', quantity: 1, unitPrice: 100, amount: 100 }],
+              subtotalTest: null,
+              subtotalAnalysis: null,
+              subtotal: null,
+              discountRate: null,
+              discountAmount: null,
+              vat: null,
               totalAmount: { toNumber: () => 100 },
+              validDays: 30,
               status: 'DRAFT',
               validUntil: null,
               notes: null,
@@ -692,7 +723,7 @@ describe('Data Property Tests', () => {
 
             const updatedQuotation = {
               ...existingQuotation,
-              title: newTitle,
+              customerName: newCustomerName,
               createdAt: originalCreatedAt, // createdAt should not change
               updatedAt: newUpdatedAt, // updatedAt should be updated
               customer: null,
@@ -701,7 +732,7 @@ describe('Data Property Tests', () => {
             (mockPrisma.quotation.findFirst as jest.Mock).mockResolvedValue(existingQuotation);
             (mockPrisma.quotation.update as jest.Mock).mockResolvedValue(updatedQuotation);
 
-            const result = await dataService.updateQuotation(userId, quotationId, { title: newTitle });
+            const result = await dataService.updateQuotation(userId, quotationId, { customerName: newCustomerName });
 
             // Verify createdAt remains unchanged
             expect(result.createdAt.getTime()).toBe(originalCreatedAt.getTime());

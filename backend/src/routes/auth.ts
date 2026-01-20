@@ -15,8 +15,24 @@ const router = Router();
 const authService = new AuthService(prisma);
 
 /**
- * POST /api/auth/register
- * Register a new user
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: 회원가입
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RegisterRequest'
+ *     responses:
+ *       201:
+ *         description: 회원가입 성공
+ *       400:
+ *         description: 유효성 검사 실패
+ *       409:
+ *         description: 이메일 중복
  */
 router.post(
   '/register',
@@ -36,8 +52,28 @@ router.post(
 );
 
 /**
- * POST /api/auth/login
- * Login user and return tokens
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: 로그인
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: 로그인 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginResponse'
+ *       401:
+ *         description: 인증 실패
+ *       423:
+ *         description: 계정 잠금
  */
 router.post(
   '/login',
@@ -56,8 +92,26 @@ router.post(
 );
 
 /**
- * POST /api/auth/logout
- * Logout user and invalidate refresh token
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: 로그아웃
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 로그아웃 성공
+ *       401:
+ *         description: 인증 필요
  */
 router.post(
   '/logout',
@@ -77,8 +131,27 @@ router.post(
 );
 
 /**
- * POST /api/auth/refresh
- * Refresh access token using refresh token
+ * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: 토큰 갱신
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 토큰 갱신 성공
+ *       401:
+ *         description: 유효하지 않은 리프레시 토큰
  */
 router.post(
   '/refresh',
@@ -98,8 +171,33 @@ router.post(
 );
 
 /**
- * POST /api/auth/change-password
- * Change user password
+ * @swagger
+ * /api/auth/change-password:
+ *   post:
+ *     summary: 비밀번호 변경
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 8
+ *     responses:
+ *       200:
+ *         description: 비밀번호 변경 성공
+ *       401:
+ *         description: 현재 비밀번호 불일치
  */
 router.post(
   '/change-password',
@@ -119,8 +217,30 @@ router.post(
 );
 
 /**
- * GET /api/auth/me
- * Get current user information
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: 현재 사용자 정보 조회
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 사용자 정보
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *       401:
+ *         description: 인증 필요
  */
 router.get(
   '/me',

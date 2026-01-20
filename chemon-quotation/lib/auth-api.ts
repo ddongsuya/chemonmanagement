@@ -6,10 +6,11 @@ export interface AuthUser {
   email: string;
   name: string;
   phone: string | null;
-  department: string | null;
+  department: 'BD1' | 'BD2' | 'SUPPORT' | null;
   position: string | null;
   role: 'USER' | 'ADMIN';
   status: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
+  canViewAllSales?: boolean;
   createdAt: string;
   updatedAt: string;
 }

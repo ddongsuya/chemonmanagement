@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { AdminService } from '../services/adminService';
 import { AnnouncementService } from '../services/announcementService';
 import { SettingsService } from '../services/settingsService';
+import { BackupService } from '../services/backupService';
 import { prisma } from '../lib/prisma';
 import {
   authenticate,
@@ -26,12 +27,17 @@ import {
   updateSettingsSchema,
   settingsHistoryQuerySchema,
 } from '../types/settings';
+import {
+  createBackupSchema,
+  backupFiltersSchema,
+} from '../types/backup';
 import { AppError, ErrorCodes } from '../types/error';
 
 const router = Router();
 const adminService = new AdminService(prisma);
 const announcementService = new AnnouncementService(prisma);
 const settingsService = new SettingsService(prisma);
+const backupService = new BackupService(prisma);
 
 // All admin routes require authentication and admin role
 router.use(authenticate);
@@ -375,6 +381,80 @@ router.get(
       const { limit } = settingsHistoryQuerySchema.parse(req.query);
       const history = await settingsService.getChangeHistory(limit);
       res.json({ success: true, data: history });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// ==================== Backup Routes ====================
+
+/**
+ * GET /api/admin/backups
+ * Get list of backups with pagination and filters
+ */
+router.get(
+  '/backups',
+  validateQuery(backupFiltersSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const filters = backupFiltersSchema.parse(req.query);
+      const result = await backupService.getAll(filters);
+      res.json({ success: true, ...result });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/admin/backups/:id
+ * Get backup by ID
+ */
+router.get(
+  '/backups/:id',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const backup = await backupService.getById(id);
+      res.json({ success: true, data: backup });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/admin/backups
+ * Create a new manual backup
+ */
+router.post(
+  '/backups',
+  validateBody(createBackupSchema),
+  activityLogger('CREATE', 'backup'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = createBackupSchema.parse(req.body);
+      const backup = await backupService.create(data);
+      res.status(201).json({ success: true, data: backup });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * DELETE /api/admin/backups/:id
+ * Delete a backup
+ */
+router.delete(
+  '/backups/:id',
+  activityLogger('DELETE', 'backup'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      await backupService.delete(id);
+      res.status(204).send();
     } catch (error) {
       next(error);
     }

@@ -6,6 +6,8 @@
  * using fast-check for property-based testing.
  */
 
+/// <reference types="jest" />
+
 import * as fc from 'fast-check';
 import { Request, Response, NextFunction } from 'express';
 import {

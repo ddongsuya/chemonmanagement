@@ -6,6 +6,8 @@
  * using fast-check for property-based testing.
  */
 
+/// <reference types="jest" />
+
 import * as fc from 'fast-check';
 import { AnnouncementService } from '../../src/services/announcementService';
 import { PrismaClient, AnnouncementPriority } from '@prisma/client';

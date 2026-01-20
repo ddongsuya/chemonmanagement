@@ -102,22 +102,30 @@ enum CustomerGrade {
   INACTIVE      // 비활성
 }
 
+// 신규 Enum - 부서
+enum Department {
+  BD1           // 사업개발 1센터
+  BD2           // 사업개발 2센터
+  SUPPORT       // 사업지원팀
+}
+
 // ==================== User & Auth ====================
 
 model User {
-  id            String       @id @default(uuid())
-  email         String       @unique
-  password      String
-  name          String
-  phone         String?
-  department    String?
-  position      String?
-  role          UserRole     @default(USER)
-  status        UserStatus   @default(ACTIVE)
-  loginAttempts Int          @default(0)
-  lockedUntil   DateTime?
-  lastLoginAt   DateTime?
-  createdAt     DateTime     @default(now())
+  id              String       @id @default(uuid())
+  email           String       @unique
+  password        String
+  name            String
+  phone           String?
+  department      Department?  // 부서 (Enum으로 변경)
+  position        String?
+  role            UserRole     @default(USER)
+  status          UserStatus   @default(ACTIVE)
+  canViewAllSales Boolean      @default(false)  // 전체 매출 조회 권한
+  loginAttempts   Int          @default(0)
+  lockedUntil     DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   // 기존 관계

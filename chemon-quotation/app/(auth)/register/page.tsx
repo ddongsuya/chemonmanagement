@@ -7,8 +7,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2, AlertCircle, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+
+// 부서 옵션
+const DEPARTMENT_OPTIONS = [
+  { value: 'BD1', label: '사업개발 1센터' },
+  { value: 'BD2', label: '사업개발 2센터' },
+  { value: 'SUPPORT', label: '사업지원팀' },
+] as const;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -167,15 +181,23 @@ export default function RegisterPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="department">부서 (선택)</Label>
-          <Input
-            id="department"
-            type="text"
-            placeholder="영업팀"
+          <Label htmlFor="department">부서</Label>
+          <Select
             value={formData.department}
-            onChange={(e) => handleInputChange('department', e.target.value)}
+            onValueChange={(value) => handleInputChange('department', value)}
             disabled={submitting}
-          />
+          >
+            <SelectTrigger id="department">
+              <SelectValue placeholder="부서 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {DEPARTMENT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

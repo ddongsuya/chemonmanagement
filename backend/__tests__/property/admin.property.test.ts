@@ -6,6 +6,8 @@
  * using fast-check for property-based testing.
  */
 
+/// <reference types="jest" />
+
 import * as fc from 'fast-check';
 import { AdminService } from '../../src/services/adminService';
 import { AuthService } from '../../src/services/authService';
