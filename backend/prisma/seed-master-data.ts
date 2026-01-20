@@ -1,8 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
+const SALT_ROUNDS = 10;
 
 // 데이터 파일 경로 (배포 환경과 개발 환경 모두 지원)
 function getDataPath(filename: string): string {
@@ -21,6 +23,32 @@ function getDataPath(filename: string): string {
   }
   
   throw new Error(`Data file not found: ${filename}. Tried paths: ${possiblePaths.join(', ')}`);
+}
+
+// 관리자 계정 생성
+async function seedAdminUser() {
+  console.log('👤 Creating admin user...');
+  
+  const adminPassword = await bcrypt.hash('admin1234!', SALT_ROUNDS);
+  
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@chemon.co.kr' },
+    update: {},
+    create: {
+      email: 'admin@chemon.co.kr',
+      password: adminPassword,
+      name: '시스템관리자',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      department: 'SUPPORT',
+      position: '관리자',
+      canViewAllSales: true,
+    },
+  });
+
+  console.log(`✅ Admin user created: ${adminUser.email}`);
+  console.log('   📧 Email: admin@chemon.co.kr');
+  console.log('   🔑 Password: admin1234!');
 }
 
 interface MasterData {
@@ -75,6 +103,9 @@ interface MasterData {
 
 async function main() {
   console.log('🌱 Starting master data seeding (new structure)...');
+
+  // 0. 관리자 계정 생성
+  await seedAdminUser();
 
   // 새 마스터데이터 파일 로드
   const dataPath = getDataPath('toxicity_master_data.json');
