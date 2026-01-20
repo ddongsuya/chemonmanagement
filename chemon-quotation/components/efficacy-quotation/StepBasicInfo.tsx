@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useEfficacyQuotationStore } from '@/stores/efficacyQuotationStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,25 +28,17 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import { ArrowRight, Plus, Building2 } from 'lucide-react';
+import { ArrowRight, Plus, Building2, Loader2 } from 'lucide-react';
 import { VALIDITY_OPTIONS } from '@/lib/constants';
 import { addDays, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { getCustomers, createCustomer, Customer } from '@/lib/data-api';
 
 /**
  * StepBasicInfo Component for Efficacy Quotation
  * Step 1 of efficacy quotation wizard - Basic information input
  * Requirements: 8.1, 8.2, 8.3, 8.4
  */
-
-// Sample customer data
-const sampleCustomers = [
-  { id: 'cust-001', name: '삼성바이오로직스' },
-  { id: 'cust-002', name: 'SK바이오팜' },
-  { id: 'cust-003', name: '셀트리온' },
-  { id: 'cust-004', name: '한미약품' },
-  { id: 'cust-005', name: '유한양행' },
-];
 
 export default function StepBasicInfo() {
   const {
@@ -62,12 +54,32 @@ export default function StepBasicInfo() {
     nextStep,
   } = useEfficacyQuotationStore();
 
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customersLoading, setCustomersLoading] = useState(true);
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerContact, setNewCustomerContact] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [addingCustomer, setAddingCustomer] = useState(false);
   const [errors, setErrors] = useState<{ customer?: string; project?: string }>(
     {}
   );
+
+  // Fetch customers from API
+  useEffect(() => {
+    async function fetchCustomers() {
+      try {
+        const response = await getCustomers({ limit: 100 });
+        if (response.success && response.data) {
+          setCustomers(response.data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch customers:', error);
+      } finally {
+        setCustomersLoading(false);
+      }
+    }
+    fetchCustomers();
+  }, []);
 
   // Calculate validity date
   const validUntil = format(addDays(new Date(), validDays), 'yyyy년 MM월 dd일', {
@@ -75,21 +87,34 @@ export default function StepBasicInfo() {
   });
 
   const handleCustomerSelect = (value: string) => {
-    const customer = sampleCustomers.find((c) => c.id === value);
+    const customer = customers.find((c) => c.id === value);
     if (customer) {
       setCustomer(customer.id, customer.name);
       setErrors((prev) => ({ ...prev, customer: undefined }));
     }
   };
 
-  const handleAddCustomer = () => {
+  const handleAddCustomer = async () => {
     if (newCustomerName.trim()) {
-      const newId = `cust-new-${Date.now()}`;
-      setCustomer(newId, newCustomerName.trim());
-      setNewCustomerName('');
-      setNewCustomerContact('');
-      setDialogOpen(false);
-      setErrors((prev) => ({ ...prev, customer: undefined }));
+      setAddingCustomer(true);
+      try {
+        const response = await createCustomer({
+          name: newCustomerName.trim(),
+          company: newCustomerName.trim(),
+        });
+        if (response.success && response.data) {
+          setCustomers((prev) => [...prev, response.data!]);
+          setCustomer(response.data.id, response.data.name);
+          setNewCustomerName('');
+          setNewCustomerContact('');
+          setDialogOpen(false);
+          setErrors((prev) => ({ ...prev, customer: undefined }));
+        }
+      } catch (error) {
+        console.error('Failed to create customer:', error);
+      } finally {
+        setAddingCustomer(false);
+      }
     }
   };
 
@@ -129,14 +154,21 @@ export default function StepBasicInfo() {
             고객사 <span className="text-red-500">*</span>
           </Label>
           <div className="flex gap-2">
-            <Select value={customerId} onValueChange={handleCustomerSelect}>
+            <Select value={customerId} onValueChange={handleCustomerSelect} disabled={customersLoading}>
               <SelectTrigger
                 className={errors.customer ? 'border-red-500' : ''}
               >
-                <SelectValue placeholder="고객사를 선택하세요" />
+                {customersLoading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    로딩 중...
+                  </span>
+                ) : (
+                  <SelectValue placeholder="고객사를 선택하세요" />
+                )}
               </SelectTrigger>
               <SelectContent>
-                {sampleCustomers.map((customer) => (
+                {customers.map((customer) => (
                   <SelectItem key={customer.id} value={customer.id}>
                     {customer.name}
                   </SelectItem>
@@ -178,7 +210,16 @@ export default function StepBasicInfo() {
                   <DialogClose asChild>
                     <Button variant="outline">취소</Button>
                   </DialogClose>
-                  <Button onClick={handleAddCustomer}>등록</Button>
+                  <Button onClick={handleAddCustomer} disabled={addingCustomer}>
+                    {addingCustomer ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        등록 중...
+                      </>
+                    ) : (
+                      '등록'
+                    )}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
