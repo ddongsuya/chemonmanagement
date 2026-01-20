@@ -29,7 +29,7 @@ import { MeetingRecord, TestReception, InvoiceSchedule } from '@/types/customer'
 import { getMeetingRecordsByCustomerId } from '@/lib/meeting-record-storage';
 import { getTestReceptionsByCustomerId } from '@/lib/test-reception-storage';
 import { getInvoiceSchedulesByCustomerId } from '@/lib/invoice-schedule-storage';
-import { getQuotationsByCustomer, SavedQuotation } from '@/lib/quotation-storage';
+import { getQuotations, Quotation } from '@/lib/data-api';
 import { formatDate, formatCurrency } from '@/lib/utils';
 
 /**
@@ -50,6 +50,16 @@ interface TimelineItem {
   description: string;
   date: string;
   metadata?: Record<string, any>;
+}
+
+interface LocalQuotation {
+  id: string;
+  quotation_number: string;
+  project_name: string;
+  status: string;
+  total_amount: number;
+  modality: string;
+  created_at: string;
 }
 
 type FilterType = 'all' | 'meetings' | 'tests' | 'invoices' | 'quotations';
@@ -88,18 +98,36 @@ export default function TimelineTab({ customerId }: TimelineTabProps) {
   const [meetingRecords, setMeetingRecords] = useState<MeetingRecord[]>([]);
   const [testReceptions, setTestReceptions] = useState<TestReception[]>([]);
   const [invoiceSchedules, setInvoiceSchedules] = useState<InvoiceSchedule[]>([]);
-  const [quotations, setQuotations] = useState<SavedQuotation[]>([]);
+  const [quotations, setQuotations] = useState<LocalQuotation[]>([]);
   const [filter, setFilter] = useState<FilterType>('all');
   const [showAll, setShowAll] = useState(false);
 
   const INITIAL_DISPLAY_COUNT = 20;
 
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       setMeetingRecords(getMeetingRecordsByCustomerId(customerId));
       setTestReceptions(getTestReceptionsByCustomerId(customerId));
       setInvoiceSchedules(getInvoiceSchedulesByCustomerId(customerId));
-      setQuotations(getQuotationsByCustomer(customerId));
+      
+      // API에서 견적서 로드
+      try {
+        const response = await getQuotations({ customerId, limit: 100 });
+        if (response.success && response.data) {
+          const mappedQuotations: LocalQuotation[] = response.data.data.map((q: Quotation) => ({
+            id: q.id,
+            quotation_number: q.quotationNumber,
+            project_name: q.projectName,
+            status: q.status.toLowerCase(),
+            total_amount: q.totalAmount,
+            modality: q.modality || '',
+            created_at: q.createdAt,
+          }));
+          setQuotations(mappedQuotations);
+        }
+      } catch (error) {
+        console.error('Failed to load quotations:', error);
+      }
     };
 
     loadData();

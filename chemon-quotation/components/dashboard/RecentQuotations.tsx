@@ -4,9 +4,27 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency, getStatusLabel, getStatusColor } from '@/lib/utils';
-import { ArrowRight, FileText, TrendingUp } from 'lucide-react';
-import { getAllQuotations } from '@/lib/quotation-storage';
+import { formatCurrency } from '@/lib/utils';
+import { ArrowRight, FileText, TrendingUp, Loader2 } from 'lucide-react';
+import { getQuotations, Quotation } from '@/lib/data-api';
+
+// 상태 라벨 매핑
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: '작성중',
+  SENT: '제출',
+  ACCEPTED: '수주',
+  REJECTED: '실주',
+  EXPIRED: '만료',
+};
+
+// 상태 색상 매핑
+const STATUS_COLORS: Record<string, string> = {
+  DRAFT: 'bg-gray-100 text-gray-700',
+  SENT: 'bg-blue-100 text-blue-700',
+  ACCEPTED: 'bg-green-100 text-green-700',
+  REJECTED: 'bg-red-100 text-red-700',
+  EXPIRED: 'bg-yellow-100 text-yellow-700',
+};
 
 interface RecentQuotation {
   id: string;
@@ -19,18 +37,30 @@ interface RecentQuotation {
 
 export default function RecentQuotations() {
   const [quotations, setQuotations] = useState<RecentQuotation[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedQuotations = getAllQuotations();
-    const recent = savedQuotations.slice(0, 5).map((q) => ({
-      id: q.id,
-      number: q.quotation_number,
-      customer: q.customer_name,
-      amount: q.total_amount,
-      status: q.status,
-      date: q.created_at.split('T')[0],
-    }));
-    setQuotations(recent);
+    async function loadQuotations() {
+      try {
+        const response = await getQuotations({ limit: 5 });
+        if (response.success && response.data) {
+          const recent = response.data.data.map((q: Quotation) => ({
+            id: q.id,
+            number: q.quotationNumber,
+            customer: q.customerName,
+            amount: q.totalAmount,
+            status: q.status,
+            date: q.createdAt.split('T')[0],
+          }));
+          setQuotations(recent);
+        }
+      } catch (error) {
+        console.error('Failed to load recent quotations:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadQuotations();
   }, []);
 
   return (
@@ -53,7 +83,11 @@ export default function RecentQuotations() {
         </Link>
       </CardHeader>
       <CardContent>
-        {quotations.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+          </div>
+        ) : quotations.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
               <FileText className="w-8 h-8 text-slate-400" />
@@ -91,10 +125,10 @@ export default function RecentQuotations() {
                     <p className="text-xs text-slate-400">{q.date}</p>
                   </div>
                   <Badge
-                    className={`${getStatusColor(q.status)} rounded-lg px-2.5`}
+                    className={`${STATUS_COLORS[q.status] || 'bg-gray-100 text-gray-700'} rounded-lg px-2.5`}
                     variant="secondary"
                   >
-                    {getStatusLabel(q.status)}
+                    {STATUS_LABELS[q.status] || q.status}
                   </Badge>
                 </div>
               </Link>

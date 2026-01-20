@@ -31,7 +31,7 @@ import {
   getRequestersByCustomerId,
   deleteRequester,
 } from '@/lib/requester-storage';
-import { getQuotationsByCustomer } from '@/lib/quotation-storage';
+import { getQuotations } from '@/lib/data-api';
 import RequesterForm from '../RequesterForm';
 import RequesterCard from '../RequesterCard';
 
@@ -83,13 +83,15 @@ export default function RequesterTab({ customerId }: RequesterTabProps) {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (requester: Requester) => {
+  const handleDelete = async (requester: Requester) => {
     // 연관 데이터 확인 (견적서에서 해당 의뢰자 사용 여부)
-    const quotations = getQuotationsByCustomer(customerId);
-    // 실제로는 quotation에 requester_id 필드가 있어야 하지만,
-    // 현재 구조에서는 customer_id만 있으므로 간단히 처리
-    const hasQuotations = quotations.length > 0;
-    setHasRelatedData(hasQuotations);
+    try {
+      const response = await getQuotations({ customerId, limit: 1 });
+      const hasQuotations = response.success && response.data && response.data.data.length > 0;
+      setHasRelatedData(hasQuotations);
+    } catch {
+      setHasRelatedData(false);
+    }
     setDeleteTarget(requester);
   };
 

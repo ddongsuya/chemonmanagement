@@ -25,14 +25,16 @@ import CustomerDetailTabs, { TabValue } from '@/components/customer/CustomerDeta
 import CustomerAlerts from '@/components/customer/CustomerAlerts';
 import MeetingRecordForm from '@/components/customer/MeetingRecordForm';
 import TestReceptionForm from '@/components/customer/TestReceptionForm';
+import Skeleton from '@/components/ui/Skeleton';
 import {
   ArrowLeft,
   Edit,
   Trash2,
 } from 'lucide-react';
-import { getAllQuotations } from '@/lib/quotation-storage';
+import { getCustomerById, getQuotations, deleteCustomer } from '@/lib/data-api';
 import { getRequestersByCustomerId } from '@/lib/requester-storage';
 import { Customer } from '@/types/customer';
+import { useToast } from '@/hooks/use-toast';
 
 /**
  * CustomerDetailPage - 고객사 상세 페이지
@@ -43,6 +45,8 @@ import { Customer } from '@/types/customer';
 export default function CustomerDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showMeetingDialog, setShowMeetingDialog] = useState(false);
@@ -53,48 +57,98 @@ export default function CustomerDetailPage() {
 
   // 고객사 데이터 로드
   useEffect(() => {
-    // TODO: API에서 데이터 로드 (현재는 mock)
-    const mockCustomer: Customer = {
-      id: params.id as string,
-      company_name: '(주)바이오팜',
-      business_number: '123-45-67890',
-      address: '서울시 강남구 테헤란로 123',
-      contact_person: '김철수',
-      contact_email: 'kim@biopharma.co.kr',
-      contact_phone: '02-1234-5678',
-      notes: null,
-      created_at: '2024-01-15',
-      updated_at: '2024-12-01',
-      quotation_count: 0,
-      total_amount: 0,
-    };
-    setCustomer(mockCustomer);
-  }, [params.id]);
+    async function loadCustomer() {
+      setLoading(true);
+      try {
+        const response = await getCustomerById(params.id as string);
+        if (response.success && response.data) {
+          const c = response.data;
+          setCustomer({
+            id: c.id,
+            company_name: c.company || c.name,
+            business_number: '',
+            address: c.address || '',
+            contact_person: c.name,
+            contact_email: c.email || '',
+            contact_phone: c.phone || '',
+            notes: c.notes || null,
+            created_at: c.createdAt,
+            updated_at: c.updatedAt,
+            quotation_count: 0,
+            total_amount: 0,
+          });
+        } else {
+          toast({
+            title: '오류',
+            description: response.error?.message || '고객 정보를 불러오는데 실패했습니다',
+            variant: 'destructive',
+          });
+          router.push('/customers');
+        }
+      } catch (error) {
+        toast({
+          title: '오류',
+          description: '서버 연결에 실패했습니다',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadCustomer();
+  }, [params.id, router, toast]);
 
-  // localStorage에서 해당 고객의 견적 이력 로드
+  // API에서 해당 고객의 견적 이력 로드
   useEffect(() => {
     if (!customer) return;
     
-    const allQuotations = getAllQuotations();
-    // 고객명으로 필터링 (실제로는 customer_id로 필터링해야 함)
-    const customerQuotations = allQuotations
-      .filter(q => q.customer_name === customer.company_name || q.customer_id === params.id)
-      .map(q => ({
-        id: q.id,
-        quotation_number: q.quotation_number,
-        project_name: q.project_name,
-        modality: q.modality,
-        status: q.status,
-        total_amount: q.total_amount,
-        created_at: q.created_at.split('T')[0],
-      }));
-    setQuotations(customerQuotations);
-  }, [params.id, customer]);
+    async function loadQuotations() {
+      try {
+        const response = await getQuotations({ customerId: customer!.id, limit: 100 });
+        if (response.success && response.data) {
+          const customerQuotations = response.data.data.map(q => ({
+            id: q.id,
+            quotation_number: q.quotationNumber,
+            project_name: q.projectName,
+            modality: q.modality,
+            status: q.status.toLowerCase(),
+            total_amount: q.totalAmount,
+            created_at: q.createdAt.split('T')[0],
+          }));
+          setQuotations(customerQuotations);
+        }
+      } catch (error) {
+        console.error('Failed to load quotations:', error);
+      }
+    }
+    loadQuotations();
+  }, [customer]);
 
-  const handleDelete = () => {
-    // TODO: API 연동
-    console.log('삭제:', customer?.company_name);
-    router.push('/customers');
+  const handleDelete = async () => {
+    if (!customer) return;
+    
+    try {
+      const response = await deleteCustomer(customer.id);
+      if (response.success) {
+        toast({
+          title: '삭제 완료',
+          description: `${customer.company_name}이(가) 삭제되었습니다`,
+        });
+        router.push('/customers');
+      } else {
+        toast({
+          title: '삭제 실패',
+          description: response.error?.message || '고객 삭제에 실패했습니다',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: '오류',
+        description: '서버 연결에 실패했습니다',
+        variant: 'destructive',
+      });
+    }
   };
 
   // 빠른 작업 핸들러 - Requirements 7.3
@@ -125,21 +179,41 @@ export default function CustomerDetailPage() {
   // 미팅 기록 저장 성공 핸들러
   const handleMeetingSuccess = () => {
     setShowMeetingDialog(false);
-    // 미팅 기록 탭으로 이동
     setActiveTab('meetings');
   };
 
   // 시험 접수 저장 성공 핸들러
   const handleTestReceptionSuccess = () => {
     setShowTestReceptionDialog(false);
-    // 시험 접수 탭으로 이동
     setActiveTab('test-receptions');
   };
+
+  // 수정 성공 핸들러
+  const handleEditSuccess = () => {
+    setShowEditDialog(false);
+    // 고객 데이터 다시 로드
+    window.location.reload();
+  };
+
+  if (loading) {
+    return (
+      <div>
+        <PageHeader
+          title="고객사 상세"
+          description="로딩 중..."
+        />
+        <div className="space-y-4">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   if (!customer) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">로딩 중...</p>
+        <p className="text-gray-500">고객 정보를 찾을 수 없습니다</p>
       </div>
     );
   }
@@ -148,10 +222,10 @@ export default function CustomerDetailPage() {
   const quotationCount = quotations.length;
   const totalAmount = quotations.reduce((sum, q) => sum + q.total_amount, 0);
 
-  // 계약 완료 여부 확인 (실제로는 계약 데이터에서 확인해야 함)
-  const isContractCompleted = quotations.some(q => q.status === 'won');
-  const contractId = ''; // TODO: 실제 계약 ID
-  const quotationId = quotations.find(q => q.status === 'won')?.id || '';
+  // 계약 완료 여부 확인
+  const isContractCompleted = quotations.some(q => q.status === 'accepted' || q.status === 'won');
+  const contractId = '';
+  const quotationId = quotations.find(q => q.status === 'accepted' || q.status === 'won')?.id || '';
 
   // 의뢰자 목록 로드
   const requesters = getRequestersByCustomerId(customer.id);
@@ -177,7 +251,7 @@ export default function CustomerDetailPage() {
               <DialogContent className="max-w-lg">
                 <CustomerForm
                   customer={customer as any}
-                  onSuccess={() => setShowEditDialog(false)}
+                  onSuccess={handleEditSuccess}
                 />
               </DialogContent>
             </Dialog>
