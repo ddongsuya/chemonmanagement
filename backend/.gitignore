@@ -23,7 +23,7 @@ npm-debug.log*
 Thumbs.db
 
 # Prisma
-prisma/migrations/
+# prisma/migrations/ - migrations should be committed!
 
 # Test coverage
 coverage/

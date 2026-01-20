@@ -14,7 +14,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed:master": "ts-node prisma/seed-master-data.ts",
-    "seed:master:prod": "node dist/prisma/seed-master-data.js",
+    "seed:master:prod": "node dist/prisma/prisma/seed-master-data.js",
     "postdeploy": "npx prisma migrate deploy && npm run seed:master:prod"
   },
   "prisma": {
