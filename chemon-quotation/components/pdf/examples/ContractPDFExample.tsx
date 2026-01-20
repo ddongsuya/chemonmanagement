@@ -161,7 +161,7 @@ export const ContractPDFDownloadButton: React.FC<{
       display: 'inline-block',
     }}
   >
-    {({ loading }) => (loading ? '문서 생성 중...' : '계약서 PDF 다운로드')}
+    {({ loading }: { loading: boolean }) => <span>{loading ? '문서 생성 중...' : '계약서 PDF 다운로드'}</span>}
   </PDFDownloadLink>
 );
 
@@ -181,7 +181,7 @@ export const AmendmentPDFDownloadButton: React.FC<{
       display: 'inline-block',
     }}
   >
-    {({ loading }) => (loading ? '문서 생성 중...' : '변경계약서 PDF 다운로드')}
+    {({ loading }: { loading: boolean }) => <span>{loading ? '문서 생성 중...' : '변경계약서 PDF 다운로드'}</span>}
   </PDFDownloadLink>
 );
 
