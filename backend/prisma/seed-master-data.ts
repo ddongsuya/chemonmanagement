@@ -41,8 +41,9 @@ async function seedAdminUser() {
       role: 'ADMIN',
       status: 'ACTIVE',
       department: 'SUPPORT',
-      position: '관리자',
+      position: 'DIRECTOR',
       canViewAllSales: true,
+      canViewAllData: true,
     },
   });
 
