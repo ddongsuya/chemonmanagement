@@ -5,14 +5,17 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc",
+    "build": "tsc && npm run build:seed",
+    "build:seed": "tsc prisma/seed-master-data.ts --outDir dist/prisma --esModuleInterop --resolveJsonModule --skipLibCheck || true",
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "seed:master": "ts-node prisma/seed-master-data.ts"
+    "seed:master": "ts-node prisma/seed-master-data.ts",
+    "seed:master:prod": "node dist/prisma/seed-master-data.js",
+    "postdeploy": "npx prisma migrate deploy && npm run seed:master:prod"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

@@ -4,6 +4,25 @@ import * as path from 'path';
 
 const prisma = new PrismaClient();
 
+// 데이터 파일 경로 (배포 환경과 개발 환경 모두 지원)
+function getDataPath(filename: string): string {
+  // 가능한 경로들
+  const possiblePaths = [
+    path.join(__dirname, '../../chemon-quotation/data', filename),
+    path.join(__dirname, '../../../chemon-quotation/data', filename),
+    path.join(process.cwd(), 'chemon-quotation/data', filename),
+    path.join(process.cwd(), '../chemon-quotation/data', filename),
+  ];
+  
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+  
+  throw new Error(`Data file not found: ${filename}. Tried paths: ${possiblePaths.join(', ')}`);
+}
+
 interface MasterData {
   meta: {
     version: string;
@@ -58,7 +77,8 @@ async function main() {
   console.log('🌱 Starting master data seeding (new structure)...');
 
   // 새 마스터데이터 파일 로드
-  const dataPath = path.join(__dirname, '../../chemon-quotation/data/toxicity_master_data.json');
+  const dataPath = getDataPath('toxicity_master_data.json');
+  console.log(`📂 Loading data from: ${dataPath}`);
   const rawData = fs.readFileSync(dataPath, 'utf-8');
   const masterData: MasterData = JSON.parse(rawData);
 
@@ -167,18 +187,6 @@ async function seedToxicityTests(items: MasterData['items']) {
 
   for (const item of items) {
     try {
-      // price가 숫자가 아닌 경우 null로 처리
-      let priceValue = null;
-      if (item.price !== null && typeof item.price === 'number') {
-        priceValue = item.price;
-      }
-      
-      // priceWithAnalysis도 동일하게 처리
-      let priceWithAnalysisValue = null;
-      if (item.priceWithAnalysis !== null && typeof item.priceWithAnalysis === 'number') {
-        priceWithAnalysisValue = item.priceWithAnalysis;
-      }
-
       await prisma.toxicityTest.create({
         data: {
           itemId: item.id,
@@ -199,13 +207,13 @@ async function seedToxicityTests(items: MasterData['items']) {
           routes: item.routes,
           duration: item.duration,
           leadTime: item.leadTime,
-          price: priceValue,
+          price: item.price,
           samplingPointsTest: item.samplingPointsTest,
           samplingPointsControl: item.samplingPointsControl,
           samplingCount: item.samplingCount,
           samplingDays: item.samplingDays,
           totalSamplingPoints: item.totalSamplingPoints,
-          priceWithAnalysis: priceWithAnalysisValue,
+          priceWithAnalysis: item.priceWithAnalysis,
           priceSamplingOnly: item.priceSamplingOnly?.toString() || null,
           optionNote: item.optionNote,
           remarks: item.remarks,
@@ -224,7 +232,8 @@ async function seedToxicityTests(items: MasterData['items']) {
 async function seedEfficacyPriceItems() {
   console.log('💰 Seeding efficacy price items...');
   
-  const dataPath = path.join(__dirname, '../../chemon-quotation/data/efficacy_master_data.json');
+  const dataPath = getDataPath('efficacy_master_data.json');
+  console.log(`📂 Loading efficacy data from: ${dataPath}`);
   const rawData = fs.readFileSync(dataPath, 'utf-8');
   const data = JSON.parse(rawData);
   
@@ -271,7 +280,7 @@ async function seedEfficacyPriceItems() {
 async function seedEfficacyModels() {
   console.log('🧬 Seeding efficacy models...');
   
-  const dataPath = path.join(__dirname, '../../chemon-quotation/data/efficacy_master_data.json');
+  const dataPath = getDataPath('efficacy_master_data.json');
   const rawData = fs.readFileSync(dataPath, 'utf-8');
   const data = JSON.parse(rawData);
   
