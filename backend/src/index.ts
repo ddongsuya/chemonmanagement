@@ -25,6 +25,9 @@ import kanbanRoutes from './routes/kanban';
 import activitiesRoutes from './routes/activities';
 import dashboardRoutes from './routes/dashboard';
 import analyticsRoutes from './routes/analytics';
+import automationRoutes from './routes/automation';
+import reportsRoutes from './routes/reports';
+import studyDashboardRoutes from './routes/studyDashboard';
 
 // Load environment variables
 dotenv.config();
@@ -86,6 +89,9 @@ app.use('/api/kanban', kanbanRoutes);
 app.use('/api/activities', activitiesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/automation', automationRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/study-dashboard', studyDashboardRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
