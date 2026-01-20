@@ -4,3 +4,8 @@ export { default as customerRoutes } from './customers';
 export { default as adminRoutes } from './admin';
 export { default as announcementRoutes } from './announcements';
 export { default as notificationRoutes } from './notifications';
+export { default as leadRoutes } from './leads';
+export { default as pipelineRoutes } from './pipeline';
+export { default as contractRoutes } from './contracts';
+export { default as studyRoutes } from './studies';
+export { default as consultationRoutes } from './consultations';

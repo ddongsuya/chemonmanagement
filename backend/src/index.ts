@@ -3,7 +3,19 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { errorHandler, requestLogger, rateLimiter } from './middleware';
-import { authRoutes, quotationRoutes, customerRoutes, adminRoutes, announcementRoutes, notificationRoutes } from './routes';
+import { 
+  authRoutes, 
+  quotationRoutes, 
+  customerRoutes, 
+  adminRoutes, 
+  announcementRoutes, 
+  notificationRoutes,
+  leadRoutes,
+  pipelineRoutes,
+  contractRoutes,
+  studyRoutes,
+  consultationRoutes,
+} from './routes';
 import masterDataRoutes from './routes/masterData';
 
 // Load environment variables
@@ -44,6 +56,11 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/master', masterDataRoutes);
+app.use('/api/leads', leadRoutes);
+app.use('/api/pipeline', pipelineRoutes);
+app.use('/api/contracts', contractRoutes);
+app.use('/api/studies', studyRoutes);
+app.use('/api/consultations', consultationRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
