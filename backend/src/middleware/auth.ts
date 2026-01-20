@@ -38,7 +38,7 @@ export const authenticate = async (
     // Fetch user from DB to get canViewAllSales
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true, role: true, canViewAllSales: true },
+      select: { id: true, email: true, role: true, canViewAllSales: true, canViewAllData: true },
     });
 
     if (!user) {
@@ -51,6 +51,7 @@ export const authenticate = async (
       email: user.email,
       role: user.role,
       canViewAllSales: user.canViewAllSales,
+      canViewAllData: user.canViewAllData,
     };
 
     next();
@@ -137,7 +138,7 @@ export const optionalAuth = async (
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true, role: true, canViewAllSales: true },
+      select: { id: true, email: true, role: true, canViewAllSales: true, canViewAllData: true },
     });
 
     if (user) {
@@ -146,6 +147,7 @@ export const optionalAuth = async (
         email: user.email,
         role: user.role,
         canViewAllSales: user.canViewAllSales,
+        canViewAllData: user.canViewAllData,
       };
     }
 

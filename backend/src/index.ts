@@ -21,6 +21,10 @@ import {
 } from './routes';
 import masterDataRoutes from './routes/masterData';
 import packageRoutes from './routes/package';
+import kanbanRoutes from './routes/kanban';
+import activitiesRoutes from './routes/activities';
+import dashboardRoutes from './routes/dashboard';
+import analyticsRoutes from './routes/analytics';
 
 // Load environment variables
 dotenv.config();
@@ -76,6 +80,12 @@ app.use('/api/customer-data', customerDataRoutes);
 app.use('/api/packages', packageRoutes);
 app.use('/api/company', packageRoutes);
 app.use('/api/settings', packageRoutes);
+
+// CRM Extension routes
+app.use('/api/kanban', kanbanRoutes);
+app.use('/api/activities', activitiesRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

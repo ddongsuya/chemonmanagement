@@ -71,6 +71,7 @@ declare global {
         email: string;
         role: 'USER' | 'ADMIN';
         canViewAllSales?: boolean;
+        canViewAllData?: boolean;
       };
     }
   }

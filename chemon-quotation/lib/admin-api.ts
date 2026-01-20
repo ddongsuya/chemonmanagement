@@ -430,6 +430,7 @@ export interface UserPermissions {
 
 export interface AdminUserWithPermissions extends AdminUser {
   canViewAllSales?: boolean;
+  canViewAllData?: boolean;
   department?: string;
   position?: string;
 }

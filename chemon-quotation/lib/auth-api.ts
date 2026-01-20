@@ -1,16 +1,33 @@
 // Authentication API functions
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+// 직급 타입
+export type PositionType = 'STAFF' | 'SENIOR' | 'ASSISTANT' | 'MANAGER' | 'DEPUTY' | 'GENERAL' | 'DIRECTOR' | 'CEO' | 'CHAIRMAN';
+
+// 직급 한글 라벨
+export const POSITION_LABELS: Record<PositionType, string> = {
+  STAFF: '사원',
+  SENIOR: '주임',
+  ASSISTANT: '대리',
+  MANAGER: '과장',
+  DEPUTY: '차장',
+  GENERAL: '부장',
+  DIRECTOR: '이사',
+  CEO: '대표이사',
+  CHAIRMAN: '회장',
+};
+
 export interface AuthUser {
   id: string;
   email: string;
   name: string;
   phone: string | null;
   department: 'BD1' | 'BD2' | 'SUPPORT' | null;
-  position: string | null;
+  position: PositionType | null;
   role: 'USER' | 'ADMIN';
   status: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
   canViewAllSales?: boolean;
+  canViewAllData?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,8 +42,8 @@ export interface RegisterRequest {
   password: string;
   name: string;
   phone?: string;
-  department?: string;
-  position?: string;
+  department?: 'BD1' | 'BD2' | 'SUPPORT';
+  position?: PositionType;
 }
 
 export interface LoginResponse {

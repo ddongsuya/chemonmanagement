@@ -44,8 +44,12 @@ export interface AdminUserResponse {
   id: string;
   email: string;
   name: string;
+  department: 'BD1' | 'BD2' | 'SUPPORT' | null;
+  position: 'STAFF' | 'SENIOR' | 'ASSISTANT' | 'MANAGER' | 'DEPUTY' | 'GENERAL' | 'DIRECTOR' | 'CEO' | 'CHAIRMAN' | null;
   role: 'USER' | 'ADMIN';
   status: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
+  canViewAllSales: boolean;
+  canViewAllData: boolean;
   loginAttempts: number;
   lockedUntil: Date | null;
   lastLoginAt: Date | null;

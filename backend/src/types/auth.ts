@@ -1,13 +1,30 @@
 import { z } from 'zod';
 
+// 직급 Enum 값
+export const POSITION_VALUES = ['STAFF', 'SENIOR', 'ASSISTANT', 'MANAGER', 'DEPUTY', 'GENERAL', 'DIRECTOR', 'CEO', 'CHAIRMAN'] as const;
+export type PositionType = typeof POSITION_VALUES[number];
+
+// 직급 한글 라벨
+export const POSITION_LABELS: Record<PositionType, string> = {
+  STAFF: '사원',
+  SENIOR: '주임',
+  ASSISTANT: '대리',
+  MANAGER: '과장',
+  DEPUTY: '차장',
+  GENERAL: '부장',
+  DIRECTOR: '이사',
+  CEO: '대표이사',
+  CHAIRMAN: '회장',
+};
+
 // Validation schemas
 export const registerSchema = z.object({
   email: z.string().email('유효한 이메일 형식이 아닙니다'),
   password: z.string().min(8, '비밀번호는 8자 이상이어야 합니다'),
   name: z.string().min(1, '이름은 필수입니다'),
   phone: z.string().optional(),
-  department: z.string().optional(),
-  position: z.string().optional(),
+  department: z.enum(['BD1', 'BD2', 'SUPPORT']).optional(),
+  position: z.enum(POSITION_VALUES).optional(),
 });
 
 export const loginSchema = z.object({
@@ -36,10 +53,11 @@ export interface AuthUser {
   name: string;
   phone: string | null;
   department: 'BD1' | 'BD2' | 'SUPPORT' | null;
-  position: string | null;
+  position: PositionType | null;
   role: 'USER' | 'ADMIN';
   status: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
   canViewAllSales: boolean;
+  canViewAllData: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

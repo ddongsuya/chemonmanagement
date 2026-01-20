@@ -1,16 +1,24 @@
 // API 기본 설정
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
+// 토큰 가져오기
+function getAuthToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('accessToken');
+}
+
 // API 요청 헬퍼
 export async function apiRequest<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
+  const token = getAuthToken();
   
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options?.headers,
     },
     ...options,
@@ -48,3 +56,11 @@ export function put<T>(endpoint: string, data: unknown): Promise<T> {
 export function del<T>(endpoint: string): Promise<T> {
   return apiRequest<T>(endpoint, { method: 'DELETE' });
 }
+
+// API 객체 (편의를 위한 래퍼)
+export const api = {
+  get,
+  post,
+  put,
+  delete: del
+};

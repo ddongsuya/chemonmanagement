@@ -24,6 +24,19 @@ const DEPARTMENT_OPTIONS = [
   { value: 'SUPPORT', label: '사업지원팀' },
 ] as const;
 
+// 직급 옵션 (Position enum)
+const POSITION_OPTIONS = [
+  { value: 'STAFF', label: '사원' },
+  { value: 'SENIOR', label: '주임' },
+  { value: 'ASSISTANT', label: '대리' },
+  { value: 'MANAGER', label: '과장' },
+  { value: 'DEPUTY', label: '차장' },
+  { value: 'GENERAL', label: '부장' },
+  { value: 'DIRECTOR', label: '이사' },
+  { value: 'CEO', label: '대표이사' },
+  { value: 'CHAIRMAN', label: '회장' },
+] as const;
+
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isAuthenticated, isLoading, error, clearError } = useAuthStore();
@@ -96,8 +109,8 @@ export default function RegisterPage() {
       password: formData.password,
       name: formData.name.trim(),
       phone: formData.phone.trim() || undefined,
-      department: formData.department.trim() || undefined,
-      position: formData.position.trim() || undefined,
+      department: (formData.department || undefined) as 'BD1' | 'BD2' | 'SUPPORT' | undefined,
+      position: (formData.position || undefined) as 'STAFF' | 'SENIOR' | 'ASSISTANT' | 'MANAGER' | 'DEPUTY' | 'GENERAL' | 'DIRECTOR' | 'CEO' | 'CHAIRMAN' | undefined,
     });
     
     setSubmitting(false);
@@ -167,19 +180,20 @@ export default function RegisterPage() {
         />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="phone">연락처 (선택)</Label>
+        <Input
+          id="phone"
+          type="tel"
+          placeholder="010-0000-0000"
+          value={formData.phone}
+          onChange={(e) => handleInputChange('phone', e.target.value)}
+          disabled={submitting}
+          autoComplete="tel"
+        />
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label htmlFor="phone">연락처 (선택)</Label>
-          <Input
-            id="phone"
-            type="tel"
-            placeholder="010-0000-0000"
-            value={formData.phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
-            disabled={submitting}
-            autoComplete="tel"
-          />
-        </div>
         <div className="space-y-2">
           <Label htmlFor="department">부서</Label>
           <Select
@@ -199,18 +213,25 @@ export default function RegisterPage() {
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="position">직책 (선택)</Label>
-        <Input
-          id="position"
-          type="text"
-          placeholder="과장"
-          value={formData.position}
-          onChange={(e) => handleInputChange('position', e.target.value)}
-          disabled={submitting}
-        />
+        <div className="space-y-2">
+          <Label htmlFor="position">직급</Label>
+          <Select
+            value={formData.position}
+            onValueChange={(value) => handleInputChange('position', value)}
+            disabled={submitting}
+          >
+            <SelectTrigger id="position">
+              <SelectValue placeholder="직급 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {POSITION_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="space-y-2">

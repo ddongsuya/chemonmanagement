@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { PrismaClient, User, UserStatus, Department } from '@prisma/client';
+import { PrismaClient, User, UserStatus, Department, Position } from '@prisma/client';
 import { AppError, ErrorCodes } from '../types/error';
 import {
   RegisterRequest,
@@ -14,6 +14,9 @@ import {
 const SALT_ROUNDS = 10;
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 15;
+
+// 부장급 이상 직급 (전체 데이터 조회 권한 부여)
+const SENIOR_POSITIONS: Position[] = ['GENERAL', 'DIRECTOR', 'CEO', 'CHAIRMAN'];
 
 export class AuthService {
   private prisma: PrismaClient;
@@ -104,6 +107,7 @@ export class AuthService {
       role: user.role,
       status: user.status,
       canViewAllSales: user.canViewAllSales,
+      canViewAllData: user.canViewAllData,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -145,6 +149,22 @@ export class AuthService {
       }
     }
 
+    // Validate and convert position to enum
+    let positionEnum: Position | null = null;
+    if (data.position) {
+      const validPositions = ['STAFF', 'SENIOR', 'ASSISTANT', 'MANAGER', 'DEPUTY', 'GENERAL', 'DIRECTOR', 'CEO', 'CHAIRMAN'];
+      if (validPositions.includes(data.position)) {
+        positionEnum = data.position as Position;
+      }
+    }
+
+    // 전체 데이터 조회 권한 자동 설정
+    // 1. 부장급 이상 (GENERAL, DIRECTOR, CEO, CHAIRMAN)
+    // 2. 사업지원팀 (SUPPORT)
+    const canViewAllData = 
+      (positionEnum && SENIOR_POSITIONS.includes(positionEnum)) ||
+      departmentEnum === 'SUPPORT';
+
     // Create user
     const user = await this.prisma.user.create({
       data: {
@@ -153,7 +173,9 @@ export class AuthService {
         name: data.name,
         phone: data.phone || null,
         department: departmentEnum,
-        position: data.position || null,
+        position: positionEnum,
+        canViewAllData,
+        canViewAllSales: canViewAllData, // 전체 데이터 조회 권한이 있으면 매출 조회 권한도 부여
       },
     });
 

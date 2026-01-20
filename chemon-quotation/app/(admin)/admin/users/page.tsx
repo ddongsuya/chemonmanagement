@@ -84,6 +84,26 @@ const roleLabels: Record<UserRole, string> = {
   ADMIN: '관리자',
 };
 
+// 직급 라벨
+const positionLabels: Record<string, string> = {
+  STAFF: '사원',
+  SENIOR: '주임',
+  ASSISTANT: '대리',
+  MANAGER: '과장',
+  DEPUTY: '차장',
+  GENERAL: '부장',
+  DIRECTOR: '이사',
+  CEO: '대표이사',
+  CHAIRMAN: '회장',
+};
+
+// 부서 라벨
+const departmentLabels: Record<string, string> = {
+  BD1: '사업개발 1센터',
+  BD2: '사업개발 2센터',
+  SUPPORT: '사업지원팀',
+};
+
 export default function UsersPage() {
   const { toast } = useToast();
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -380,10 +400,10 @@ export default function UsersPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>사용자</TableHead>
+                    <TableHead>부서/직급</TableHead>
                     <TableHead>상태</TableHead>
                     <TableHead>권한</TableHead>
-                    <TableHead>견적서</TableHead>
-                    <TableHead>고객</TableHead>
+                    <TableHead>데이터 권한</TableHead>
                     <TableHead>마지막 로그인</TableHead>
                     <TableHead>가입일</TableHead>
                     <TableHead className="w-12"></TableHead>
@@ -408,6 +428,14 @@ export default function UsersPage() {
                           </div>
                         </TableCell>
                         <TableCell>
+                          <div className="text-sm">
+                            <div>{(user as AdminUserWithPermissions).department ? departmentLabels[(user as AdminUserWithPermissions).department as string] || (user as AdminUserWithPermissions).department : '-'}</div>
+                            <div className="text-muted-foreground">
+                              {(user as AdminUserWithPermissions).position ? positionLabels[(user as AdminUserWithPermissions).position as string] || (user as AdminUserWithPermissions).position : '-'}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
                           <Badge className={statusColors[user.status]}>
                             {statusLabels[user.status]}
                           </Badge>
@@ -417,8 +445,19 @@ export default function UsersPage() {
                             {roleLabels[user.role]}
                           </Badge>
                         </TableCell>
-                        <TableCell>{user._count?.quotations || 0}</TableCell>
-                        <TableCell>{user._count?.customers || 0}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {(user as AdminUserWithPermissions).canViewAllData && (
+                              <Badge variant="outline" className="text-xs">전체 데이터</Badge>
+                            )}
+                            {(user as AdminUserWithPermissions).canViewAllSales && (
+                              <Badge variant="outline" className="text-xs">전체 매출</Badge>
+                            )}
+                            {!(user as AdminUserWithPermissions).canViewAllData && !(user as AdminUserWithPermissions).canViewAllSales && (
+                              <span className="text-muted-foreground text-xs">본인 데이터만</span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           {user.lastLoginAt
                             ? format(new Date(user.lastLoginAt), 'yyyy-MM-dd HH:mm', { locale: ko })

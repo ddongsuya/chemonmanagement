@@ -5,3 +5,9 @@ export { AnnouncementService, default as announcementService } from './announcem
 export { NotificationService, default as notificationService } from './notificationService';
 export { SettingsService, default as settingsService } from './settingsService';
 export { BackupService, default as backupService } from './backupService';
+
+// CRM Extension services
+export { KanbanService, kanbanService } from './kanbanService';
+export { ActivityService, activityService } from './activityService';
+export { DashboardService, dashboardService } from './dashboardService';
+export { AnalyticsService, analyticsService } from './analyticsService';

@@ -109,6 +109,19 @@ enum Department {
   SUPPORT       // 사업지원팀
 }
 
+// 신규 Enum - 직급
+enum Position {
+  STAFF         // 사원
+  SENIOR        // 주임
+  ASSISTANT     // 대리
+  MANAGER       // 과장
+  DEPUTY        // 차장
+  GENERAL       // 부장
+  DIRECTOR      // 이사
+  CEO           // 대표이사
+  CHAIRMAN      // 회장
+}
+
 // ==================== User & Auth ====================
 
 model User {
@@ -117,11 +130,12 @@ model User {
   password        String
   name            String
   phone           String?
-  department      Department?  // 부서 (Enum으로 변경)
-  position        String?
+  department      Department?  // 부서 (Enum)
+  position        Position?    // 직급 (Enum)
   role            UserRole     @default(USER)
   status          UserStatus   @default(ACTIVE)
   canViewAllSales Boolean      @default(false)  // 전체 매출 조회 권한
+  canViewAllData  Boolean      @default(false)  // 전체 데이터 조회 권한
   loginAttempts   Int          @default(0)
   lockedUntil     DateTime?
   lastLoginAt     DateTime?
@@ -141,6 +155,9 @@ model User {
   leadActivities      LeadActivity[]
   contracts           Contract[]
   consultationRecords ConsultationRecord[]
+  
+  // CRM Extension 관계
+  activities          Activity[]
 }
 
 model RefreshToken {
@@ -919,4 +936,314 @@ model UserSettings {
   
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+}
+
+// ==================== CRM Extension - Automation Engine ====================
+
+enum AutomationTriggerType {
+  STATUS_CHANGE      // 상태 변경
+  DATE_REACHED       // 날짜 도달
+  ITEM_CREATED       // 항목 생성
+  ITEM_UPDATED       // 항목 수정
+  FIELD_CHANGE       // 필드 변경
+  SCHEDULE           // 정기 스케줄
+}
+
+enum AutomationActionType {
+  SEND_NOTIFICATION  // 알림 발송
+  SEND_EMAIL         // 이메일 발송
+  UPDATE_STATUS      // 상태 업데이트
+  ASSIGN_USER        // 담당자 배정
+  CREATE_TASK        // 태스크 생성
+  CREATE_ACTIVITY    // 활동 생성
+  WEBHOOK            // 웹훅 호출
+}
+
+enum AutomationStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+enum ActivityType {
+  CALL              // 통화
+  EMAIL             // 이메일
+  MEETING           // 미팅
+  NOTE              // 메모
+  TASK              // 태스크
+  STATUS_CHANGE     // 상태 변경
+  DOCUMENT          // 문서
+  SYSTEM            // 시스템 자동
+}
+
+enum ReportType {
+  SALES_SUMMARY     // 매출 요약
+  PIPELINE_STATUS   // 파이프라인 현황
+  CONVERSION_RATE   // 전환율 분석
+  LEAD_TIME         // 리드타임 분석
+  TEAM_PERFORMANCE  // 팀 성과
+  CUSTOMER_ANALYSIS // 고객 분석
+  STUDY_STATUS      // 시험 현황
+  CUSTOM            // 사용자 정의
+}
+
+enum WidgetType {
+  KPI_CARD          // 숫자 카드
+  BAR_CHART         // 막대 차트
+  LINE_CHART        // 선 차트
+  PIE_CHART         // 파이 차트
+  FUNNEL_CHART      // 깔때기 차트
+  TABLE             // 테이블
+  TIMELINE          // 타임라인
+  CALENDAR          // 캘린더
+  LEADERBOARD       // 리더보드
+  GAUGE             // 게이지
+  PROGRESS          // 진행률
+}
+
+// 자동화 규칙
+model AutomationRule {
+  id             String                @id @default(uuid())
+  name           String
+  description    String?
+  
+  triggerType    AutomationTriggerType
+  triggerConfig  Json                  // 트리거 설정
+  conditions     Json?                 // 조건 배열
+  
+  status         AutomationStatus      @default(ACTIVE)
+  priority       Int                   @default(0)
+  
+  executionCount Int                   @default(0)
+  lastExecutedAt DateTime?
+  lastError      String?
+  
+  createdBy      String
+  isSystem       Boolean               @default(false)
+  
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  actions        AutomationAction[]
+  executions     AutomationExecution[]
+}
+
+// 자동화 액션
+model AutomationAction {
+  id           String               @id @default(uuid())
+  ruleId       String
+  rule         AutomationRule       @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  
+  actionType   AutomationActionType
+  actionConfig Json
+  order        Int                  @default(0)
+  delayMinutes Int?
+  
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+}
+
+// 자동화 실행 로그
+model AutomationExecution {
+  id          String         @id @default(uuid())
+  ruleId      String
+  rule        AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  
+  triggerData Json
+  targetModel String
+  targetId    String
+  
+  status      String         @default("PENDING")
+  results     Json?
+  error       String?
+  
+  startedAt   DateTime       @default(now())
+  completedAt DateTime?
+}
+
+// 예약된 자동화 작업
+model ScheduledAutomation {
+  id          String   @id @default(uuid())
+  ruleId      String
+  
+  targetModel String
+  targetId    String
+  actionData  Json
+  
+  scheduledAt DateTime
+  executed    Boolean  @default(false)
+  executedAt  DateTime?
+  
+  createdAt   DateTime @default(now())
+}
+
+// ==================== CRM Extension - Activity Timeline ====================
+
+// 통합 활동 기록
+model Activity {
+  id               String       @id @default(uuid())
+  
+  entityType       String       // LEAD, CUSTOMER, CONTRACT, STUDY, QUOTATION
+  entityId         String
+  
+  type             ActivityType
+  subject          String
+  content          String?
+  metadata         Json?
+  
+  contactName      String?
+  contactInfo      String?
+  duration         Int?
+  
+  activityDate     DateTime     @default(now())
+  nextAction       String?
+  nextDate         DateTime?
+  
+  attachments      Json?
+  
+  userId           String
+  user             User         @relation(fields: [userId], references: [id])
+  
+  isAutoGenerated  Boolean      @default(false)
+  automationRuleId String?
+  
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([activityDate])
+}
+
+// ==================== CRM Extension - Dashboard & Widgets ====================
+
+// 대시보드
+model Dashboard {
+  id          String            @id @default(uuid())
+  name        String
+  description String?
+  layout      Json              @default("{}")
+  
+  isDefault   Boolean           @default(false)
+  isPublic    Boolean           @default(false)
+  ownerId     String
+  sharedWith  String[]          @default([])
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  widgets     DashboardWidget[]
+}
+
+// 대시보드 위젯
+model DashboardWidget {
+  id          String     @id @default(uuid())
+  dashboardId String
+  dashboard   Dashboard  @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  
+  name        String
+  type        WidgetType
+  
+  x           Int        @default(0)
+  y           Int        @default(0)
+  width       Int        @default(4)
+  height      Int        @default(3)
+  
+  dataSource  String
+  query       Json?
+  aggregation Json?
+  config      Json       @default("{}")
+  filters     Json?
+  dateRange   String?
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// 위젯 템플릿
+model WidgetTemplate {
+  id            String     @id @default(uuid())
+  name          String
+  description   String?
+  type          WidgetType
+  category      String
+  
+  defaultConfig Json
+  thumbnail     String?
+  
+  isSystem      Boolean    @default(true)
+  isActive      Boolean    @default(true)
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+// ==================== CRM Extension - Reports ====================
+
+// 리포트 정의
+model ReportDefinition {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  type        ReportType
+  
+  dataSources Json
+  columns     Json
+  filters     Json?
+  groupBy     Json?
+  orderBy     Json?
+  charts      Json?
+  
+  isSystem    Boolean        @default(false)
+  isPublic    Boolean        @default(false)
+  ownerId     String
+  sharedWith  String[]       @default([])
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  exports     ReportExport[]
+}
+
+// 리포트 내보내기 기록
+model ReportExport {
+  id          String           @id @default(uuid())
+  reportId    String
+  report      ReportDefinition @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  
+  format      String
+  filters     Json?
+  dateRange   Json?
+  
+  fileName    String
+  fileUrl     String?
+  fileSize    Int?
+  
+  status      String           @default("PENDING")
+  error       String?
+  
+  exportedBy  String
+  exportedAt  DateTime         @default(now())
+  completedAt DateTime?
+}
+
+// ==================== CRM Extension - Kanban View Settings ====================
+
+// 칸반 뷰 설정
+model KanbanViewSetting {
+  id           String   @id @default(uuid())
+  userId       String
+  
+  entityType   String   // LEAD, QUOTATION, CONTRACT, STUDY
+  groupByField String   @default("status")
+  columns      Json     @default("[]")
+  cardFields   Json     @default("[]")
+  filters      Json?
+  sortBy       String?
+  sortOrder    String   @default("asc")
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, entityType])
 }
