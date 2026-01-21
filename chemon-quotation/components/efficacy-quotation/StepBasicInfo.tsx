@@ -54,7 +54,12 @@ export default function StepBasicInfo() {
     nextStep,
   } = useEfficacyQuotationStore();
 
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  interface CustomerOption {
+    id: string;
+    name: string;
+  }
+
+  const [customers, setCustomers] = useState<CustomerOption[]>([]);
   const [customersLoading, setCustomersLoading] = useState(true);
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerContact, setNewCustomerContact] = useState('');
@@ -70,7 +75,12 @@ export default function StepBasicInfo() {
       try {
         const response = await getCustomers({ limit: 100 });
         if (response.success && response.data) {
-          setCustomers(response.data.data);
+          // company를 우선 사용하여 고객사 이름 표시
+          const customerList = response.data.data || [];
+          setCustomers(customerList.map((c: Customer) => ({
+            id: c.id,
+            name: c.company || c.name,
+          })));
         }
       } catch (error) {
         console.error('Failed to fetch customers:', error);
@@ -99,12 +109,17 @@ export default function StepBasicInfo() {
       setAddingCustomer(true);
       try {
         const response = await createCustomer({
-          name: newCustomerName.trim(),
+          name: newCustomerContact.trim() || newCustomerName.trim(),
           company: newCustomerName.trim(),
         });
         if (response.success && response.data) {
-          setCustomers((prev) => [...prev, response.data!]);
-          setCustomer(response.data.id, response.data.name);
+          const newCustomer = response.data;
+          // company를 우선 사용하여 고객사 이름 표시
+          setCustomers((prev) => [...prev, { 
+            id: newCustomer.id, 
+            name: newCustomer.company || newCustomer.name 
+          }]);
+          setCustomer(newCustomer.id, newCustomer.company || newCustomer.name);
           setNewCustomerName('');
           setNewCustomerContact('');
           setDialogOpen(false);
