@@ -16,8 +16,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Save, RotateCcw, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, RotateCcw, Check, Plus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   ClinicalTestItem,
@@ -29,8 +38,10 @@ import {
   SAMPLE_TYPE_CATEGORIES,
 } from '@/types/clinical-pathology';
 import { clinicalPathologyApi } from '@/lib/clinical-pathology-api';
+import { getCustomers, createCustomer, Customer } from '@/lib/data-api';
 
 interface FormData {
+  customerId: string;
   customerName: string;
   contactName: string;
   contactPhone: string;
@@ -49,6 +60,11 @@ interface FormData {
   notes: string;
 }
 
+interface CustomerOption {
+  id: string;
+  name: string;
+}
+
 const STEPS = [
   { id: 1, title: '기본정보', description: '고객 및 시험 기준' },
   { id: 2, title: '검체정보', description: '동물 종 및 검체' },
@@ -65,6 +81,7 @@ export default function NewClinicalQuotationPage() {
   const [groupedItems, setGroupedItems] = useState<Record<ClinicalTestCategory, ClinicalTestItem[]>>({} as any);
   
   const [formData, setFormData] = useState<FormData>({
+    customerId: '',
     customerName: '',
     contactName: '',
     contactPhone: '',
@@ -82,6 +99,14 @@ export default function NewClinicalQuotationPage() {
     validDays: 60,
     notes: '',
   });
+
+  // 고객사 관련 상태
+  const [customers, setCustomers] = useState<CustomerOption[]>([]);
+  const [customersLoading, setCustomersLoading] = useState(true);
+  const [newCustomerName, setNewCustomerName] = useState('');
+  const [newCustomerContact, setNewCustomerContact] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [addingCustomer, setAddingCustomer] = useState(false);
 
   const [calculation, setCalculation] = useState<{
     items: any[];
@@ -108,6 +133,65 @@ export default function NewClinicalQuotationPage() {
     };
     loadTestItems();
   }, [toast]);
+
+  // 고객사 목록 로드
+  useEffect(() => {
+    async function fetchCustomers() {
+      try {
+        const response = await getCustomers({ limit: 100 });
+        if (response.success && response.data) {
+          const customerList = response.data.data || [];
+          setCustomers(customerList.map((c: Customer) => ({
+            id: c.id,
+            name: c.company || c.name,
+          })));
+        }
+      } catch (error) {
+        console.error('Failed to fetch customers:', error);
+      } finally {
+        setCustomersLoading(false);
+      }
+    }
+    fetchCustomers();
+  }, []);
+
+  // 고객사 선택 핸들러
+  const handleCustomerSelect = (value: string) => {
+    const customer = customers.find((c) => c.id === value);
+    if (customer) {
+      setFormData(prev => ({ ...prev, customerId: customer.id, customerName: customer.name }));
+    }
+  };
+
+  // 신규 고객사 추가 핸들러
+  const handleAddCustomer = async () => {
+    if (newCustomerName.trim()) {
+      setAddingCustomer(true);
+      try {
+        const response = await createCustomer({
+          name: newCustomerContact.trim() || newCustomerName.trim(),
+          company: newCustomerName.trim(),
+        });
+        if (response.success && response.data) {
+          const newCustomer = response.data;
+          const customerOption = { 
+            id: newCustomer.id, 
+            name: newCustomer.company || newCustomer.name 
+          };
+          setCustomers((prev) => [...prev, customerOption]);
+          setFormData(prev => ({ ...prev, customerId: customerOption.id, customerName: customerOption.name }));
+          setNewCustomerName('');
+          setNewCustomerContact('');
+          setDialogOpen(false);
+        }
+      } catch (error) {
+        console.error('Failed to create customer:', error);
+        toast({ title: '고객사 등록 실패', variant: 'destructive' });
+      } finally {
+        setAddingCustomer(false);
+      }
+    }
+  };
 
   // 선택된 검체 종류에 따라 활성화되는 카테고리
   const availableCategories = useMemo(() => {
@@ -205,8 +289,8 @@ export default function NewClinicalQuotationPage() {
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        if (!formData.customerName.trim()) {
-          toast({ title: '의뢰기관명을 입력해주세요', variant: 'destructive' });
+        if (!formData.customerId) {
+          toast({ title: '의뢰기관을 선택해주세요', variant: 'destructive' });
           return false;
         }
         if (!formData.contactName.trim()) {
@@ -252,6 +336,7 @@ export default function NewClinicalQuotationPage() {
   const handleReset = () => {
     if (window.confirm('작성 중인 견적서를 초기화하시겠습니까?')) {
       setFormData({
+        customerId: '',
         customerName: '',
         contactName: '',
         contactPhone: '',
@@ -280,6 +365,7 @@ export default function NewClinicalQuotationPage() {
     setIsLoading(true);
     try {
       const response = await clinicalPathologyApi.createQuotation({
+        customerId: formData.customerId || undefined,
         customerName: formData.customerName,
         contactName: formData.contactName,
         contactPhone: formData.contactPhone || undefined,
@@ -325,12 +411,77 @@ export default function NewClinicalQuotationPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="customerName">의뢰기관 *</Label>
-            <Input
-              id="customerName"
-              value={formData.customerName}
-              onChange={e => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
-              placeholder="의뢰기관명을 입력하세요"
-            />
+            <div className="flex gap-2">
+              <Select value={formData.customerId} onValueChange={handleCustomerSelect} disabled={customersLoading}>
+                <SelectTrigger className="flex-1">
+                  {customersLoading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      로딩 중...
+                    </span>
+                  ) : (
+                    <SelectValue placeholder="의뢰기관을 선택하세요" />
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map((customer) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>신규 의뢰기관 등록</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="newCustomerName">기관명</Label>
+                      <Input
+                        id="newCustomerName"
+                        value={newCustomerName}
+                        onChange={(e) => setNewCustomerName(e.target.value)}
+                        placeholder="기관명을 입력하세요"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="newCustomerContact">담당자</Label>
+                      <Input
+                        id="newCustomerContact"
+                        value={newCustomerContact}
+                        onChange={(e) => setNewCustomerContact(e.target.value)}
+                        placeholder="담당자명을 입력하세요"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">취소</Button>
+                    </DialogClose>
+                    <Button onClick={handleAddCustomer} disabled={addingCustomer}>
+                      {addingCustomer ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          등록 중...
+                        </>
+                      ) : (
+                        '등록'
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+            {formData.customerName && (
+              <p className="text-sm text-gray-500">선택됨: {formData.customerName}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="contactName">담당자 *</Label>
