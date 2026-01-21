@@ -281,13 +281,14 @@ function QuotationsContent() {
           {/* 필터 */}
           <div className="flex flex-wrap gap-3 mb-6">
             <Select value={typeFilter} onValueChange={(v) => updateFilter('type', v)}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-36">
                 <SelectValue placeholder="유형" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">전체 유형</SelectItem>
                 <SelectItem value="toxicity">독성시험</SelectItem>
                 <SelectItem value="efficacy">효력시험</SelectItem>
+                <SelectItem value="clinical_pathology">임상병리</SelectItem>
               </SelectContent>
             </Select>
 
@@ -362,7 +363,6 @@ function QuotationsContent() {
                   </TableRow>
                 ) : (
                   quotations.map((quotation) => {
-                    const isEfficacy = quotation.quotationType === 'EFFICACY';
                     const detailPath = `/quotations/${quotation.id}`;
                     const editPath = `/quotations/${quotation.id}/edit`;
 
@@ -370,13 +370,25 @@ function QuotationsContent() {
                       <TableRow key={quotation.id}>
                         <TableCell>
                           <div className="flex items-center gap-1.5">
-                            {isEfficacy ? (
+                            {quotation.quotationType === 'EFFICACY' ? (
                               <Microscope className="w-4 h-4 text-emerald-500" />
+                            ) : quotation.quotationType === 'CLINICAL_PATHOLOGY' ? (
+                              <ClipboardList className="w-4 h-4 text-purple-500" />
                             ) : (
                               <FlaskConical className="w-4 h-4 text-blue-500" />
                             )}
-                            <span className={`text-xs font-medium ${isEfficacy ? 'text-emerald-600' : 'text-blue-600'}`}>
-                              {isEfficacy ? '효력' : '독성'}
+                            <span className={`text-xs font-medium ${
+                              quotation.quotationType === 'EFFICACY' 
+                                ? 'text-emerald-600' 
+                                : quotation.quotationType === 'CLINICAL_PATHOLOGY'
+                                  ? 'text-purple-600'
+                                  : 'text-blue-600'
+                            }`}>
+                              {quotation.quotationType === 'EFFICACY' 
+                                ? '효력' 
+                                : quotation.quotationType === 'CLINICAL_PATHOLOGY'
+                                  ? '임상병리'
+                                  : '독성'}
                             </span>
                           </div>
                         </TableCell>

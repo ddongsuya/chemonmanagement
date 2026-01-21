@@ -9,11 +9,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, DollarSign, Package, FlaskConical } from 'lucide-react';
+import { Database, DollarSign, Package, FlaskConical, Microscope } from 'lucide-react';
 import TestItemManager from './master/TestItemManager';
 import PriceManager from './master/PriceManager';
 import PackageManager from './master/PackageManager';
 import EfficacyMasterManager from './master/EfficacyMasterManager';
+import ClinicalPathologyMasterManager from './master/ClinicalPathologyMasterManager';
 
 export default function MasterDataSettings() {
   const [activeTab, setActiveTab] = useState('tests');
@@ -24,7 +25,7 @@ export default function MasterDataSettings() {
         <CardHeader>
           <CardTitle>마스터 데이터 관리</CardTitle>
           <CardDescription>
-            독성시험, 효력시험 마스터 데이터를 관리합니다
+            독성시험, 효력시험, 임상병리 마스터 데이터를 관리합니다
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -46,6 +47,10 @@ export default function MasterDataSettings() {
                 <FlaskConical className="w-4 h-4" />
                 효력시험
               </TabsTrigger>
+              <TabsTrigger value="clinical" className="flex items-center gap-2">
+                <Microscope className="w-4 h-4" />
+                임상병리
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="tests">
@@ -62,6 +67,10 @@ export default function MasterDataSettings() {
 
             <TabsContent value="efficacy">
               <EfficacyMasterManager />
+            </TabsContent>
+
+            <TabsContent value="clinical">
+              <ClinicalPathologyMasterManager />
             </TabsContent>
           </Tabs>
         </CardContent>

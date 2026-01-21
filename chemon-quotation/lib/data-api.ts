@@ -9,7 +9,7 @@ const ACCESS_TOKEN_KEY = 'access_token';
 // ============ Types ============
 
 export type QuotationStatus = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
-export type QuotationType = 'TOXICITY' | 'EFFICACY';
+export type QuotationType = 'TOXICITY' | 'EFFICACY' | 'CLINICAL_PATHOLOGY';
 
 export interface Quotation {
   id: string;
