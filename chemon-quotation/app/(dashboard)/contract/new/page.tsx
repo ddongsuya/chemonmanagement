@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import PageHeader from '@/components/layout/PageHeader';
 import ContractForm from '@/components/contract/ContractForm';
@@ -15,6 +15,8 @@ import { ContractData, ContractFormData, QuotationItem } from '@/lib/contract/ty
 import { numberToKorean, formatDateKorean, calculateWeeks } from '@/lib/contract/number-to-korean';
 import { getQuotationById } from '@/lib/data-api';
 import { efficacyQuotationApi } from '@/lib/efficacy-api';
+import { getUserSettings } from '@/lib/package-api';
+import { generateQuotationNumber } from '@/lib/quotationNumber';
 import { SavedEfficacyQuotation } from '@/types/efficacy';
 import { ArrowLeft, FileText, Check, Eye, Edit, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -47,10 +49,31 @@ function ContractNewContent() {
   const [loadedQuotation, setLoadedQuotation] = useState<SavedQuotation | null>(null);
   const [loadedEfficacyQuotation, setLoadedEfficacyQuotation] = useState<SavedEfficacyQuotation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userCode, setUserCode] = useState<string>('XX');
 
   // URL에서 quotationId 가져오기
   const quotationId = searchParams.get('quotationId');
   const efficacyQuotationId = searchParams.get('efficacyQuotationId');
+
+  // 페이지 로드 시 스크롤 상단으로 이동
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // 사용자 설정에서 userCode 로드
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      try {
+        const response = await getUserSettings();
+        if (response.success && response.data?.userCode) {
+          setUserCode(response.data.userCode);
+        }
+      } catch (error) {
+        console.error('Failed to load user settings:', error);
+      }
+    };
+    loadUserSettings();
+  }, []);
 
   // 견적서 데이터 로드
   useEffect(() => {
@@ -140,8 +163,8 @@ function ContractNewContent() {
     }));
     subtotal = loadedQuotation.total_amount || 0;
   } else if (hasStoreData) {
-    // store에서 데이터 가져오기
-    quotationNo = `QT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
+    // store에서 데이터 가져오기 - 사용자 설정의 견적번호 양식 사용
+    quotationNo = generateQuotationNumber({ userCode, nextSeq: 1 });
     customerName = store.customerName;
     projectName = store.projectName;
     items = store.selectedItems.map((item, index) => ({
