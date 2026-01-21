@@ -1,110 +1,98 @@
 /**
- * 의뢰자 로컬 스토리지 관리
- * - 백엔드 연동 전까지 localStorage로 의뢰자 데이터 관리
+ * 의뢰자 관리
+ * - 백엔드 API 연동 완료
  * - Requirements: 1.2, 1.4, 1.5, 8.1
  */
 
 import { Requester } from '@/types/customer';
+import { requesterApi } from './customer-data-api';
 
-const REQUESTERS_STORAGE_KEY = 'chemon_requesters';
+// ============================================
+// API 기반 함수들
+// ============================================
 
-// 모든 의뢰자 조회
-export function getAllRequesters(): Requester[] {
-  if (typeof window === 'undefined') return [];
-  
+/**
+ * 고객사별 의뢰자 목록 조회 (API)
+ */
+export async function getRequestersByCustomerIdAsync(customerId: string, activeOnly = false): Promise<Requester[]> {
   try {
-    const data = localStorage.getItem(REQUESTERS_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    return await requesterApi.getByCustomerId(customerId, activeOnly);
   } catch {
     return [];
   }
 }
 
-// 단일 의뢰자 조회
+/**
+ * 의뢰자 상세 조회 (API)
+ */
+export async function getRequesterByIdAsync(id: string): Promise<Requester | null> {
+  try {
+    return await requesterApi.getById(id);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 의뢰자 저장 (API)
+ */
+export async function saveRequesterAsync(
+  customerId: string,
+  requester: Omit<Requester, 'id' | 'customer_id' | 'created_at' | 'updated_at'>
+): Promise<Requester> {
+  return await requesterApi.create(customerId, requester);
+}
+
+/**
+ * 의뢰자 수정 (API)
+ */
+export async function updateRequesterAsync(id: string, data: Partial<Requester>): Promise<Requester> {
+  return await requesterApi.update(id, data);
+}
+
+/**
+ * 의뢰자 삭제 (API)
+ */
+export async function deleteRequesterAsync(id: string): Promise<{ success: boolean; deactivated: boolean }> {
+  const result = await requesterApi.delete(id);
+  return { success: result.deleted || result.deactivated, deactivated: result.deactivated };
+}
+
+// ============================================
+// Legacy 동기 함수들 (테스트 호환성)
+// ============================================
+
+export function getRequesters(): Requester[] {
+  console.warn('getRequesters is deprecated. Use getRequestersByCustomerIdAsync instead.');
+  return [];
+}
+
 export function getRequesterById(id: string): Requester | null {
-  const requesters = getAllRequesters();
-  return requesters.find(r => r.id === id) || null;
+  console.warn('getRequesterById is deprecated. Use getRequesterByIdAsync instead.');
+  return null;
 }
 
-// 고객사별 의뢰자 조회
 export function getRequestersByCustomerId(customerId: string): Requester[] {
-  const requesters = getAllRequesters();
-  return requesters.filter(r => r.customer_id === customerId);
+  console.warn('getRequestersByCustomerId is deprecated. Use getRequestersByCustomerIdAsync instead.');
+  return [];
 }
 
-// 의뢰자 저장
-export function saveRequester(requester: Requester): Requester {
-  const requesters = getAllRequesters();
-  const existingIndex = requesters.findIndex(r => r.id === requester.id);
-  
-  const now = new Date().toISOString();
-  
-  if (existingIndex >= 0) {
-    requesters[existingIndex] = { ...requester, updated_at: now };
-  } else {
-    const newRequester = {
-      ...requester,
-      created_at: requester.created_at || now,
-      updated_at: now,
-    };
-    requesters.unshift(newRequester);
-  }
-  
-  localStorage.setItem(REQUESTERS_STORAGE_KEY, JSON.stringify(requesters));
-  return existingIndex >= 0 ? requesters[existingIndex] : requesters[0];
-}
-
-// 의뢰자 정보 수정
-export function updateRequester(id: string, updates: Partial<Requester>): Requester | null {
-  const requesters = getAllRequesters();
-  const index = requesters.findIndex(r => r.id === id);
-  
-  if (index < 0) return null;
-  
-  requesters[index] = {
-    ...requesters[index],
-    ...updates,
-    id, // ID는 변경 불가
-    updated_at: new Date().toISOString(),
-  };
-  
-  localStorage.setItem(REQUESTERS_STORAGE_KEY, JSON.stringify(requesters));
-  return requesters[index];
-}
-
-// 의뢰자 삭제 (연관 데이터 확인 후 삭제 또는 비활성화)
-// hasRelatedData: 연관된 견적/계약이 있는지 여부를 외부에서 전달
-export function deleteRequester(id: string, hasRelatedData: boolean = false): { success: boolean; deactivated: boolean } {
-  const requesters = getAllRequesters();
-  const index = requesters.findIndex(r => r.id === id);
-  
-  if (index < 0) return { success: false, deactivated: false };
-  
-  if (hasRelatedData) {
-    // 연관 데이터가 있으면 비활성화 처리
-    requesters[index] = {
-      ...requesters[index],
-      is_active: false,
-      updated_at: new Date().toISOString(),
-    };
-    localStorage.setItem(REQUESTERS_STORAGE_KEY, JSON.stringify(requesters));
-    return { success: true, deactivated: true };
-  } else {
-    // 연관 데이터가 없으면 완전 삭제
-    const filtered = requesters.filter(r => r.id !== id);
-    localStorage.setItem(REQUESTERS_STORAGE_KEY, JSON.stringify(filtered));
-    return { success: true, deactivated: false };
-  }
-}
-
-// 활성 의뢰자만 조회
 export function getActiveRequestersByCustomerId(customerId: string): Requester[] {
-  const requesters = getRequestersByCustomerId(customerId);
-  return requesters.filter(r => r.is_active);
+  console.warn('getActiveRequestersByCustomerId is deprecated. Use getRequestersByCustomerIdAsync with activeOnly=true instead.');
+  return [];
 }
 
-// 주 담당자 조회
-export function getPrimaryRequester(customerId: string): Requester | null {
-  const requesters = getRequestersByCustomerId(customerId);
-  return requesters.find(r => r.is_primary && r.is_active) || null;
+export function saveRequester(requester: Requester): Requester {
+  console.warn('saveRequester is deprecated. Use saveRequesterAsync instead.');
+  return requester;
+}
+
+export function updateRequester(id: string, data: Partial<Requester>): Requester | null {
+  console.warn('updateRequester is deprecated. Use updateRequesterAsync instead.');
+  return null;
+}
+
+export function deleteRequester(id: string, hasRelatedData = false): { success: boolean; deactivated: boolean } {
+  console.warn('deleteRequester is deprecated. Use deleteRequesterAsync instead.');
+  return { success: false, deactivated: false };
 }

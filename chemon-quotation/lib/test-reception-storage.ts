@@ -1,116 +1,126 @@
 /**
- * 시험 접수 로컬 스토리지 관리
- * - 백엔드 연동 전까지 localStorage로 시험 접수 데이터 관리
+ * 시험 접수 관리
+ * - 백엔드 API 연동 완료
  * - Requirements: 2.3, 2.5, 8.2
  */
 
 import { TestReception } from '@/types/customer';
+import { testReceptionApi } from './customer-data-api';
 
-const TEST_RECEPTIONS_STORAGE_KEY = 'chemon_test_receptions';
+// ============================================
+// API 기반 함수들
+// ============================================
 
-// 모든 시험 접수 조회
-export function getAllTestReceptions(): TestReception[] {
-  if (typeof window === 'undefined') return [];
-  
+/**
+ * 고객사별 시험 접수 조회 (API)
+ */
+export async function getTestReceptionsByCustomerIdAsync(customerId: string): Promise<TestReception[]> {
   try {
-    const data = localStorage.getItem(TEST_RECEPTIONS_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    return await testReceptionApi.getByCustomerId(customerId);
   } catch {
     return [];
   }
 }
 
-// 단일 시험 접수 조회
-export function getTestReceptionById(id: string): TestReception | null {
-  const receptions = getAllTestReceptions();
-  return receptions.find(r => r.id === id) || null;
-}
-
-// 고객사별 시험 접수 조회
-export function getTestReceptionsByCustomerId(customerId: string): TestReception[] {
-  const receptions = getAllTestReceptions();
-  return receptions.filter(r => r.customer_id === customerId);
-}
-
-// 의뢰자별 시험 접수 조회
-export function getTestReceptionsByRequesterId(requesterId: string): TestReception[] {
-  const receptions = getAllTestReceptions();
-  return receptions.filter(r => r.requester_id === requesterId);
-}
-
-// 계약별 시험 접수 조회
-export function getTestReceptionsByContractId(contractId: string): TestReception[] {
-  const receptions = getAllTestReceptions();
-  return receptions.filter(r => r.contract_id === contractId);
-}
-
-// 시험 접수 저장
-export function saveTestReception(reception: TestReception): TestReception {
-  const receptions = getAllTestReceptions();
-  const existingIndex = receptions.findIndex(r => r.id === reception.id);
-  
-  const now = new Date().toISOString();
-  
-  if (existingIndex >= 0) {
-    receptions[existingIndex] = { ...reception, updated_at: now };
-  } else {
-    const newReception = {
-      ...reception,
-      created_at: reception.created_at || now,
-      updated_at: now,
-    };
-    receptions.unshift(newReception);
+/**
+ * 상태별 시험 접수 조회 (API)
+ */
+export async function getTestReceptionsByStatusAsync(status?: string): Promise<TestReception[]> {
+  try {
+    return await testReceptionApi.getByStatus(status);
+  } catch {
+    return [];
   }
-  
-  localStorage.setItem(TEST_RECEPTIONS_STORAGE_KEY, JSON.stringify(receptions));
-  return existingIndex >= 0 ? receptions[existingIndex] : receptions[0];
 }
 
-// 시험 접수 정보 수정
-export function updateTestReception(id: string, updates: Partial<TestReception>): TestReception | null {
-  const receptions = getAllTestReceptions();
-  const index = receptions.findIndex(r => r.id === id);
-  
-  if (index < 0) return null;
-  
-  receptions[index] = {
-    ...receptions[index],
-    ...updates,
-    id, // ID는 변경 불가
-    updated_at: new Date().toISOString(),
-  };
-  
-  localStorage.setItem(TEST_RECEPTIONS_STORAGE_KEY, JSON.stringify(receptions));
-  return receptions[index];
+/**
+ * 시험 접수 상세 조회 (API)
+ */
+export async function getTestReceptionByIdAsync(id: string): Promise<TestReception | null> {
+  try {
+    return await testReceptionApi.getById(id);
+  } catch {
+    return null;
+  }
 }
 
-// 시험 접수 상태 업데이트
-export function updateTestReceptionStatus(
-  id: string, 
-  status: TestReception['status']
-): TestReception | null {
-  return updateTestReception(id, { status });
+/**
+ * 시험번호로 조회 (API)
+ */
+export async function getTestReceptionByTestNumberAsync(testNumber: string): Promise<TestReception | null> {
+  try {
+    return await testReceptionApi.getByTestNumber(testNumber);
+  } catch {
+    return null;
+  }
 }
 
-// 시험 접수 삭제
+/**
+ * 시험 접수 저장 (API)
+ */
+export async function saveTestReceptionAsync(
+  customerId: string,
+  reception: Omit<TestReception, 'id' | 'customer_id' | 'created_at' | 'updated_at'>
+): Promise<TestReception> {
+  return await testReceptionApi.create(customerId, reception);
+}
+
+/**
+ * 시험 접수 수정 (API)
+ */
+export async function updateTestReceptionAsync(id: string, data: Partial<TestReception>): Promise<TestReception> {
+  return await testReceptionApi.update(id, data);
+}
+
+/**
+ * 시험 접수 상태 업데이트 (API)
+ */
+export async function updateTestReceptionStatusAsync(id: string, status: string): Promise<TestReception> {
+  return await testReceptionApi.updateStatus(id, status);
+}
+
+/**
+ * 시험 접수 삭제 (API)
+ */
+export async function deleteTestReceptionAsync(id: string): Promise<boolean> {
+  try {
+    await testReceptionApi.delete(id);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================
+// Legacy 동기 함수들 (테스트 호환성)
+// ============================================
+
+export function getTestReceptions(): TestReception[] {
+  console.warn('getTestReceptions is deprecated. Use getTestReceptionsByCustomerIdAsync instead.');
+  return [];
+}
+
+export function getTestReceptionById(id: string): TestReception | null {
+  console.warn('getTestReceptionById is deprecated. Use getTestReceptionByIdAsync instead.');
+  return null;
+}
+
+export function getTestReceptionsByCustomerId(customerId: string): TestReception[] {
+  console.warn('getTestReceptionsByCustomerId is deprecated. Use getTestReceptionsByCustomerIdAsync instead.');
+  return [];
+}
+
+export function saveTestReception(reception: TestReception): TestReception {
+  console.warn('saveTestReception is deprecated. Use saveTestReceptionAsync instead.');
+  return reception;
+}
+
+export function updateTestReception(id: string, data: Partial<TestReception>): TestReception | null {
+  console.warn('updateTestReception is deprecated. Use updateTestReceptionAsync instead.');
+  return null;
+}
+
 export function deleteTestReception(id: string): boolean {
-  const receptions = getAllTestReceptions();
-  const filtered = receptions.filter(r => r.id !== id);
-  
-  if (filtered.length === receptions.length) return false;
-  
-  localStorage.setItem(TEST_RECEPTIONS_STORAGE_KEY, JSON.stringify(filtered));
-  return true;
-}
-
-// 상태별 시험 접수 조회
-export function getTestReceptionsByStatus(status: TestReception['status']): TestReception[] {
-  const receptions = getAllTestReceptions();
-  return receptions.filter(r => r.status === status);
-}
-
-// 시험번호로 조회
-export function getTestReceptionByTestNumber(testNumber: string): TestReception | null {
-  const receptions = getAllTestReceptions();
-  return receptions.find(r => r.test_number === testNumber) || null;
+  console.warn('deleteTestReception is deprecated. Use deleteTestReceptionAsync instead.');
+  return false;
 }

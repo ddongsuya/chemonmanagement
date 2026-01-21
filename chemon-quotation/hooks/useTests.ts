@@ -158,23 +158,28 @@ export function useTestRelations() {
   });
 }
 
-const PACKAGE_STORAGE_KEY = 'chemon_package_templates';
-
 export function usePackageTemplates() {
   return useQuery({
     queryKey: ['packageTemplates'],
-    queryFn: () => {
-      // localStorage에서 사용자 정의 패키지 먼저 확인
-      if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem(PACKAGE_STORAGE_KEY);
-        if (saved) {
-          try {
-            return JSON.parse(saved) as PackageTemplate[];
-          } catch {
-            // 파싱 실패 시 기본 데이터 반환
-          }
-        }
+    queryFn: async () => {
+      // 백엔드 API에서 패키지 템플릿 가져오기
+      const { getPackages } = await import('@/lib/package-api');
+      const response = await getPackages(true);
+      
+      if (response.success && response.data && response.data.length > 0) {
+        // API 응답을 기존 PackageTemplate 형식으로 변환
+        return response.data.map(pkg => ({
+          package_id: pkg.packageId,
+          package_name: pkg.packageName,
+          description: pkg.description || '',
+          modality: pkg.modality || '',
+          clinical_phase: pkg.clinicalPhase || '',
+          tests: pkg.tests || [],
+          optional_tests: pkg.optionalTests || [],
+        })) as PackageTemplate[];
       }
+      
+      // API 실패 시 JSON 파일 fallback
       return packageTemplates as PackageTemplate[];
     },
   });

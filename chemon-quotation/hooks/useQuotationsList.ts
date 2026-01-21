@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useQuotations, useDeleteQuotation } from './useQuotationsApi';
-import * as quotationStorage from '@/lib/quotation-storage';
-import { QuotationFilters, Quotation } from '@/lib/data-api';
+import { QuotationFilters } from '@/lib/data-api';
 
 export interface QuotationListItem {
   id: string;
@@ -15,32 +14,24 @@ export interface QuotationListItem {
   total_amount: number;
   created_at: string;
   updated_at: string;
-  source: 'api' | 'local';
+  source: 'api';
 }
 
 export function useQuotationsList(filters: QuotationFilters = {}) {
   const { isAuthenticated } = useAuthStore();
-  const [localQuotations, setLocalQuotations] = useState<quotationStorage.SavedQuotation[]>([]);
   
-  // Use API when authenticated
+  // Use API for all data
   const { 
     data: apiData, 
     isLoading: apiLoading, 
     error: apiError,
     refetch 
-  } = useQuotations(isAuthenticated ? filters : {});
+  } = useQuotations(filters);
   
   const deleteQuotationMutation = useDeleteQuotation();
 
-  // Load local quotations
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setLocalQuotations(quotationStorage.getAllQuotations());
-    }
-  }, [isAuthenticated]);
-
   // Convert API quotations to unified format
-  const apiQuotationsList = useMemo((): QuotationListItem[] => {
+  const quotations = useMemo((): QuotationListItem[] => {
     if (!apiData?.data) return [];
     
     return apiData.data.map((q) => ({
@@ -56,63 +47,41 @@ export function useQuotationsList(filters: QuotationFilters = {}) {
     }));
   }, [apiData]);
 
-  // Convert local quotations to unified format
-  const localQuotationsList = useMemo((): QuotationListItem[] => {
-    return localQuotations.map((q) => ({
-      id: q.id,
-      quotation_number: q.quotation_number,
-      title: q.project_name,
-      customer_name: q.customer_name || '-',
-      status: q.status,
-      total_amount: q.total_amount,
-      created_at: q.created_at,
-      updated_at: q.updated_at,
-      source: 'local' as const,
-    }));
-  }, [localQuotations]);
-
-  // Combined quotations list
-  const quotations = useMemo(() => {
-    if (isAuthenticated) {
-      return apiQuotationsList;
-    }
-    return localQuotationsList;
-  }, [isAuthenticated, apiQuotationsList, localQuotationsList]);
-
   // Delete quotation
-  const deleteQuotation = useCallback(async (id: string, source: 'api' | 'local') => {
-    if (source === 'api') {
-      await deleteQuotationMutation.mutateAsync(id);
-    } else {
-      quotationStorage.deleteQuotation(id);
-      setLocalQuotations(quotationStorage.getAllQuotations());
-    }
+  const deleteQuotation = useCallback(async (id: string) => {
+    await deleteQuotationMutation.mutateAsync(id);
   }, [deleteQuotationMutation]);
 
   // Get statistics
   const stats = useMemo(() => {
-    if (isAuthenticated && apiData) {
+    if (!apiData) {
       return {
-        total: apiData.pagination.total,
-        draft: quotations.filter((q) => q.status === 'draft').length,
-        submitted: quotations.filter((q) => q.status === 'sent').length,
-        won: quotations.filter((q) => q.status === 'accepted').length,
-        lost: quotations.filter((q) => q.status === 'rejected').length,
+        total: 0,
+        draft: 0,
+        submitted: 0,
+        won: 0,
+        lost: 0,
       };
     }
     
-    return quotationStorage.getQuotationStats();
-  }, [isAuthenticated, apiData, quotations]);
+    return {
+      total: apiData.pagination.total,
+      draft: quotations.filter((q) => q.status === 'draft').length,
+      submitted: quotations.filter((q) => q.status === 'sent').length,
+      won: quotations.filter((q) => q.status === 'accepted').length,
+      lost: quotations.filter((q) => q.status === 'rejected').length,
+    };
+  }, [apiData, quotations]);
 
   return {
     quotations,
-    isLoading: isAuthenticated ? apiLoading : false,
+    isLoading: apiLoading,
     error: apiError?.message,
     pagination: apiData?.pagination,
     stats,
     refetch,
     deleteQuotation,
     isDeleting: deleteQuotationMutation.isPending,
-    isUsingApi: isAuthenticated,
+    isAuthenticated,
   };
 }

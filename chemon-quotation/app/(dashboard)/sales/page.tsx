@@ -24,8 +24,18 @@ import {
   PieChart,
   ArrowUpRight,
   ArrowDownRight,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import {
+  getRevenueAnalytics,
+  getConversionAnalytics,
+  getPerformanceAnalytics,
+  type RevenueAnalyticsResponse,
+  type ConversionAnalyticsResponse,
+  type PerformanceAnalyticsResponse,
+} from '@/lib/analytics-api';
 
 // 부서 타입
 type Department = 'BD1' | 'BD2' | 'SUPPORT' | 'ALL';
@@ -40,98 +50,10 @@ const DEPARTMENT_LABELS: Record<Department, string> = {
 
 // 기간 옵션
 const PERIOD_OPTIONS = [
-  { value: 'month', label: '이번 달' },
-  { value: 'quarter', label: '이번 분기' },
-  { value: 'year', label: '올해' },
-  { value: 'custom', label: '기간 선택' },
+  { value: 'month', label: '이번 달', days: 30 },
+  { value: 'quarter', label: '이번 분기', days: 90 },
+  { value: 'year', label: '올해', days: 365 },
 ];
-
-// 더미 매출 데이터 (실제로는 API에서 가져옴)
-const generateSalesData = (department: Department) => {
-  const baseData = {
-    BD1: {
-      totalSales: 1250000000,
-      contractCount: 45,
-      avgContractValue: 27777778,
-      conversionRate: 32,
-      monthlyTarget: 1500000000,
-      monthlyGrowth: 12.5,
-      topCustomers: [
-        { name: '삼성바이오로직스', amount: 350000000 },
-        { name: 'SK바이오팜', amount: 280000000 },
-        { name: '셀트리온', amount: 220000000 },
-      ],
-      monthlyTrend: [
-        { month: '1월', amount: 95000000 },
-        { month: '2월', amount: 110000000 },
-        { month: '3월', amount: 125000000 },
-        { month: '4월', amount: 98000000 },
-        { month: '5월', amount: 142000000 },
-        { month: '6월', amount: 135000000 },
-      ],
-    },
-    BD2: {
-      totalSales: 980000000,
-      contractCount: 38,
-      avgContractValue: 25789474,
-      conversionRate: 28,
-      monthlyTarget: 1200000000,
-      monthlyGrowth: 8.3,
-      topCustomers: [
-        { name: '한미약품', amount: 280000000 },
-        { name: '유한양행', amount: 195000000 },
-        { name: '녹십자', amount: 175000000 },
-      ],
-      monthlyTrend: [
-        { month: '1월', amount: 78000000 },
-        { month: '2월', amount: 92000000 },
-        { month: '3월', amount: 105000000 },
-        { month: '4월', amount: 88000000 },
-        { month: '5월', amount: 118000000 },
-        { month: '6월', amount: 112000000 },
-      ],
-    },
-    SUPPORT: {
-      totalSales: 0,
-      contractCount: 0,
-      avgContractValue: 0,
-      conversionRate: 0,
-      monthlyTarget: 0,
-      monthlyGrowth: 0,
-      topCustomers: [],
-      monthlyTrend: [],
-    },
-  };
-
-  if (department === 'ALL') {
-    return {
-      totalSales: baseData.BD1.totalSales + baseData.BD2.totalSales,
-      contractCount: baseData.BD1.contractCount + baseData.BD2.contractCount,
-      avgContractValue: Math.round(
-        (baseData.BD1.totalSales + baseData.BD2.totalSales) /
-          (baseData.BD1.contractCount + baseData.BD2.contractCount)
-      ),
-      conversionRate: Math.round(
-        (baseData.BD1.conversionRate + baseData.BD2.conversionRate) / 2
-      ),
-      monthlyTarget: baseData.BD1.monthlyTarget + baseData.BD2.monthlyTarget,
-      monthlyGrowth: (baseData.BD1.monthlyGrowth + baseData.BD2.monthlyGrowth) / 2,
-      topCustomers: [...baseData.BD1.topCustomers, ...baseData.BD2.topCustomers]
-        .sort((a, b) => b.amount - a.amount)
-        .slice(0, 5),
-      monthlyTrend: baseData.BD1.monthlyTrend.map((item, idx) => ({
-        month: item.month,
-        amount: item.amount + baseData.BD2.monthlyTrend[idx].amount,
-      })),
-      departmentBreakdown: [
-        { name: '사업개발 1센터', amount: baseData.BD1.totalSales, color: '#3B82F6' },
-        { name: '사업개발 2센터', amount: baseData.BD2.totalSales, color: '#10B981' },
-      ],
-    };
-  }
-
-  return baseData[department] || baseData.BD1;
-};
 
 // 금액 포맷
 const formatCurrency = (amount: number) => {
@@ -148,6 +70,12 @@ export default function SalesDashboardPage() {
   const { user } = useAuthStore();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedDepartment, setSelectedDepartment] = useState<Department>('ALL');
+  const [loading, setLoading] = useState(true);
+  
+  // API 데이터 상태
+  const [revenueData, setRevenueData] = useState<RevenueAnalyticsResponse | null>(null);
+  const [conversionData, setConversionData] = useState<ConversionAnalyticsResponse | null>(null);
+  const [performanceData, setPerformanceData] = useState<PerformanceAnalyticsResponse | null>(null);
 
   // 사용자 권한에 따른 부서 필터링
   const canViewAllSales = user?.role === 'ADMIN' || 
@@ -170,22 +98,67 @@ export default function SalesDashboardPage() {
         { value: 'BD2', label: '사업개발 2센터' },
       ];
     }
-    // 자기 부서만 볼 수 있음
     if (user?.department && user.department !== 'SUPPORT') {
       return [{ value: user.department, label: DEPARTMENT_LABELS[user.department as Department] }];
     }
     return [];
   }, [canViewAllSales, user]);
 
-  // 매출 데이터
-  const salesData = useMemo(() => {
-    return generateSalesData(selectedDepartment);
-  }, [selectedDepartment]);
+  // 데이터 로드
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const periodDays = PERIOD_OPTIONS.find(p => p.value === selectedPeriod)?.days || 30;
+      const endDate = new Date().toISOString().split('T')[0];
+      const startDate = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-  // 목표 달성률
-  const achievementRate = salesData.monthlyTarget > 0
-    ? Math.round((salesData.totalSales / salesData.monthlyTarget) * 100)
-    : 0;
+      const [revenue, conversion, performance] = await Promise.all([
+        getRevenueAnalytics({ startDate, endDate, period: 'monthly' }).catch(() => null),
+        getConversionAnalytics({ startDate, endDate }).catch(() => null),
+        getPerformanceAnalytics({ startDate, endDate }).catch(() => null),
+      ]);
+
+      setRevenueData(revenue);
+      setConversionData(conversion);
+      setPerformanceData(performance);
+    } catch (error) {
+      console.error('Failed to load sales data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [selectedPeriod, selectedDepartment]);
+
+  // 계산된 값들
+  const totalSales = revenueData?.summary.totalRevenue || 0;
+  const contractCount = revenueData?.summary.totalCount || 0;
+  const avgContractValue = revenueData?.summary.avgDealSize || 0;
+  const monthlyGrowth = revenueData?.summary.growth || 0;
+  const conversionRate = conversionData?.overallConversionRate || 0;
+  
+  // 목표 달성률 (임시로 목표를 현재 매출의 120%로 설정)
+  const monthlyTarget = totalSales * 1.2;
+  const achievementRate = monthlyTarget > 0 ? Math.round((totalSales / monthlyTarget) * 100) : 0;
+
+  // 월별 추이 데이터
+  const monthlyTrend = revenueData?.data.map(d => ({
+    month: d.period.slice(5) + '월',
+    amount: d.revenue,
+  })) || [];
+
+  // Top 영업사원
+  const topPerformers = performanceData?.leaderboard.slice(0, 5) || [];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -231,6 +204,10 @@ export default function SalesDashboardPage() {
               ))}
             </SelectContent>
           </Select>
+          {/* 새로고침 */}
+          <Button variant="outline" size="icon" onClick={loadData} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
       </div>
 
@@ -246,25 +223,25 @@ export default function SalesDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(salesData.totalSales)}원
+              {formatCurrency(totalSales)}원
             </div>
             <div className="flex items-center mt-1">
-              {salesData.monthlyGrowth >= 0 ? (
+              {monthlyGrowth >= 0 ? (
                 <>
                   <ArrowUpRight className="w-4 h-4 text-green-500" />
                   <span className="text-sm text-green-500">
-                    +{salesData.monthlyGrowth}%
+                    +{monthlyGrowth.toFixed(1)}%
                   </span>
                 </>
               ) : (
                 <>
                   <ArrowDownRight className="w-4 h-4 text-red-500" />
                   <span className="text-sm text-red-500">
-                    {salesData.monthlyGrowth}%
+                    {monthlyGrowth.toFixed(1)}%
                   </span>
                 </>
               )}
-              <span className="text-xs text-muted-foreground ml-1">전월 대비</span>
+              <span className="text-xs text-muted-foreground ml-1">전기간 대비</span>
             </div>
           </CardContent>
         </Card>
@@ -278,9 +255,9 @@ export default function SalesDashboardPage() {
             <FileText className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{salesData.contractCount}건</div>
+            <div className="text-2xl font-bold">{contractCount}건</div>
             <p className="text-xs text-muted-foreground mt-1">
-              평균 계약금액: {formatCurrency(salesData.avgContractValue)}원
+              평균 계약금액: {formatCurrency(avgContractValue)}원
             </p>
           </CardContent>
         </Card>
@@ -294,7 +271,7 @@ export default function SalesDashboardPage() {
             <Users className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{salesData.conversionRate}%</div>
+            <div className="text-2xl font-bold">{conversionRate.toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               리드 → 계약 전환
             </p>
@@ -318,7 +295,7 @@ export default function SalesDashboardPage() {
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              목표: {formatCurrency(salesData.monthlyTarget)}원
+              목표: {formatCurrency(monthlyTarget)}원
             </p>
           </CardContent>
         </Card>
@@ -335,75 +312,71 @@ export default function SalesDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {salesData.monthlyTrend?.map((item: any, idx: number) => {
-                const maxAmount = Math.max(
-                  ...salesData.monthlyTrend.map((t: any) => t.amount)
-                );
-                const percentage = (item.amount / maxAmount) * 100;
-                return (
-                  <div key={idx} className="flex items-center gap-3">
-                    <span className="w-10 text-sm text-muted-foreground">
-                      {item.month}
-                    </span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-6 relative">
-                      <div
-                        className="bg-blue-500 h-6 rounded-full transition-all flex items-center justify-end pr-2"
-                        style={{ width: `${percentage}%` }}
-                      >
-                        <span className="text-xs text-white font-medium">
-                          {formatCurrency(item.amount)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 부서별 매출 비중 (전체 선택 시) 또는 Top 고객사 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="w-5 h-5" />
-              {selectedDepartment === 'ALL' ? '부서별 매출 비중' : 'Top 고객사'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {selectedDepartment === 'ALL' && (salesData as any).departmentBreakdown ? (
+            {monthlyTrend.length > 0 ? (
               <div className="space-y-4">
-                {(salesData as any).departmentBreakdown.map((dept: any, idx: number) => {
-                  const percentage = Math.round(
-                    (dept.amount / salesData.totalSales) * 100
-                  );
+                {monthlyTrend.map((item, idx) => {
+                  const maxAmount = Math.max(...monthlyTrend.map((t) => t.amount));
+                  const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
                   return (
-                    <div key={idx} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">{dept.name}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {formatCurrency(dept.amount)}원 ({percentage}%)
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-100 rounded-full h-3">
+                    <div key={idx} className="flex items-center gap-3">
+                      <span className="w-10 text-sm text-muted-foreground">
+                        {item.month}
+                      </span>
+                      <div className="flex-1 bg-gray-100 rounded-full h-6 relative">
                         <div
-                          className="h-3 rounded-full transition-all"
-                          style={{
-                            width: `${percentage}%`,
-                            backgroundColor: dept.color,
-                          }}
-                        />
+                          className="bg-blue-500 h-6 rounded-full transition-all flex items-center justify-end pr-2"
+                          style={{ width: `${Math.max(percentage, 10)}%` }}
+                        >
+                          <span className="text-xs text-white font-medium">
+                            {formatCurrency(item.amount)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
             ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                데이터가 없습니다
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 파이프라인 전환율 또는 Top 영업사원 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="w-5 h-5" />
+              {conversionData?.funnel ? '파이프라인 전환율' : 'Top 영업사원'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {conversionData?.funnel && conversionData.funnel.length > 0 ? (
+              <div className="space-y-4">
+                {conversionData.funnel.map((stage, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">{stage.stage}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {stage.count}건 ({stage.conversionRate.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-3">
+                      <div
+                        className="h-3 rounded-full transition-all bg-blue-500"
+                        style={{ width: `${stage.conversionRate}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : topPerformers.length > 0 ? (
               <div className="space-y-3">
-                {salesData.topCustomers?.map((customer: any, idx: number) => (
+                {topPerformers.map((performer, idx) => (
                   <div
-                    key={idx}
+                    key={performer.userId}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
@@ -412,18 +385,17 @@ export default function SalesDashboardPage() {
                           {idx + 1}
                         </span>
                       </div>
-                      <span className="font-medium">{customer.name}</span>
+                      <span className="font-medium">{performer.userName}</span>
                     </div>
                     <Badge variant="secondary">
-                      {formatCurrency(customer.amount)}원
+                      {formatCurrency(performer.revenue)}원
                     </Badge>
                   </div>
                 ))}
-                {(!salesData.topCustomers || salesData.topCustomers.length === 0) && (
-                  <p className="text-center text-muted-foreground py-8">
-                    데이터가 없습니다
-                  </p>
-                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                데이터가 없습니다
               </div>
             )}
           </CardContent>

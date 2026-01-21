@@ -1,164 +1,111 @@
 /**
- * 미팅 기록 로컬 스토리지 관리
- * - 백엔드 연동 전까지 localStorage로 미팅 기록 데이터 관리
+ * 미팅 기록 관리
+ * - 백엔드 API 연동 완료
  * - Requirements: 5.2, 5.4, 5.5, 8.3
  */
 
 import { MeetingRecord } from '@/types/customer';
+import { meetingRecordApi } from './customer-data-api';
 
-const MEETING_RECORDS_STORAGE_KEY = 'chemon_meeting_records';
+// ============================================
+// API 기반 함수들
+// ============================================
 
-// 모든 미팅 기록 조회
-export function getAllMeetingRecords(): MeetingRecord[] {
-  if (typeof window === 'undefined') return [];
-  
+/**
+ * 고객사별 미팅 기록 조회 (API)
+ */
+export async function getMeetingRecordsByCustomerIdAsync(
+  customerId: string,
+  options?: { requestsOnly?: boolean; pendingOnly?: boolean }
+): Promise<MeetingRecord[]> {
   try {
-    const data = localStorage.getItem(MEETING_RECORDS_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    return await meetingRecordApi.getByCustomerId(customerId, options);
   } catch {
     return [];
   }
 }
 
-// 단일 미팅 기록 조회
-export function getMeetingRecordById(id: string): MeetingRecord | null {
-  const records = getAllMeetingRecords();
-  return records.find(r => r.id === id) || null;
-}
-
-// 고객사별 미팅 기록 조회 (시간순 내림차순 정렬)
-// Requirements: 5.2, 7.4 - 타임라인 시간순 정렬
-export function getMeetingRecordsByCustomerId(customerId: string): MeetingRecord[] {
-  const records = getAllMeetingRecords();
-  return records
-    .filter(r => r.customer_id === customerId)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
-
-// 의뢰자별 미팅 기록 조회
-export function getMeetingRecordsByRequesterId(requesterId: string): MeetingRecord[] {
-  const records = getAllMeetingRecords();
-  return records
-    .filter(r => r.requester_id === requesterId)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
-
-// 미팅 기록 저장
-// Requirements: 5.2 - 미팅 기록이 저장되면 고객사 타임라인에 시간순으로 표시
-export function saveMeetingRecord(record: MeetingRecord): MeetingRecord {
-  const records = getAllMeetingRecords();
-  const existingIndex = records.findIndex(r => r.id === record.id);
-  
-  const now = new Date().toISOString();
-  
-  // 요청사항인 경우 초기 상태 설정
-  // Requirements: 5.4 - 요청사항 등록 시 초기 상태는 'pending'
-  const recordToSave: MeetingRecord = {
-    ...record,
-    request_status: record.is_request && !record.request_status ? 'pending' : record.request_status,
-  };
-  
-  if (existingIndex >= 0) {
-    records[existingIndex] = { ...recordToSave, updated_at: now };
-  } else {
-    const newRecord = {
-      ...recordToSave,
-      created_at: recordToSave.created_at || now,
-      updated_at: now,
-    };
-    records.unshift(newRecord);
+/**
+ * 미팅 기록 상세 조회 (API)
+ */
+export async function getMeetingRecordByIdAsync(id: string): Promise<MeetingRecord | null> {
+  try {
+    return await meetingRecordApi.getById(id);
+  } catch {
+    return null;
   }
-  
-  localStorage.setItem(MEETING_RECORDS_STORAGE_KEY, JSON.stringify(records));
-  return existingIndex >= 0 ? records[existingIndex] : records[0];
 }
 
-// 미팅 기록 수정
-export function updateMeetingRecord(id: string, updates: Partial<MeetingRecord>): MeetingRecord | null {
-  const records = getAllMeetingRecords();
-  const index = records.findIndex(r => r.id === id);
-  
-  if (index < 0) return null;
-  
-  records[index] = {
-    ...records[index],
-    ...updates,
-    id, // ID는 변경 불가
-    updated_at: new Date().toISOString(),
-  };
-  
-  localStorage.setItem(MEETING_RECORDS_STORAGE_KEY, JSON.stringify(records));
-  return records[index];
+/**
+ * 미팅 기록 저장 (API)
+ */
+export async function saveMeetingRecordAsync(
+  customerId: string,
+  record: Omit<MeetingRecord, 'id' | 'customer_id' | 'created_at' | 'updated_at'>
+): Promise<MeetingRecord> {
+  return await meetingRecordApi.create(customerId, record);
 }
 
-// 미팅 기록 삭제
-export function deleteMeetingRecord(id: string): boolean {
-  const records = getAllMeetingRecords();
-  const filtered = records.filter(r => r.id !== id);
-  
-  if (filtered.length === records.length) return false;
-  
-  localStorage.setItem(MEETING_RECORDS_STORAGE_KEY, JSON.stringify(filtered));
-  return true;
+/**
+ * 미팅 기록 수정 (API)
+ */
+export async function updateMeetingRecordAsync(id: string, data: Partial<MeetingRecord>): Promise<MeetingRecord> {
+  return await meetingRecordApi.update(id, data);
 }
 
-// 요청사항만 조회 (고객사별)
-// Requirements: 5.4, 5.5 - 요청사항 관리
-export function getRequestsByCustomerId(customerId: string): MeetingRecord[] {
-  const records = getAllMeetingRecords();
-  return records
-    .filter(r => r.customer_id === customerId && r.is_request)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
-
-// 미처리 요청사항 조회 (고객사별)
-export function getPendingRequestsByCustomerId(customerId: string): MeetingRecord[] {
-  const records = getRequestsByCustomerId(customerId);
-  return records.filter(r => r.request_status === 'pending' || r.request_status === 'in_progress');
-}
-
-// 요청사항 상태 업데이트
-// Requirements: 5.5 - 요청사항 처리 완료 시 상태 변경 및 처리 내용 기록
-export function updateRequestStatus(
+/**
+ * 요청사항 상태 업데이트 (API)
+ */
+export async function updateRequestStatusAsync(
   id: string,
-  status: 'pending' | 'in_progress' | 'completed',
+  status: string,
   response?: string
-): MeetingRecord | null {
-  const updates: Partial<MeetingRecord> = {
-    request_status: status,
-  };
-  
-  if (status === 'completed') {
-    updates.request_completed_at = new Date().toISOString();
-    if (response) {
-      updates.request_response = response;
-    }
+): Promise<MeetingRecord> {
+  return await meetingRecordApi.updateRequestStatus(id, status, response);
+}
+
+/**
+ * 미팅 기록 삭제 (API)
+ */
+export async function deleteMeetingRecordAsync(id: string): Promise<boolean> {
+  try {
+    await meetingRecordApi.delete(id);
+    return true;
+  } catch {
+    return false;
   }
-  
-  return updateMeetingRecord(id, updates);
 }
 
-// 유형별 미팅 기록 조회
-export function getMeetingRecordsByType(
-  customerId: string,
-  type: MeetingRecord['type']
-): MeetingRecord[] {
-  const records = getMeetingRecordsByCustomerId(customerId);
-  return records.filter(r => r.type === type);
+// ============================================
+// Legacy 동기 함수들 (테스트 호환성)
+// ============================================
+
+export function getMeetingRecords(): MeetingRecord[] {
+  console.warn('getMeetingRecords is deprecated. Use getMeetingRecordsByCustomerIdAsync instead.');
+  return [];
 }
 
-// 날짜 범위로 미팅 기록 조회
-export function getMeetingRecordsByDateRange(
-  customerId: string,
-  startDate: string,
-  endDate: string
-): MeetingRecord[] {
-  const records = getMeetingRecordsByCustomerId(customerId);
-  const start = new Date(startDate).getTime();
-  const end = new Date(endDate).getTime();
-  
-  return records.filter(r => {
-    const recordDate = new Date(r.date).getTime();
-    return recordDate >= start && recordDate <= end;
-  });
+export function getMeetingRecordById(id: string): MeetingRecord | null {
+  console.warn('getMeetingRecordById is deprecated. Use getMeetingRecordByIdAsync instead.');
+  return null;
+}
+
+export function getMeetingRecordsByCustomerId(customerId: string): MeetingRecord[] {
+  console.warn('getMeetingRecordsByCustomerId is deprecated. Use getMeetingRecordsByCustomerIdAsync instead.');
+  return [];
+}
+
+export function saveMeetingRecord(record: MeetingRecord): MeetingRecord {
+  console.warn('saveMeetingRecord is deprecated. Use saveMeetingRecordAsync instead.');
+  return record;
+}
+
+export function updateMeetingRecord(id: string, data: Partial<MeetingRecord>): MeetingRecord | null {
+  console.warn('updateMeetingRecord is deprecated. Use updateMeetingRecordAsync instead.');
+  return null;
+}
+
+export function deleteMeetingRecord(id: string): boolean {
+  console.warn('deleteMeetingRecord is deprecated. Use deleteMeetingRecordAsync instead.');
+  return false;
 }

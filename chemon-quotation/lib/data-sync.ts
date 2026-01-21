@@ -108,9 +108,9 @@ function mapLocalStatusToApi(localStatus: string): dataApi.QuotationStatus {
 function mapApiStatusToLocal(apiStatus: dataApi.QuotationStatus): quotationStorage.SavedQuotation['status'] {
   const statusMap: Record<dataApi.QuotationStatus, quotationStorage.SavedQuotation['status']> = {
     DRAFT: 'draft',
-    SENT: 'submitted',
-    ACCEPTED: 'won',
-    REJECTED: 'lost',
+    SENT: 'sent',
+    ACCEPTED: 'accepted',
+    REJECTED: 'rejected',
     EXPIRED: 'expired',
   };
   return statusMap[apiStatus] || 'draft';

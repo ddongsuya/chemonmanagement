@@ -4,8 +4,18 @@
  */
 
 import { InvoiceSchedule, MeetingRecord } from '@/types/customer';
-import { isScheduledWithinDays } from '@/lib/invoice-schedule-storage';
 import { formatDate, formatCurrency } from '@/lib/utils';
+
+/**
+ * 주어진 날짜가 지정된 일수 이내인지 확인
+ */
+export function isScheduledWithinDays(scheduledDate: string, days: number): boolean {
+  const now = new Date();
+  const scheduled = new Date(scheduledDate);
+  const diffTime = scheduled.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays >= 0 && diffDays <= days;
+}
 
 export interface AlertItem {
   id: string;

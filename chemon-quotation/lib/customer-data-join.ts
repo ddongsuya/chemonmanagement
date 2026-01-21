@@ -1,14 +1,15 @@
 /**
  * 고객사 데이터 조인 유틸리티
+ * - 백엔드 API 연동 완료
  * Requirements: 8.5 - 데이터 조회 요청 시 연관된 모든 데이터를 조인하여 통합 뷰를 제공
  */
 
 import { Requester, TestReception, InvoiceSchedule, MeetingRecord } from '@/types/customer';
-import { getRequestersByCustomerId } from '@/lib/requester-storage';
-import { getTestReceptionsByCustomerId } from '@/lib/test-reception-storage';
-import { getInvoiceSchedulesByCustomerId } from '@/lib/invoice-schedule-storage';
-import { getMeetingRecordsByCustomerId } from '@/lib/meeting-record-storage';
-import { getQuotationsByCustomer, SavedQuotation } from '@/lib/quotation-storage';
+import { getRequestersByCustomerIdAsync } from '@/lib/requester-storage';
+import { getTestReceptionsByCustomerIdAsync } from '@/lib/test-reception-storage';
+import { getInvoiceSchedulesByCustomerIdAsync } from '@/lib/invoice-schedule-storage';
+import { getMeetingRecordsByCustomerIdAsync } from '@/lib/meeting-record-storage';
+import { getAllQuotationsAsync, SavedQuotation } from '@/lib/quotation-storage';
 
 /**
  * 고객사 통합 데이터 인터페이스
@@ -23,20 +24,27 @@ export interface CustomerIntegratedData {
 }
 
 /**
- * 고객사 ID로 모든 연관 데이터를 조인하여 통합 뷰 반환
- * Property 21 테스트 대상
+ * 고객사 ID로 모든 연관 데이터를 조인하여 통합 뷰 반환 (API)
  * 
  * @param customerId - 고객사 ID
  * @returns 고객사의 모든 연관 데이터
  */
-export function getCustomerIntegratedData(customerId: string): CustomerIntegratedData {
+export async function getCustomerIntegratedDataAsync(customerId: string): Promise<CustomerIntegratedData> {
+  const [requesters, quotationsAll, testReceptions, invoiceSchedules, meetingRecords] = await Promise.all([
+    getRequestersByCustomerIdAsync(customerId),
+    getAllQuotationsAsync({ customerId }),
+    getTestReceptionsByCustomerIdAsync(customerId),
+    getInvoiceSchedulesByCustomerIdAsync(customerId),
+    getMeetingRecordsByCustomerIdAsync(customerId),
+  ]);
+
   return {
     customerId,
-    requesters: getRequestersByCustomerId(customerId),
-    quotations: getQuotationsByCustomer(customerId),
-    testReceptions: getTestReceptionsByCustomerId(customerId),
-    invoiceSchedules: getInvoiceSchedulesByCustomerId(customerId),
-    meetingRecords: getMeetingRecordsByCustomerId(customerId),
+    requesters,
+    quotations: quotationsAll.filter(q => q.customer_id === customerId),
+    testReceptions,
+    invoiceSchedules,
+    meetingRecords,
   };
 }
 
@@ -103,5 +111,21 @@ export function filterByRequester(
     requesters: data.requesters.filter(r => r.id === requesterId),
     testReceptions: data.testReceptions.filter(t => t.requester_id === requesterId),
     meetingRecords: data.meetingRecords.filter(m => m.requester_id === requesterId),
+  };
+}
+
+// ============================================
+// Legacy 동기 함수들 (테스트 호환성)
+// ============================================
+
+export function getCustomerIntegratedData(customerId: string): CustomerIntegratedData {
+  console.warn('getCustomerIntegratedData is deprecated. Use getCustomerIntegratedDataAsync instead.');
+  return {
+    customerId,
+    requesters: [],
+    quotations: [],
+    testReceptions: [],
+    invoiceSchedules: [],
+    meetingRecords: [],
   };
 }
