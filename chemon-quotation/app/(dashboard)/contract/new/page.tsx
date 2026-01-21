@@ -130,13 +130,13 @@ function ContractNewContent() {
     projectName = loadedQuotation.project_name;
     items = (loadedQuotation.items || []).map((item, index) => ({
       no: index + 1,
-      testName: (item.test_name || item.testName || '시험항목').split('\n')[0],
+      testName: (item.test_name || '시험항목').split('\n')[0],
       species: item.species || undefined,
       duration: item.duration || undefined,
       route: item.route || undefined,
-      unitPrice: item.unit_price || item.unitPrice || 0,
+      unitPrice: item.unit_price || 0,
       quantity: item.quantity || 1,
-      totalPrice: item.total_price || item.totalPrice || 0,
+      totalPrice: item.total_price || 0,
     }));
     subtotal = loadedQuotation.total_amount || 0;
   } else if (hasStoreData) {
