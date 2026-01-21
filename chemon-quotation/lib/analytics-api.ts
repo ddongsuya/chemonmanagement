@@ -217,3 +217,30 @@ export async function getStudyWorkload(labId?: string): Promise<StudyWorkloadRes
   const params = labId ? `?labId=${labId}` : '';
   return api.get(`/analytics/study-workload${params}`);
 }
+
+// 부서별 요약 데이터
+export interface DepartmentSummaryResponse {
+  department: string;
+  leads: number;
+  quotations: {
+    count: number;
+    totalAmount: number;
+  };
+  contracts: {
+    count: number;
+    totalAmount: number;
+  };
+}
+
+export async function getDepartmentSummary(
+  department: 'BD1' | 'BD2' | 'SUPPORT',
+  params?: DateRangeParams
+): Promise<DepartmentSummaryResponse> {
+  const queryParams = new URLSearchParams({ department });
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) queryParams.append(key, value);
+    });
+  }
+  return api.get(`/analytics/department-summary?${queryParams.toString()}`);
+}

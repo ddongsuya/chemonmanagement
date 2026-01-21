@@ -65,6 +65,7 @@ const parseDateRange = (req: Request) => {
  */
 router.get('/revenue', authenticate, async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user.id;
     const { startDate, endDate } = parseDateRange(req);
     const period = req.query.period as string || 'monthly';
     const groupBy = req.query.groupBy as string;
@@ -73,7 +74,8 @@ router.get('/revenue', authenticate, async (req: Request, res: Response) => {
       startDate,
       endDate,
       period,
-      groupBy
+      groupBy,
+      userId
     });
 
     res.json(data);
@@ -113,13 +115,15 @@ router.get('/revenue', authenticate, async (req: Request, res: Response) => {
  */
 router.get('/conversion', authenticate, async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user.id;
     const { startDate, endDate } = parseDateRange(req);
     const entityType = req.query.entityType as string || 'lead';
 
     const data = await analyticsService.getConversionAnalytics({
       startDate,
       endDate,
-      entityType
+      entityType,
+      userId
     });
 
     res.json(data);
@@ -154,11 +158,13 @@ router.get('/conversion', authenticate, async (req: Request, res: Response) => {
  */
 router.get('/lead-time', authenticate, async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user.id;
     const { startDate, endDate } = parseDateRange(req);
 
     const data = await analyticsService.getLeadTimeAnalytics({
       startDate,
-      endDate
+      endDate,
+      userId
     });
 
     res.json(data);
@@ -197,13 +203,17 @@ router.get('/lead-time', authenticate, async (req: Request, res: Response) => {
  */
 router.get('/performance', authenticate, async (req: Request, res: Response) => {
   try {
+    const currentUserId = (req as any).user.id;
     const { startDate, endDate } = parseDateRange(req);
-    const userId = req.query.userId as string;
+    // 특정 사용자 필터가 있으면 사용, 없으면 현재 사용자 기준
+    const targetUserId = req.query.userId as string || currentUserId;
+    const department = req.query.department as any;
 
     const data = await analyticsService.getPerformanceAnalytics({
       startDate,
       endDate,
-      userId
+      userId: currentUserId, // 권한 체크용
+      department
     });
 
     res.json(data);
@@ -243,13 +253,15 @@ router.get('/performance', authenticate, async (req: Request, res: Response) => 
  */
 router.get('/lost', authenticate, async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user.id;
     const { startDate, endDate } = parseDateRange(req);
     const groupBy = req.query.groupBy as string;
 
     const data = await analyticsService.getLostAnalytics({
       startDate,
       endDate,
-      groupBy
+      groupBy,
+      userId
     });
 
     res.json(data);
@@ -273,7 +285,8 @@ router.get('/lost', authenticate, async (req: Request, res: Response) => {
  */
 router.get('/study-overview', authenticate, async (req: Request, res: Response) => {
   try {
-    const data = await analyticsService.getStudyOverview();
+    const userId = (req as any).user.id;
+    const data = await analyticsService.getStudyOverview(userId);
     res.json(data);
   } catch (error: any) {
     console.error('Get study overview error:', error);
@@ -301,8 +314,9 @@ router.get('/study-overview', authenticate, async (req: Request, res: Response) 
  */
 router.get('/delayed-studies', authenticate, async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user.id;
     const thresholdDays = req.query.thresholdDays ? parseInt(req.query.thresholdDays as string) : 0;
-    const data = await analyticsService.getDelayedStudies(thresholdDays);
+    const data = await analyticsService.getDelayedStudies(thresholdDays, userId);
     res.json(data);
   } catch (error: any) {
     console.error('Get delayed studies error:', error);
@@ -329,11 +343,62 @@ router.get('/delayed-studies', authenticate, async (req: Request, res: Response)
  */
 router.get('/study-workload', authenticate, async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user.id;
     const labId = req.query.labId as string;
-    const data = await analyticsService.getStudyWorkload(labId);
+    const data = await analyticsService.getStudyWorkload(labId, userId);
     res.json(data);
   } catch (error: any) {
     console.error('Get study workload error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/analytics/department-summary:
+ *   get:
+ *     summary: 부서별 요약 데이터
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: department
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [BD1, BD2, SUPPORT]
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: 부서별 요약 데이터
+ */
+router.get('/department-summary', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate } = parseDateRange(req);
+    const department = req.query.department as any;
+
+    if (!department) {
+      return res.status(400).json({ error: 'Department is required' });
+    }
+
+    const data = await analyticsService.getDepartmentSummary(department, {
+      startDate,
+      endDate
+    });
+
+    res.json(data);
+  } catch (error: any) {
+    console.error('Get department summary error:', error);
     res.status(500).json({ error: error.message });
   }
 });

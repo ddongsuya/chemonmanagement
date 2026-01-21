@@ -1,6 +1,6 @@
 // Dashboard Service - 대시보드 및 위젯 관리
 import prisma from '../lib/prisma';
-import { WidgetType } from '@prisma/client';
+import { WidgetType, Department } from '@prisma/client';
 
 interface CreateDashboardInput {
   name: string;
@@ -9,6 +9,45 @@ interface CreateDashboardInput {
   isDefault?: boolean;
   isPublic?: boolean;
   ownerId: string;
+}
+
+// 사용자 권한 정보
+interface UserPermissions {
+  userId: string;
+  department?: Department | null;
+  canViewAllData: boolean;
+  canViewAllSales: boolean;
+  isAdmin: boolean;
+}
+
+// 데이터 필터링을 위한 조건 생성
+function buildUserFilter(permissions: UserPermissions, userIdField: string = 'userId') {
+  // Admin이거나 전체 데이터 조회 권한이 있으면 필터 없음
+  if (permissions.isAdmin || permissions.canViewAllData) {
+    return {};
+  }
+  // 그 외에는 본인 데이터만
+  return { [userIdField]: permissions.userId };
+}
+
+// 부서 기반 필터링 조건 생성
+async function buildDepartmentFilter(permissions: UserPermissions, userIdField: string = 'userId') {
+  // Admin이거나 전체 데이터 조회 권한이 있으면 필터 없음
+  if (permissions.isAdmin || permissions.canViewAllData) {
+    return {};
+  }
+  
+  // 부서가 있으면 같은 부서 사용자들의 데이터
+  if (permissions.department) {
+    const departmentUsers = await prisma.user.findMany({
+      where: { department: permissions.department },
+      select: { id: true }
+    });
+    return { [userIdField]: { in: departmentUsers.map(u => u.id) } };
+  }
+  
+  // 부서가 없으면 본인 데이터만
+  return { [userIdField]: permissions.userId };
 }
 
 interface CreateWidgetInput {
@@ -272,7 +311,7 @@ export class DashboardService {
     return prisma.dashboardWidget.delete({ where: { id: widgetId } });
   }
 
-  // 위젯 데이터 조회
+  // 위젯 데이터 조회 (사용자 권한 기반 필터링)
   async getWidgetData(widgetId: string, userId: string, params?: { dateRange?: string; filters?: any }) {
     const widget = await prisma.dashboardWidget.findFirst({
       where: { id: widgetId },
@@ -283,13 +322,37 @@ export class DashboardService {
       throw new Error('Widget not found');
     }
 
-    // 데이터 소스에 따라 데이터 조회
-    const data = await this.fetchWidgetData(widget, params);
+    // 사용자 권한 정보 조회
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { 
+        id: true, 
+        department: true, 
+        canViewAllData: true, 
+        canViewAllSales: true,
+        role: true 
+      }
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const permissions: UserPermissions = {
+      userId: user.id,
+      department: user.department,
+      canViewAllData: user.canViewAllData,
+      canViewAllSales: user.canViewAllSales,
+      isAdmin: user.role === 'ADMIN'
+    };
+
+    // 데이터 소스에 따라 데이터 조회 (권한 기반 필터링)
+    const data = await this.fetchWidgetData(widget, permissions, params);
     return data;
   }
 
-  // 위젯 데이터 페칭
-  private async fetchWidgetData(widget: any, params?: { dateRange?: string; filters?: any }) {
+  // 위젯 데이터 페칭 (권한 기반 필터링 적용)
+  private async fetchWidgetData(widget: any, permissions: UserPermissions, params?: { dateRange?: string; filters?: any }) {
     const { dataSource, query, aggregation } = widget;
     const dateRange = params?.dateRange || widget.dateRange || '30d';
     
@@ -301,25 +364,28 @@ export class DashboardService {
 
     switch (dataSource) {
       case 'leads':
-        return this.getLeadStats(startDate, endDate, query);
+        return this.getLeadStats(startDate, endDate, permissions, query);
       case 'quotations':
-        return this.getQuotationStats(startDate, endDate, query);
+        return this.getQuotationStats(startDate, endDate, permissions, query);
       case 'contracts':
-        return this.getContractStats(startDate, endDate, query);
+        return this.getContractStats(startDate, endDate, permissions, query);
       case 'studies':
-        return this.getStudyStats(startDate, endDate, query);
+        return this.getStudyStats(startDate, endDate, permissions, query);
       case 'revenue':
-        return this.getRevenueStats(startDate, endDate, query);
+        return this.getRevenueStats(startDate, endDate, permissions, query);
       default:
         return { value: 0, data: [] };
     }
   }
 
-  // 리드 통계
-  private async getLeadStats(startDate: Date, endDate: Date, query?: any) {
+  // 리드 통계 (사용자/부서 필터링)
+  private async getLeadStats(startDate: Date, endDate: Date, permissions: UserPermissions, query?: any) {
+    const userFilter = buildUserFilter(permissions);
+    
     const where: any = {
       createdAt: { gte: startDate, lte: endDate },
-      deletedAt: null
+      deletedAt: null,
+      ...userFilter
     };
 
     const [total, byStatus, bySource] = await Promise.all([
@@ -343,11 +409,14 @@ export class DashboardService {
     };
   }
 
-  // 견적서 통계
-  private async getQuotationStats(startDate: Date, endDate: Date, query?: any) {
+  // 견적서 통계 (사용자/부서 필터링)
+  private async getQuotationStats(startDate: Date, endDate: Date, permissions: UserPermissions, query?: any) {
+    const userFilter = buildUserFilter(permissions);
+    
     const where: any = {
       createdAt: { gte: startDate, lte: endDate },
-      deletedAt: null
+      deletedAt: null,
+      ...userFilter
     };
 
     const [total, byStatus, totalAmount] = await Promise.all([
@@ -370,11 +439,14 @@ export class DashboardService {
     };
   }
 
-  // 계약 통계
-  private async getContractStats(startDate: Date, endDate: Date, query?: any) {
+  // 계약 통계 (사용자/부서 필터링)
+  private async getContractStats(startDate: Date, endDate: Date, permissions: UserPermissions, query?: any) {
+    const userFilter = buildUserFilter(permissions);
+    
     const where: any = {
       createdAt: { gte: startDate, lte: endDate },
-      deletedAt: null
+      deletedAt: null,
+      ...userFilter
     };
 
     const [total, byStatus, totalAmount] = await Promise.all([
@@ -397,10 +469,17 @@ export class DashboardService {
     };
   }
 
-  // 시험 통계
-  private async getStudyStats(startDate: Date, endDate: Date, query?: any) {
+  // 시험 통계 (사용자/부서 필터링 - Contract 관계를 통해)
+  private async getStudyStats(startDate: Date, endDate: Date, permissions: UserPermissions, query?: any) {
+    // Study는 Contract를 통해 userId에 연결됨
+    let contractFilter: any = {};
+    if (!permissions.isAdmin && !permissions.canViewAllData) {
+      contractFilter = { contract: { userId: permissions.userId } };
+    }
+    
     const where: any = {
-      createdAt: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate },
+      ...contractFilter
     };
 
     const [total, byStatus, delayed] = await Promise.all([
@@ -426,13 +505,20 @@ export class DashboardService {
     };
   }
 
-  // 매출 통계
-  private async getRevenueStats(startDate: Date, endDate: Date, query?: any) {
+  // 매출 통계 (사용자/부서 필터링 + canViewAllSales 권한 체크)
+  private async getRevenueStats(startDate: Date, endDate: Date, permissions: UserPermissions, query?: any) {
+    // 매출 조회는 canViewAllSales 권한도 체크
+    let userFilter: any = {};
+    if (!permissions.isAdmin && !permissions.canViewAllData && !permissions.canViewAllSales) {
+      userFilter = { userId: permissions.userId };
+    }
+    
     const contracts = await prisma.contract.findMany({
       where: {
         signedDate: { gte: startDate, lte: endDate },
         status: { in: ['SIGNED', 'IN_PROGRESS', 'COMPLETED'] },
-        deletedAt: null
+        deletedAt: null,
+        ...userFilter
       },
       select: {
         signedDate: true,
