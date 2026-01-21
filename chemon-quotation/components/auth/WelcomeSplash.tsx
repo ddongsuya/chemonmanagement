@@ -136,7 +136,7 @@ export default function WelcomeSplash({ userName, onComplete }: WelcomeSplashPro
 
   const textVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0, 0, 0.2, 1] as const } },
     exit: { opacity: 0, y: -20, transition: { duration: 0.4 } },
   };
 
@@ -147,8 +147,7 @@ export default function WelcomeSplash({ userName, onComplete }: WelcomeSplashPro
       scale: 1, 
       transition: { 
         duration: 0.5, 
-        ease: 'easeOut',
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 200,
       } 
     },
