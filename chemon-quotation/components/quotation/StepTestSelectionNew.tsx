@@ -31,6 +31,19 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
+// 시험 종류 순서 정의 (논리적 순서)
+const TEST_TYPE_ORDER = [
+  '단회투여 독성시험',
+  '용량결정시험',
+  '반복투여독성시험',
+  '회복시험',
+  '독성동태시험',
+  '생식독성시험',
+  '유전독성시험',
+  '안전성약리',
+  '항원성시험',
+];
+
 export default function StepTestSelectionNew() {
   const { 
     nextStep, 
@@ -45,62 +58,89 @@ export default function StepTestSelectionNew() {
   const { data: categoriesData, isLoading: categoriesLoading } = useToxicityCategories();
   const { data: tests = [], isLoading: testsLoading } = useAllToxicityTests();
 
-  // 단계별 선택 상태
+  // 단계별 선택 상태 - 기본값 설정 (2,3,4,5번 먼저)
+  const [selectedAnimalClass, setSelectedAnimalClass] = useState<string>('설치류');
+  const [selectedRouteGroup, setSelectedRouteGroup] = useState<string>('경구피하근육독성');
+  const [selectedDuration, setSelectedDuration] = useState<string>('1회');
+  const [selectedRoute, setSelectedRoute] = useState<string>('경구');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
-  const [selectedAnimalClass, setSelectedAnimalClass] = useState<string>('');
-  const [selectedRouteGroup, setSelectedRouteGroup] = useState<string>('');
-  const [selectedDuration, setSelectedDuration] = useState<string>('');
-  const [selectedRoute, setSelectedRoute] = useState<string>(''); // 실제 투여경로
   const [includeAnalysis, setIncludeAnalysis] = useState<boolean>(false);
 
-  // 서브카테고리 목록
+  // 서브카테고리 목록 (정렬된 순서로)
   const subcategories = useMemo(() => {
     if (!categoriesData?.raw) return [];
-    return categoriesData.raw.map(c => c.subcategory);
+    const rawCategories = categoriesData.raw.map(c => c.subcategory);
+    // 정의된 순서대로 정렬
+    return rawCategories.sort((a, b) => {
+      const indexA = TEST_TYPE_ORDER.indexOf(a);
+      const indexB = TEST_TYPE_ORDER.indexOf(b);
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
   }, [categoriesData]);
 
-  // 선택된 서브카테고리의 시험들
-  const testsForSubcategory = useMemo(() => {
-    if (!selectedSubcategory) return [];
-    return tests.filter(t => t.subcategory === selectedSubcategory);
-  }, [tests, selectedSubcategory]);
-
-  // 동물분류 옵션
+  // 동물분류 옵션 (전체 시험에서)
   const animalClassOptions = useMemo(() => {
-    const classes = [...new Set(testsForSubcategory.map(t => t.animalClass).filter(Boolean))];
+    const classes = [...new Set(tests.map(t => t.animalClass).filter(Boolean))];
     return classes as string[];
-  }, [testsForSubcategory]);
+  }, [tests]);
 
-  // 투여경로 그룹 옵션
+  // 투여경로 그룹 옵션 (선택된 동물분류 기준)
   const routeGroupOptions = useMemo(() => {
     if (!selectedAnimalClass) return [];
-    const filtered = testsForSubcategory.filter(t => t.animalClass === selectedAnimalClass);
+    const filtered = tests.filter(t => t.animalClass === selectedAnimalClass);
     const groups = [...new Set(filtered.map(t => t.routeGroup).filter(Boolean))];
     return groups as string[];
-  }, [testsForSubcategory, selectedAnimalClass]);
+  }, [tests, selectedAnimalClass]);
 
-  // 기간 옵션
+  // 기간 옵션 (선택된 동물분류, 투여경로 그룹 기준)
   const durationOptions = useMemo(() => {
-    if (!selectedRouteGroup) return [];
-    const filtered = testsForSubcategory.filter(
+    if (!selectedAnimalClass || !selectedRouteGroup) return [];
+    const filtered = tests.filter(
       t => t.animalClass === selectedAnimalClass && t.routeGroup === selectedRouteGroup
     );
     const durations = [...new Set(filtered.map(t => t.duration).filter(Boolean))];
     return durations as string[];
-  }, [testsForSubcategory, selectedAnimalClass, selectedRouteGroup]);
+  }, [tests, selectedAnimalClass, selectedRouteGroup]);
+
+  // 선택된 조건에 맞는 시험 종류 필터링
+  const availableSubcategories = useMemo(() => {
+    if (!selectedAnimalClass || !selectedRouteGroup || !selectedDuration) return subcategories;
+    
+    const matchingTests = tests.filter(
+      t => t.animalClass === selectedAnimalClass &&
+           t.routeGroup === selectedRouteGroup &&
+           t.duration === selectedDuration
+    );
+    
+    const availableSubs = [...new Set(matchingTests.map(t => t.subcategory))];
+    
+    // 정의된 순서대로 정렬
+    return availableSubs.sort((a, b) => {
+      const indexA = TEST_TYPE_ORDER.indexOf(a);
+      const indexB = TEST_TYPE_ORDER.indexOf(b);
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  }, [tests, selectedAnimalClass, selectedRouteGroup, selectedDuration, subcategories]);
 
   // 최종 매칭된 시험 항목
   const matchedTest = useMemo(() => {
     if (!selectedSubcategory || !selectedAnimalClass || !selectedRouteGroup || !selectedDuration) {
       return null;
     }
-    return testsForSubcategory.find(
+    return tests.find(
       t =>
+        t.subcategory === selectedSubcategory &&
         t.animalClass === selectedAnimalClass &&
         t.routeGroup === selectedRouteGroup &&
         t.duration === selectedDuration
     ) || null;
-  }, [testsForSubcategory, selectedAnimalClass, selectedRouteGroup, selectedDuration]);
+  }, [tests, selectedSubcategory, selectedAnimalClass, selectedRouteGroup, selectedDuration]);
 
   // 투여경로 옵션 (routes 필드에서 파싱)
   const routeOptions = useMemo(() => {
@@ -137,17 +177,18 @@ export default function StepTestSelectionNew() {
 
     addToxicityTest(newTest);
     
-    // 선택 초기화
-    resetSelection();
+    // 시험 종류만 초기화 (다른 조건은 유지)
+    setSelectedSubcategory('');
+    setIncludeAnalysis(false);
   };
 
   // 선택 초기화
   const resetSelection = () => {
+    setSelectedAnimalClass('설치류');
+    setSelectedRouteGroup('경구피하근육독성');
+    setSelectedDuration('1회');
+    setSelectedRoute('경구');
     setSelectedSubcategory('');
-    setSelectedAnimalClass('');
-    setSelectedRouteGroup('');
-    setSelectedDuration('');
-    setSelectedRoute('');
     setIncludeAnalysis(false);
   };
 
@@ -178,21 +219,13 @@ export default function StepTestSelectionNew() {
     return price.toLocaleString() + '원';
   };
 
-  // 서브카테고리 변경 시 하위 선택 초기화
-  const handleSubcategoryChange = (value: string) => {
-    setSelectedSubcategory(value);
-    setSelectedAnimalClass('');
-    setSelectedRouteGroup('');
-    setSelectedDuration('');
-    setSelectedRoute('');
-  };
-
   // 동물분류 변경 시 하위 선택 초기화
   const handleAnimalClassChange = (value: string) => {
     setSelectedAnimalClass(value);
     setSelectedRouteGroup('');
     setSelectedDuration('');
     setSelectedRoute('');
+    setSelectedSubcategory('');
   };
 
   // 투여경로 그룹 변경 시 하위 선택 초기화
@@ -200,11 +233,18 @@ export default function StepTestSelectionNew() {
     setSelectedRouteGroup(value);
     setSelectedDuration('');
     setSelectedRoute('');
+    setSelectedSubcategory('');
   };
 
-  // 기간 변경 시 투여경로 초기화
+  // 기간 변경 시 시험 종류 초기화
   const handleDurationChange = (value: string) => {
     setSelectedDuration(value);
+    setSelectedSubcategory('');
+  };
+
+  // 시험 종류 변경
+  const handleSubcategoryChange = (value: string) => {
+    setSelectedSubcategory(value);
     setSelectedRoute('');
   };
 
@@ -235,113 +275,137 @@ export default function StepTestSelectionNew() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Step 1: 시험 종류 */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Badge variant="outline">1</Badge>
-                시험 종류
-              </label>
-              <Select value={selectedSubcategory} onValueChange={handleSubcategoryChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="시험 종류를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {subcategories.map((sub) => (
-                    <SelectItem key={sub} value={sub}>
-                      {sub}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* 기본 조건 설정 영역 */}
+            <div className="p-4 bg-gray-50 rounded-lg border space-y-4">
+              <h4 className="font-medium text-gray-700 text-sm">기본 조건 설정</h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {/* Step 1: 동물분류 */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Badge variant="outline" className="bg-white">1</Badge>
+                    동물분류
+                  </label>
+                  <Select value={selectedAnimalClass} onValueChange={handleAnimalClassChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="동물분류 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {animalClassOptions.map((ac) => (
+                        <SelectItem key={ac} value={ac}>
+                          {ac}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Step 2: 투여경로 그룹 */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Badge variant="outline" className="bg-white">2</Badge>
+                    투여경로 그룹
+                  </label>
+                  <Select 
+                    value={selectedRouteGroup} 
+                    onValueChange={handleRouteGroupChange}
+                    disabled={!selectedAnimalClass}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="투여경로 그룹 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {routeGroupOptions.map((rg) => (
+                        <SelectItem key={rg} value={rg}>
+                          {rg}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Step 3: 투여기간 */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Badge variant="outline" className="bg-white">3</Badge>
+                    투여기간
+                  </label>
+                  <Select 
+                    value={selectedDuration} 
+                    onValueChange={handleDurationChange}
+                    disabled={!selectedRouteGroup}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="투여기간 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {durationOptions.map((d) => (
+                        <SelectItem key={d} value={d}>
+                          {d}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Step 4: 투여경로 (선택) */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Badge variant="outline" className="bg-white">4</Badge>
+                    투여경로 (선택)
+                  </label>
+                  <Select 
+                    value={selectedRoute} 
+                    onValueChange={setSelectedRoute}
+                    disabled={!matchedTest || routeOptions.length <= 1}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={routeOptions.length > 0 ? routeOptions[0] : "투여경로 선택"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {routeOptions.map((r) => (
+                        <SelectItem key={r} value={r}>
+                          {r}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
-            {/* Step 2: 동물분류 */}
-            {selectedSubcategory && animalClassOptions.length > 0 && (
-              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Badge variant="outline">2</Badge>
-                  동물분류
-                </label>
-                <Select value={selectedAnimalClass} onValueChange={handleAnimalClassChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="동물분류를 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {animalClassOptions.map((ac) => (
-                      <SelectItem key={ac} value={ac}>
-                        {ac}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Step 3: 투여경로 그룹 */}
-            {selectedAnimalClass && routeGroupOptions.length > 0 && (
-              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Badge variant="outline">3</Badge>
-                  투여경로 그룹
-                </label>
-                <Select value={selectedRouteGroup} onValueChange={handleRouteGroupChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="투여경로 그룹을 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {routeGroupOptions.map((rg) => (
-                      <SelectItem key={rg} value={rg}>
-                        {rg}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Step 4: 기간 */}
-            {selectedRouteGroup && durationOptions.length > 0 && (
-              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Badge variant="outline">4</Badge>
-                  투여기간
-                </label>
-                <Select value={selectedDuration} onValueChange={handleDurationChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="투여기간을 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {durationOptions.map((d) => (
-                      <SelectItem key={d} value={d}>
-                        {d}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Step 5: 투여경로 선택 (선택사항) */}
-            {matchedTest && routeOptions.length > 1 && (
-              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Badge variant="outline">5</Badge>
-                  투여경로 (선택)
-                </label>
-                <Select value={selectedRoute} onValueChange={setSelectedRoute}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="투여경로를 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {routeOptions.map((r) => (
-                      <SelectItem key={r} value={r}>
-                        {r}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            {/* 시험 종류 선택 */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Badge className="bg-blue-600">5</Badge>
+                시험 종류 선택
+              </label>
+              
+              {availableSubcategories.length === 0 ? (
+                <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+                  위의 조건을 먼저 선택해주세요
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {availableSubcategories.map((sub) => {
+                    const isSelected = selectedSubcategory === sub;
+                    return (
+                      <button
+                        key={sub}
+                        onClick={() => handleSubcategoryChange(sub)}
+                        className={`p-3 text-sm rounded-lg border-2 transition-all text-left ${
+                          isSelected
+                            ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
+                            : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
+                        }`}
+                      >
+                        {sub}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* 매칭된 시험 정보 */}
             {matchedTest && (
@@ -390,15 +454,9 @@ export default function StepTestSelectionNew() {
             )}
 
             {/* 선택 경로 표시 */}
-            {(selectedSubcategory || selectedAnimalClass || selectedRouteGroup || selectedDuration) && (
+            {(selectedAnimalClass || selectedRouteGroup || selectedDuration || selectedSubcategory) && (
               <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
-                {selectedSubcategory && <Badge variant="secondary">{selectedSubcategory}</Badge>}
-                {selectedAnimalClass && (
-                  <>
-                    <ChevronRight className="w-4 h-4" />
-                    <Badge variant="secondary">{selectedAnimalClass}</Badge>
-                  </>
-                )}
+                {selectedAnimalClass && <Badge variant="secondary">{selectedAnimalClass}</Badge>}
                 {selectedRouteGroup && (
                   <>
                     <ChevronRight className="w-4 h-4" />
@@ -409,6 +467,12 @@ export default function StepTestSelectionNew() {
                   <>
                     <ChevronRight className="w-4 h-4" />
                     <Badge variant="secondary">{selectedDuration}</Badge>
+                  </>
+                )}
+                {selectedSubcategory && (
+                  <>
+                    <ChevronRight className="w-4 h-4" />
+                    <Badge variant="default">{selectedSubcategory}</Badge>
                   </>
                 )}
               </div>
