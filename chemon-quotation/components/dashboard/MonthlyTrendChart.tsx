@@ -43,7 +43,8 @@ export default function MonthlyTrendChart() {
             monthlyMap[key] = { quotations: 0, won: 0, amount: 0 };
           }
 
-          response.data.data.forEach((q: any) => {
+          const quotationData = response.data.data || [];
+          quotationData.forEach((q: any) => {
             const date = new Date(q.createdAt);
             const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             

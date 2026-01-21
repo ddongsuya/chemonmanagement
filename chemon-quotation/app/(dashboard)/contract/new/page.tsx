@@ -61,21 +61,22 @@ function ContractNewContent() {
           const response = await getQuotationById(quotationId);
           if (response.success && response.data) {
             const q = response.data;
+            const rawItems = Array.isArray(q.items) ? q.items : [];
             setLoadedQuotation({
               id: q.id,
               quotation_number: q.quotationNumber,
               customer_name: q.customerName,
               project_name: q.projectName,
-              items: (q.items as any[]).map((item: any) => ({
-                test_name: item.testName || item.test_name,
-                species: item.species,
-                duration: item.duration,
-                route: item.route,
-                unit_price: item.unitPrice || item.unit_price,
-                quantity: item.quantity,
-                total_price: item.totalPrice || item.total_price,
+              items: rawItems.map((item: any) => ({
+                test_name: item.testName || item.test_name || item.test?.test_name || '시험항목',
+                species: item.species || item.test?.animal_species,
+                duration: item.duration || item.test?.dosing_period,
+                route: item.route || item.test?.route,
+                unit_price: item.unitPrice || item.unit_price || item.amount || 0,
+                quantity: item.quantity || 1,
+                total_price: item.totalPrice || item.total_price || item.amount || 0,
               })),
-              total_amount: Number(q.totalAmount),
+              total_amount: Number(q.totalAmount) || 0,
             });
           }
         } else if (efficacyQuotationId) {
@@ -111,33 +112,33 @@ function ContractNewContent() {
     quotationNo = loadedEfficacyQuotation.quotation_number;
     customerName = loadedEfficacyQuotation.customer_name;
     projectName = loadedEfficacyQuotation.project_name;
-    items = loadedEfficacyQuotation.items.map((item, index) => ({
+    items = (loadedEfficacyQuotation.items || []).map((item, index) => ({
       no: index + 1,
-      testName: item.item_name,
+      testName: item.item_name || '항목',
       species: undefined,
       duration: undefined,
       route: undefined,
-      unitPrice: item.unit_price,
-      quantity: item.quantity * item.multiplier,
-      totalPrice: item.amount,
+      unitPrice: item.unit_price || 0,
+      quantity: (item.quantity || 1) * (item.multiplier || 1),
+      totalPrice: item.amount || 0,
     }));
-    subtotal = loadedEfficacyQuotation.subtotal;
+    subtotal = loadedEfficacyQuotation.subtotal || 0;
   } else if (hasLoadedData && loadedQuotation) {
     // API에서 로드된 독성시험 데이터 사용
     quotationNo = loadedQuotation.quotation_number;
     customerName = loadedQuotation.customer_name;
     projectName = loadedQuotation.project_name;
-    items = loadedQuotation.items.map((item, index) => ({
+    items = (loadedQuotation.items || []).map((item, index) => ({
       no: index + 1,
-      testName: item.test_name.split('\n')[0],
+      testName: (item.test_name || item.testName || '시험항목').split('\n')[0],
       species: item.species || undefined,
       duration: item.duration || undefined,
       route: item.route || undefined,
-      unitPrice: item.unit_price,
-      quantity: item.quantity,
-      totalPrice: item.total_price,
+      unitPrice: item.unit_price || item.unitPrice || 0,
+      quantity: item.quantity || 1,
+      totalPrice: item.total_price || item.totalPrice || 0,
     }));
-    subtotal = loadedQuotation.total_amount;
+    subtotal = loadedQuotation.total_amount || 0;
   } else if (hasStoreData) {
     // store에서 데이터 가져오기
     quotationNo = `QT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;

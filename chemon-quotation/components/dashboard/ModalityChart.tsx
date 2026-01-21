@@ -123,7 +123,8 @@ export default function ModalityChart() {
           // 모달리티별 집계
           const modalityMap: Record<string, { count: number; amount: number }> = {};
           
-          response.data.data.forEach((q: any) => {
+          const quotationData = response.data.data || [];
+          quotationData.forEach((q: any) => {
             const modality = q.modality || '기타';
             if (!modalityMap[modality]) {
               modalityMap[modality] = { count: 0, amount: 0 };

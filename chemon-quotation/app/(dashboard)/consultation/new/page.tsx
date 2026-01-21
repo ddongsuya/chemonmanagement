@@ -93,27 +93,27 @@ function ConsultationNewContent() {
           const response = await getQuotationById(quotationId);
           if (response.success && response.data) {
             const quotation = response.data;
+            const rawItems = Array.isArray(quotation.items) ? quotation.items : [];
             setQuotationData({
               projectName: quotation.projectName,
-              items: quotation.items as any[],
+              items: rawItems,
               customerName: quotation.customerName,
             });
 
             // 견적 내용 시트용 데이터 준비
-            const items = quotation.items as any[];
-            const contentItems: QuotationContentItem[] = items
-              .filter((item) => !item.is_option)
-              .map((item, index) => ({
+            const contentItems: QuotationContentItem[] = rawItems
+              .filter((item: any) => !item.is_option && !item.isOption)
+              .map((item: any, index: number) => ({
                 no: index + 1,
-                testName: item.test?.test_name?.split('\n')[0] || '',
-                species: item.test?.animal_species || '-',
-                duration: item.test?.dosing_period || '-',
-                route: item.test?.route || '-',
+                testName: item.test?.test_name?.split('\n')[0] || item.testName || item.test_name || '',
+                species: item.test?.animal_species || item.species || '-',
+                duration: item.test?.dosing_period || item.duration || '-',
+                route: item.test?.route || item.route || '-',
                 animalCount: '-',
                 groupCount: '-',
-                options: items
-                  .filter((opt) => opt.is_option && opt.parent_item_id === item.id)
-                  .map((opt) => opt.test?.test_name?.split('\n')[0])
+                options: rawItems
+                  .filter((opt: any) => (opt.is_option || opt.isOption) && opt.parent_item_id === item.id)
+                  .map((opt: any) => opt.test?.test_name?.split('\n')[0] || opt.testName || '')
                   .join(', ') || '-',
                 remarks: '-',
               }));

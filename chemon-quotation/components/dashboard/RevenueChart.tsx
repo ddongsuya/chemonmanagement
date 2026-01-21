@@ -45,12 +45,17 @@ export default function RevenueChart() {
           period: 'monthly',
         });
 
-        if (response) {
-          setData(response.data.map(d => ({
+        if (response && response.data) {
+          setData((response.data || []).map(d => ({
             ...d,
             period: d.period.slice(5) + '월', // 2025-01 -> 01월
           })));
-          setSummary(response.summary);
+          setSummary(response.summary || {
+            totalRevenue: 0,
+            totalCount: 0,
+            avgDealSize: 0,
+            growth: 0,
+          });
         }
       } catch (error) {
         console.error('Failed to load revenue data:', error);

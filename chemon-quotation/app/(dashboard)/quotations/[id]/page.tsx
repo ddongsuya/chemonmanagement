@@ -159,13 +159,13 @@ export default function QuotationDetailPage() {
     );
   }
 
-  // 시험 항목 변환
-  const items = quotation.items.map(item => ({
+  // 시험 항목 변환 (null/undefined 체크 추가)
+  const items = (quotation.items || []).map(item => ({
     id: item.id,
-    name: item.test.test_name.split('\n')[0],
-    glp: item.test.glp_status || 'N/A',
-    amount: item.amount,
-    is_option: item.is_option,
+    name: item.test?.test_name?.split('\n')[0] || item.testName || item.test_name || '시험항목',
+    glp: item.test?.glp_status || item.glpStatus || 'N/A',
+    amount: item.amount || item.totalPrice || item.total_price || 0,
+    is_option: item.is_option || item.isOption || false,
   }));
 
   return (
