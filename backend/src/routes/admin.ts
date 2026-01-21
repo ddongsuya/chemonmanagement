@@ -3,6 +3,7 @@ import { AdminService } from '../services/adminService';
 import { AnnouncementService } from '../services/announcementService';
 import { SettingsService } from '../services/settingsService';
 import { BackupService } from '../services/backupService';
+import { seedClinicalPathologyData } from '../services/seedService';
 import { prisma } from '../lib/prisma';
 import {
   authenticate,
@@ -524,6 +525,25 @@ router.delete(
       const { id } = req.params;
       await backupService.delete(id);
       res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// ==================== Seed Routes ====================
+
+/**
+ * POST /api/admin/seed/clinical-pathology
+ * Seed clinical pathology master data
+ */
+router.post(
+  '/seed/clinical-pathology',
+  activityLogger('SEED', 'clinical-pathology'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await seedClinicalPathologyData();
+      res.json({ success: true, message: '임상병리 마스터데이터가 시드되었습니다.', data: result });
     } catch (error) {
       next(error);
     }
