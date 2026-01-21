@@ -74,12 +74,17 @@ export default function LoginPage() {
     
     setSubmitting(false);
     
+    console.log('Login result:', result);
+    
     if (result.success) {
       // 로그인 성공! 스플래시 표시
+      console.log('Login successful, showing splash');
       setLoginCompleted(true);
       const currentUser = useAuthStore.getState().user;
+      console.log('Current user:', currentUser);
       setLoggedInUserName(currentUser?.name || '사용자');
       setShowSplash(true);
+      console.log('showSplash set to true');
     } else {
       setFormError(result.error || '로그인에 실패했습니다');
     }
@@ -98,7 +103,10 @@ export default function LoginPage() {
   const displayError = formError || error;
 
   // 스플래시 화면 표시
+  console.log('Render check - showSplash:', showSplash, 'loginCompleted:', loginCompleted);
+  
   if (showSplash) {
+    console.log('Rendering WelcomeSplash');
     return <WelcomeSplash userName={loggedInUserName} onComplete={handleSplashComplete} />;
   }
 
