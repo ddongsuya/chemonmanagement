@@ -74,17 +74,11 @@ export default function LoginPage() {
     
     setSubmitting(false);
     
-    console.log('Login result:', result);
-    
     if (result.success) {
-      // 로그인 성공! 스플래시 표시
-      console.log('Login successful, showing splash');
       setLoginCompleted(true);
       const currentUser = useAuthStore.getState().user;
-      console.log('Current user:', currentUser);
       setLoggedInUserName(currentUser?.name || '사용자');
       setShowSplash(true);
-      console.log('showSplash set to true');
     } else {
       setFormError(result.error || '로그인에 실패했습니다');
     }
@@ -102,94 +96,103 @@ export default function LoginPage() {
 
   const displayError = formError || error;
 
-  // 스플래시 화면 표시
-  console.log('Render check - showSplash:', showSplash, 'loginCompleted:', loginCompleted);
-  
+  // 스플래시 화면 - 전체 화면으로 표시
   if (showSplash) {
-    console.log('Rendering WelcomeSplash');
-    // 레이아웃 바깥에 렌더링하기 위해 Portal 사용하거나, 
-    // 여기서는 null을 반환하고 별도로 스플래시를 표시
-    return (
-      <>
-        <div className="hidden" /> {/* 레이아웃 내용 숨김 */}
-        <WelcomeSplash userName={loggedInUserName} onComplete={handleSplashComplete} />
-      </>
-    );
+    return <WelcomeSplash userName={loggedInUserName} onComplete={handleSplashComplete} />;
   }
 
+  // 로그인 폼 - 레이아웃 포함
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="text-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">로그인</h2>
-        <p className="text-sm text-gray-500 mt-1">계정에 로그인하세요</p>
-      </div>
-
-      {displayError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{displayError}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="space-y-2">
-        <Label htmlFor="email">이메일</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="example@chemon.co.kr"
-          value={formData.email}
-          onChange={(e) => handleInputChange('email', e.target.value)}
-          disabled={submitting}
-          autoComplete="email"
-          autoFocus
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="password">비밀번호</Label>
-        <div className="relative">
-          <Input
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={(e) => handleInputChange('password', e.target.value)}
-            disabled={submitting}
-            autoComplete="current-password"
-            className="pr-10"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            tabIndex={-1}
-          >
-            {showPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 h-4" />
-            )}
-          </button>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* 로고 */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-primary">CHEMON</h1>
+          <p className="text-gray-500 mt-1">견적관리시스템</p>
         </div>
+
+        {/* 폼 카드 */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">로그인</h2>
+              <p className="text-sm text-gray-500 mt-1">계정에 로그인하세요</p>
+            </div>
+
+            {displayError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{displayError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">이메일</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="example@chemon.co.kr"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                disabled={submitting}
+                autoComplete="email"
+                autoFocus
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">비밀번호</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  disabled={submitting}
+                  autoComplete="current-password"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  로그인 중...
+                </>
+              ) : (
+                '로그인'
+              )}
+            </Button>
+
+            <p className="text-sm text-center text-gray-500">
+              계정이 없으신가요?{' '}
+              <Link href="/register" className="text-primary hover:underline">
+                회원가입
+              </Link>
+            </p>
+          </form>
+        </div>
+
+        {/* 푸터 */}
+        <p className="text-center text-xs text-gray-400 mt-6">
+          © 2025 CHEMON. All rights reserved.
+        </p>
       </div>
-
-      <Button type="submit" className="w-full" disabled={submitting}>
-        {submitting ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            로그인 중...
-          </>
-        ) : (
-          '로그인'
-        )}
-      </Button>
-
-      <p className="text-sm text-center text-gray-500">
-        계정이 없으신가요?{' '}
-        <Link href="/register" className="text-primary hover:underline">
-          회원가입
-        </Link>
-      </p>
-    </form>
+    </div>
   );
 }

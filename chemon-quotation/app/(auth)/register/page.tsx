@@ -135,25 +135,42 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="text-center space-y-4">
-        <div className="flex justify-center">
-          <CheckCircle className="h-16 w-16 text-green-500" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-primary">CHEMON</h1>
+            <p className="text-gray-500 mt-1">견적관리시스템</p>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <CheckCircle className="h-16 w-16 text-green-500" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900">회원가입 완료!</h2>
+              <p className="text-sm text-gray-500">
+                회원가입이 완료되었습니다. 로그인 페이지로 이동합니다...
+              </p>
+              <Link href="/login">
+                <Button variant="outline" className="mt-4">
+                  로그인 페이지로 이동
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">회원가입 완료!</h2>
-        <p className="text-sm text-gray-500">
-          회원가입이 완료되었습니다. 로그인 페이지로 이동합니다...
-        </p>
-        <Link href="/login">
-          <Button variant="outline" className="mt-4">
-            로그인 페이지로 이동
-          </Button>
-        </Link>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-primary">CHEMON</h1>
+          <p className="text-gray-500 mt-1">견적관리시스템</p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
       <div className="text-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900">회원가입</h2>
         <p className="text-sm text-gray-500 mt-1">새 계정을 만드세요</p>
@@ -322,5 +339,11 @@ export default function RegisterPage() {
         </Link>
       </p>
     </form>
+        </div>
+        <p className="text-center text-xs text-gray-400 mt-6">
+          © 2025 CHEMON. All rights reserved.
+        </p>
+      </div>
+    </div>
   );
 }
