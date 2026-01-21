@@ -9,12 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import WelcomeSplash from '@/components/auth/WelcomeSplash';
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl');
-  const { login, isAuthenticated, isLoading, error, clearError } = useAuthStore();
+  const { login, user, isAuthenticated, isLoading, error, clearError } = useAuthStore();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -23,14 +24,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState(false);
+  const [loggedInUserName, setLoggedInUserName] = useState('');
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (without splash for returning users)
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    if (isAuthenticated && !isLoading && !showSplash) {
       const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
       router.push(redirectTo);
     }
-  }, [isAuthenticated, isLoading, router, returnUrl]);
+  }, [isAuthenticated, isLoading, router, returnUrl, showSplash]);
 
   // Clear errors when component mounts
   useEffect(() => {
@@ -69,11 +72,19 @@ export default function LoginPage() {
     setSubmitting(false);
     
     if (result.success) {
-      const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
-      router.push(redirectTo);
+      // 로그인 성공 시 스플래시 화면 표시
+      const currentUser = useAuthStore.getState().user;
+      setLoggedInUserName(currentUser?.name || '사용자');
+      setShowSplash(true);
     } else {
       setFormError(result.error || '로그인에 실패했습니다');
     }
+  };
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+    const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
+    router.push(redirectTo);
   };
 
   const handleInputChange = (field: 'email' | 'password', value: string) => {
@@ -82,6 +93,11 @@ export default function LoginPage() {
   };
 
   const displayError = formError || error;
+
+  // 스플래시 화면 표시
+  if (showSplash) {
+    return <WelcomeSplash userName={loggedInUserName} onComplete={handleSplashComplete} />;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
