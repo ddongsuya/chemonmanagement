@@ -107,7 +107,14 @@ export default function LoginPage() {
   
   if (showSplash) {
     console.log('Rendering WelcomeSplash');
-    return <WelcomeSplash userName={loggedInUserName} onComplete={handleSplashComplete} />;
+    // 레이아웃 바깥에 렌더링하기 위해 Portal 사용하거나, 
+    // 여기서는 null을 반환하고 별도로 스플래시를 표시
+    return (
+      <>
+        <div className="hidden" /> {/* 레이아웃 내용 숨김 */}
+        <WelcomeSplash userName={loggedInUserName} onComplete={handleSplashComplete} />
+      </>
+    );
   }
 
   return (

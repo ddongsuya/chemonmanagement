@@ -156,7 +156,7 @@ export default function WelcomeSplash({ userName, onComplete }: WelcomeSplashPro
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
