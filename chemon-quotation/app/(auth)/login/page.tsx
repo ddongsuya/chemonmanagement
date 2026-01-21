@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -26,10 +26,12 @@ export default function LoginPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(false);
   const [loggedInUserName, setLoggedInUserName] = useState('');
+  const justLoggedIn = useRef(false);
 
   // Redirect if already authenticated (without splash for returning users)
+  // 단, 방금 로그인한 경우(justLoggedIn)는 스플래시를 보여주기 위해 리다이렉트하지 않음
   useEffect(() => {
-    if (isAuthenticated && !isLoading && !showSplash) {
+    if (isAuthenticated && !isLoading && !showSplash && !justLoggedIn.current) {
       const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
       router.push(redirectTo);
     }
@@ -73,6 +75,7 @@ export default function LoginPage() {
     
     if (result.success) {
       // 로그인 성공 시 스플래시 화면 표시
+      justLoggedIn.current = true;
       const currentUser = useAuthStore.getState().user;
       setLoggedInUserName(currentUser?.name || '사용자');
       setShowSplash(true);
@@ -82,6 +85,7 @@ export default function LoginPage() {
   };
 
   const handleSplashComplete = () => {
+    justLoggedIn.current = false;
     setShowSplash(false);
     const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
     router.push(redirectTo);
