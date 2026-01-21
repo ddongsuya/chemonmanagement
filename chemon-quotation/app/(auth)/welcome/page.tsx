@@ -1,13 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Cloud, CloudRain, CloudSnow, CloudFog, Wind, Loader2 } from 'lucide-react';
-
-interface WelcomeSplashProps {
-  userName: string;
-  onComplete: () => void;
-}
+import { useAuthStore } from '@/stores/authStore';
 
 type WeatherType = 'sunny' | 'cloudy' | 'rainy' | 'snowy' | 'foggy' | 'windy';
 
@@ -59,14 +56,6 @@ const WEATHER_MESSAGES: Record<WeatherType, string[]> = {
   ],
 };
 
-const GREETINGS = [
-  '좋은 아침이에요!',
-  '좋은 하루 되세요!',
-  '반가워요!',
-  '오늘도 힘내세요!',
-  '화이팅!',
-];
-
 function getTimeBasedGreeting(): string {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) return '좋은 아침이에요!';
@@ -79,30 +68,24 @@ function getRandomMessage(messages: string[]): string {
   return messages[Math.floor(Math.random() * messages.length)];
 }
 
-// 실제 날씨 API 대신 시뮬레이션 (실제 구현 시 OpenWeatherMap 등 사용)
 function simulateWeather(): WeatherInfo {
   const month = new Date().getMonth() + 1;
   const random = Math.random();
   
-  // 계절에 따른 날씨 확률 조정
   if (month >= 12 || month <= 2) {
-    // 겨울
     if (random < 0.3) return { type: 'snowy', temp: -5 + Math.floor(Math.random() * 10), description: '눈' };
     if (random < 0.6) return { type: 'cloudy', temp: -2 + Math.floor(Math.random() * 8), description: '흐림' };
     return { type: 'sunny', temp: 0 + Math.floor(Math.random() * 10), description: '맑음' };
   } else if (month >= 3 && month <= 5) {
-    // 봄
     if (random < 0.2) return { type: 'rainy', temp: 10 + Math.floor(Math.random() * 10), description: '비' };
     if (random < 0.4) return { type: 'cloudy', temp: 12 + Math.floor(Math.random() * 10), description: '흐림' };
     if (random < 0.5) return { type: 'windy', temp: 15 + Math.floor(Math.random() * 8), description: '바람' };
     return { type: 'sunny', temp: 15 + Math.floor(Math.random() * 10), description: '맑음' };
   } else if (month >= 6 && month <= 8) {
-    // 여름
     if (random < 0.4) return { type: 'rainy', temp: 25 + Math.floor(Math.random() * 8), description: '비' };
     if (random < 0.5) return { type: 'cloudy', temp: 28 + Math.floor(Math.random() * 5), description: '흐림' };
     return { type: 'sunny', temp: 28 + Math.floor(Math.random() * 7), description: '맑음' };
   } else {
-    // 가을
     if (random < 0.2) return { type: 'rainy', temp: 12 + Math.floor(Math.random() * 10), description: '비' };
     if (random < 0.3) return { type: 'foggy', temp: 10 + Math.floor(Math.random() * 8), description: '안개' };
     if (random < 0.5) return { type: 'cloudy', temp: 15 + Math.floor(Math.random() * 8), description: '흐림' };
@@ -110,50 +93,55 @@ function simulateWeather(): WeatherInfo {
   }
 }
 
-export default function WelcomeSplash({ userName, onComplete }: WelcomeSplashProps) {
+export default function WelcomePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl');
+  const { user, isAuthenticated } = useAuthStore();
+  
   const [step, setStep] = useState(0);
   const [weather] = useState<WeatherInfo>(() => simulateWeather());
   const [greeting] = useState(() => getTimeBasedGreeting());
   const [weatherMessage] = useState(() => getRandomMessage(WEATHER_MESSAGES[weather.type]));
 
+  const userName = user?.name || '사용자';
+
+  // 로그인 안 된 상태면 로그인 페이지로
   useEffect(() => {
-    console.log('WelcomeSplash mounted');
+    if (!isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, router]);
+
+  // 애니메이션 타이머
+  useEffect(() => {
     const timers: NodeJS.Timeout[] = [];
     
-    // 타이밍을 훨씬 길게 설정해서 테스트
-    timers.push(setTimeout(() => { console.log('Step 1'); setStep(1); }, 500));
-    timers.push(setTimeout(() => { console.log('Step 2'); setStep(2); }, 3000));
-    timers.push(setTimeout(() => { console.log('Step 3'); setStep(3); }, 6000));
-    timers.push(setTimeout(() => { console.log('Complete'); onComplete(); }, 10000));
+    timers.push(setTimeout(() => setStep(1), 300));
+    timers.push(setTimeout(() => setStep(2), 2000));
+    timers.push(setTimeout(() => setStep(3), 4000));
+    timers.push(setTimeout(() => {
+      const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
+      router.push(redirectTo);
+    }, 6000));
     
     return () => timers.forEach(clearTimeout);
-  }, [onComplete]);
+  }, [router, returnUrl]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { duration: 0.5 } },
-    exit: { opacity: 0, transition: { duration: 0.5 } },
   };
 
   const textVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0, 0, 0.2, 1] as const } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1] } },
     exit: { opacity: 0, y: -20, transition: { duration: 0.4 } },
   };
 
-  const iconVariants = {
-    hidden: { opacity: 0, scale: 0.5 },
-    visible: { 
-      opacity: 1, 
-      scale: 1, 
-      transition: { 
-        duration: 0.5, 
-        type: 'spring' as const,
-        stiffness: 200,
-      } 
-    },
-    exit: { opacity: 0, scale: 0.8, transition: { duration: 0.3 } },
-  };
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <motion.div
@@ -161,7 +149,6 @@ export default function WelcomeSplash({ userName, onComplete }: WelcomeSplashPro
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      exit="exit"
     >
       {/* 배경 장식 */}
       <div className="absolute inset-0 overflow-hidden">
@@ -231,9 +218,9 @@ export default function WelcomeSplash({ userName, onComplete }: WelcomeSplashPro
               className="space-y-6"
             >
               <motion.div
-                variants={iconVariants}
-                initial="hidden"
-                animate="visible"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
                 className="flex justify-center mb-4"
               >
                 {WEATHER_ICONS[weather.type]}

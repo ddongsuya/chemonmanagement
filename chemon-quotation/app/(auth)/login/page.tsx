@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
-import WelcomeSplash from '@/components/auth/WelcomeSplash';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,21 +23,15 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  
-  // 스플래시 관련 상태
-  const [showSplash, setShowSplash] = useState(false);
-  const [loggedInUserName, setLoggedInUserName] = useState('');
-  const [loginCompleted, setLoginCompleted] = useState(false);
 
-  // 이미 로그인된 상태로 페이지 접근 시 (새로 로그인한 게 아닌 경우만)
+  // 이미 로그인된 상태로 페이지 접근 시
   useEffect(() => {
-    if (isAuthenticated && !isLoading && !loginCompleted) {
+    if (isAuthenticated && !isLoading) {
       const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
       router.push(redirectTo);
     }
-  }, [isAuthenticated, isLoading, router, returnUrl, loginCompleted]);
+  }, [isAuthenticated, isLoading, router, returnUrl]);
 
-  // Clear errors when component mounts
   useEffect(() => {
     clearError();
   }, [clearError]);
@@ -75,18 +68,12 @@ export default function LoginPage() {
     setSubmitting(false);
     
     if (result.success) {
-      setLoginCompleted(true);
-      const currentUser = useAuthStore.getState().user;
-      setLoggedInUserName(currentUser?.name || '사용자');
-      setShowSplash(true);
+      // 로그인 성공 - welcome 페이지로 이동
+      const redirectParam = returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : '';
+      router.push(`/welcome${redirectParam}`);
     } else {
       setFormError(result.error || '로그인에 실패했습니다');
     }
-  };
-
-  const handleSplashComplete = () => {
-    const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
-    router.push(redirectTo);
   };
 
   const handleInputChange = (field: 'email' | 'password', value: string) => {
@@ -96,22 +83,14 @@ export default function LoginPage() {
 
   const displayError = formError || error;
 
-  // 스플래시 화면 - 전체 화면으로 표시
-  if (showSplash) {
-    return <WelcomeSplash userName={loggedInUserName} onComplete={handleSplashComplete} />;
-  }
-
-  // 로그인 폼 - 레이아웃 포함
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* 로고 */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary">CHEMON</h1>
           <p className="text-gray-500 mt-1">견적관리시스템</p>
         </div>
 
-        {/* 폼 카드 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="text-center mb-6">
@@ -188,7 +167,6 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* 푸터 */}
         <p className="text-center text-xs text-gray-400 mt-6">
           © 2025 CHEMON. All rights reserved.
         </p>
