@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   AreaChart,
@@ -11,18 +12,81 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Loader2 } from 'lucide-react';
+import { getQuotations } from '@/lib/data-api';
 
-const data = [
-  { month: '7월', 견적: 12, 수주: 5, 금액: 2.1 },
-  { month: '8월', 견적: 15, 수주: 7, 금액: 2.8 },
-  { month: '9월', 견적: 18, 수주: 8, 금액: 3.2 },
-  { month: '10월', 견적: 14, 수주: 6, 금액: 2.5 },
-  { month: '11월', 견적: 20, 수주: 9, 금액: 3.8 },
-  { month: '12월', 견적: 22, 수주: 10, 금액: 4.2 },
-];
+interface MonthlyData {
+  month: string;
+  견적: number;
+  수주: number;
+  금액: number;
+}
 
 export default function MonthlyTrendChart() {
+  const [data, setData] = useState<MonthlyData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        // 최근 6개월 데이터 가져오기
+        const response = await getQuotations({ limit: 500 });
+        if (response.success && response.data) {
+          // 월별 집계
+          const monthlyMap: Record<string, { quotations: number; won: number; amount: number }> = {};
+          
+          // 최근 6개월 초기화
+          const now = new Date();
+          for (let i = 5; i >= 0; i--) {
+            const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            monthlyMap[key] = { quotations: 0, won: 0, amount: 0 };
+          }
+
+          response.data.data.forEach((q: any) => {
+            const date = new Date(q.createdAt);
+            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            
+            if (monthlyMap[key]) {
+              monthlyMap[key].quotations += 1;
+              if (q.status === 'ACCEPTED') {
+                monthlyMap[key].won += 1;
+                monthlyMap[key].amount += Number(q.totalAmount) || 0;
+              }
+            }
+          });
+
+          const chartData = Object.entries(monthlyMap)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, stats]) => {
+              const [year, month] = key.split('-');
+              return {
+                month: `${parseInt(month)}월`,
+                견적: stats.quotations,
+                수주: stats.won,
+                금액: Math.round(stats.amount / 100000000 * 10) / 10, // 억 단위
+              };
+            });
+
+          setData(chartData);
+        }
+      } catch (error) {
+        console.error('Failed to load monthly data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <Card className="border-0 shadow-soft min-h-[400px] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </Card>
+    );
+  }
+
   return (
     <Card className="border-0 shadow-soft min-h-[400px]">
       <CardHeader className="pb-2">
@@ -74,6 +138,10 @@ export default function MonthlyTrendChart() {
                 border: 'none',
                 borderRadius: '12px',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              }}
+              formatter={(value: number, name: string) => {
+                if (name === '금액') return [`${value}억`, name];
+                return [`${value}건`, name];
               }}
             />
             <Legend

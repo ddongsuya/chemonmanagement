@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   ChevronLeft,
@@ -10,11 +8,19 @@ import {
   PieChart,
   TrendingUp,
   FileText,
-  BarChart3,
+  DollarSign,
+  Filter,
+  Trophy,
+  FlaskConical,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import ModalityChart from './ModalityChart';
 import MonthlyTrendChart from './MonthlyTrendChart';
 import RecentQuotations from './RecentQuotations';
+import RevenueChart from './RevenueChart';
+import PipelineFunnel from './PipelineFunnel';
+import TeamLeaderboard from './TeamLeaderboard';
+import StudyStatusWidget from './StudyStatusWidget';
 
 interface CarouselItem {
   id: string;
@@ -38,6 +44,34 @@ const carouselItems: CarouselItem[] = [
     icon: TrendingUp,
     color: 'bg-emerald-500',
     component: <MonthlyTrendChart />,
+  },
+  {
+    id: 'revenue',
+    title: '매출 현황',
+    icon: DollarSign,
+    color: 'bg-green-500',
+    component: <RevenueChart />,
+  },
+  {
+    id: 'pipeline',
+    title: '파이프라인',
+    icon: Filter,
+    color: 'bg-indigo-500',
+    component: <PipelineFunnel />,
+  },
+  {
+    id: 'leaderboard',
+    title: '영업 성과',
+    icon: Trophy,
+    color: 'bg-yellow-500',
+    component: <TeamLeaderboard />,
+  },
+  {
+    id: 'study',
+    title: '시험 현황',
+    icon: FlaskConical,
+    color: 'bg-purple-500',
+    component: <StudyStatusWidget />,
   },
   {
     id: 'recent',
@@ -69,18 +103,18 @@ export default function DashboardCarousel() {
 
   return (
     <div className="space-y-4">
-      {/* 탭 네비게이션 - 큰 아이콘 스타일 */}
-      <div className="flex items-center justify-center gap-4">
+      {/* 탭 네비게이션 */}
+      <div className="flex items-center justify-center gap-2">
         <Button
           variant="ghost"
           size="icon"
           onClick={goToPrev}
-          className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0"
         >
           <ChevronLeft className="w-5 h-5" />
         </Button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {carouselItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = index === activeIndex;
@@ -90,21 +124,21 @@ export default function DashboardCarousel() {
                 key={item.id}
                 onClick={() => goToSlide(index)}
                 className={cn(
-                  'flex flex-col items-center gap-2 p-4 rounded-2xl transition-all duration-300',
+                  'flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all duration-300 flex-shrink-0',
                   isActive
-                    ? 'bg-white dark:bg-slate-800 shadow-soft-lg scale-110'
+                    ? 'bg-white dark:bg-slate-800 shadow-soft-lg scale-105'
                     : 'hover:bg-slate-100 dark:hover:bg-slate-800/50 opacity-60 hover:opacity-100'
                 )}
               >
                 <div
                   className={cn(
-                    'w-14 h-14 rounded-xl flex items-center justify-center transition-all',
+                    'w-10 h-10 rounded-lg flex items-center justify-center transition-all',
                     isActive ? item.color : 'bg-slate-200 dark:bg-slate-700'
                   )}
                 >
                   <Icon
                     className={cn(
-                      'w-7 h-7',
+                      'w-5 h-5',
                       isActive ? 'text-white' : 'text-slate-500'
                     )}
                   />
@@ -128,7 +162,7 @@ export default function DashboardCarousel() {
           variant="ghost"
           size="icon"
           onClick={goToNext}
-          className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0"
         >
           <ChevronRight className="w-5 h-5" />
         </Button>
@@ -149,16 +183,16 @@ export default function DashboardCarousel() {
       </div>
 
       {/* 인디케이터 */}
-      <div className="flex justify-center gap-2">
+      <div className="flex justify-center gap-1.5">
         {carouselItems.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
             className={cn(
-              'h-2 rounded-full transition-all duration-300',
+              'h-1.5 rounded-full transition-all duration-300',
               index === activeIndex
-                ? 'w-8 bg-blue-500'
-                : 'w-2 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400'
+                ? 'w-6 bg-blue-500'
+                : 'w-1.5 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400'
             )}
           />
         ))}

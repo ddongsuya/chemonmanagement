@@ -12,48 +12,32 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PieChart, Pie, Cell, Sector, Tooltip } from 'recharts';
-import { ArrowRight, PieChart as PieChartIcon } from 'lucide-react';
+import { ArrowRight, PieChart as PieChartIcon, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { getQuotations } from '@/lib/data-api';
 
-const data = [
-  {
-    name: '저분자',
-    fullName: '저분자화합물',
-    value: 45,
-    amount: 1250000000,
-    color: '#3b82f6',
-  },
-  {
-    name: '세포치료제',
-    fullName: '세포치료제',
-    value: 20,
-    amount: 580000000,
-    color: '#ec4899',
-  },
-  {
-    name: '화장품',
-    fullName: '화장품',
-    value: 15,
-    amount: 320000000,
-    color: '#f59e0b',
-  },
-  {
-    name: '의료기기',
-    fullName: '의료기기',
-    value: 12,
-    amount: 280000000,
-    color: '#10b981',
-  },
-  {
-    name: '기타',
-    fullName: '기타',
-    value: 8,
-    amount: 150000000,
-    color: '#8b5cf6',
-  },
-];
+interface ModalityData {
+  name: string;
+  fullName: string;
+  value: number;
+  amount: number;
+  color: string;
+}
 
-// 활성 섹터 렌더러 - 라벨 라인 포함
+const MODALITY_COLORS: Record<string, string> = {
+  '저분자': '#3b82f6',
+  '저분자화합물': '#3b82f6',
+  '세포치료제': '#ec4899',
+  '화장품': '#f59e0b',
+  '의료기기': '#10b981',
+  '바이오의약품': '#8b5cf6',
+  '천연물': '#06b6d4',
+  '기타': '#6b7280',
+};
+
+const DEFAULT_COLORS = ['#3b82f6', '#ec4899', '#f59e0b', '#10b981', '#8b5cf6', '#06b6d4', '#6b7280'];
+
+// 활성 섹터 렌더러
 const renderActiveShape = (props: any) => {
   const RADIAN = Math.PI / 180;
   const {
@@ -82,7 +66,6 @@ const renderActiveShape = (props: any) => {
 
   return (
     <g>
-      {/* 확대된 섹터 */}
       <Sector
         cx={cx}
         cy={cy}
@@ -93,16 +76,13 @@ const renderActiveShape = (props: any) => {
         fill={fill}
         style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' }}
       />
-      {/* 연결선 */}
       <path
         d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
         stroke={fill}
         strokeWidth={2}
         fill="none"
       />
-      {/* 끝점 원 */}
       <circle cx={ex} cy={ey} r={4} fill={fill} />
-      {/* 라벨 */}
       <text
         x={ex + (cos >= 0 ? 8 : -8)}
         y={ey - 8}
@@ -128,23 +108,64 @@ const renderActiveShape = (props: any) => {
 
 export default function ModalityChart() {
   const router = useRouter();
-  const [selectedModality, setSelectedModality] = useState<(typeof data)[0] | null>(null);
+  const [data, setData] = useState<ModalityData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedModality, setSelectedModality] = useState<ModalityData | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const response = await getQuotations({ limit: 500 });
+        if (response.success && response.data) {
+          // 모달리티별 집계
+          const modalityMap: Record<string, { count: number; amount: number }> = {};
+          
+          response.data.data.forEach((q: any) => {
+            const modality = q.modality || '기타';
+            if (!modalityMap[modality]) {
+              modalityMap[modality] = { count: 0, amount: 0 };
+            }
+            modalityMap[modality].count += 1;
+            modalityMap[modality].amount += Number(q.totalAmount) || 0;
+          });
+
+          const chartData = Object.entries(modalityMap)
+            .map(([name, stats], index) => ({
+              name: name.length > 6 ? name.slice(0, 6) : name,
+              fullName: name,
+              value: stats.count,
+              amount: stats.amount,
+              color: MODALITY_COLORS[name] || DEFAULT_COLORS[index % DEFAULT_COLORS.length],
+            }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 6);
+
+          setData(chartData);
+        }
+      } catch (error) {
+        console.error('Failed to load modality data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
   // 자동 순환 애니메이션
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || data.length === 0) return;
 
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % data.length);
     }, 2500);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, data.length]);
 
-  const handleClick = (entry: (typeof data)[0]) => {
+  const handleClick = (entry: ModalityData) => {
     setSelectedModality(entry);
     setShowDialog(true);
   };
@@ -168,6 +189,35 @@ export default function ModalityChart() {
 
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
+  if (loading) {
+    return (
+      <Card className="border-0 shadow-soft h-full min-h-[400px] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </Card>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <Card className="border-0 shadow-soft h-full min-h-[400px]">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
+              <PieChartIcon className="w-5 h-5 text-blue-500" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">모달리티별 분포</CardTitle>
+              <p className="text-sm text-slate-500">데이터 없음</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-[300px]">
+          <p className="text-slate-400">견적 데이터가 없습니다</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <>
       <Card className="border-0 shadow-soft h-full min-h-[400px]">
@@ -183,7 +233,6 @@ export default function ModalityChart() {
           </div>
         </CardHeader>
         <CardContent className="flex flex-col items-center">
-          {/* 차트 */}
           <PieChart width={360} height={280}>
             <Pie
               data={data}
@@ -223,11 +272,10 @@ export default function ModalityChart() {
             />
           </PieChart>
 
-          {/* 하단 인디케이터 */}
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-2 flex-wrap justify-center">
             {data.map((item, index) => (
               <button
-                key={item.name}
+                key={item.fullName}
                 onClick={() => {
                   setIsAutoPlaying(false);
                   setActiveIndex(index);
@@ -259,7 +307,6 @@ export default function ModalityChart() {
         </CardContent>
       </Card>
 
-      {/* 상세 Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="rounded-2xl">
           <DialogHeader>
@@ -285,39 +332,6 @@ export default function ModalityChart() {
                   <p className="text-2xl font-bold text-blue-500">
                     {formatCurrency(selectedModality.amount)}
                   </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium">최근 견적</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                    <span className="text-sm font-medium">Q-2025-042</span>
-                    <Badge
-                      variant="secondary"
-                      className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400"
-                    >
-                      제출완료
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                    <span className="text-sm font-medium">Q-2025-038</span>
-                    <Badge
-                      variant="secondary"
-                      className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400"
-                    >
-                      수주
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                    <span className="text-sm font-medium">Q-2025-035</span>
-                    <Badge
-                      variant="secondary"
-                      className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400"
-                    >
-                      수주
-                    </Badge>
-                  </div>
                 </div>
               </div>
 
