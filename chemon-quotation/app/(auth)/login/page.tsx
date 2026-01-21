@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl');
-  const { login, user, isAuthenticated, isLoading, error, clearError } = useAuthStore();
+  const { login, isAuthenticated, isLoading, error, clearError } = useAuthStore();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -24,18 +24,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  
+  // 스플래시 관련 상태
   const [showSplash, setShowSplash] = useState(false);
   const [loggedInUserName, setLoggedInUserName] = useState('');
-  const justLoggedIn = useRef(false);
+  const [loginCompleted, setLoginCompleted] = useState(false);
 
-  // Redirect if already authenticated (without splash for returning users)
-  // 단, 방금 로그인한 경우(justLoggedIn)는 스플래시를 보여주기 위해 리다이렉트하지 않음
+  // 이미 로그인된 상태로 페이지 접근 시 (새로 로그인한 게 아닌 경우만)
   useEffect(() => {
-    if (isAuthenticated && !isLoading && !showSplash && !justLoggedIn.current) {
+    if (isAuthenticated && !isLoading && !loginCompleted) {
       const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
       router.push(redirectTo);
     }
-  }, [isAuthenticated, isLoading, router, returnUrl, showSplash]);
+  }, [isAuthenticated, isLoading, router, returnUrl, loginCompleted]);
 
   // Clear errors when component mounts
   useEffect(() => {
@@ -74,8 +75,8 @@ export default function LoginPage() {
     setSubmitting(false);
     
     if (result.success) {
-      // 로그인 성공 시 스플래시 화면 표시
-      justLoggedIn.current = true;
+      // 로그인 성공! 스플래시 표시
+      setLoginCompleted(true);
       const currentUser = useAuthStore.getState().user;
       setLoggedInUserName(currentUser?.name || '사용자');
       setShowSplash(true);
@@ -85,8 +86,6 @@ export default function LoginPage() {
   };
 
   const handleSplashComplete = () => {
-    justLoggedIn.current = false;
-    setShowSplash(false);
     const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
     router.push(redirectTo);
   };
@@ -153,7 +152,7 @@ export default function LoginPage() {
             {showPassword ? (
               <EyeOff className="h-4 w-4" />
             ) : (
-              <Eye className="h-4 w-4" />
+              <Eye className="h-4 h-4" />
             )}
           </button>
         </div>
