@@ -158,6 +158,13 @@ model User {
   
   // CRM Extension 관계
   activities          Activity[]
+  
+  // Clinical Pathology 관계
+  clinicalQuotations              ClinicalQuotation[]
+  clinicalTestRequestsCreated     ClinicalTestRequest[]  @relation("ClinicalTestRequestCreatedBy")
+  clinicalTestRequestsAsDirector  ClinicalTestRequest[]  @relation("ClinicalTestDirector")
+  clinicalTestRequestsAsReceiver  ClinicalTestRequest[]  @relation("ClinicalReceiver")
+  clinicalTestRequestsAsManager   ClinicalTestRequest[]  @relation("ClinicalOperationManager")
 }
 
 model RefreshToken {
@@ -312,6 +319,9 @@ model Customer {
   invoiceSchedules    InvoiceSchedule[]
   calendarEvents      CalendarEvent[]
   progressStages      CustomerProgressStage[]
+  
+  // Clinical Pathology 관계
+  clinicalQuotations  ClinicalQuotation[]
 }
 
 // ==================== Requester (의뢰자) ====================
@@ -334,6 +344,9 @@ model Requester {
 
   meetingRecords MeetingRecord[]
   testReceptions TestReception[]
+  
+  // Clinical Pathology 관계
+  clinicalQuotations ClinicalQuotation[]
 }
 
 // ==================== MeetingRecord (미팅 기록) ====================
@@ -405,6 +418,7 @@ model TestReception {
 
   invoiceSchedules InvoiceSchedule[]
   calendarEvents   CalendarEvent[]
+  study            Study?                            // Study 연결 (역방향)
 }
 
 // ==================== InvoiceSchedule (세금계산서 발행 일정) ====================
@@ -608,6 +622,10 @@ model Study {
   studyNumber     String      @unique                 // ST-2025-0001
   contractId      String
   contract        Contract    @relation(fields: [contractId], references: [id])
+  
+  // TestReception 연결 (고객 관리 시험 접수와 연동)
+  testReceptionId String?     @unique
+  testReception   TestReception? @relation(fields: [testReceptionId], references: [id])
   
   // 시험 정보
   studyType       QuotationType
@@ -1246,4 +1264,287 @@ model KanbanViewSetting {
   updatedAt    DateTime @updatedAt
 
   @@unique([userId, entityType])
+}
+
+// ==================== Clinical Pathology Module ====================
+
+// 검체 종류
+enum SampleType {
+  WHOLE_BLOOD    // 전혈
+  SERUM          // 혈청
+  PLASMA         // 혈장
+  URINE          // 요
+}
+
+// 임상병리 검사 카테고리
+enum ClinicalTestCategory {
+  CBC                    // 일반혈액학 (패키지)
+  DIFF                   // 백혈구감별 (패키지)
+  RETIC                  // 망상적혈구
+  CHEMISTRY_GENERAL      // 혈액생화학 일반
+  ELECTROLYTE            // 전해질 (패키지)
+  CHEMISTRY_ADDITIONAL   // 혈액생화학 추가
+  COAGULATION            // 혈액응고
+  URINALYSIS             // 요검사
+  URINE_CHEMISTRY        // 요 생화학
+}
+
+// 임상병리 견적서 상태
+enum ClinicalQuotationStatus {
+  DRAFT          // 작성중
+  SENT           // 발송완료
+  ACCEPTED       // 승인됨
+  REJECTED       // 거절됨
+  EXPIRED        // 만료됨
+  CONVERTED      // 의뢰서 전환됨
+}
+
+// 시험의뢰서 상태
+enum ClinicalTestRequestStatus {
+  DRAFT          // 작성중
+  SUBMITTED      // 제출됨
+  RECEIVED       // 접수완료
+  IN_PROGRESS    // 진행중
+  COMPLETED      // 완료
+  CANCELLED      // 취소
+}
+
+// 결과 보고서 유형
+enum ClinicalReportType {
+  SUMMARY        // 요약
+  FULL           // 결과보고서
+  FULL_WITH_STAT // 결과보고서 (통계포함)
+}
+
+// 검체 처리 방법
+enum SampleDisposal {
+  RETURN         // 반환
+  DISPOSE        // 폐기
+}
+
+// 임상병리 검사항목 마스터
+model ClinicalTestItem {
+  id                  String                @id @default(uuid())
+  
+  category            ClinicalTestCategory
+  code                String                @unique
+  nameKr              String
+  nameEn              String
+  unit                String?
+  method              String?
+  
+  unitPrice           Int
+  isPackage           Boolean               @default(false)
+  packageItems        String[]              @default([])
+  
+  requiredSampleTypes SampleType[]          @default([])
+  minSampleVolume     Int?
+  
+  requiresItem        String?
+  
+  displayOrder        Int                   @default(0)
+  isActive            Boolean               @default(true)
+  
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  
+  quotationItems      ClinicalQuotationItem[]
+  requestItems        ClinicalTestRequestItem[]
+  
+  @@index([category, isActive])
+  @@index([code])
+}
+
+// QC 비용 설정
+model ClinicalQcSetting {
+  id             String                @id @default(uuid())
+  
+  category       ClinicalTestCategory  @unique
+  thresholdCount Int                   @default(100)
+  qcFee          Int                   @default(400000)
+  
+  isActive       Boolean               @default(true)
+  
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+}
+
+// 임상병리 견적서
+model ClinicalQuotation {
+  id                  String                    @id @default(uuid())
+  
+  quotationNumber     String                    @unique
+  
+  customerId          String?
+  customer            Customer?                 @relation(fields: [customerId], references: [id])
+  customerName        String
+  
+  contactPersonId     String?
+  contactPerson       Requester?                @relation(fields: [contactPersonId], references: [id])
+  contactName         String
+  contactPhone        String?
+  contactEmail        String?
+  
+  testStandard        String                    @default("NON_GLP")
+  
+  animalSpecies       String
+  sampleTypes         SampleType[]
+  totalSamples        Int
+  maleSamples         Int                       @default(0)
+  femaleSamples       Int                       @default(0)
+  
+  items               ClinicalQuotationItem[]
+  
+  subtotal            Int                       @default(0)
+  qcFees              Json?
+  totalQcFee          Int                       @default(0)
+  
+  discountType        String?
+  discountValue       Float?
+  discountAmount      Int                       @default(0)
+  discountReason      String?
+  
+  totalBeforeVat      Int                       @default(0)
+  vatRate             Float                     @default(10)
+  vatAmount           Int                       @default(0)
+  totalAmount         Int                       @default(0)
+  
+  validDays           Int                       @default(60)
+  validUntil          DateTime
+  
+  notes               String?
+  
+  status              ClinicalQuotationStatus   @default(DRAFT)
+  
+  createdById         String
+  createdBy           User                      @relation(fields: [createdById], references: [id])
+  
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  sentAt              DateTime?
+  acceptedAt          DateTime?
+  
+  testRequest         ClinicalTestRequest?
+  
+  @@index([quotationNumber])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+// 임상병리 견적서 항목
+model ClinicalQuotationItem {
+  id                  String                    @id @default(uuid())
+  
+  quotationId         String
+  quotation           ClinicalQuotation         @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  
+  testItemId          String
+  testItem            ClinicalTestItem          @relation(fields: [testItemId], references: [id])
+  
+  category            ClinicalTestCategory
+  code                String
+  nameKr              String
+  nameEn              String
+  unit                String?
+  method              String?
+  isPackage           Boolean                   @default(false)
+  
+  unitPrice           Int
+  quantity            Int
+  amount              Int
+  
+  displayOrder        Int                       @default(0)
+  
+  createdAt           DateTime                  @default(now())
+  
+  @@index([quotationId])
+  @@index([category])
+}
+
+// 임상병리 시험의뢰서
+model ClinicalTestRequest {
+  id                    String                      @id @default(uuid())
+  
+  testNumber            String?                     @unique
+  
+  quotationId           String                      @unique
+  quotation             ClinicalQuotation           @relation(fields: [quotationId], references: [id])
+  
+  customerName          String
+  contactName           String
+  contactPhone          String?
+  contactEmail          String?
+  address               String?
+  postalCode            String?
+  fax                   String?
+  
+  requestDate           DateTime                    @default(now())
+  desiredCompletionDate DateTime?
+  
+  reportType            ClinicalReportType          @default(FULL)
+  includeStatistics     Boolean                     @default(false)
+  
+  animalSpecies         String
+  sampleTypes           SampleType[]
+  totalSamples          Int
+  maleSamples           Int                         @default(0)
+  femaleSamples         Int                         @default(0)
+  sampleSendDate        DateTime?
+  
+  items                 ClinicalTestRequestItem[]
+  
+  sampleDisposal        SampleDisposal              @default(DISPOSE)
+  returnAddress         String?
+  
+  testDescription       String?
+  
+  receivedDate          DateTime?
+  testDirectorId        String?
+  testDirector          User?                       @relation("ClinicalTestDirector", fields: [testDirectorId], references: [id])
+  receiverId            String?
+  receiver              User?                       @relation("ClinicalReceiver", fields: [receiverId], references: [id])
+  operationManagerId    String?
+  operationManager      User?                       @relation("ClinicalOperationManager", fields: [operationManagerId], references: [id])
+  approvalDate          DateTime?
+  
+  status                ClinicalTestRequestStatus   @default(DRAFT)
+  
+  createdById           String
+  createdBy             User                        @relation("ClinicalTestRequestCreatedBy", fields: [createdById], references: [id])
+  
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
+  submittedAt           DateTime?
+  completedAt           DateTime?
+  
+  @@index([testNumber])
+  @@index([quotationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// 시험의뢰서 검사항목
+model ClinicalTestRequestItem {
+  id                  String                      @id @default(uuid())
+  
+  requestId           String
+  request             ClinicalTestRequest         @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  testItemId          String
+  testItem            ClinicalTestItem            @relation(fields: [testItemId], references: [id])
+  
+  category            ClinicalTestCategory
+  code                String
+  nameKr              String
+  nameEn              String
+  
+  isSelected          Boolean                     @default(true)
+  
+  displayOrder        Int                         @default(0)
+  
+  createdAt           DateTime                    @default(now())
+  
+  @@index([requestId])
 }

@@ -417,7 +417,7 @@ export class DataService {
   async getCustomers(
     userId: string,
     filters: CustomerFilters
-  ): Promise<PaginatedResult<CustomerResponse>> {
+  ): Promise<PaginatedResult<CustomerResponse & { quotationCount: number; totalAmount: number }>> {
     const { page, limit, search } = filters;
     const skip = (page - 1) * limit;
 
@@ -439,12 +439,25 @@ export class DataService {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          quotations: {
+            where: { deletedAt: null },
+            select: {
+              id: true,
+              totalAmount: true,
+            },
+          },
+        },
       }),
       this.prisma.customer.count({ where }),
     ]);
 
     return {
-      data: customers.map((c) => this.toCustomerResponse(c)),
+      data: customers.map((c) => ({
+        ...this.toCustomerResponse(c),
+        quotationCount: c.quotations?.length || 0,
+        totalAmount: c.quotations?.reduce((sum, q) => sum + Number(q.totalAmount), 0) || 0,
+      })),
       pagination: {
         page,
         limit,

@@ -10,3 +10,5 @@ export { default as contractRoutes } from './contracts';
 export { default as studyRoutes } from './studies';
 export { default as consultationRoutes } from './consultations';
 export { default as customerDataRoutes } from './customerData';
+export { default as excelRoutes } from './excel';
+export { default as clinicalPathologyRoutes } from './clinicalPathology';

@@ -26,6 +26,7 @@ import {
   MessageSquare,
   LucideIcon,
   TrendingUp,
+  Microscope,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -77,6 +78,15 @@ const menuGroups: MenuGroup[] = [
       { title: '상담기록', href: '/consultations', icon: MessageSquare },
     ],
   },
+  {
+    title: '임상병리검사',
+    icon: Microscope,
+    items: [
+      { title: '견적서 관리', href: '/clinical-pathology/quotations', icon: FileText },
+      { title: '시험의뢰서', href: '/clinical-pathology/test-requests', icon: ClipboardList },
+      { title: '설정', href: '/clinical-pathology/settings', icon: Settings },
+    ],
+  },
 ];
 
 const standaloneItems: MenuItem[] = [
@@ -92,7 +102,7 @@ export default function Sidebar() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const [collapsed, setCollapsed] = useState(false);
-  const [openGroups, setOpenGroups] = useState<string[]>(['영업관리', '견적관리', '계약/시험']);
+  const [openGroups, setOpenGroups] = useState<string[]>(['영업관리', '견적관리', '계약/시험', '임상병리검사']);
 
   const handleLogout = async () => {
     await logout();

@@ -707,6 +707,273 @@ export class AutomationService {
       completedAt: execution.completedAt as Date | null,
     };
   }
+
+  // ==================== Trigger Handlers ====================
+
+  /**
+   * 상태 변경 트리거 처리
+   * 모델의 상태가 변경될 때 호출
+   */
+  async handleStatusChange(
+    model: string,
+    entityId: string,
+    oldStatus: string,
+    newStatus: string,
+    additionalData?: Record<string, unknown>
+  ): Promise<void> {
+    const rules = await this.prisma.automationRule.findMany({
+      where: {
+        triggerType: AutomationTriggerType.STATUS_CHANGE,
+        status: AutomationStatus.ACTIVE,
+      },
+      include: { actions: { orderBy: { order: 'asc' } } },
+      orderBy: { priority: 'desc' },
+    });
+
+    for (const rule of rules) {
+      const config = rule.triggerConfig as Record<string, unknown>;
+      
+      // 모델 매칭 확인
+      if (config.model && config.model !== model) continue;
+      
+      // 특정 상태 변경 조건 확인
+      if (config.fromStatus && config.fromStatus !== oldStatus) continue;
+      if (config.toStatus && config.toStatus !== newStatus) continue;
+
+      try {
+        await this.executeRule(rule.id, model, entityId, {
+          oldStatus,
+          newStatus,
+          ...additionalData,
+        });
+      } catch (error) {
+        console.error(`Automation rule ${rule.id} execution failed:`, error);
+      }
+    }
+  }
+
+  /**
+   * 항목 생성 트리거 처리
+   * 새 항목이 생성될 때 호출
+   */
+  async handleItemCreated(
+    model: string,
+    entityId: string,
+    entityData: Record<string, unknown>
+  ): Promise<void> {
+    const rules = await this.prisma.automationRule.findMany({
+      where: {
+        triggerType: AutomationTriggerType.ITEM_CREATED,
+        status: AutomationStatus.ACTIVE,
+      },
+      include: { actions: { orderBy: { order: 'asc' } } },
+      orderBy: { priority: 'desc' },
+    });
+
+    for (const rule of rules) {
+      const config = rule.triggerConfig as Record<string, unknown>;
+      
+      if (config.model && config.model !== model) continue;
+
+      try {
+        await this.executeRule(rule.id, model, entityId, entityData);
+      } catch (error) {
+        console.error(`Automation rule ${rule.id} execution failed:`, error);
+      }
+    }
+  }
+
+  /**
+   * 항목 수정 트리거 처리
+   * 항목이 수정될 때 호출
+   */
+  async handleItemUpdated(
+    model: string,
+    entityId: string,
+    changes: Record<string, { old: unknown; new: unknown }>
+  ): Promise<void> {
+    const rules = await this.prisma.automationRule.findMany({
+      where: {
+        triggerType: AutomationTriggerType.ITEM_UPDATED,
+        status: AutomationStatus.ACTIVE,
+      },
+      include: { actions: { orderBy: { order: 'asc' } } },
+      orderBy: { priority: 'desc' },
+    });
+
+    for (const rule of rules) {
+      const config = rule.triggerConfig as Record<string, unknown>;
+      
+      if (config.model && config.model !== model) continue;
+      
+      // 특정 필드 변경 조건 확인
+      if (config.fields && Array.isArray(config.fields)) {
+        const changedFields = Object.keys(changes);
+        const hasMatchingField = (config.fields as string[]).some(f => changedFields.includes(f));
+        if (!hasMatchingField) continue;
+      }
+
+      try {
+        await this.executeRule(rule.id, model, entityId, { changes });
+      } catch (error) {
+        console.error(`Automation rule ${rule.id} execution failed:`, error);
+      }
+    }
+  }
+
+  /**
+   * 날짜 도달 트리거 처리 (스케줄러에서 호출)
+   * 특정 날짜에 도달했을 때 실행
+   */
+  async processDateReachedTriggers(): Promise<{ processed: number; errors: number }> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const rules = await this.prisma.automationRule.findMany({
+      where: {
+        triggerType: AutomationTriggerType.DATE_REACHED,
+        status: AutomationStatus.ACTIVE,
+      },
+      include: { actions: { orderBy: { order: 'asc' } } },
+      orderBy: { priority: 'desc' },
+    });
+
+    let processed = 0;
+    let errors = 0;
+
+    for (const rule of rules) {
+      const config = rule.triggerConfig as Record<string, unknown>;
+      const model = config.model as string;
+      const field = config.field as string;
+      const daysBefore = (config.daysBefore as number) || 0;
+
+      if (!model || !field) continue;
+
+      const targetDate = new Date(today);
+      targetDate.setDate(targetDate.getDate() + daysBefore);
+
+      try {
+        // 해당 날짜에 도달한 엔티티 조회
+        const entities = await this.getEntitiesWithDateField(model, field, targetDate);
+
+        for (const entity of entities) {
+          try {
+            await this.executeRule(rule.id, model, entity.id as string, {
+              dateField: field,
+              dateValue: (entity as Record<string, unknown>)[field],
+              daysBefore,
+            });
+            processed++;
+          } catch (error) {
+            console.error(`Date trigger execution failed for ${model}/${entity.id}:`, error);
+            errors++;
+          }
+        }
+      } catch (error) {
+        console.error(`Date trigger processing failed for rule ${rule.id}:`, error);
+        errors++;
+      }
+    }
+
+    return { processed, errors };
+  }
+
+  private async getEntitiesWithDateField(
+    model: string,
+    field: string,
+    targetDate: Date
+  ): Promise<Record<string, unknown>[]> {
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const dateFilter = {
+      [field]: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    };
+
+    switch (model) {
+      case 'Lead':
+        return this.prisma.lead.findMany({ where: dateFilter }) as Promise<Record<string, unknown>[]>;
+      case 'Contract':
+        return this.prisma.contract.findMany({ where: dateFilter }) as Promise<Record<string, unknown>[]>;
+      case 'Quotation':
+        return this.prisma.quotation.findMany({ where: dateFilter }) as Promise<Record<string, unknown>[]>;
+      case 'Study':
+        return this.prisma.study.findMany({ where: dateFilter }) as Promise<Record<string, unknown>[]>;
+      default:
+        return [];
+    }
+  }
+
+  /**
+   * 스케줄 트리거 처리 (정기 실행)
+   */
+  async processScheduledTriggers(): Promise<{ processed: number; errors: number }> {
+    const now = new Date();
+
+    // 예약된 자동화 작업 조회
+    const scheduledTasks = await this.prisma.scheduledAutomation.findMany({
+      where: {
+        scheduledAt: { lte: now },
+        executed: false,
+      },
+    });
+
+    let processed = 0;
+    let errors = 0;
+
+    for (const task of scheduledTasks) {
+      try {
+        await this.executeRule(
+          task.ruleId,
+          task.targetModel,
+          task.targetId,
+          task.actionData as Record<string, unknown>
+        );
+
+        await this.prisma.scheduledAutomation.update({
+          where: { id: task.id },
+          data: { executed: true, executedAt: new Date() },
+        });
+
+        processed++;
+      } catch (error) {
+        console.error(`Scheduled automation ${task.id} failed:`, error);
+        errors++;
+      }
+    }
+
+    return { processed, errors };
+  }
+
+  /**
+   * 지연 액션 스케줄링
+   */
+  async scheduleDelayedAction(
+    ruleId: string,
+    targetModel: string,
+    targetId: string,
+    actionData: Record<string, unknown>,
+    delayMinutes: number
+  ): Promise<void> {
+    const scheduledAt = new Date();
+    scheduledAt.setMinutes(scheduledAt.getMinutes() + delayMinutes);
+
+    await this.prisma.scheduledAutomation.create({
+      data: {
+        ruleId,
+        targetModel,
+        targetId,
+        actionData: actionData as Prisma.InputJsonValue,
+        scheduledAt,
+      },
+    });
+  }
 }
+
 
 export default AutomationService;

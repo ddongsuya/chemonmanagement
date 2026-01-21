@@ -24,6 +24,7 @@ import {
 import { Plus, Search, FileText, Building2, Calendar, DollarSign } from 'lucide-react';
 import { getContracts, Contract } from '@/lib/contract-api';
 import { useToast } from '@/hooks/use-toast';
+import ExcelImportExport from '@/components/excel/ExcelImportExport';
 
 const statusLabels: Record<string, string> = {
   NEGOTIATING: '협의중',
@@ -91,10 +92,13 @@ export default function ContractsPage() {
           <h1 className="text-2xl font-bold">계약 관리</h1>
           <p className="text-muted-foreground">계약서 및 시험 진행 관리</p>
         </div>
-        <Button onClick={() => router.push('/contract/new')}>
-          <Plus className="w-4 h-4 mr-2" />
-          새 계약
-        </Button>
+        <div className="flex gap-2">
+          <ExcelImportExport defaultType="contracts" onImportSuccess={loadData} />
+          <Button onClick={() => router.push('/contract/new')}>
+            <Plus className="w-4 h-4 mr-2" />
+            새 계약
+          </Button>
+        </div>
       </div>
 
       {/* 통계 카드 */}

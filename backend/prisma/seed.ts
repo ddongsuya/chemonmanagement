@@ -4,6 +4,7 @@
 
 import { PrismaClient, CustomerGrade } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { seedClinicalPathology } from './seed-clinical-pathology';
 
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
@@ -273,7 +274,10 @@ async function main() {
 
   console.log(`✅ Created ${settings.length} system settings`);
 
-  // ==================== 4. 완료 ====================
+  // ==================== 4. Clinical Pathology 마스터데이터 ====================
+  await seedClinicalPathology();
+
+  // ==================== 5. 완료 ====================
   console.log('');
   console.log('🎉 Seeding completed successfully!');
   console.log('');

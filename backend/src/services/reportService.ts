@@ -1,6 +1,10 @@
 import { PrismaClient, Prisma, ReportType } from '@prisma/client';
 import { AppError, ErrorCodes } from '../types/error';
 import { PaginatedResult } from '../types';
+import PDFDocument from 'pdfkit';
+import ExcelJS from 'exceljs';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export { ReportType } from '@prisma/client';
 
@@ -419,6 +423,14 @@ export class ReportService {
     const report = await this.getReportById(id, userId);
 
     const fileName = `${report.name}_${new Date().toISOString().split('T')[0]}.${options.format.toLowerCase()}`;
+    const exportDir = path.join(process.cwd(), 'exports');
+    
+    // exports 디렉토리 생성
+    if (!fs.existsSync(exportDir)) {
+      fs.mkdirSync(exportDir, { recursive: true });
+    }
+
+    const filePath = path.join(exportDir, fileName);
 
     const exportRecord = await this.prisma.reportExport.create({
       data: {
@@ -427,24 +439,303 @@ export class ReportService {
         filters: options.filters as Prisma.InputJsonValue,
         dateRange: options.dateRange as Prisma.InputJsonValue,
         fileName,
-        status: 'PENDING',
+        status: 'PROCESSING',
         exportedBy: userId,
       },
     });
 
-    // In a real implementation, this would trigger an async job
-    // For now, we'll mark it as completed immediately
-    const updatedExport = await this.prisma.reportExport.update({
-      where: { id: exportRecord.id },
-      data: {
-        status: 'COMPLETED',
-        completedAt: new Date(),
-        fileUrl: `/exports/${fileName}`, // Placeholder URL
-        fileSize: 0,
-      },
+    try {
+      // 리포트 데이터 조회
+      const reportData = await this.executeReport(id, userId, {
+        filters: options.filters,
+        dateRange: options.dateRange,
+        page: 1,
+        limit: 10000, // 전체 데이터
+      });
+
+      let fileSize = 0;
+
+      switch (options.format) {
+        case 'PDF':
+          fileSize = await this.generatePDF(filePath, report, reportData);
+          break;
+        case 'EXCEL':
+          fileSize = await this.generateExcel(filePath, report, reportData);
+          break;
+        case 'CSV':
+          fileSize = await this.generateCSV(filePath, report, reportData);
+          break;
+        default:
+          throw new AppError('지원하지 않는 형식입니다', 400, ErrorCodes.VALIDATION_ERROR);
+      }
+
+      const updatedExport = await this.prisma.reportExport.update({
+        where: { id: exportRecord.id },
+        data: {
+          status: 'COMPLETED',
+          completedAt: new Date(),
+          fileUrl: `/exports/${fileName}`,
+          fileSize,
+        },
+      });
+
+      return this.toReportExport(updatedExport);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      await this.prisma.reportExport.update({
+        where: { id: exportRecord.id },
+        data: {
+          status: 'FAILED',
+          error: errorMessage,
+          completedAt: new Date(),
+        },
+      });
+
+      throw error;
+    }
+  }
+
+  private async generatePDF(
+    filePath: string,
+    report: ReportDefinition,
+    data: { data: Record<string, unknown>[]; columns: Record<string, unknown>[]; summary: Record<string, unknown> }
+  ): Promise<number> {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const writeStream = fs.createWriteStream(filePath);
+
+      doc.pipe(writeStream);
+
+      // 제목
+      doc.fontSize(18).text(report.name, { align: 'center' });
+      doc.moveDown();
+      
+      if (report.description) {
+        doc.fontSize(10).text(report.description, { align: 'center' });
+        doc.moveDown();
+      }
+
+      // 생성일
+      doc.fontSize(8).text(`생성일: ${new Date().toLocaleDateString('ko-KR')}`, { align: 'right' });
+      doc.moveDown(2);
+
+      // 요약 정보
+      if (Object.keys(data.summary).length > 0) {
+        doc.fontSize(12).text('요약', { underline: true });
+        doc.moveDown(0.5);
+        
+        for (const [key, value] of Object.entries(data.summary)) {
+          if (typeof value === 'object') {
+            doc.fontSize(10).text(`${key}:`);
+            for (const [subKey, subValue] of Object.entries(value as Record<string, unknown>)) {
+              doc.fontSize(9).text(`  ${subKey}: ${this.formatValue(subValue)}`, { indent: 20 });
+            }
+          } else {
+            doc.fontSize(10).text(`${key}: ${this.formatValue(value)}`);
+          }
+        }
+        doc.moveDown(2);
+      }
+
+      // 데이터 테이블
+      if (data.data.length > 0) {
+        doc.fontSize(12).text('상세 데이터', { underline: true });
+        doc.moveDown();
+
+        const columns = data.columns;
+        const tableTop = doc.y;
+        const columnWidth = (doc.page.width - 100) / Math.min(columns.length, 5);
+        
+        // 헤더
+        doc.fontSize(8);
+        columns.slice(0, 5).forEach((col, i) => {
+          doc.text(
+            String((col as Record<string, unknown>).label || (col as Record<string, unknown>).field),
+            50 + i * columnWidth,
+            tableTop,
+            { width: columnWidth, align: 'left' }
+          );
+        });
+
+        doc.moveDown();
+        let rowY = doc.y;
+
+        // 데이터 행 (최대 50행)
+        data.data.slice(0, 50).forEach((row) => {
+          if (rowY > doc.page.height - 100) {
+            doc.addPage();
+            rowY = 50;
+          }
+
+          columns.slice(0, 5).forEach((col, i) => {
+            const field = (col as Record<string, unknown>).field as string;
+            const value = row[field];
+            doc.text(
+              this.formatValue(value),
+              50 + i * columnWidth,
+              rowY,
+              { width: columnWidth, align: 'left' }
+            );
+          });
+
+          rowY += 15;
+        });
+
+        if (data.data.length > 50) {
+          doc.moveDown();
+          doc.fontSize(8).text(`... 외 ${data.data.length - 50}건`, { align: 'center' });
+        }
+      }
+
+      doc.end();
+
+      writeStream.on('finish', () => {
+        const stats = fs.statSync(filePath);
+        resolve(stats.size);
+      });
+
+      writeStream.on('error', reject);
+    });
+  }
+
+  private async generateExcel(
+    filePath: string,
+    report: ReportDefinition,
+    data: { data: Record<string, unknown>[]; columns: Record<string, unknown>[]; summary: Record<string, unknown> }
+  ): Promise<number> {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'CHEMON CRM';
+    workbook.created = new Date();
+
+    // 데이터 시트
+    const dataSheet = workbook.addWorksheet('데이터');
+
+    // 헤더 행
+    const headers = data.columns.map(col => ({
+      header: String((col as Record<string, unknown>).label || (col as Record<string, unknown>).field),
+      key: (col as Record<string, unknown>).field as string,
+      width: 20,
+    }));
+    dataSheet.columns = headers;
+
+    // 헤더 스타일
+    dataSheet.getRow(1).font = { bold: true };
+    dataSheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' },
+    };
+
+    // 데이터 행
+    data.data.forEach(row => {
+      const rowData: Record<string, unknown> = {};
+      data.columns.forEach(col => {
+        const field = (col as Record<string, unknown>).field as string;
+        const type = (col as Record<string, unknown>).type as string;
+        let value = row[field];
+
+        // 타입에 따른 포맷팅
+        if (type === 'currency' && typeof value === 'number') {
+          value = value;
+        } else if (type === 'percent' && typeof value === 'number') {
+          value = value / 100;
+        } else if (type === 'date' && value) {
+          value = new Date(value as string);
+        }
+
+        rowData[field] = value;
+      });
+      dataSheet.addRow(rowData);
     });
 
-    return this.toReportExport(updatedExport);
+    // 숫자/통화 컬럼 포맷
+    data.columns.forEach((col, index) => {
+      const type = (col as Record<string, unknown>).type as string;
+      const column = dataSheet.getColumn(index + 1);
+      
+      if (type === 'currency') {
+        column.numFmt = '#,##0';
+      } else if (type === 'percent') {
+        column.numFmt = '0.0%';
+      } else if (type === 'date') {
+        column.numFmt = 'YYYY-MM-DD';
+      }
+    });
+
+    // 요약 시트
+    if (Object.keys(data.summary).length > 0) {
+      const summarySheet = workbook.addWorksheet('요약');
+      summarySheet.columns = [
+        { header: '항목', key: 'key', width: 30 },
+        { header: '값', key: 'value', width: 30 },
+      ];
+      summarySheet.getRow(1).font = { bold: true };
+
+      const flattenSummary = (obj: Record<string, unknown>, prefix = ''): Array<{ key: string; value: string }> => {
+        const result: Array<{ key: string; value: string }> = [];
+        for (const [key, value] of Object.entries(obj)) {
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          if (typeof value === 'object' && value !== null) {
+            result.push(...flattenSummary(value as Record<string, unknown>, fullKey));
+          } else {
+            result.push({ key: fullKey, value: this.formatValue(value) });
+          }
+        }
+        return result;
+      };
+
+      flattenSummary(data.summary).forEach(item => {
+        summarySheet.addRow(item);
+      });
+    }
+
+    await workbook.xlsx.writeFile(filePath);
+    const stats = fs.statSync(filePath);
+    return stats.size;
+  }
+
+  private async generateCSV(
+    filePath: string,
+    report: ReportDefinition,
+    data: { data: Record<string, unknown>[]; columns: Record<string, unknown>[]; summary: Record<string, unknown> }
+  ): Promise<number> {
+    const headers = data.columns.map(col => 
+      String((col as Record<string, unknown>).label || (col as Record<string, unknown>).field)
+    );
+    
+    const rows = data.data.map(row => {
+      return data.columns.map(col => {
+        const field = (col as Record<string, unknown>).field as string;
+        const value = row[field];
+        return this.escapeCSV(this.formatValue(value));
+      }).join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    
+    // UTF-8 BOM 추가 (한글 지원)
+    const bom = '\uFEFF';
+    fs.writeFileSync(filePath, bom + csvContent, 'utf8');
+    
+    const stats = fs.statSync(filePath);
+    return stats.size;
+  }
+
+  private formatValue(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    if (value instanceof Date) return value.toLocaleDateString('ko-KR');
+    if (typeof value === 'number') {
+      return value.toLocaleString('ko-KR');
+    }
+    return String(value);
+  }
+
+  private escapeCSV(value: string): string {
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    return value;
   }
 
   async getExportStatus(exportId: string, userId: string): Promise<ReportExport> {

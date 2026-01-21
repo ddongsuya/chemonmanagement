@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuotationStore } from '@/stores/quotationStore';
 import { useEfficacyQuotationStore } from '@/stores/efficacyQuotationStore';
 import QuotationWizard from '@/components/quotation/QuotationWizard';
@@ -18,13 +19,14 @@ import EfficacyStepPreview from '@/components/efficacy-quotation/StepPreview';
 import PageHeader from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { RotateCcw, FlaskConical, Microscope, ArrowLeft } from 'lucide-react';
+import { RotateCcw, FlaskConical, Microscope, ArrowLeft, TestTube } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type QuotationType = 'toxicity' | 'efficacy' | null;
 
 export default function NewQuotationPage() {
   const [quotationType, setQuotationType] = useState<QuotationType>(null);
+  const router = useRouter();
   
   const toxicityStore = useQuotationStore();
   const efficacyStore = useEfficacyQuotationStore();
@@ -95,13 +97,13 @@ export default function NewQuotationPage() {
   // 유형 선택 화면
   if (!quotationType) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <PageHeader
           title="새 견적서 작성"
           description="견적서 유형을 선택해주세요"
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
           {/* 독성시험 카드 */}
           <Card
             className={cn(
@@ -152,6 +154,33 @@ export default function NewQuotationPage() {
                 <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">동물모델</span>
                 <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">세포모델</span>
                 <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">분석항목</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 임상병리검사 카드 */}
+          <Card
+            className={cn(
+              'cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
+              'border-2 border-transparent hover:border-purple-400/50',
+              'bg-gradient-to-br from-purple-50 to-pink-50'
+            )}
+            onClick={() => router.push('/clinical-pathology/quotations/new')}
+          >
+            <CardContent className="p-8 text-center">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-lg">
+                <TestTube className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-3">임상병리검사 견적서</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                임상병리검사 관련 견적서를 작성합니다.<br />
+                검체 정보, 검사항목 선택, 가격 산출까지<br />
+                단계별로 진행됩니다.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">혈액학검사</span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">혈액생화학</span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">요검사</span>
               </div>
             </CardContent>
           </Card>

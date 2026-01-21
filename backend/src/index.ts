@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
 import { errorHandler, requestLogger, rateLimiter } from './middleware';
@@ -18,6 +19,8 @@ import {
   studyRoutes,
   consultationRoutes,
   customerDataRoutes,
+  excelRoutes,
+  clinicalPathologyRoutes,
 } from './routes';
 import masterDataRoutes from './routes/masterData';
 import packageRoutes from './routes/package';
@@ -92,6 +95,13 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/automation', automationRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/study-dashboard', studyDashboardRoutes);
+app.use('/api/excel', excelRoutes);
+
+// Clinical Pathology routes
+app.use('/api/clinical-pathology', clinicalPathologyRoutes);
+
+// Static file serving for exports
+app.use('/exports', express.static(path.join(process.cwd(), 'exports')));
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

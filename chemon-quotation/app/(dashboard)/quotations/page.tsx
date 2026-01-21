@@ -56,6 +56,7 @@ import {
   QuotationStatus,
 } from '@/lib/data-api';
 import { useToast } from '@/hooks/use-toast';
+import ExcelImportExport from '@/components/excel/ExcelImportExport';
 
 // 상태 라벨 매핑
 const STATUS_LABELS: Record<string, string> = {
@@ -263,12 +264,15 @@ function QuotationsContent() {
         title={getPageTitle()}
         description="작성된 견적서를 관리합니다"
         actions={
-          <Button asChild>
-            <Link href="/quotations/new">
-              <Plus className="w-4 h-4 mr-2" />
-              새 견적서 작성
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <ExcelImportExport defaultType="quotations" onImportSuccess={loadQuotations} />
+            <Button asChild>
+              <Link href="/quotations/new">
+                <Plus className="w-4 h-4 mr-2" />
+                새 견적서 작성
+              </Link>
+            </Button>
+          </div>
         }
       />
 

@@ -24,6 +24,7 @@ import {
 import { Plus, Search, Building2, User, Phone, Mail, Calendar } from 'lucide-react';
 import { getLeads, Lead, getPipelineStages, PipelineStage } from '@/lib/lead-api';
 import { useToast } from '@/hooks/use-toast';
+import ExcelImportExport from '@/components/excel/ExcelImportExport';
 
 const statusLabels: Record<string, string> = {
   NEW: '신규',
@@ -103,6 +104,7 @@ export default function LeadsPage() {
           <p className="text-muted-foreground">잠재 고객 및 문의 관리</p>
         </div>
         <div className="flex gap-2">
+          <ExcelImportExport defaultType="leads" onImportSuccess={loadData} />
           <Button variant="outline" onClick={() => router.push('/pipeline')}>
             파이프라인 보드
           </Button>

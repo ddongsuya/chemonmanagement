@@ -95,17 +95,29 @@ Customer
 | Study         | Contract 기반 시험 관리 | 백엔드 시험 진행     |
 | TestReception | Customer 기반 시험 접수 | 프론트엔드 고객 관리 |
 
-**현재:** 두 모델이 직접 연결되어 있지 않음
-**권장:** Study.testReceptionId 필드 추가 또는 통합
+**현재:** ✅ Study.testReceptionId 필드로 연결 완료
+**구현:**
+
+- Study 생성/수정 시 testReceptionId 지원
+- `/api/studies/:id/link-reception` - 연결 API
+- `/api/studies/:id/unlink-reception` - 연결 해제 API
+
+### 구현 완료 항목
+
+| 항목                       | 상태    | 비고                                                |
+| -------------------------- | ------- | --------------------------------------------------- |
+| Study ↔ TestReception 연결 | ✅ 완료 | studies.ts 라우트 업데이트                          |
+| Automation 실행 엔진       | ✅ 완료 | 트리거 핸들러 (STATUS_CHANGE, ITEM_CREATED 등) 구현 |
+| Report PDF/Excel 파일 생성 | ✅ 완료 | pdfkit, exceljs 사용 실제 파일 생성                 |
 
 ### 미구현 항목
 
-| 항목                       | 우선순위 |
-| -------------------------- | -------- |
-| Study ↔ TestReception 연결 | 중       |
-| Automation 실행 엔진       | 중       |
-| Report PDF/Excel 파일 생성 | 중       |
-| WebSocket 실시간 알림      | 하       |
+| 항목                  | 우선순위 | 비고                                |
+| --------------------- | -------- | ----------------------------------- |
+| WebSocket 실시간 알림 | 하       | 현재 폴링 방식으로 대체 가능        |
+| 이메일 발송 기능      | 하       | SEND_EMAIL 액션 타입 정의만 존재    |
+| Webhook 호출 기능     | 하       | WEBHOOK 액션 타입 정의만 존재       |
+| 스케줄러 (Cron Job)   | 중       | processDateReachedTriggers() 호출용 |
 
 ---
 
@@ -151,14 +163,17 @@ Customer
 2. 사용자/부서 기반 데이터 필터링 적용
 3. CRM Extension Phase 2 구현 완료
 4. Customer Data 모듈 완전 연동
+5. Study ↔ TestReception 연결 구현
+6. Automation 실행 엔진 구현 (트리거 핸들러)
+7. Report PDF/Excel/CSV 파일 생성 구현
 
 **권장 후속 작업:**
 
-1. Study ↔ TestReception 연결
-2. Automation 실행 엔진
-3. Report 파일 생성
-4. WebSocket 알림
+1. WebSocket 실시간 알림 (선택)
+2. 이메일 발송 기능 (선택)
+3. 스케줄러 설정 (날짜 기반 트리거용)
 
 ---
 
 _생성일: 2026-01-21_
+_최종 수정: 2026-01-21 - 점검필요항목 수정 완료_

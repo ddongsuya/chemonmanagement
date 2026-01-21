@@ -17,6 +17,7 @@ import { Plus, Search, Users, RefreshCw } from 'lucide-react';
 import { Customer } from '@/types';
 import { getCustomers, Customer as ApiCustomer } from '@/lib/data-api';
 import { useToast } from '@/hooks/use-toast';
+import ExcelImportExport from '@/components/excel/ExcelImportExport';
 
 export default function CustomersPage() {
   const { toast } = useToast();
@@ -33,7 +34,7 @@ export default function CustomersPage() {
       if (response.success && response.data) {
         // API 응답을 프론트엔드 Customer 타입으로 변환
         const customerData = response.data.data || [];
-        const mappedCustomers: Customer[] = customerData.map((c: ApiCustomer) => ({
+        const mappedCustomers: Customer[] = customerData.map((c: ApiCustomer & { quotationCount?: number; totalAmount?: number }) => ({
           id: c.id,
           company_name: c.company || c.name,
           business_number: '',
@@ -44,8 +45,8 @@ export default function CustomersPage() {
           notes: c.notes || '',
           created_at: c.createdAt,
           updated_at: c.updatedAt,
-          quotation_count: 0,
-          total_amount: 0,
+          quotation_count: c.quotationCount || 0,
+          total_amount: c.totalAmount || 0,
         }));
         setCustomers(mappedCustomers);
       } else {
@@ -129,6 +130,7 @@ export default function CustomersPage() {
         description="고객사 정보를 관리하고 견적 이력을 확인합니다"
         actions={
           <div className="flex gap-2">
+            <ExcelImportExport defaultType="customers" onImportSuccess={loadCustomers} />
             <Button variant="outline" onClick={loadCustomers}>
               <RefreshCw className="w-4 h-4 mr-2" />
               새로고침

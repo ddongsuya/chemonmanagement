@@ -13,12 +13,13 @@ router.use(authenticate);
 // 시험 목록 조회
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { status, contractId, search, page = '1', limit = '20' } = req.query;
+    const { status, contractId, testReceptionId, search, page = '1', limit = '20' } = req.query;
 
     const where: any = {};
     
     if (status) where.status = status as StudyStatus;
     if (contractId) where.contractId = contractId as string;
+    if (testReceptionId) where.testReceptionId = testReceptionId as string;
     if (search) {
       where.OR = [
         { studyNumber: { contains: search as string, mode: 'insensitive' } },
@@ -36,6 +37,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
           contract: {
             include: { customer: true },
           },
+          testReception: true,
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -72,6 +74,12 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         contract: {
           include: { customer: true },
         },
+        testReception: {
+          include: {
+            customer: true,
+            requester: true,
+          },
+        },
       },
     });
 
@@ -90,6 +98,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
       contractId,
+      testReceptionId,
       studyType,
       testName,
       testItemId,
@@ -98,6 +107,19 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       expectedEndDate,
       notes,
     } = req.body;
+
+    // testReceptionId가 이미 다른 Study에 연결되어 있는지 확인
+    if (testReceptionId) {
+      const existingStudy = await prisma.study.findUnique({
+        where: { testReceptionId },
+      });
+      if (existingStudy) {
+        return res.status(400).json({
+          success: false,
+          message: '해당 시험 접수는 이미 다른 시험에 연결되어 있습니다.',
+        });
+      }
+    }
 
     // 시험 번호 생성
     const year = new Date().getFullYear();
@@ -110,6 +132,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       data: {
         studyNumber,
         contractId,
+        testReceptionId: testReceptionId || null,
         studyType,
         testName,
         testItemId,
@@ -119,7 +142,10 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         notes,
         status: StudyStatus.REGISTERED,
       },
-      include: { contract: { include: { customer: true } } },
+      include: {
+        contract: { include: { customer: true } },
+        testReception: true,
+      },
     });
 
     // 계약 상태 업데이트
@@ -127,6 +153,14 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       where: { id: contractId },
       data: { status: 'TEST_RECEIVED' },
     });
+
+    // TestReception 상태 업데이트 (연결된 경우)
+    if (testReceptionId) {
+      await prisma.testReception.update({
+        where: { id: testReceptionId },
+        data: { status: 'in_progress' },
+      });
+    }
 
     res.status(201).json({ success: true, data: { study } });
   } catch (error) {
@@ -140,6 +174,22 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
     const updateData = req.body;
 
+    // testReceptionId 변경 시 중복 체크
+    if (updateData.testReceptionId) {
+      const existingStudy = await prisma.study.findFirst({
+        where: {
+          testReceptionId: updateData.testReceptionId,
+          id: { not: id },
+        },
+      });
+      if (existingStudy) {
+        return res.status(400).json({
+          success: false,
+          message: '해당 시험 접수는 이미 다른 시험에 연결되어 있습니다.',
+        });
+      }
+    }
+
     if (updateData.receivedDate) updateData.receivedDate = new Date(updateData.receivedDate);
     if (updateData.startDate) updateData.startDate = new Date(updateData.startDate);
     if (updateData.expectedEndDate) updateData.expectedEndDate = new Date(updateData.expectedEndDate);
@@ -150,7 +200,10 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     const study = await prisma.study.update({
       where: { id },
       data: updateData,
-      include: { contract: { include: { customer: true } } },
+      include: {
+        contract: { include: { customer: true } },
+        testReception: true,
+      },
     });
 
     res.json({ success: true, data: { study } });
@@ -216,6 +269,88 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
     await prisma.study.delete({ where: { id } });
 
     res.json({ success: true, message: '시험이 삭제되었습니다.' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 시험과 시험접수 연결
+router.post('/:id/link-reception', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { testReceptionId } = req.body;
+
+    if (!testReceptionId) {
+      return res.status(400).json({
+        success: false,
+        message: '시험 접수 ID가 필요합니다.',
+      });
+    }
+
+    // 이미 다른 Study에 연결되어 있는지 확인
+    const existingStudy = await prisma.study.findUnique({
+      where: { testReceptionId },
+    });
+    if (existingStudy && existingStudy.id !== id) {
+      return res.status(400).json({
+        success: false,
+        message: '해당 시험 접수는 이미 다른 시험에 연결되어 있습니다.',
+      });
+    }
+
+    const study = await prisma.study.update({
+      where: { id },
+      data: { testReceptionId },
+      include: {
+        contract: { include: { customer: true } },
+        testReception: true,
+      },
+    });
+
+    // TestReception 상태 업데이트
+    await prisma.testReception.update({
+      where: { id: testReceptionId },
+      data: { status: 'in_progress' },
+    });
+
+    res.json({ success: true, data: { study } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 시험과 시험접수 연결 해제
+router.post('/:id/unlink-reception', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const existingStudy = await prisma.study.findUnique({
+      where: { id },
+      select: { testReceptionId: true },
+    });
+
+    if (!existingStudy?.testReceptionId) {
+      return res.status(400).json({
+        success: false,
+        message: '연결된 시험 접수가 없습니다.',
+      });
+    }
+
+    const study = await prisma.study.update({
+      where: { id },
+      data: { testReceptionId: null },
+      include: {
+        contract: { include: { customer: true } },
+      },
+    });
+
+    // TestReception 상태를 received로 되돌림
+    await prisma.testReception.update({
+      where: { id: existingStudy.testReceptionId },
+      data: { status: 'received' },
+    });
+
+    res.json({ success: true, data: { study } });
   } catch (error) {
     next(error);
   }

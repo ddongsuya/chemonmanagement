@@ -19,6 +19,7 @@ import {
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { getQuotations, getCustomers } from '@/lib/data-api';
+import { getRevenueAnalytics } from '@/lib/analytics-api';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function DashboardPage() {
@@ -38,6 +39,11 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadStats = async () => {
       try {
+        // 이번 달 시작일과 종료일 계산
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        
         // 견적서 통계 가져오기
         const [allResponse, draftResponse, sentResponse, acceptedResponse, rejectedResponse, customersResponse] = await Promise.all([
           getQuotations({ limit: 1 }),
@@ -58,13 +64,30 @@ export default function DashboardPage() {
         const totalDecided = won + lost;
         const winRate = totalDecided > 0 ? (won / totalDecided) * 100 : 0;
 
+        // 월별 매출 통계 가져오기
+        let monthlyTotal = 0;
+        let monthlyCount = 0;
+        try {
+          const revenueData = await getRevenueAnalytics({
+            startDate: monthStart.toISOString().slice(0, 10),
+            endDate: monthEnd.toISOString().slice(0, 10),
+            period: 'monthly',
+          });
+          if (revenueData?.summary) {
+            monthlyTotal = revenueData.summary.totalRevenue || 0;
+            monthlyCount = revenueData.summary.totalCount || 0;
+          }
+        } catch (e) {
+          console.warn('Failed to load revenue analytics:', e);
+        }
+
         setStats({
           draft,
           submitted: sent,
           won,
           lost,
-          monthlyTotal: 0, // TODO: 월별 통계 API 추가 필요
-          monthlyCount: 0,
+          monthlyTotal,
+          monthlyCount,
           winRate: Math.round(winRate * 10) / 10,
           customerCount,
           totalQuotations: total,
@@ -155,12 +178,12 @@ export default function DashboardPage() {
           href="/customers"
         />
         <StatsCard
-          title="효력시험"
-          value="견적"
-          icon={FlaskConical}
-          color="purple"
-          subtitle="효력시험 견적"
-          href="/quotations?type=efficacy"
+          title="이번달 계약"
+          value={stats.monthlyTotal > 0 ? `${(stats.monthlyTotal / 100000000).toFixed(1)}억` : '0원'}
+          icon={DollarSign}
+          color="green"
+          subtitle={`${stats.monthlyCount}건`}
+          href="/reports"
         />
         <StatsCard
           title="실주"
