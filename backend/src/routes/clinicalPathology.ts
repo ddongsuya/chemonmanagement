@@ -61,7 +61,7 @@ router.put('/master/test-items/:id', async (req: Request, res: Response) => {
 });
 
 // PATCH /api/clinical-pathology/master/test-items/:id/toggle
-router.patch('/master/test-items/:id/toggle', async (req: Request, res: Response) => {
+router.post('/master/test-items/:id/toggle', async (req: Request, res: Response) => {
   try {
     const item = await clinicalPathologyService.toggleTestItemActive(req.params.id);
     res.json(item);

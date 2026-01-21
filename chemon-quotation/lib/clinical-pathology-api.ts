@@ -21,7 +21,7 @@ import type {
   ClinicalTestCategory,
 } from '@/types/clinical-pathology';
 
-const BASE_URL = '/clinical-pathology';
+const BASE_URL = '/api/clinical-pathology';
 
 // ==================== 마스터데이터 - 검사항목 ====================
 
