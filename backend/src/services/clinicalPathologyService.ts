@@ -441,7 +441,8 @@ export async function updateQuotation(id: string, data: Partial<{
   if (existing.status !== 'DRAFT') throw new Error('작성중 상태의 견적서만 수정할 수 있습니다.');
   
   // 항목이 변경된 경우 금액 재계산
-  let calculation;
+  let calculation: Awaited<ReturnType<typeof calculateQuotation>> | null = null;
+  
   if (data.items) {
     calculation = await calculateQuotation({
       totalSamples: data.totalSamples || existing.totalSamples,
@@ -475,7 +476,7 @@ export async function updateQuotation(id: string, data: Partial<{
       await tx.clinicalQuotationItem.createMany({
         data: data.items.map((item, index) => {
           const testItem = testItemMap.get(item.testItemId)!;
-          const calcItem = calculation!.items.find(c => c.testItemId === item.testItemId)!;
+          const calcItem = calculation!.items.find(c => c.testItemId === item.testItemId);
           return {
             quotationId: id,
             testItemId: item.testItemId,
@@ -488,7 +489,7 @@ export async function updateQuotation(id: string, data: Partial<{
             isPackage: testItem.isPackage,
             unitPrice: testItem.unitPrice,
             quantity: item.quantity,
-            amount: calcItem.amount,
+            amount: calcItem?.amount ?? 0,
             displayOrder: index,
           };
         }),
@@ -616,7 +617,7 @@ export async function copyQuotation(id: string, userId: string) {
       maleSamples: original.maleSamples,
       femaleSamples: original.femaleSamples,
       subtotal: original.subtotal,
-      qcFees: original.qcFees,
+      qcFees: original.qcFees as object,
       totalQcFee: original.totalQcFee,
       discountType: original.discountType,
       discountValue: original.discountValue,

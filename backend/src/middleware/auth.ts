@@ -4,7 +4,13 @@ import { PrismaClient } from '@prisma/client';
 import { AppError, ErrorCodes } from '../types/error';
 import { TokenPayload } from '../types/auth';
 
-const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || 'access-secret-key';
+// 프로덕션 환경에서는 환경 변수 필수
+const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET;
+if (!ACCESS_TOKEN_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('CRITICAL: JWT_ACCESS_SECRET 환경 변수가 설정되지 않았습니다. 프로덕션 환경에서는 필수입니다.');
+}
+const JWT_SECRET = ACCESS_TOKEN_SECRET || 'dev-only-secret-key';
+
 const prisma = new PrismaClient();
 
 /**
@@ -33,7 +39,7 @@ export const authenticate = async (
       throw new AppError('토큰이 비어있습니다', 401, ErrorCodes.AUTH_TOKEN_INVALID);
     }
 
-    const payload = jwt.verify(token, ACCESS_TOKEN_SECRET) as TokenPayload;
+    const payload = jwt.verify(token, JWT_SECRET) as TokenPayload;
 
     // Fetch user from DB to get canViewAllSales
     const user = await prisma.user.findUnique({
@@ -134,7 +140,7 @@ export const optionalAuth = async (
       return;
     }
 
-    const payload = jwt.verify(token, ACCESS_TOKEN_SECRET) as TokenPayload;
+    const payload = jwt.verify(token, JWT_SECRET) as TokenPayload;
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },

@@ -27,8 +27,22 @@ export class AuthService {
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
-    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || 'access-secret-key';
-    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || 'refresh-secret-key';
+    
+    // 프로덕션 환경에서는 환경 변수 필수
+    const accessSecret = process.env.JWT_ACCESS_SECRET;
+    const refreshSecret = process.env.JWT_REFRESH_SECRET;
+    
+    if (process.env.NODE_ENV === 'production') {
+      if (!accessSecret) {
+        throw new Error('CRITICAL: JWT_ACCESS_SECRET 환경 변수가 설정되지 않았습니다.');
+      }
+      if (!refreshSecret) {
+        throw new Error('CRITICAL: JWT_REFRESH_SECRET 환경 변수가 설정되지 않았습니다.');
+      }
+    }
+    
+    this.accessTokenSecret = accessSecret || 'dev-only-access-secret';
+    this.refreshTokenSecret = refreshSecret || 'dev-only-refresh-secret';
     this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || '15m';
     this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '7d';
   }
