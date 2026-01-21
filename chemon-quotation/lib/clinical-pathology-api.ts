@@ -36,35 +36,29 @@ export async function getTestItems(params?: {
   if (params?.search) searchParams.append('search', params.search);
   
   const query = searchParams.toString();
-  const response = await api.get(`${BASE_URL}/master/test-items${query ? `?${query}` : ''}`);
-  return response.data;
+  return api.get<TestItemsListResponse>(`${BASE_URL}/master/test-items${query ? `?${query}` : ''}`);
 }
 
 export async function getTestItemById(id: string): Promise<ClinicalTestItem> {
-  const response = await api.get(`${BASE_URL}/master/test-items/${id}`);
-  return response.data;
+  return api.get<ClinicalTestItem>(`${BASE_URL}/master/test-items/${id}`);
 }
 
 export async function createTestItem(data: Partial<ClinicalTestItem>): Promise<ClinicalTestItem> {
-  const response = await api.post(`${BASE_URL}/master/test-items`, data);
-  return response.data;
+  return api.post<ClinicalTestItem>(`${BASE_URL}/master/test-items`, data);
 }
 
 export async function updateTestItem(id: string, data: Partial<ClinicalTestItem>): Promise<ClinicalTestItem> {
-  const response = await api.put(`${BASE_URL}/master/test-items/${id}`, data);
-  return response.data;
+  return api.put<ClinicalTestItem>(`${BASE_URL}/master/test-items/${id}`, data);
 }
 
 export async function toggleTestItemActive(id: string): Promise<ClinicalTestItem> {
-  const response = await api.patch(`${BASE_URL}/master/test-items/${id}/toggle`);
-  return response.data;
+  return api.post<ClinicalTestItem>(`${BASE_URL}/master/test-items/${id}/toggle`, {});
 }
 
 // ==================== 마스터데이터 - QC 설정 ====================
 
 export async function getQcSettings(): Promise<ClinicalQcSetting[]> {
-  const response = await api.get(`${BASE_URL}/master/qc-settings`);
-  return response.data;
+  return api.get<ClinicalQcSetting[]>(`${BASE_URL}/master/qc-settings`);
 }
 
 export async function updateQcSettings(settings: Array<{
@@ -72,17 +66,14 @@ export async function updateQcSettings(settings: Array<{
   thresholdCount: number;
   qcFee: number;
 }>): Promise<ClinicalQcSetting[]> {
-  const response = await api.put(`${BASE_URL}/master/qc-settings`, { settings });
-  return response.data;
+  return api.put<ClinicalQcSetting[]>(`${BASE_URL}/master/qc-settings`, { settings });
 }
 
 // ==================== 금액 계산 ====================
 
 export async function calculateQuotation(data: CalculateRequest): Promise<CalculateResponse> {
-  const response = await api.post(`${BASE_URL}/calculate`, data);
-  return response.data;
+  return api.post<CalculateResponse>(`${BASE_URL}/calculate`, data);
 }
-
 
 // ==================== 견적서 ====================
 
@@ -105,56 +96,46 @@ export async function getQuotations(params?: {
   if (params?.limit) searchParams.append('limit', String(params.limit));
   
   const query = searchParams.toString();
-  const response = await api.get(`${BASE_URL}/quotations${query ? `?${query}` : ''}`);
-  return response.data;
+  return api.get<QuotationsListResponse>(`${BASE_URL}/quotations${query ? `?${query}` : ''}`);
 }
 
 export async function getQuotationById(id: string): Promise<ClinicalQuotation> {
-  const response = await api.get(`${BASE_URL}/quotations/${id}`);
-  return response.data;
+  return api.get<ClinicalQuotation>(`${BASE_URL}/quotations/${id}`);
 }
 
 export async function createQuotation(data: CreateQuotationRequest): Promise<{
   quotation: ClinicalQuotation;
   quotationNumber: string;
 }> {
-  const response = await api.post(`${BASE_URL}/quotations`, data);
-  return response.data;
+  return api.post<{ quotation: ClinicalQuotation; quotationNumber: string }>(`${BASE_URL}/quotations`, data);
 }
 
 export async function updateQuotation(id: string, data: UpdateQuotationRequest): Promise<ClinicalQuotation> {
-  const response = await api.put(`${BASE_URL}/quotations/${id}`, data);
-  return response.data;
+  return api.put<ClinicalQuotation>(`${BASE_URL}/quotations/${id}`, data);
 }
 
 export async function deleteQuotation(id: string): Promise<{ success: boolean }> {
-  const response = await api.delete(`${BASE_URL}/quotations/${id}`);
-  return response.data;
+  return api.delete<{ success: boolean }>(`${BASE_URL}/quotations/${id}`);
 }
 
 export async function sendQuotation(id: string): Promise<ClinicalQuotation> {
-  const response = await api.post(`${BASE_URL}/quotations/${id}/send`);
-  return response.data;
+  return api.post<ClinicalQuotation>(`${BASE_URL}/quotations/${id}/send`, {});
 }
 
 export async function acceptQuotation(id: string): Promise<ClinicalQuotation> {
-  const response = await api.post(`${BASE_URL}/quotations/${id}/accept`);
-  return response.data;
+  return api.post<ClinicalQuotation>(`${BASE_URL}/quotations/${id}/accept`, {});
 }
 
 export async function rejectQuotation(id: string): Promise<ClinicalQuotation> {
-  const response = await api.post(`${BASE_URL}/quotations/${id}/reject`);
-  return response.data;
+  return api.post<ClinicalQuotation>(`${BASE_URL}/quotations/${id}/reject`, {});
 }
 
 export async function copyQuotation(id: string): Promise<ClinicalQuotation> {
-  const response = await api.post(`${BASE_URL}/quotations/${id}/copy`);
-  return response.data;
+  return api.post<ClinicalQuotation>(`${BASE_URL}/quotations/${id}/copy`, {});
 }
 
 export async function convertToTestRequest(quotationId: string): Promise<ClinicalTestRequest> {
-  const response = await api.post(`${BASE_URL}/quotations/${quotationId}/convert-to-request`);
-  return response.data;
+  return api.post<ClinicalTestRequest>(`${BASE_URL}/quotations/${quotationId}/convert-to-request`, {});
 }
 
 // ==================== 시험의뢰서 ====================
@@ -178,57 +159,46 @@ export async function getTestRequests(params?: {
   if (params?.limit) searchParams.append('limit', String(params.limit));
   
   const query = searchParams.toString();
-  const response = await api.get(`${BASE_URL}/test-requests${query ? `?${query}` : ''}`);
-  return response.data;
+  return api.get<TestRequestsListResponse>(`${BASE_URL}/test-requests${query ? `?${query}` : ''}`);
 }
 
 export async function getTestRequestById(id: string): Promise<ClinicalTestRequest> {
-  const response = await api.get(`${BASE_URL}/test-requests/${id}`);
-  return response.data;
+  return api.get<ClinicalTestRequest>(`${BASE_URL}/test-requests/${id}`);
 }
 
 export async function updateTestRequest(id: string, data: Partial<ClinicalTestRequest>): Promise<ClinicalTestRequest> {
-  const response = await api.put(`${BASE_URL}/test-requests/${id}`, data);
-  return response.data;
+  return api.put<ClinicalTestRequest>(`${BASE_URL}/test-requests/${id}`, data);
 }
 
 export async function deleteTestRequest(id: string): Promise<{ success: boolean }> {
-  const response = await api.delete(`${BASE_URL}/test-requests/${id}`);
-  return response.data;
+  return api.delete<{ success: boolean }>(`${BASE_URL}/test-requests/${id}`);
 }
 
 export async function submitTestRequest(id: string): Promise<ClinicalTestRequest> {
-  const response = await api.post(`${BASE_URL}/test-requests/${id}/submit`);
-  return response.data;
+  return api.post<ClinicalTestRequest>(`${BASE_URL}/test-requests/${id}/submit`, {});
 }
 
 export async function receiveTestRequest(id: string, data: ReceiveRequestData): Promise<ClinicalTestRequest> {
-  const response = await api.post(`${BASE_URL}/test-requests/${id}/receive`, data);
-  return response.data;
+  return api.post<ClinicalTestRequest>(`${BASE_URL}/test-requests/${id}/receive`, data);
 }
 
 export async function startTestRequest(id: string): Promise<ClinicalTestRequest> {
-  const response = await api.post(`${BASE_URL}/test-requests/${id}/start`);
-  return response.data;
+  return api.post<ClinicalTestRequest>(`${BASE_URL}/test-requests/${id}/start`, {});
 }
 
 export async function completeTestRequest(id: string): Promise<ClinicalTestRequest> {
-  const response = await api.post(`${BASE_URL}/test-requests/${id}/complete`);
-  return response.data;
+  return api.post<ClinicalTestRequest>(`${BASE_URL}/test-requests/${id}/complete`, {});
 }
 
 export async function cancelTestRequest(id: string): Promise<ClinicalTestRequest> {
-  const response = await api.post(`${BASE_URL}/test-requests/${id}/cancel`);
-  return response.data;
+  return api.post<ClinicalTestRequest>(`${BASE_URL}/test-requests/${id}/cancel`, {});
 }
 
 // ==================== 통계 ====================
 
 export async function getStatistics(): Promise<ClinicalStatistics> {
-  const response = await api.get(`${BASE_URL}/statistics`);
-  return response.data;
+  return api.get<ClinicalStatistics>(`${BASE_URL}/statistics`);
 }
-
 
 // ==================== API 객체 Export ====================
 
