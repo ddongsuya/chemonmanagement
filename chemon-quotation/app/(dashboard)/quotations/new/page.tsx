@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { useQuotationStore } from '@/stores/quotationStore';
 import { useEfficacyQuotationStore } from '@/stores/efficacyQuotationStore';
 import QuotationWizard from '@/components/quotation/QuotationWizard';
@@ -29,32 +30,23 @@ type QuotationType = 'toxicity' | 'efficacy' | null;
 
 export default function NewQuotationPage() {
   const [quotationType, setQuotationType] = useState<QuotationType>(null);
-  const [userCode, setUserCode] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   
   const toxicityStore = useQuotationStore();
   const efficacyStore = useEfficacyQuotationStore();
 
-  // 사용자 설정에서 userCode 확인
-  useEffect(() => {
-    const checkUserCode = async () => {
-      try {
-        const response = await getUserSettings();
-        if (response.success && response.data?.userCode) {
-          setUserCode(response.data.userCode);
-        } else {
-          setUserCode(null);
-        }
-      } catch (error) {
-        console.error('Failed to load user settings:', error);
-        setUserCode(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    checkUserCode();
-  }, []);
+  // useQuery로 사용자 설정 조회 (캐시 공유)
+  const { data: settingsResponse, isLoading } = useQuery({
+    queryKey: ['userSettings'],
+    queryFn: getUserSettings,
+    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
+    retry: 2,
+  });
+
+  // userCode 추출
+  const userCode = settingsResponse?.success && settingsResponse.data?.userCode?.trim() 
+    ? settingsResponse.data.userCode 
+    : null;
 
   const handleStepClick = (step: number) => {
     if (quotationType === 'toxicity' && step < toxicityStore.currentStep) {

@@ -3,7 +3,7 @@
  * - Requester, MeetingRecord, TestReception, InvoiceSchedule, CalendarEvent, ProgressStage
  */
 
-import { getAccessToken, getRefreshToken, clearTokens } from './auth-api';
+import { apiFetch, ApiResponse } from './api-utils';
 import {
   Requester,
   MeetingRecord,
@@ -13,85 +13,8 @@ import {
   ProgressStage,
 } from '@/types/customer';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const ACCESS_TOKEN_KEY = 'access_token';
-
-// ============ API Helper ============
-
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-}
-
-async function tryRefreshToken(): Promise<boolean> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (!response.ok) {
-      clearTokens();
-      return false;
-    }
-
-    const data = await response.json();
-    if (data.success && data.data?.accessToken) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, data.data.accessToken);
-      return true;
-    }
-
-    clearTokens();
-    return false;
-  } catch {
-    clearTokens();
-    return false;
-  }
-}
-
-async function dataFetch<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const accessToken = getAccessToken();
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
-  if (accessToken) {
-    (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
-  }
-
-  try {
-    const response = await fetch(url, { ...options, headers });
-    const data = await response.json();
-
-    if (response.status === 401 && accessToken) {
-      const refreshed = await tryRefreshToken();
-      if (refreshed) {
-        const newAccessToken = getAccessToken();
-        (headers as Record<string, string>)['Authorization'] = `Bearer ${newAccessToken}`;
-        const retryResponse = await fetch(url, { ...options, headers });
-        return retryResponse.json();
-      }
-    }
-
-    return data;
-  } catch (error) {
-    return {
-      success: false,
-      message: '네트워크 오류가 발생했습니다.',
-    };
-  }
-}
+// Re-export ApiResponse
+export type { ApiResponse } from './api-utils';
 
 // ==================== Requester API ====================
 
@@ -99,14 +22,14 @@ export const requesterApi = {
   // 고객사별 의뢰자 목록
   async getByCustomerId(customerId: string, activeOnly = false): Promise<Requester[]> {
     const params = activeOnly ? '?activeOnly=true' : '';
-    const response = await dataFetch<{ requesters: any[] }>(`/api/customer-data/customers/${customerId}/requesters${params}`);
+    const response = await apiFetch<{ requesters: any[] }>(`/api/customer-data/customers/${customerId}/requesters${params}`);
     return (response.data?.requesters || []).map(mapRequesterFromApi);
   },
 
   // 의뢰자 상세
   async getById(id: string): Promise<Requester | null> {
     try {
-      const response = await dataFetch<{ requester: any }>(`/api/customer-data/requesters/${id}`);
+      const response = await apiFetch<{ requester: any }>(`/api/customer-data/requesters/${id}`);
       return response.data?.requester ? mapRequesterFromApi(response.data.requester) : null;
     } catch {
       return null;
@@ -115,7 +38,7 @@ export const requesterApi = {
 
   // 의뢰자 생성
   async create(customerId: string, data: Omit<Requester, 'id' | 'customer_id' | 'created_at' | 'updated_at'>): Promise<Requester> {
-    const response = await dataFetch<{ requester: any }>(`/api/customer-data/customers/${customerId}/requesters`, {
+    const response = await apiFetch<{ requester: any }>(`/api/customer-data/customers/${customerId}/requesters`, {
       method: 'POST',
       body: JSON.stringify(mapRequesterToApi(data)),
     });
@@ -124,7 +47,7 @@ export const requesterApi = {
 
   // 의뢰자 수정
   async update(id: string, data: Partial<Requester>): Promise<Requester> {
-    const response = await dataFetch<{ requester: any }>(`/api/customer-data/requesters/${id}`, {
+    const response = await apiFetch<{ requester: any }>(`/api/customer-data/requesters/${id}`, {
       method: 'PUT',
       body: JSON.stringify(mapRequesterToApi(data)),
     });
@@ -133,7 +56,7 @@ export const requesterApi = {
 
   // 의뢰자 삭제
   async delete(id: string): Promise<{ deleted: boolean; deactivated: boolean }> {
-    const response = await dataFetch<{ deleted: boolean; deactivated: boolean }>(`/api/customer-data/requesters/${id}`, {
+    const response = await apiFetch<{ deleted: boolean; deactivated: boolean }>(`/api/customer-data/requesters/${id}`, {
       method: 'DELETE',
     });
     return response.data || { deleted: false, deactivated: false };
@@ -150,14 +73,14 @@ export const meetingRecordApi = {
     if (options?.pendingOnly) params.append('pendingOnly', 'true');
     const queryString = params.toString() ? `?${params.toString()}` : '';
     
-    const response = await dataFetch<{ meetingRecords: any[] }>(`/api/customer-data/customers/${customerId}/meeting-records${queryString}`);
+    const response = await apiFetch<{ meetingRecords: any[] }>(`/api/customer-data/customers/${customerId}/meeting-records${queryString}`);
     return (response.data?.meetingRecords || []).map(mapMeetingRecordFromApi);
   },
 
   // 미팅 기록 상세
   async getById(id: string): Promise<MeetingRecord | null> {
     try {
-      const response = await dataFetch<{ meetingRecord: any }>(`/api/customer-data/meeting-records/${id}`);
+      const response = await apiFetch<{ meetingRecord: any }>(`/api/customer-data/meeting-records/${id}`);
       return response.data?.meetingRecord ? mapMeetingRecordFromApi(response.data.meetingRecord) : null;
     } catch {
       return null;
@@ -166,7 +89,7 @@ export const meetingRecordApi = {
 
   // 미팅 기록 생성
   async create(customerId: string, data: Omit<MeetingRecord, 'id' | 'customer_id' | 'created_at' | 'updated_at'>): Promise<MeetingRecord> {
-    const response = await dataFetch<{ meetingRecord: any }>(`/api/customer-data/customers/${customerId}/meeting-records`, {
+    const response = await apiFetch<{ meetingRecord: any }>(`/api/customer-data/customers/${customerId}/meeting-records`, {
       method: 'POST',
       body: JSON.stringify(mapMeetingRecordToApi(data)),
     });
@@ -175,7 +98,7 @@ export const meetingRecordApi = {
 
   // 미팅 기록 수정
   async update(id: string, data: Partial<MeetingRecord>): Promise<MeetingRecord> {
-    const response = await dataFetch<{ meetingRecord: any }>(`/api/customer-data/meeting-records/${id}`, {
+    const response = await apiFetch<{ meetingRecord: any }>(`/api/customer-data/meeting-records/${id}`, {
       method: 'PUT',
       body: JSON.stringify(mapMeetingRecordToApi(data)),
     });
@@ -184,7 +107,7 @@ export const meetingRecordApi = {
 
   // 요청사항 상태 업데이트
   async updateRequestStatus(id: string, status: string, responseText?: string): Promise<MeetingRecord> {
-    const response = await dataFetch<{ meetingRecord: any }>(`/api/customer-data/meeting-records/${id}/request-status`, {
+    const response = await apiFetch<{ meetingRecord: any }>(`/api/customer-data/meeting-records/${id}/request-status`, {
       method: 'PATCH',
       body: JSON.stringify({ status, response: responseText }),
     });
@@ -193,7 +116,7 @@ export const meetingRecordApi = {
 
   // 미팅 기록 삭제
   async delete(id: string): Promise<void> {
-    await dataFetch(`/api/customer-data/meeting-records/${id}`, { method: 'DELETE' });
+    await apiFetch(`/api/customer-data/meeting-records/${id}`, { method: 'DELETE' });
   },
 };
 
@@ -202,21 +125,21 @@ export const meetingRecordApi = {
 export const testReceptionApi = {
   // 고객사별 시험 접수 목록
   async getByCustomerId(customerId: string): Promise<TestReception[]> {
-    const response = await dataFetch<{ testReceptions: any[] }>(`/api/customer-data/customers/${customerId}/test-receptions`);
+    const response = await apiFetch<{ testReceptions: any[] }>(`/api/customer-data/customers/${customerId}/test-receptions`);
     return (response.data?.testReceptions || []).map(mapTestReceptionFromApi);
   },
 
   // 상태별 시험 접수 목록
   async getByStatus(status?: string): Promise<TestReception[]> {
     const params = status ? `?status=${status}` : '';
-    const response = await dataFetch<{ testReceptions: any[] }>(`/api/customer-data/test-receptions${params}`);
+    const response = await apiFetch<{ testReceptions: any[] }>(`/api/customer-data/test-receptions${params}`);
     return (response.data?.testReceptions || []).map(mapTestReceptionFromApi);
   },
 
   // 시험 접수 상세
   async getById(id: string): Promise<TestReception | null> {
     try {
-      const response = await dataFetch<{ testReception: any }>(`/api/customer-data/test-receptions/${id}`);
+      const response = await apiFetch<{ testReception: any }>(`/api/customer-data/test-receptions/${id}`);
       return response.data?.testReception ? mapTestReceptionFromApi(response.data.testReception) : null;
     } catch {
       return null;
@@ -226,7 +149,7 @@ export const testReceptionApi = {
   // 시험번호로 조회
   async getByTestNumber(testNumber: string): Promise<TestReception | null> {
     try {
-      const response = await dataFetch<{ testReception: any }>(`/api/customer-data/test-receptions/by-number/${testNumber}`);
+      const response = await apiFetch<{ testReception: any }>(`/api/customer-data/test-receptions/by-number/${testNumber}`);
       return response.data?.testReception ? mapTestReceptionFromApi(response.data.testReception) : null;
     } catch {
       return null;
@@ -235,7 +158,7 @@ export const testReceptionApi = {
 
   // 시험 접수 생성
   async create(customerId: string, data: Omit<TestReception, 'id' | 'customer_id' | 'created_at' | 'updated_at'>): Promise<TestReception> {
-    const response = await dataFetch<{ testReception: any }>(`/api/customer-data/customers/${customerId}/test-receptions`, {
+    const response = await apiFetch<{ testReception: any }>(`/api/customer-data/customers/${customerId}/test-receptions`, {
       method: 'POST',
       body: JSON.stringify(mapTestReceptionToApi(data)),
     });
@@ -244,7 +167,7 @@ export const testReceptionApi = {
 
   // 시험 접수 수정
   async update(id: string, data: Partial<TestReception>): Promise<TestReception> {
-    const response = await dataFetch<{ testReception: any }>(`/api/customer-data/test-receptions/${id}`, {
+    const response = await apiFetch<{ testReception: any }>(`/api/customer-data/test-receptions/${id}`, {
       method: 'PUT',
       body: JSON.stringify(mapTestReceptionToApi(data)),
     });
@@ -253,7 +176,7 @@ export const testReceptionApi = {
 
   // 시험 접수 상태 업데이트
   async updateStatus(id: string, status: string): Promise<TestReception> {
-    const response = await dataFetch<{ testReception: any }>(`/api/customer-data/test-receptions/${id}/status`, {
+    const response = await apiFetch<{ testReception: any }>(`/api/customer-data/test-receptions/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     });
@@ -262,7 +185,7 @@ export const testReceptionApi = {
 
   // 시험 접수 삭제
   async delete(id: string): Promise<void> {
-    await dataFetch(`/api/customer-data/test-receptions/${id}`, { method: 'DELETE' });
+    await apiFetch(`/api/customer-data/test-receptions/${id}`, { method: 'DELETE' });
   },
 };
 
@@ -272,32 +195,32 @@ export const testReceptionApi = {
 export const invoiceScheduleApi = {
   // 고객사별 세금계산서 일정 목록
   async getByCustomerId(customerId: string): Promise<InvoiceSchedule[]> {
-    const response = await dataFetch<{ invoiceSchedules: any[] }>(`/api/customer-data/customers/${customerId}/invoice-schedules`);
+    const response = await apiFetch<{ invoiceSchedules: any[] }>(`/api/customer-data/customers/${customerId}/invoice-schedules`);
     return (response.data?.invoiceSchedules || []).map(mapInvoiceScheduleFromApi);
   },
 
   // 시험 접수별 세금계산서 일정
   async getByTestReceptionId(testReceptionId: string): Promise<InvoiceSchedule[]> {
-    const response = await dataFetch<{ invoiceSchedules: any[] }>(`/api/customer-data/test-receptions/${testReceptionId}/invoice-schedules`);
+    const response = await apiFetch<{ invoiceSchedules: any[] }>(`/api/customer-data/test-receptions/${testReceptionId}/invoice-schedules`);
     return (response.data?.invoiceSchedules || []).map(mapInvoiceScheduleFromApi);
   },
 
   // 임박한 세금계산서 일정
   async getUpcoming(days = 7): Promise<InvoiceSchedule[]> {
-    const response = await dataFetch<{ invoiceSchedules: any[] }>(`/api/customer-data/invoice-schedules/upcoming?days=${days}`);
+    const response = await apiFetch<{ invoiceSchedules: any[] }>(`/api/customer-data/invoice-schedules/upcoming?days=${days}`);
     return (response.data?.invoiceSchedules || []).map(mapInvoiceScheduleFromApi);
   },
 
   // 연체된 세금계산서 일정
   async getOverdue(): Promise<InvoiceSchedule[]> {
-    const response = await dataFetch<{ invoiceSchedules: any[] }>(`/api/customer-data/invoice-schedules/overdue`);
+    const response = await apiFetch<{ invoiceSchedules: any[] }>(`/api/customer-data/invoice-schedules/overdue`);
     return (response.data?.invoiceSchedules || []).map(mapInvoiceScheduleFromApi);
   },
 
   // 세금계산서 일정 상세
   async getById(id: string): Promise<InvoiceSchedule | null> {
     try {
-      const response = await dataFetch<{ invoiceSchedule: any }>(`/api/customer-data/invoice-schedules/${id}`);
+      const response = await apiFetch<{ invoiceSchedule: any }>(`/api/customer-data/invoice-schedules/${id}`);
       return response.data?.invoiceSchedule ? mapInvoiceScheduleFromApi(response.data.invoiceSchedule) : null;
     } catch {
       return null;
@@ -306,7 +229,7 @@ export const invoiceScheduleApi = {
 
   // 세금계산서 일정 생성
   async create(customerId: string, data: Omit<InvoiceSchedule, 'id' | 'customer_id' | 'created_at' | 'updated_at'>): Promise<InvoiceSchedule> {
-    const response = await dataFetch<{ invoiceSchedule: any }>(`/api/customer-data/customers/${customerId}/invoice-schedules`, {
+    const response = await apiFetch<{ invoiceSchedule: any }>(`/api/customer-data/customers/${customerId}/invoice-schedules`, {
       method: 'POST',
       body: JSON.stringify(mapInvoiceScheduleToApi(data)),
     });
@@ -322,7 +245,7 @@ export const invoiceScheduleApi = {
     startDate: string,
     intervalDays = 30
   ): Promise<InvoiceSchedule[]> {
-    const response = await dataFetch<{ invoiceSchedules: any[] }>(`/api/customer-data/customers/${customerId}/invoice-schedules/installments`, {
+    const response = await apiFetch<{ invoiceSchedules: any[] }>(`/api/customer-data/customers/${customerId}/invoice-schedules/installments`, {
       method: 'POST',
       body: JSON.stringify({ testReceptionId, totalAmount, installments, startDate, intervalDays }),
     });
@@ -331,7 +254,7 @@ export const invoiceScheduleApi = {
 
   // 세금계산서 일정 수정
   async update(id: string, data: Partial<InvoiceSchedule>): Promise<InvoiceSchedule> {
-    const response = await dataFetch<{ invoiceSchedule: any }>(`/api/customer-data/invoice-schedules/${id}`, {
+    const response = await apiFetch<{ invoiceSchedule: any }>(`/api/customer-data/invoice-schedules/${id}`, {
       method: 'PUT',
       body: JSON.stringify(mapInvoiceScheduleToApi(data)),
     });
@@ -340,7 +263,7 @@ export const invoiceScheduleApi = {
 
   // 세금계산서 발행 완료 처리
   async markAsIssued(id: string, invoiceNumber: string): Promise<InvoiceSchedule> {
-    const response = await dataFetch<{ invoiceSchedule: any }>(`/api/customer-data/invoice-schedules/${id}/issue`, {
+    const response = await apiFetch<{ invoiceSchedule: any }>(`/api/customer-data/invoice-schedules/${id}/issue`, {
       method: 'PATCH',
       body: JSON.stringify({ invoiceNumber }),
     });
@@ -349,7 +272,7 @@ export const invoiceScheduleApi = {
 
   // 세금계산서 일정 삭제
   async delete(id: string): Promise<void> {
-    await dataFetch(`/api/customer-data/invoice-schedules/${id}`, { method: 'DELETE' });
+    await apiFetch(`/api/customer-data/invoice-schedules/${id}`, { method: 'DELETE' });
   },
 };
 
@@ -358,32 +281,32 @@ export const invoiceScheduleApi = {
 export const calendarEventApi = {
   // 전체 캘린더 이벤트
   async getAll(): Promise<CalendarEvent[]> {
-    const response = await dataFetch<{ calendarEvents: any[] }>(`/api/customer-data/calendar-events`);
+    const response = await apiFetch<{ calendarEvents: any[] }>(`/api/customer-data/calendar-events`);
     return (response.data?.calendarEvents || []).map(mapCalendarEventFromApi);
   },
 
   // 날짜 범위로 조회
   async getByDateRange(startDate: string, endDate: string): Promise<CalendarEvent[]> {
-    const response = await dataFetch<{ calendarEvents: any[] }>(`/api/customer-data/calendar-events?startDate=${startDate}&endDate=${endDate}`);
+    const response = await apiFetch<{ calendarEvents: any[] }>(`/api/customer-data/calendar-events?startDate=${startDate}&endDate=${endDate}`);
     return (response.data?.calendarEvents || []).map(mapCalendarEventFromApi);
   },
 
   // 유형별 조회
   async getByType(type: string): Promise<CalendarEvent[]> {
-    const response = await dataFetch<{ calendarEvents: any[] }>(`/api/customer-data/calendar-events?type=${type}`);
+    const response = await apiFetch<{ calendarEvents: any[] }>(`/api/customer-data/calendar-events?type=${type}`);
     return (response.data?.calendarEvents || []).map(mapCalendarEventFromApi);
   },
 
   // 고객사별 캘린더 이벤트
   async getByCustomerId(customerId: string): Promise<CalendarEvent[]> {
-    const response = await dataFetch<{ calendarEvents: any[] }>(`/api/customer-data/customers/${customerId}/calendar-events`);
+    const response = await apiFetch<{ calendarEvents: any[] }>(`/api/customer-data/customers/${customerId}/calendar-events`);
     return (response.data?.calendarEvents || []).map(mapCalendarEventFromApi);
   },
 
   // 캘린더 이벤트 상세
   async getById(id: string): Promise<CalendarEvent | null> {
     try {
-      const response = await dataFetch<{ calendarEvent: any }>(`/api/customer-data/calendar-events/${id}`);
+      const response = await apiFetch<{ calendarEvent: any }>(`/api/customer-data/calendar-events/${id}`);
       return response.data?.calendarEvent ? mapCalendarEventFromApi(response.data.calendarEvent) : null;
     } catch {
       return null;
@@ -392,7 +315,7 @@ export const calendarEventApi = {
 
   // 캘린더 이벤트 생성
   async create(data: Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>): Promise<CalendarEvent> {
-    const response = await dataFetch<{ calendarEvent: any }>(`/api/customer-data/calendar-events`, {
+    const response = await apiFetch<{ calendarEvent: any }>(`/api/customer-data/calendar-events`, {
       method: 'POST',
       body: JSON.stringify(mapCalendarEventToApi(data)),
     });
@@ -401,7 +324,7 @@ export const calendarEventApi = {
 
   // 캘린더 이벤트 수정
   async update(id: string, data: Partial<CalendarEvent>): Promise<CalendarEvent> {
-    const response = await dataFetch<{ calendarEvent: any }>(`/api/customer-data/calendar-events/${id}`, {
+    const response = await apiFetch<{ calendarEvent: any }>(`/api/customer-data/calendar-events/${id}`, {
       method: 'PUT',
       body: JSON.stringify(mapCalendarEventToApi(data)),
     });
@@ -410,7 +333,7 @@ export const calendarEventApi = {
 
   // 캘린더 이벤트 삭제
   async delete(id: string): Promise<void> {
-    await dataFetch(`/api/customer-data/calendar-events/${id}`, { method: 'DELETE' });
+    await apiFetch(`/api/customer-data/calendar-events/${id}`, { method: 'DELETE' });
   },
 
   // 오늘 이벤트 조회
@@ -441,14 +364,14 @@ export const calendarEventApi = {
 export const progressStageApi = {
   // 고객사 진행 단계 조회 (없으면 자동 생성)
   async getByCustomerId(customerId: string): Promise<ProgressStage> {
-    const response = await dataFetch<{ progressStage: any }>(`/api/customer-data/customers/${customerId}/progress-stage`);
+    const response = await apiFetch<{ progressStage: any }>(`/api/customer-data/customers/${customerId}/progress-stage`);
     return mapProgressStageFromApi(response.data!.progressStage);
   },
 
   // 진행 단계 상세
   async getById(id: string): Promise<ProgressStage | null> {
     try {
-      const response = await dataFetch<{ progressStage: any }>(`/api/customer-data/progress-stages/${id}`);
+      const response = await apiFetch<{ progressStage: any }>(`/api/customer-data/progress-stages/${id}`);
       return response.data?.progressStage ? mapProgressStageFromApi(response.data.progressStage) : null;
     } catch {
       return null;
@@ -457,7 +380,7 @@ export const progressStageApi = {
 
   // 진행 단계 생성
   async create(customerId: string, quotationId?: string, contractId?: string): Promise<ProgressStage> {
-    const response = await dataFetch<{ progressStage: any }>(`/api/customer-data/customers/${customerId}/progress-stage`, {
+    const response = await apiFetch<{ progressStage: any }>(`/api/customer-data/customers/${customerId}/progress-stage`, {
       method: 'POST',
       body: JSON.stringify({ quotationId, contractId }),
     });
@@ -466,7 +389,7 @@ export const progressStageApi = {
 
   // 단계 전환
   async updateStage(id: string, newStage: string, notes?: string): Promise<ProgressStage> {
-    const response = await dataFetch<{ progressStage: any }>(`/api/customer-data/progress-stages/${id}/stage`, {
+    const response = await apiFetch<{ progressStage: any }>(`/api/customer-data/progress-stages/${id}/stage`, {
       method: 'PATCH',
       body: JSON.stringify({ newStage, notes }),
     });
@@ -475,7 +398,7 @@ export const progressStageApi = {
 
   // 체크리스트 항목 업데이트
   async updateChecklist(id: string, checklistItemId: string, isCompleted: boolean, completedBy?: string): Promise<ProgressStage> {
-    const response = await dataFetch<{ progressStage: any }>(`/api/customer-data/progress-stages/${id}/checklist`, {
+    const response = await apiFetch<{ progressStage: any }>(`/api/customer-data/progress-stages/${id}/checklist`, {
       method: 'PATCH',
       body: JSON.stringify({ checklistItemId, isCompleted, completedBy }),
     });
@@ -484,7 +407,7 @@ export const progressStageApi = {
 
   // 진행 단계 삭제
   async delete(id: string): Promise<void> {
-    await dataFetch(`/api/customer-data/progress-stages/${id}`, { method: 'DELETE' });
+    await apiFetch(`/api/customer-data/progress-stages/${id}`, { method: 'DELETE' });
   },
 };
 

@@ -3,11 +3,11 @@
  * - localStorage에서 백엔드 API로 전환
  */
 
-import { getAccessToken, getRefreshToken, clearTokens } from './auth-api';
+import { apiFetch, ApiResponse } from './api-utils';
 import { ContractData } from './contract/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const ACCESS_TOKEN_KEY = 'access_token';
+// Re-export ApiResponse
+export type { ApiResponse } from './api-utils';
 
 // ============ Types ============
 
@@ -40,83 +40,6 @@ export interface SavedContract {
   items_count: number;
   created_at: string;
   updated_at: string;
-}
-
-// ============ API Helper ============
-
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-}
-
-async function tryRefreshToken(): Promise<boolean> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (!response.ok) {
-      clearTokens();
-      return false;
-    }
-
-    const data = await response.json();
-    if (data.success && data.data?.accessToken) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, data.data.accessToken);
-      return true;
-    }
-
-    clearTokens();
-    return false;
-  } catch {
-    clearTokens();
-    return false;
-  }
-}
-
-async function contractFetch<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const accessToken = getAccessToken();
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
-  if (accessToken) {
-    (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
-  }
-
-  try {
-    const response = await fetch(url, { ...options, headers });
-    const data = await response.json();
-
-    if (response.status === 401 && accessToken) {
-      const refreshed = await tryRefreshToken();
-      if (refreshed) {
-        const newAccessToken = getAccessToken();
-        (headers as Record<string, string>)['Authorization'] = `Bearer ${newAccessToken}`;
-        const retryResponse = await fetch(url, { ...options, headers });
-        return retryResponse.json();
-      }
-    }
-
-    return data;
-  } catch (error) {
-    return {
-      success: false,
-      message: '네트워크 오류가 발생했습니다.',
-    };
-  }
 }
 
 // ============ Mapping Functions ============
@@ -188,14 +111,14 @@ export const contractApi = {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
     
-    const response = await contractFetch<{ data: any[]; pagination: any }>(`/api/contracts?${params.toString()}`);
+    const response = await apiFetch<{ data: any[]; pagination: any }>(`/api/contracts?${params.toString()}`);
     return (response.data?.data || []).map(mapContractFromApi);
   },
 
   // 단일 계약서 조회
   async getById(id: string): Promise<SavedContract | null> {
     try {
-      const response = await contractFetch<any>(`/api/contracts/${id}`);
+      const response = await apiFetch<any>(`/api/contracts/${id}`);
       return response.data ? mapContractFromApi(response.data) : null;
     } catch {
       return null;
@@ -204,7 +127,7 @@ export const contractApi = {
 
   // 계약서 생성
   async create(data: Omit<SavedContract, 'id' | 'contract_number' | 'created_at' | 'updated_at'>): Promise<SavedContract> {
-    const response = await contractFetch<any>('/api/contracts', {
+    const response = await apiFetch<any>('/api/contracts', {
       method: 'POST',
       body: JSON.stringify(mapContractToApi(data)),
     });
@@ -213,7 +136,7 @@ export const contractApi = {
 
   // 계약서 수정
   async update(id: string, data: Partial<SavedContract>): Promise<SavedContract> {
-    const response = await contractFetch<any>(`/api/contracts/${id}`, {
+    const response = await apiFetch<any>(`/api/contracts/${id}`, {
       method: 'PUT',
       body: JSON.stringify(mapContractToApi(data)),
     });
@@ -222,7 +145,7 @@ export const contractApi = {
 
   // 계약서 삭제
   async delete(id: string): Promise<boolean> {
-    const response = await contractFetch<void>(`/api/contracts/${id}`, {
+    const response = await apiFetch<void>(`/api/contracts/${id}`, {
       method: 'DELETE',
     });
     return response.success;
@@ -424,13 +347,13 @@ export async function getStudies(filters?: {
   if (filters?.contractId) params.append('contractId', filters.contractId);
   if (filters?.status) params.append('status', filters.status);
   
-  const response = await contractFetch<{ data: any[] }>(`/api/studies?${params.toString()}`);
+  const response = await apiFetch<{ data: any[] }>(`/api/studies?${params.toString()}`);
   return (response.data?.data || []).map(mapStudyFromApi);
 }
 
 // 시험 생성
 export async function createStudy(data: Omit<Study, 'id' | 'study_number' | 'created_at' | 'updated_at'>): Promise<Study> {
-  const response = await contractFetch<any>('/api/studies', {
+  const response = await apiFetch<any>('/api/studies', {
     method: 'POST',
     body: JSON.stringify(mapStudyToApi(data)),
   });
@@ -439,7 +362,7 @@ export async function createStudy(data: Omit<Study, 'id' | 'study_number' | 'cre
 
 // 변경계약서 생성
 export async function createAmendment(data: Omit<ContractAmendment, 'id' | 'amendment_number' | 'created_at' | 'updated_at'>): Promise<ContractAmendment> {
-  const response = await contractFetch<any>(`/api/contracts/${data.contract_id}/amendments`, {
+  const response = await apiFetch<any>(`/api/contracts/${data.contract_id}/amendments`, {
     method: 'POST',
     body: JSON.stringify({
       version: data.version,
@@ -463,7 +386,7 @@ export async function getConsultations(filters?: {
   if (filters?.customerId) params.append('customerId', filters.customerId);
   if (filters?.contractId) params.append('contractId', filters.contractId);
   
-  const response = await contractFetch<{ data: any[] }>(`/api/consultations?${params.toString()}`);
+  const response = await apiFetch<{ data: any[] }>(`/api/consultations?${params.toString()}`);
   return (response.data?.data || []).map(mapConsultationFromApi);
 }
 

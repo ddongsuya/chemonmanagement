@@ -1,34 +1,21 @@
-// API 기본 설정
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+// API 기본 설정 - 공통 유틸리티 사용
+import { apiFetch, ApiResponse } from './api-utils';
 
-// 토큰 가져오기
-function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('access_token');
-}
-
-// API 요청 헬퍼
+// API 요청 헬퍼 (기존 호환성 유지)
 export async function apiRequest<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const token = getAuthToken();
+  const response = await apiFetch<T>(endpoint, options);
   
-  const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      ...options?.headers,
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+  if (!response.success) {
+    throw new Error(response.error?.message || 'API Error');
   }
 
-  return response.json();
+  // 기존 API는 data를 직접 반환하는 형태였으므로 호환성 유지
+  // 응답이 { success: true, data: ... } 형태인 경우 data 반환
+  // 응답이 직접 데이터인 경우 그대로 반환
+  return (response.data !== undefined ? response.data : response) as T;
 }
 
 // GET 요청
@@ -64,3 +51,6 @@ export const api = {
   put,
   delete: del
 };
+
+// Re-export types
+export type { ApiResponse } from './api-utils';

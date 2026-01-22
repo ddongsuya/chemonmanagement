@@ -25,7 +25,9 @@ export default function PipelinePage() {
     try {
       setLoading(true);
       const res = await getPipelineBoard();
-      setStages(res.data.stages);
+      if (res.success && res.data?.stages) {
+        setStages(res.data.stages);
+      }
     } catch (error) {
       toast({ title: '오류', description: '데이터를 불러오는데 실패했습니다.', variant: 'destructive' });
     } finally {

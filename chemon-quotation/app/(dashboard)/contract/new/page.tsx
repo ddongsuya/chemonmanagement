@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import PageHeader from '@/components/layout/PageHeader';
 import ContractForm from '@/components/contract/ContractForm';
 import ContractDownloadButton from '@/components/contract/ContractDownloadButton';
@@ -49,7 +50,15 @@ function ContractNewContent() {
   const [loadedQuotation, setLoadedQuotation] = useState<SavedQuotation | null>(null);
   const [loadedEfficacyQuotation, setLoadedEfficacyQuotation] = useState<SavedEfficacyQuotation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userCode, setUserCode] = useState<string>('XX');
+
+  // useQuery로 사용자 설정 조회 (캐시 공유)
+  const { data: settingsResponse } = useQuery({
+    queryKey: ['userSettings'],
+    queryFn: getUserSettings,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const userCode = settingsResponse?.data?.userCode || 'XX';
 
   // URL에서 quotationId 가져오기
   const quotationId = searchParams.get('quotationId');
@@ -58,21 +67,6 @@ function ContractNewContent() {
   // 페이지 로드 시 스크롤 상단으로 이동
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
-
-  // 사용자 설정에서 userCode 로드
-  useEffect(() => {
-    const loadUserSettings = async () => {
-      try {
-        const response = await getUserSettings();
-        if (response.success && response.data?.userCode) {
-          setUserCode(response.data.userCode);
-        }
-      } catch (error) {
-        console.error('Failed to load user settings:', error);
-      }
-    };
-    loadUserSettings();
   }, []);
 
   // 견적서 데이터 로드

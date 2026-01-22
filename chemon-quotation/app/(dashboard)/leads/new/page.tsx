@@ -59,11 +59,13 @@ export default function NewLeadPage() {
   const loadStages = async () => {
     try {
       const res = await getPipelineStages();
-      setStages(res.data.stages);
-      // 기본 단계 설정
-      const defaultStage = res.data.stages.find(s => s.isDefault);
-      if (defaultStage) {
-        setFormData(prev => ({ ...prev, stageId: defaultStage.id }));
+      if (res.success && res.data?.stages) {
+        setStages(res.data.stages);
+        // 기본 단계 설정
+        const defaultStage = res.data.stages.find(s => s.isDefault);
+        if (defaultStage) {
+          setFormData(prev => ({ ...prev, stageId: defaultStage.id }));
+        }
       }
     } catch (error) {
       console.error('Failed to load stages:', error);

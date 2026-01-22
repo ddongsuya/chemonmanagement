@@ -1,10 +1,5 @@
 // Data API functions for quotations and customers
-import { getAccessToken, getRefreshToken, clearTokens } from './auth-api';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-// Token storage key
-const ACCESS_TOKEN_KEY = 'access_token';
+import { apiFetch, buildQueryString, ApiResponse, PaginatedResult } from './api-utils';
 
 // ============ Types ============
 
@@ -139,117 +134,8 @@ export interface CustomerFilters {
   limit?: number;
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: {
-    code: string;
-    message: string;
-    details?: Record<string, string[]>;
-  };
-}
-
-export interface PaginatedResult<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-// ============ API Helper ============
-
-// Try to refresh the access token
-async function tryRefreshToken(): Promise<boolean> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (!response.ok) {
-      clearTokens();
-      return false;
-    }
-
-    const data: ApiResponse<{ accessToken: string }> = await response.json();
-    if (data.success && data.data?.accessToken) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, data.data.accessToken);
-      return true;
-    }
-
-    clearTokens();
-    return false;
-  } catch {
-    clearTokens();
-    return false;
-  }
-}
-
-async function dataFetch<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const accessToken = getAccessToken();
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
-  if (accessToken) {
-    (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
-  }
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
-    const data = await response.json();
-
-    // Handle token expiration - try to refresh
-    if (response.status === 401 && accessToken) {
-      const refreshed = await tryRefreshToken();
-      if (refreshed) {
-        // Retry the original request with new token
-        const newAccessToken = getAccessToken();
-        (headers as Record<string, string>)['Authorization'] = `Bearer ${newAccessToken}`;
-        const retryResponse = await fetch(url, { ...options, headers });
-        return retryResponse.json();
-      }
-    }
-
-    return data;
-  } catch (error) {
-    return {
-      success: false,
-      error: {
-        code: 'NETWORK_ERROR',
-        message: '네트워크 오류가 발생했습니다. 서버 연결을 확인해주세요.',
-      },
-    };
-  }
-}
-
-function buildQueryString(filters: Record<string, any>): string {
-  const params = new URLSearchParams();
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      params.append(key, String(value));
-    }
-  });
-  return params.toString();
-}
+// Re-export types from api-utils
+export type { ApiResponse, PaginatedResult } from './api-utils';
 
 // ============ Quotation APIs ============
 
@@ -260,14 +146,14 @@ export async function getQuotations(
   filters: QuotationFilters = {}
 ): Promise<ApiResponse<PaginatedResult<Quotation>>> {
   const query = buildQueryString(filters);
-  return dataFetch<PaginatedResult<Quotation>>(`/api/quotations?${query}`);
+  return apiFetch<PaginatedResult<Quotation>>(`/api/quotations?${query}`);
 }
 
 /**
  * Get quotation by ID
  */
 export async function getQuotationById(id: string): Promise<ApiResponse<Quotation>> {
-  return dataFetch<Quotation>(`/api/quotations/${id}`);
+  return apiFetch<Quotation>(`/api/quotations/${id}`);
 }
 
 /**
@@ -276,7 +162,7 @@ export async function getQuotationById(id: string): Promise<ApiResponse<Quotatio
 export async function createQuotation(
   data: CreateQuotationDTO
 ): Promise<ApiResponse<Quotation>> {
-  return dataFetch<Quotation>('/api/quotations', {
+  return apiFetch<Quotation>('/api/quotations', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -289,7 +175,7 @@ export async function updateQuotation(
   id: string,
   data: UpdateQuotationDTO
 ): Promise<ApiResponse<Quotation>> {
-  return dataFetch<Quotation>(`/api/quotations/${id}`, {
+  return apiFetch<Quotation>(`/api/quotations/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
@@ -299,7 +185,7 @@ export async function updateQuotation(
  * Delete quotation (soft delete)
  */
 export async function deleteQuotationApi(id: string): Promise<ApiResponse<void>> {
-  return dataFetch<void>(`/api/quotations/${id}`, {
+  return apiFetch<void>(`/api/quotations/${id}`, {
     method: 'DELETE',
   });
 }
@@ -313,14 +199,14 @@ export async function getCustomers(
   filters: CustomerFilters = {}
 ): Promise<ApiResponse<PaginatedResult<Customer>>> {
   const query = buildQueryString(filters);
-  return dataFetch<PaginatedResult<Customer>>(`/api/customers?${query}`);
+  return apiFetch<PaginatedResult<Customer>>(`/api/customers?${query}`);
 }
 
 /**
  * Get customer by ID
  */
 export async function getCustomerById(id: string): Promise<ApiResponse<Customer>> {
-  return dataFetch<Customer>(`/api/customers/${id}`);
+  return apiFetch<Customer>(`/api/customers/${id}`);
 }
 
 /**
@@ -329,7 +215,7 @@ export async function getCustomerById(id: string): Promise<ApiResponse<Customer>
 export async function createCustomer(
   data: CreateCustomerDTO
 ): Promise<ApiResponse<Customer>> {
-  return dataFetch<Customer>('/api/customers', {
+  return apiFetch<Customer>('/api/customers', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -342,7 +228,7 @@ export async function updateCustomer(
   id: string,
   data: UpdateCustomerDTO
 ): Promise<ApiResponse<Customer>> {
-  return dataFetch<Customer>(`/api/customers/${id}`, {
+  return apiFetch<Customer>(`/api/customers/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
@@ -352,7 +238,7 @@ export async function updateCustomer(
  * Delete customer (soft delete)
  */
 export async function deleteCustomer(id: string): Promise<ApiResponse<void>> {
-  return dataFetch<void>(`/api/customers/${id}`, {
+  return apiFetch<void>(`/api/customers/${id}`, {
     method: 'DELETE',
   });
 }

@@ -117,8 +117,10 @@ export default function LeadDetailPage() {
     try {
       setLoading(true);
       const res = await getLead(params.id as string);
-      setLead(res.data.lead);
-      setEditForm(res.data.lead);
+      if (res.success && res.data?.lead) {
+        setLead(res.data.lead);
+        setEditForm(res.data.lead);
+      }
     } catch (error) {
       toast({ title: '오류', description: '리드를 불러오는데 실패했습니다.', variant: 'destructive' });
     } finally {

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { useQuotationStore } from '@/stores/quotationStore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,22 +32,15 @@ export default function StepPreview() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('preview');
   const [savedQuotationNumber, setSavedQuotationNumber] = useState<string | null>(null);
-  const [userCode, setUserCode] = useState<string>('XX');
 
-  // 사용자 설정에서 userCode 로드
-  useEffect(() => {
-    const loadUserSettings = async () => {
-      try {
-        const response = await getUserSettings();
-        if (response.success && response.data?.userCode) {
-          setUserCode(response.data.userCode);
-        }
-      } catch (error) {
-        console.error('Failed to load user settings:', error);
-      }
-    };
-    loadUserSettings();
-  }, []);
+  // useQuery로 사용자 설정 조회 (캐시 공유)
+  const { data: settingsResponse } = useQuery({
+    queryKey: ['userSettings'],
+    queryFn: getUserSettings,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const userCode = settingsResponse?.data?.userCode || 'XX';
 
   // 임시 견적번호 (저장 전) - userCode 반영
   const now = new Date();

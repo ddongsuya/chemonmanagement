@@ -73,8 +73,12 @@ export default function LeadsPage() {
         }),
         getPipelineStages(),
       ]);
-      setLeads(leadsRes.data.leads);
-      setStages(stagesRes.data.stages);
+      if (leadsRes.success && leadsRes.data?.leads) {
+        setLeads(leadsRes.data.leads);
+      }
+      if (stagesRes.success && stagesRes.data?.stages) {
+        setStages(stagesRes.data.stages);
+      }
     } catch (error) {
       toast({ title: '오류', description: '데이터를 불러오는데 실패했습니다.', variant: 'destructive' });
     } finally {
