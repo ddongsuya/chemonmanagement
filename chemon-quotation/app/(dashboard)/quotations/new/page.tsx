@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useQuotationStore } from '@/stores/quotationStore';
 import { useEfficacyQuotationStore } from '@/stores/efficacyQuotationStore';
 import QuotationWizard from '@/components/quotation/QuotationWizard';
@@ -19,17 +20,41 @@ import EfficacyStepPreview from '@/components/efficacy-quotation/StepPreview';
 import PageHeader from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { RotateCcw, FlaskConical, Microscope, ArrowLeft, TestTube } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { RotateCcw, FlaskConical, Microscope, ArrowLeft, TestTube, AlertTriangle, Settings, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getUserSettings } from '@/lib/package-api';
 
 type QuotationType = 'toxicity' | 'efficacy' | null;
 
 export default function NewQuotationPage() {
   const [quotationType, setQuotationType] = useState<QuotationType>(null);
+  const [userCode, setUserCode] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   
   const toxicityStore = useQuotationStore();
   const efficacyStore = useEfficacyQuotationStore();
+
+  // 사용자 설정에서 userCode 확인
+  useEffect(() => {
+    const checkUserCode = async () => {
+      try {
+        const response = await getUserSettings();
+        if (response.success && response.data?.userCode) {
+          setUserCode(response.data.userCode);
+        } else {
+          setUserCode(null);
+        }
+      } catch (error) {
+        console.error('Failed to load user settings:', error);
+        setUserCode(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkUserCode();
+  }, []);
 
   const handleStepClick = (step: number) => {
     if (quotationType === 'toxicity' && step < toxicityStore.currentStep) {
@@ -93,6 +118,47 @@ export default function NewQuotationPage() {
         return <EfficacyStepBasicInfo />;
     }
   };
+
+  // 로딩 중
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // userCode 미설정 시 안내
+  if (!userCode) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <PageHeader
+          title="새 견적서 작성"
+          description="견적서를 작성하기 전에 설정이 필요합니다"
+        />
+
+        <Alert variant="destructive" className="mt-8">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle className="text-lg">견적서 코드 미설정</AlertTitle>
+          <AlertDescription className="mt-2">
+            <p className="mb-4">
+              견적서 작성을 위해서는 먼저 <strong>견적서 코드</strong>를 설정해야 합니다.
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              견적서 코드는 견적번호 생성에 사용되는 2글자 영문 코드입니다.<br />
+              예: DL, PK, KS → 견적번호: 26-DL-01-0001
+            </p>
+            <Button asChild>
+              <Link href="/settings">
+                <Settings className="w-4 h-4 mr-2" />
+                설정으로 이동
+              </Link>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   // 유형 선택 화면
   if (!quotationType) {

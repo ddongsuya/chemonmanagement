@@ -27,7 +27,7 @@ export class DataService {
    * Generate quotation number with user code
    * Format: YY-UC-MM-NNNN (연도-사용자코드-월-일련번호)
    * Example: 26-DL-01-0001
-   * Fallback (no userCode): TQ-YYYY-NNNN or EQ-YYYY-NNNN
+   * Throws error if userCode is not set
    */
   private async generateQuotationNumber(userId: string, type: QuotationType): Promise<string> {
     const now = new Date();
@@ -42,55 +42,39 @@ export class DataService {
     
     const userCode = userSettings?.userCode;
     
-    if (userCode) {
-      // 새 형식: YY-UC-MM-NNNN
-      const prefix = `${year}-${userCode}-${month}-`;
-      
-      // 해당 사용자의 해당 월 마지막 견적번호 조회
-      const lastQuotation = await this.prisma.quotation.findFirst({
-        where: {
-          userId,
-          quotationNumber: {
-            startsWith: prefix,
-          },
-        },
-        orderBy: {
-          quotationNumber: 'desc',
-        },
-      });
-
-      let seq = 1;
-      if (lastQuotation) {
-        const parts = lastQuotation.quotationNumber.split('-');
-        const lastSeq = parseInt(parts[3], 10);
-        seq = lastSeq + 1;
-      }
-
-      return `${prefix}${seq.toString().padStart(4, '0')}`;
-    } else {
-      // 기존 형식 (userCode 미설정 시): TQ-YYYY-NNNN or EQ-YYYY-NNNN
-      const prefix = type === 'TOXICITY' ? 'TQ' : 'EQ';
-      const fullYear = now.getFullYear();
-      
-      const lastQuotation = await this.prisma.quotation.findFirst({
-        where: {
-          quotationNumber: {
-            startsWith: `${prefix}-${fullYear}-`,
-          },
-        },
-        orderBy: {
-          quotationNumber: 'desc',
-        },
-      });
-
-      let seq = 1;
-      if (lastQuotation) {
-        const lastSeq = parseInt(lastQuotation.quotationNumber.split('-')[2], 10);
-        seq = lastSeq + 1;
-      }
-
-      return `${prefix}-${fullYear}-${seq.toString().padStart(4, '0')}`;
+    // userCode 미설정 시 에러
+    if (!userCode) {
+      throw new AppError(
+        '견적서 코드가 설정되지 않았습니다. 설정 > 프로필에서 견적서 코드를 먼저 설정해주세요.',
+        400,
+        ErrorCodes.VALIDATION_ERROR
+      );
     }
+    
+    // 형식: YY-UC-MM-NNNN
+    const prefix = `${year}-${userCode}-${month}-`;
+    
+    // 해당 사용자의 해당 월 마지막 견적번호 조회
+    const lastQuotation = await this.prisma.quotation.findFirst({
+      where: {
+        userId,
+        quotationNumber: {
+          startsWith: prefix,
+        },
+      },
+      orderBy: {
+        quotationNumber: 'desc',
+      },
+    });
+
+    let seq = 1;
+    if (lastQuotation) {
+      const parts = lastQuotation.quotationNumber.split('-');
+      const lastSeq = parseInt(parts[3], 10);
+      seq = lastSeq + 1;
+    }
+
+    return `${prefix}${seq.toString().padStart(4, '0')}`;
   }
 
   /**
