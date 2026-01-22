@@ -24,32 +24,73 @@ export class DataService {
   // ==================== Quotation Methods ====================
 
   /**
-   * Generate quotation number
-   * Format: TQ-YYYY-NNNN (독성) or EQ-YYYY-NNNN (효력)
+   * Generate quotation number with user code
+   * Format: YY-UC-MM-NNNN (연도-사용자코드-월-일련번호)
+   * Example: 26-DL-01-0001
+   * Fallback (no userCode): TQ-YYYY-NNNN or EQ-YYYY-NNNN
    */
-  private async generateQuotationNumber(type: QuotationType): Promise<string> {
-    const prefix = type === 'TOXICITY' ? 'TQ' : 'EQ';
-    const year = new Date().getFullYear();
+  private async generateQuotationNumber(userId: string, type: QuotationType): Promise<string> {
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2); // 26
+    const month = (now.getMonth() + 1).toString().padStart(2, '0'); // 01
     
-    // 해당 연도의 마지막 견적번호 조회
-    const lastQuotation = await this.prisma.quotation.findFirst({
-      where: {
-        quotationNumber: {
-          startsWith: `${prefix}-${year}-`,
-        },
-      },
-      orderBy: {
-        quotationNumber: 'desc',
-      },
+    // 사용자 설정에서 userCode 조회
+    const userSettings = await this.prisma.userSettings.findUnique({
+      where: { userId },
+      select: { userCode: true },
     });
+    
+    const userCode = userSettings?.userCode;
+    
+    if (userCode) {
+      // 새 형식: YY-UC-MM-NNNN
+      const prefix = `${year}-${userCode}-${month}-`;
+      
+      // 해당 사용자의 해당 월 마지막 견적번호 조회
+      const lastQuotation = await this.prisma.quotation.findFirst({
+        where: {
+          userId,
+          quotationNumber: {
+            startsWith: prefix,
+          },
+        },
+        orderBy: {
+          quotationNumber: 'desc',
+        },
+      });
 
-    let seq = 1;
-    if (lastQuotation) {
-      const lastSeq = parseInt(lastQuotation.quotationNumber.split('-')[2], 10);
-      seq = lastSeq + 1;
+      let seq = 1;
+      if (lastQuotation) {
+        const parts = lastQuotation.quotationNumber.split('-');
+        const lastSeq = parseInt(parts[3], 10);
+        seq = lastSeq + 1;
+      }
+
+      return `${prefix}${seq.toString().padStart(4, '0')}`;
+    } else {
+      // 기존 형식 (userCode 미설정 시): TQ-YYYY-NNNN or EQ-YYYY-NNNN
+      const prefix = type === 'TOXICITY' ? 'TQ' : 'EQ';
+      const fullYear = now.getFullYear();
+      
+      const lastQuotation = await this.prisma.quotation.findFirst({
+        where: {
+          quotationNumber: {
+            startsWith: `${prefix}-${fullYear}-`,
+          },
+        },
+        orderBy: {
+          quotationNumber: 'desc',
+        },
+      });
+
+      let seq = 1;
+      if (lastQuotation) {
+        const lastSeq = parseInt(lastQuotation.quotationNumber.split('-')[2], 10);
+        seq = lastSeq + 1;
+      }
+
+      return `${prefix}-${fullYear}-${seq.toString().padStart(4, '0')}`;
     }
-
-    return `${prefix}-${year}-${seq.toString().padStart(4, '0')}`;
   }
 
   /**
@@ -82,7 +123,7 @@ export class DataService {
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
-        const quotationNumber = await this.generateQuotationNumber(data.quotationType);
+        const quotationNumber = await this.generateQuotationNumber(userId, data.quotationType);
         
         const quotation = await this.prisma.quotation.create({
           data: {
