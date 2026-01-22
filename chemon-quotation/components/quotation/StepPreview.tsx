@@ -37,6 +37,17 @@ export default function StepPreview() {
 
   // 저장
   const handleSave = async () => {
+    // 유효성 검사
+    const validation = store.validate();
+    if (!validation.isValid) {
+      toast({
+        title: '입력 오류',
+        description: validation.errors.join('\n'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setSaving(true);
     
     try {

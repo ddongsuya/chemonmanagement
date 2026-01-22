@@ -76,6 +76,9 @@ interface QuotationState {
   updateToxicityTest: (id: string, updates: Partial<SelectedToxicityTest>) => void;
   clearToxicityTests: () => void;
   getToxicityTestsTotal: () => number;
+  
+  // 유효성 검사
+  validate: () => { isValid: boolean; errors: string[] };
 }
 
 const initialAnalysisCost: AnalysisCost = {
@@ -501,5 +504,44 @@ export const useQuotationStore = create<QuotationState>((set, get) => ({
       const price = priceStr ? parseInt(priceStr.replace(/,/g, ''), 10) : 0;
       return sum + (isNaN(price) ? 0 : price) * item.quantity;
     }, 0);
+  },
+
+  validate: () => {
+    const state = get();
+    const errors: string[] = [];
+
+    // 필수 필드 검사
+    if (!state.customerName || state.customerName.trim() === '') {
+      errors.push('고객명을 입력해주세요.');
+    }
+
+    if (!state.projectName || state.projectName.trim() === '') {
+      errors.push('프로젝트명을 입력해주세요.');
+    }
+
+    // 시험 항목 검사
+    if (state.selectedItems.length === 0 && state.selectedToxicityTests.length === 0) {
+      errors.push('최소 1개 이상의 시험 항목을 선택해주세요.');
+    }
+
+    // 금액 검사
+    if (state.totalAmount <= 0) {
+      errors.push('총 금액이 0원 이하입니다. 시험 항목을 확인해주세요.');
+    }
+
+    // 유효기간 검사
+    if (state.validDays <= 0) {
+      errors.push('유효기간은 1일 이상이어야 합니다.');
+    }
+
+    // 할인율 검사
+    if (state.discountRate < 0 || state.discountRate > 100) {
+      errors.push('할인율은 0~100% 사이여야 합니다.');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
   },
 }));

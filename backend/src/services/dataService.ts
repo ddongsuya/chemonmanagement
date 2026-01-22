@@ -53,7 +53,7 @@ export class DataService {
   }
 
   /**
-   * Create a new quotation
+   * Create a new quotation with retry logic for race condition handling
    */
   async createQuotation(userId: string, data: CreateQuotationDTO): Promise<QuotationResponse> {
     // If customerId is provided, verify ownership
@@ -71,50 +71,78 @@ export class DataService {
       }
     }
 
-    const quotationNumber = await this.generateQuotationNumber(data.quotationType);
-    
     // validUntil 계산
     const validUntil = data.validUntil 
       ? new Date(data.validUntil)
       : new Date(Date.now() + (data.validDays || 30) * 24 * 60 * 60 * 1000);
 
-    const quotation = await this.prisma.quotation.create({
-      data: {
-        quotationNumber,
-        quotationType: data.quotationType,
-        userId,
-        customerId: data.customerId || null,
-        customerName: data.customerName,
-        projectName: data.projectName,
-        modality: data.modality || null,
-        modelId: data.modelId || null,
-        modelCategory: data.modelCategory || null,
-        indication: data.indication || null,
-        items: data.items as unknown as Prisma.InputJsonValue,
-        subtotalTest: data.subtotalTest ? new Prisma.Decimal(data.subtotalTest) : null,
-        subtotalAnalysis: data.subtotalAnalysis ? new Prisma.Decimal(data.subtotalAnalysis) : null,
-        subtotal: data.subtotal ? new Prisma.Decimal(data.subtotal) : null,
-        discountRate: data.discountRate ? new Prisma.Decimal(data.discountRate) : null,
-        discountAmount: data.discountAmount ? new Prisma.Decimal(data.discountAmount) : null,
-        vat: data.vat ? new Prisma.Decimal(data.vat) : null,
-        totalAmount: new Prisma.Decimal(data.totalAmount),
-        validDays: data.validDays || 30,
-        validUntil,
-        notes: data.notes || null,
-        status: data.status || 'DRAFT',
-      },
-      include: {
-        customer: {
-          select: {
-            id: true,
-            name: true,
-            company: true,
-          },
-        },
-      },
-    });
+    // 레이스 컨디션 방지를 위한 재시도 로직 (최대 3회)
+    const MAX_RETRIES = 3;
+    let lastError: Error | null = null;
 
-    return this.toQuotationResponse(quotation);
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        const quotationNumber = await this.generateQuotationNumber(data.quotationType);
+        
+        const quotation = await this.prisma.quotation.create({
+          data: {
+            quotationNumber,
+            quotationType: data.quotationType,
+            userId,
+            customerId: data.customerId || null,
+            customerName: data.customerName,
+            projectName: data.projectName,
+            modality: data.modality || null,
+            modelId: data.modelId || null,
+            modelCategory: data.modelCategory || null,
+            indication: data.indication || null,
+            items: data.items as unknown as Prisma.InputJsonValue,
+            subtotalTest: data.subtotalTest ? new Prisma.Decimal(data.subtotalTest) : null,
+            subtotalAnalysis: data.subtotalAnalysis ? new Prisma.Decimal(data.subtotalAnalysis) : null,
+            subtotal: data.subtotal ? new Prisma.Decimal(data.subtotal) : null,
+            discountRate: data.discountRate ? new Prisma.Decimal(data.discountRate) : null,
+            discountAmount: data.discountAmount ? new Prisma.Decimal(data.discountAmount) : null,
+            vat: data.vat ? new Prisma.Decimal(data.vat) : null,
+            totalAmount: new Prisma.Decimal(data.totalAmount),
+            validDays: data.validDays || 30,
+            validUntil,
+            notes: data.notes || null,
+            status: data.status || 'DRAFT',
+          },
+          include: {
+            customer: {
+              select: {
+                id: true,
+                name: true,
+                company: true,
+              },
+            },
+          },
+        });
+
+        return this.toQuotationResponse(quotation);
+      } catch (error: unknown) {
+        // Prisma unique constraint violation (P2002) - quotationNumber 중복
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          lastError = error;
+          // 재시도 전 짧은 지연 (랜덤 백오프)
+          await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
+          continue;
+        }
+        // 다른 에러는 즉시 throw
+        throw error;
+      }
+    }
+
+    // 모든 재시도 실패
+    throw new AppError(
+      '견적번호 생성 중 충돌이 발생했습니다. 잠시 후 다시 시도해주세요.',
+      409,
+      ErrorCodes.CONFLICT
+    );
   }
 
   /**
