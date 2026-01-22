@@ -260,7 +260,7 @@ export default function ContractForm({ initialData, onSubmit, isLoading }: Contr
                 onCheckedChange={(checked) => handleChange('isDraft', checked as boolean)}
               />
               <Label htmlFor="isDraft" className="cursor-pointer">
-                계약서(안)으로 생성 - 제목에 "(안)" 표시
+                계약서(안)으로 생성 - 제목에 {'"(안)"'} 표시
               </Label>
             </div>
           </div>

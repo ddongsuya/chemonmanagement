@@ -191,7 +191,6 @@ async function adminFetch<T>(
 }
 
 // Build query string from filters
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildQueryString(filters: Record<string, any>): string {
   const params = new URLSearchParams();
   Object.entries(filters).forEach(([key, value]) => {

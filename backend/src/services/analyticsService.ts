@@ -191,6 +191,20 @@ export class AnalyticsService {
         orderBy: { order: 'asc' }
       });
 
+      // 단계별 평균 체류일 계산 (생성일~현재 또는 업데이트일 기준 추정)
+      const calculateAvgDaysInStage = (stageId: string): number => {
+        const stageLeads = leads.filter(l => l.stageId === stageId);
+        if (stageLeads.length === 0) return 0;
+
+        const totalDays = stageLeads.reduce((sum, lead) => {
+          // 현재 단계에 있는 리드의 체류일 = 업데이트일 - 생성일 (추정)
+          const days = Math.ceil((lead.updatedAt.getTime() - lead.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+          return sum + Math.max(days, 1); // 최소 1일
+        }, 0);
+
+        return Math.round(totalDays / stageLeads.length);
+      };
+
       const funnel = stages.map((stage, index) => {
         const count = leads.filter(l => l.stageId === stage.id || 
           stages.findIndex(s => s.id === l.stageId) >= index).length;
@@ -202,7 +216,7 @@ export class AnalyticsService {
           stage: stage.name,
           count,
           conversionRate: prevCount > 0 ? Math.round((count / prevCount) * 100) : 0,
-          avgDaysInStage: 0 // TODO: 단계별 평균 체류일 계산
+          avgDaysInStage: calculateAvgDaysInStage(stage.id)
         };
       });
 
@@ -222,6 +236,19 @@ export class AnalyticsService {
       }
     });
 
+    // 견적서 상태별 평균 체류일 계산
+    const calculateQuotationAvgDays = (toStatuses: string[]): number => {
+      const relevantQuotations = quotations.filter(q => toStatuses.includes(q.status));
+      if (relevantQuotations.length === 0) return 0;
+
+      const totalDays = relevantQuotations.reduce((sum, q) => {
+        const days = Math.ceil((q.updatedAt.getTime() - q.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+        return sum + Math.max(days, 1);
+      }, 0);
+
+      return Math.round(totalDays / relevantQuotations.length);
+    };
+
     const statusCounts = {
       DRAFT: quotations.filter(q => q.status === 'DRAFT').length,
       SENT: quotations.filter(q => ['SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'].includes(q.status)).length,
@@ -229,9 +256,24 @@ export class AnalyticsService {
     };
 
     const funnel = [
-      { stage: '작성', count: quotations.length, conversionRate: 100, avgDaysInStage: 0 },
-      { stage: '발송', count: statusCounts.SENT, conversionRate: quotations.length > 0 ? Math.round((statusCounts.SENT / quotations.length) * 100) : 0, avgDaysInStage: 0 },
-      { stage: '승인', count: statusCounts.ACCEPTED, conversionRate: statusCounts.SENT > 0 ? Math.round((statusCounts.ACCEPTED / statusCounts.SENT) * 100) : 0, avgDaysInStage: 0 }
+      { 
+        stage: '작성', 
+        count: quotations.length, 
+        conversionRate: 100, 
+        avgDaysInStage: calculateQuotationAvgDays(['SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'])
+      },
+      { 
+        stage: '발송', 
+        count: statusCounts.SENT, 
+        conversionRate: quotations.length > 0 ? Math.round((statusCounts.SENT / quotations.length) * 100) : 0, 
+        avgDaysInStage: calculateQuotationAvgDays(['ACCEPTED', 'REJECTED', 'EXPIRED'])
+      },
+      { 
+        stage: '승인', 
+        count: statusCounts.ACCEPTED, 
+        conversionRate: statusCounts.SENT > 0 ? Math.round((statusCounts.ACCEPTED / statusCounts.SENT) * 100) : 0, 
+        avgDaysInStage: 0 
+      }
     ];
 
     return {
@@ -366,13 +408,13 @@ export class AnalyticsService {
     // 리더보드 생성
     const leaderboard = Object.entries(userStats)
       .map(([userId, stats]) => ({
-        userId,
+        odUserId: userId,
         userName: stats.name,
         department: stats.department,
         revenue: stats.revenue,
         dealCount: stats.count,
         avgDealSize: stats.count > 0 ? Math.round(stats.revenue / stats.count) : 0,
-        conversionRate: 0 // TODO: 전환율 계산
+        conversionRate: 0 // 전환율은 별도 계산 필요 (견적 대비 계약)
       }))
       .sort((a, b) => b.revenue - a.revenue)
       .map((item, index) => ({ ...item, rank: index + 1 }));
@@ -422,6 +464,9 @@ export class AnalyticsService {
         updatedAt: { gte: startDate, lte: endDate },
         deletedAt: null,
         ...userFilter
+      },
+      include: {
+        stage: true
       }
     });
 
@@ -445,13 +490,29 @@ export class AnalyticsService {
       amount: stats.amount
     })).sort((a, b) => b.count - a.count);
 
-    // 단계별 집계
-    const byStage: Record<string, number> = {};
-    // TODO: 단계별 Lost 집계
+    // 단계별 Lost 집계
+    const byStageMap: Record<string, { count: number; amount: number; stageName: string }> = {};
+    lostLeads.forEach(l => {
+      const stageId = l.stageId || 'unknown';
+      const stageName = l.stage?.name || '미지정';
+      if (!byStageMap[stageId]) {
+        byStageMap[stageId] = { count: 0, amount: 0, stageName };
+      }
+      byStageMap[stageId].count += 1;
+      byStageMap[stageId].amount += Number(l.expectedAmount || 0);
+    });
+
+    const byStageArray = Object.entries(byStageMap).map(([stageId, stats]) => ({
+      stageId,
+      stageName: stats.stageName,
+      count: stats.count,
+      percentage: total > 0 ? Math.round((stats.count / total) * 100) : 0,
+      amount: stats.amount
+    })).sort((a, b) => b.count - a.count);
 
     return {
       byReason: byReasonArray,
-      byStage: [],
+      byStage: byStageArray,
       recoverable: {
         count: lostLeads.filter(l => l.lostReason === 'PRICE' || l.lostReason === 'SCHEDULE').length,
         amount: lostLeads
@@ -566,12 +627,25 @@ export class AnalyticsService {
       ? Math.round(delayedStudies.reduce((sum, s) => sum + s.delayDays, 0) / delayedStudies.length)
       : 0;
 
+    // 지연 사유별 집계 (status 기반)
+    const byReasonMap: Record<string, number> = {};
+    delayedStudies.forEach(s => {
+      const reason = s.status || 'UNKNOWN';
+      byReasonMap[reason] = (byReasonMap[reason] || 0) + 1;
+    });
+
+    const byReason = Object.entries(byReasonMap).map(([reason, count]) => ({
+      reason,
+      count,
+      percentage: delayedStudies.length > 0 ? Math.round((count / delayedStudies.length) * 100) : 0
+    })).sort((a, b) => b.count - a.count);
+
     return {
       studies: delayedStudies,
       summary: {
         totalDelayed: delayedStudies.length,
         avgDelayDays,
-        byReason: {} // TODO: 지연 사유별 집계
+        byReason
       }
     };
   }

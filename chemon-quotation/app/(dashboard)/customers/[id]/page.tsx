@@ -125,6 +125,21 @@ export default function CustomerDetailPage() {
     loadQuotations();
   }, [customer]);
 
+  // 의뢰자 목록 로드
+  useEffect(() => {
+    if (!customer) return;
+    
+    async function loadRequesters() {
+      try {
+        const data = await requesterApi.getByCustomerId(customer!.id);
+        setRequesters(data);
+      } catch (error) {
+        console.error('Failed to load requesters:', error);
+      }
+    }
+    loadRequesters();
+  }, [customer]);
+
   const handleDelete = async () => {
     if (!customer) return;
     
@@ -227,21 +242,6 @@ export default function CustomerDetailPage() {
   const isContractCompleted = quotations.some(q => q.status === 'accepted' || q.status === 'won');
   const contractId = '';
   const quotationId = quotations.find(q => q.status === 'accepted' || q.status === 'won')?.id || '';
-
-  // 의뢰자 목록 로드
-  useEffect(() => {
-    if (!customer) return;
-    
-    async function loadRequesters() {
-      try {
-        const data = await requesterApi.getByCustomerId(customer!.id);
-        setRequesters(data);
-      } catch (error) {
-        console.error('Failed to load requesters:', error);
-      }
-    }
-    loadRequesters();
-  }, [customer]);
 
   return (
     <div>
