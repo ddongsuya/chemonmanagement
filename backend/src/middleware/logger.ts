@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import logger from '../lib/logger';
 
 export const requestLogger = (
   req: Request,
@@ -7,8 +8,8 @@ export const requestLogger = (
 ): void => {
   const startTime = Date.now();
 
-  // Log request
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+  // Log request (debug level)
+  logger.debug(`${req.method} ${req.path}`, {
     query: req.query,
     ip: req.ip,
     userAgent: req.get('user-agent'),
@@ -17,15 +18,10 @@ export const requestLogger = (
   // Log response when finished
   res.on('finish', () => {
     const duration = Date.now() - startTime;
-    const logLevel = res.statusCode >= 400 ? 'warn' : 'info';
-    
-    const logMessage = `[${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} ${duration}ms`;
-    
-    if (logLevel === 'warn') {
-      console.warn(logMessage);
-    } else {
-      console.log(logMessage);
-    }
+    logger.request(req.method, req.path, res.statusCode, duration, {
+      ip: req.ip,
+      userId: req.user?.id,
+    });
   });
 
   next();

@@ -8,17 +8,46 @@ interface RateLimitStore {
   };
 }
 
+// 메모리 기반 스토어 (단일 인스턴스용)
+// 프로덕션 멀티 인스턴스 환경에서는 Redis 사용 권장
 const store: RateLimitStore = {};
 
-// Clean up expired entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const key in store) {
-    if (store[key].resetTime < now) {
-      delete store[key];
+// 메모리 누수 방지를 위한 정리 작업
+const CLEANUP_INTERVAL = 60000; // 1분
+const MAX_STORE_SIZE = 10000; // 최대 저장 IP 수
+
+let cleanupTimer: NodeJS.Timeout | null = null;
+
+function startCleanup() {
+  if (cleanupTimer) return;
+  
+  cleanupTimer = setInterval(() => {
+    const now = Date.now();
+    let deletedCount = 0;
+    
+    for (const key in store) {
+      if (store[key].resetTime < now) {
+        delete store[key];
+        deletedCount++;
+      }
     }
-  }
-}, 60000); // Clean up every minute
+    
+    // 스토어 크기 제한 (오래된 항목부터 삭제)
+    const keys = Object.keys(store);
+    if (keys.length > MAX_STORE_SIZE) {
+      const sortedKeys = keys.sort((a, b) => store[a].resetTime - store[b].resetTime);
+      const toDelete = sortedKeys.slice(0, keys.length - MAX_STORE_SIZE);
+      toDelete.forEach(key => delete store[key]);
+    }
+    
+    if (deletedCount > 0 && process.env.NODE_ENV !== 'production') {
+      console.info(`[RateLimiter] Cleaned up ${deletedCount} expired entries`);
+    }
+  }, CLEANUP_INTERVAL);
+}
+
+// 서버 시작 시 정리 작업 시작
+startCleanup();
 
 /**
  * Rate limiting middleware

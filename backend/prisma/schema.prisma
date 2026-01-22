@@ -322,6 +322,12 @@ model Customer {
   
   // Clinical Pathology 관계
   clinicalQuotations  ClinicalQuotation[]
+  
+  // 인덱스 최적화
+  @@index([userId])
+  @@index([grade])
+  @@index([name])
+  @@index([company])
 }
 
 // ==================== Requester (의뢰자) ====================
@@ -546,6 +552,14 @@ model Quotation {
 
   // 신규: 계약 연결
   contracts        Contract[]      @relation("QuotationContracts")
+  
+  // 인덱스 최적화
+  @@index([userId])
+  @@index([customerId])
+  @@index([status])
+  @@index([quotationType])
+  @@index([createdAt])
+  @@index([status, userId])  // 복합 인덱스: 사용자별 상태 조회
 }
 
 // ==================== Contract (신규) ====================
