@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuotationStore } from '@/stores/quotationStore';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { usePDFDownload } from '@/hooks/usePDFDownload';
 import { createQuotation } from '@/lib/data-api';
+import { getUserSettings } from '@/lib/package-api';
 
 export default function StepPreview() {
   const router = useRouter();
@@ -30,9 +31,28 @@ export default function StepPreview() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('preview');
   const [savedQuotationNumber, setSavedQuotationNumber] = useState<string | null>(null);
+  const [userCode, setUserCode] = useState<string>('XX');
 
-  // 임시 견적번호 (저장 전)
-  const tempQuotationNumber = 'TQ-' + new Date().getFullYear() + '-XXXX';
+  // 사용자 설정에서 userCode 로드
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      try {
+        const response = await getUserSettings();
+        if (response.success && response.data?.userCode) {
+          setUserCode(response.data.userCode);
+        }
+      } catch (error) {
+        console.error('Failed to load user settings:', error);
+      }
+    };
+    loadUserSettings();
+  }, []);
+
+  // 임시 견적번호 (저장 전) - userCode 반영
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const tempQuotationNumber = `${year}-${userCode}-${month}-XXXX`;
   const displayQuotationNumber = savedQuotationNumber || tempQuotationNumber;
 
   // 저장

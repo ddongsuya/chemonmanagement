@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuotationStore } from '@/stores/quotationStore';
+import { useAuthStore } from '@/stores/authStore';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { COMPANY_INFO } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
@@ -40,12 +41,18 @@ export default function QuotationPDF({ quotationNumber }: Props) {
     updateItem,
   } = useQuotationStore();
 
+  const { user } = useAuthStore();
+
   const [editingItem, setEditingItem] = useState<QuotationItem | null>(null);
   const [editPrice, setEditPrice] = useState<number | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
   const validUntil = new Date(Date.now() + validDays * 24 * 60 * 60 * 1000);
   const mainItems = selectedItems.filter((item) => !item.is_option);
+
+  // 담당자 정보 (로그인한 사용자 정보 사용)
+  const managerName = user?.name || '담당자';
+  const managerEmail = user?.email || 'contact@chemon.co.kr';
 
   // 가격 수정 다이얼로그 열기
   const handleEditPrice = (item: QuotationItem) => {
@@ -255,7 +262,7 @@ export default function QuotationPDF({ quotationNumber }: Props) {
       {/* 푸터 */}
       <div className="border-t pt-4 text-sm text-gray-600">
         <p>
-          담당자: 홍길동 (hong@chemon.co.kr) / {COMPANY_INFO.tel}
+          담당자: {managerName} ({managerEmail}) / {COMPANY_INFO.tel}
         </p>
       </div>
 
