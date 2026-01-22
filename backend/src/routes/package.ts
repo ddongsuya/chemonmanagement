@@ -285,7 +285,7 @@ router.put('/info', authenticate, async (req: Request, res: Response, next: Next
  */
 router.get('/user', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = req.user!.id;
     const settings = await packageService.getUserSettings(userId);
 
     res.json({
@@ -317,7 +317,7 @@ router.get('/user', authenticate, async (req: Request, res: Response, next: Next
  */
 router.put('/user', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = req.user!.id;
     const settings = await packageService.updateUserSettings(userId, req.body);
 
     res.json({

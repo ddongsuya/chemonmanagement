@@ -27,7 +27,7 @@ async function main() {
       role: 'ADMIN',
       status: 'ACTIVE',
       department: 'SUPPORT',
-      position: '관리자',
+      position: 'MANAGER',
       canViewAllSales: true,
     },
   });
