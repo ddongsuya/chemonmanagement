@@ -294,4 +294,100 @@ A: 관리자에게 비밀번호 초기화를 요청하세요.
 
 ---
 
-_최종 업데이트: 2026년 1월 21일_
+## 배포 가이드 (개발자용)
+
+### 아키텍처
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Frontend      │────▶│    Backend      │────▶│   PostgreSQL    │
+│   (Vercel)      │     │   (Render)      │     │   (Render)      │
+│   Next.js 14    │     │   Express.js    │     │                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+### 환경 변수
+
+#### Backend (Render)
+
+| 변수명               | 설명                   | 예시                                  |
+| -------------------- | ---------------------- | ------------------------------------- |
+| `DATABASE_URL`       | PostgreSQL 연결 문자열 | `postgresql://user:pass@host:5432/db` |
+| `JWT_ACCESS_SECRET`  | Access Token 서명 키   | 32자 이상 랜덤 문자열                 |
+| `JWT_REFRESH_SECRET` | Refresh Token 서명 키  | 32자 이상 랜덤 문자열                 |
+| `NODE_ENV`           | 환경                   | `production`                          |
+| `PORT`               | 서버 포트              | `3001`                                |
+
+#### Frontend (Vercel)
+
+| 변수명                | 설명           | 예시                                        |
+| --------------------- | -------------- | ------------------------------------------- |
+| `NEXT_PUBLIC_API_URL` | 백엔드 API URL | `https://chemon-quotation-api.onrender.com` |
+
+### 배포 방법
+
+#### 1. Backend (Render)
+
+1. Render 대시보드에서 Web Service 생성
+2. GitHub 저장소 연결 (`backend` 폴더)
+3. 빌드 명령어: `npm install && npm run build`
+4. 시작 명령어: `npm start`
+5. 환경 변수 설정 (위 표 참조)
+6. PostgreSQL 데이터베이스 생성 및 연결
+
+#### 2. Frontend (Vercel)
+
+1. Vercel 대시보드에서 프로젝트 생성
+2. GitHub 저장소 연결 (`chemon-quotation` 폴더)
+3. 프레임워크: Next.js
+4. 환경 변수 설정 (`NEXT_PUBLIC_API_URL`)
+
+#### 3. 데이터베이스 초기화
+
+```bash
+# Prisma 마이그레이션 실행 (Render 배포 시 자동)
+npx prisma migrate deploy
+
+# 마스터 데이터 시드 (최초 1회)
+npm run seed:master
+```
+
+### 자동 배포
+
+- `main` 브랜치에 push 시 자동 배포
+- Backend: Render 자동 빌드 및 배포
+- Frontend: Vercel 자동 빌드 및 배포
+
+### API 문서
+
+- Swagger UI: `https://chemon-quotation-api.onrender.com/api-docs`
+- 인증 필요 API는 Bearer Token 입력 후 테스트
+
+### 모니터링
+
+- Render 대시보드에서 로그 확인
+- Vercel 대시보드에서 빌드 로그 확인
+
+### 트러블슈팅
+
+#### 백엔드 시작 실패
+
+1. 환경 변수 확인 (특히 `DATABASE_URL`, `JWT_*_SECRET`)
+2. Render 로그에서 에러 메시지 확인
+3. 데이터베이스 연결 상태 확인
+
+#### 프론트엔드 API 연결 실패
+
+1. `NEXT_PUBLIC_API_URL` 확인 (끝에 `/api` 없이)
+2. CORS 설정 확인
+3. 브라우저 개발자 도구 Network 탭 확인
+
+#### 로그인 실패
+
+1. 백엔드 서버 상태 확인
+2. JWT 시크릿 환경 변수 설정 확인
+3. 데이터베이스에 사용자 존재 여부 확인
+
+---
+
+_최종 업데이트: 2026년 1월 22일_
