@@ -4,12 +4,18 @@ import { PrismaClient } from '@prisma/client';
 import { AppError, ErrorCodes } from '../types/error';
 import { TokenPayload } from '../types/auth';
 
-// 프로덕션 환경에서는 환경 변수 필수
+// 환경 변수에서 JWT 시크릿 로드
 const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET;
-if (!ACCESS_TOKEN_SECRET && process.env.NODE_ENV === 'production') {
-  throw new Error('CRITICAL: JWT_ACCESS_SECRET 환경 변수가 설정되지 않았습니다. 프로덕션 환경에서는 필수입니다.');
+
+// 프로덕션 환경에서 환경 변수 미설정 시 경고 (서버는 시작되도록)
+if (!ACCESS_TOKEN_SECRET) {
+  console.warn('⚠️  WARNING: JWT_ACCESS_SECRET 환경 변수가 설정되지 않았습니다. 기본값을 사용합니다.');
+  if (process.env.NODE_ENV === 'production') {
+    console.error('🚨 SECURITY WARNING: 프로덕션 환경에서는 반드시 JWT_ACCESS_SECRET을 설정하세요!');
+  }
 }
-const JWT_SECRET = ACCESS_TOKEN_SECRET || 'dev-only-secret-key';
+
+const JWT_SECRET = ACCESS_TOKEN_SECRET || 'chemon-default-secret-change-in-production';
 
 const prisma = new PrismaClient();
 

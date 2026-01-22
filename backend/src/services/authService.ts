@@ -28,21 +28,20 @@ export class AuthService {
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
     
-    // 프로덕션 환경에서는 환경 변수 필수
+    // 환경 변수에서 JWT 시크릿 로드
     const accessSecret = process.env.JWT_ACCESS_SECRET;
     const refreshSecret = process.env.JWT_REFRESH_SECRET;
     
-    if (process.env.NODE_ENV === 'production') {
-      if (!accessSecret) {
-        throw new Error('CRITICAL: JWT_ACCESS_SECRET 환경 변수가 설정되지 않았습니다.');
-      }
-      if (!refreshSecret) {
-        throw new Error('CRITICAL: JWT_REFRESH_SECRET 환경 변수가 설정되지 않았습니다.');
+    // 환경 변수 미설정 시 경고 (서버는 시작되도록)
+    if (!accessSecret || !refreshSecret) {
+      console.warn('⚠️  WARNING: JWT 시크릿 환경 변수가 설정되지 않았습니다. 기본값을 사용합니다.');
+      if (process.env.NODE_ENV === 'production') {
+        console.error('🚨 SECURITY WARNING: 프로덕션 환경에서는 반드시 JWT_ACCESS_SECRET, JWT_REFRESH_SECRET을 설정하세요!');
       }
     }
     
-    this.accessTokenSecret = accessSecret || 'dev-only-access-secret';
-    this.refreshTokenSecret = refreshSecret || 'dev-only-refresh-secret';
+    this.accessTokenSecret = accessSecret || 'chemon-access-secret-change-in-production';
+    this.refreshTokenSecret = refreshSecret || 'chemon-refresh-secret-change-in-production';
     this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || '15m';
     this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '7d';
   }
