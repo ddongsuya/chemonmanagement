@@ -8,6 +8,124 @@ const router = Router();
 const prisma = new PrismaClient();
 const packageService = new PackageService(prisma);
 
+// ==================== User Settings (must be before /:packageId) ====================
+
+/**
+ * @swagger
+ * /api/settings/user:
+ *   get:
+ *     summary: 사용자 설정 조회
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 사용자 설정
+ */
+router.get('/user', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+    const settings = await packageService.getUserSettings(userId);
+
+    res.json({
+      success: true,
+      data: settings,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/settings/user:
+ *   put:
+ *     summary: 사용자 설정 수정
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: 수정된 사용자 설정
+ */
+router.put('/user', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+    const settings = await packageService.updateUserSettings(userId, req.body);
+
+    res.json({
+      success: true,
+      data: settings,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==================== Company Info (must be before /:packageId) ====================
+
+/**
+ * @swagger
+ * /api/company/info:
+ *   get:
+ *     summary: 회사 정보 조회
+ *     tags: [Company]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 회사 정보
+ */
+router.get('/info', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const info = await packageService.getCompanyInfo();
+
+    res.json({
+      success: true,
+      data: info,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/company/info:
+ *   put:
+ *     summary: 회사 정보 수정
+ *     tags: [Company]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: 수정된 회사 정보
+ */
+router.put('/info', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const info = await packageService.updateCompanyInfo(req.body);
+
+    res.json({
+      success: true,
+      data: info,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ==================== Package Templates ====================
 
 /**
@@ -205,124 +323,6 @@ router.delete('/:packageId', authenticate, async (req: Request, res: Response, n
     res.json({
       success: true,
       message: '패키지가 삭제되었습니다',
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// ==================== Company Info ====================
-
-/**
- * @swagger
- * /api/company/info:
- *   get:
- *     summary: 회사 정보 조회
- *     tags: [Company]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: 회사 정보
- */
-router.get('/info', authenticate, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const info = await packageService.getCompanyInfo();
-
-    res.json({
-      success: true,
-      data: info,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * @swagger
- * /api/company/info:
- *   put:
- *     summary: 회사 정보 수정
- *     tags: [Company]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       200:
- *         description: 수정된 회사 정보
- */
-router.put('/info', authenticate, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const info = await packageService.updateCompanyInfo(req.body);
-
-    res.json({
-      success: true,
-      data: info,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// ==================== User Settings ====================
-
-/**
- * @swagger
- * /api/settings/user:
- *   get:
- *     summary: 사용자 설정 조회
- *     tags: [Settings]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: 사용자 설정
- */
-router.get('/user', authenticate, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user!.id;
-    const settings = await packageService.getUserSettings(userId);
-
-    res.json({
-      success: true,
-      data: settings,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * @swagger
- * /api/settings/user:
- *   put:
- *     summary: 사용자 설정 수정
- *     tags: [Settings]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       200:
- *         description: 수정된 사용자 설정
- */
-router.put('/user', authenticate, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user!.id;
-    const settings = await packageService.updateUserSettings(userId, req.body);
-
-    res.json({
-      success: true,
-      data: settings,
     });
   } catch (error) {
     next(error);
