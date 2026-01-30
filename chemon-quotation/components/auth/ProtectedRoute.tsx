@@ -20,6 +20,10 @@ const devUser = {
   role: 'ADMIN' as const,
   department: 'SUPPORT',
   position: 'MANAGER',
+  phone: '',
+  status: 'ACTIVE' as const,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
