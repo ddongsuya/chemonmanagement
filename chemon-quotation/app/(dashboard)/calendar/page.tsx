@@ -134,7 +134,7 @@ export default function CalendarPage() {
 
       {/* 이벤트 상세/수정 다이얼로그 */}
       <Dialog open={isEventDetailOpen} onOpenChange={setIsEventDetailOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           {selectedEvent && (
             <EventForm
               event={selectedEvent}

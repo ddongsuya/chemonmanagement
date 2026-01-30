@@ -40,7 +40,7 @@ const EVENT_TYPES: { value: CalendarEvent['type']; label: string }[] = [
 ];
 
 const COLOR_OPTIONS = [
-  { value: '', label: '기본' },
+  { value: 'default', label: '기본' },
   { value: '#3B82F6', label: '파랑' },
   { value: '#EF4444', label: '빨강' },
   { value: '#10B981', label: '초록' },
@@ -86,7 +86,7 @@ export default function EventForm({
     start_time: getInitialTime(),
     end_date: event?.end_date?.split('T')[0] || '',
     all_day: event?.all_day ?? true,
-    color: event?.color || '',
+    color: event?.color || 'default',
     customer_id: event?.customer_id || customerId || '',
     reminder_before: event?.reminder_before?.toString() || '',
   });
@@ -160,6 +160,9 @@ export default function EventForm({
           : `${formData.end_date}T23:59:59`;
       }
 
+      // color가 'default'면 undefined로 처리
+      const colorValue = formData.color && formData.color !== 'default' ? formData.color : undefined;
+
       if (isEditMode && event) {
         // 수정 모드 - API 사용
         await calendarEventApi.update(event.id, {
@@ -169,7 +172,7 @@ export default function EventForm({
           start_date: startDateTime,
           end_date: endDateTime,
           all_day: formData.all_day,
-          color: formData.color || undefined,
+          color: colorValue,
           customer_id: formData.customer_id || undefined,
           reminder_before: formData.reminder_before
             ? parseInt(formData.reminder_before)
@@ -184,7 +187,7 @@ export default function EventForm({
           start_date: startDateTime,
           end_date: endDateTime,
           all_day: formData.all_day,
-          color: formData.color || undefined,
+          color: colorValue,
           customer_id: formData.customer_id || undefined,
           reminder_before: formData.reminder_before
             ? parseInt(formData.reminder_before)
@@ -220,9 +223,9 @@ export default function EventForm({
         <DialogTitle>{isEditMode ? '일정 수정' : '일정 등록'}</DialogTitle>
       </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
+      <form onSubmit={handleSubmit} className="space-y-5 py-4 max-h-[70vh] overflow-y-auto px-1">
         {/* 이벤트 유형 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="type">
             유형 <span className="text-red-500">*</span>
           </Label>
@@ -246,7 +249,7 @@ export default function EventForm({
         </div>
 
         {/* 제목 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="title">
             제목 <span className="text-red-500">*</span>
           </Label>
@@ -276,7 +279,7 @@ export default function EventForm({
 
         {/* 날짜/시간 */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="start_date">
               시작 날짜 <span className="text-red-500">*</span>
             </Label>
@@ -295,7 +298,7 @@ export default function EventForm({
           </div>
 
           {!formData.all_day && (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="start_time">
                 시작 시간 <span className="text-red-500">*</span>
               </Label>
@@ -314,7 +317,7 @@ export default function EventForm({
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="end_date">종료 날짜</Label>
             <Input
               id="end_date"
@@ -328,7 +331,7 @@ export default function EventForm({
         </div>
 
         {/* 설명 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="description">설명</Label>
           <Textarea
             id="description"
@@ -343,19 +346,19 @@ export default function EventForm({
 
         {/* 관련 고객사 */}
         {!customerId && customers.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="customer_id">관련 고객사</Label>
             <Select
-              value={formData.customer_id}
+              value={formData.customer_id || 'none'}
               onValueChange={(value) =>
-                setFormData({ ...formData, customer_id: value })
+                setFormData({ ...formData, customer_id: value === 'none' ? '' : value })
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="고객사 선택 (선택사항)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">선택 안함</SelectItem>
+                <SelectItem value="none">선택 안함</SelectItem>
                 {customers.map((customer) => (
                   <SelectItem key={customer.id} value={customer.id}>
                     {customer.company_name}
@@ -367,7 +370,7 @@ export default function EventForm({
         )}
 
         {/* 색상 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="color">색상</Label>
           <Select
             value={formData.color}
@@ -378,9 +381,9 @@ export default function EventForm({
             </SelectTrigger>
             <SelectContent>
               {COLOR_OPTIONS.map((color) => (
-                <SelectItem key={color.value || 'default'} value={color.value}>
+                <SelectItem key={color.value} value={color.value}>
                   <div className="flex items-center gap-2">
-                    {color.value && (
+                    {color.value !== 'default' && (
                       <div
                         className="w-4 h-4 rounded-full"
                         style={{ backgroundColor: color.value }}
@@ -395,19 +398,19 @@ export default function EventForm({
         </div>
 
         {/* 알림 설정 - Requirements 6.6 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="reminder_before">알림 (분 전)</Label>
           <Select
-            value={formData.reminder_before}
+            value={formData.reminder_before || 'none'}
             onValueChange={(value) =>
-              setFormData({ ...formData, reminder_before: value })
+              setFormData({ ...formData, reminder_before: value === 'none' ? '' : value })
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="알림 설정" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">알림 없음</SelectItem>
+              <SelectItem value="none">알림 없음</SelectItem>
               <SelectItem value="10">10분 전</SelectItem>
               <SelectItem value="30">30분 전</SelectItem>
               <SelectItem value="60">1시간 전</SelectItem>
@@ -417,7 +420,7 @@ export default function EventForm({
           </Select>
         </div>
 
-        <DialogFooter className="pt-4 gap-2">
+        <DialogFooter className="pt-6 gap-2">
           {isEditMode && (
             <Button
               type="button"

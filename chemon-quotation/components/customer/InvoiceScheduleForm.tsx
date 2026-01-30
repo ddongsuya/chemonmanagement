@@ -153,7 +153,7 @@ export default function InvoiceScheduleForm({
         </DialogTitle>
       </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
+      <form onSubmit={handleSubmit} className="space-y-5 py-4 max-h-[70vh] overflow-y-auto px-1">
         {/* 시험 정보 표시 */}
         {testReception && (
           <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm">
@@ -162,9 +162,9 @@ export default function InvoiceScheduleForm({
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {/* 금액 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="amount">
               금액 (원) <span className="text-red-500">*</span>
             </Label>
@@ -185,7 +185,7 @@ export default function InvoiceScheduleForm({
           </div>
 
           {/* 발행 예정일 - Requirements 3.2 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="scheduled_date">
               발행 예정일 <span className="text-red-500">*</span>
             </Label>
@@ -205,7 +205,7 @@ export default function InvoiceScheduleForm({
 
           {/* 분할 지급 설정 - Requirements 3.6 */}
           {!isEditMode && (
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-1.5 sm:col-span-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="installment">분할 지급</Label>
                 <Switch
@@ -220,7 +220,7 @@ export default function InvoiceScheduleForm({
           {/* 분할 지급 옵션 */}
           {isInstallment && !isEditMode && (
             <>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="installments">분할 횟수</Label>
                 <Select
                   value={formData.installments.toString()}
@@ -244,7 +244,7 @@ export default function InvoiceScheduleForm({
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="intervalDays">발행 간격 (일)</Label>
                 <Input
                   id="intervalDays"
@@ -263,7 +263,7 @@ export default function InvoiceScheduleForm({
 
               {/* 분할 지급 미리보기 */}
               {installmentPreview.length > 0 && (
-                <div className="sm:col-span-2 space-y-2">
+                <div className="sm:col-span-2 space-y-1.5">
                   <Label>분할 지급 미리보기</Label>
                   <div className="border rounded-lg divide-y max-h-[200px] overflow-y-auto">
                     {installmentPreview.map((item) => (
@@ -289,7 +289,7 @@ export default function InvoiceScheduleForm({
           )}
 
           {/* 메모 */}
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="notes">메모</Label>
             <Textarea
               id="notes"
@@ -301,7 +301,7 @@ export default function InvoiceScheduleForm({
           </div>
         </div>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter className="pt-6">
           {onCancel ? (
             <Button type="button" variant="outline" onClick={onCancel}>
               취소

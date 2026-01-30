@@ -10,27 +10,49 @@ import {
   DialogContent,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import CustomerForm from '@/components/customer/CustomerForm';
 import CustomerCard from '@/components/customer/CustomerCard';
 import Skeleton from '@/components/ui/Skeleton';
-import { Plus, Search, Users, RefreshCw } from 'lucide-react';
+import { Plus, Search, Users, RefreshCw, Filter } from 'lucide-react';
 import { Customer } from '@/types';
-import { getCustomers, Customer as ApiCustomer } from '@/lib/data-api';
+import { getCustomers, Customer as ApiCustomer, CustomerGrade } from '@/lib/data-api';
 import { useToast } from '@/hooks/use-toast';
 import ExcelImportExport from '@/components/excel/ExcelImportExport';
+
+// Grade 필터 옵션 (Requirements 4.2)
+const GRADE_OPTIONS: { value: CustomerGrade | 'ALL'; label: string }[] = [
+  { value: 'ALL', label: '전체' },
+  { value: 'LEAD', label: '리드' },
+  { value: 'PROSPECT', label: '잠재고객' },
+  { value: 'CUSTOMER', label: '고객' },
+  { value: 'VIP', label: 'VIP' },
+  { value: 'INACTIVE', label: '비활성' },
+];
 
 export default function CustomersPage() {
   const { toast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [gradeFilter, setGradeFilter] = useState<CustomerGrade | 'ALL'>('ALL');
   const [showAddDialog, setShowAddDialog] = useState(false);
 
-  // API에서 고객 데이터 로드
+  // API에서 고객 데이터 로드 (Requirements 4.3)
   const loadCustomers = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await getCustomers({ limit: 100 });
+      const filters: { limit: number; grade?: CustomerGrade } = { limit: 100 };
+      if (gradeFilter !== 'ALL') {
+        filters.grade = gradeFilter;
+      }
+      const response = await getCustomers(filters);
       if (response.success && response.data) {
         // API 응답을 프론트엔드 Customer 타입으로 변환
         const customerData = response.data.data || [];
@@ -65,7 +87,7 @@ export default function CustomersPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, gradeFilter]);
 
   useEffect(() => {
     loadCustomers();
@@ -195,17 +217,37 @@ export default function CustomersPage() {
         </Card>
       </div>
 
-      {/* 검색바 */}
+      {/* 검색바 및 필터 */}
       <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder="회사명, 담당자, 이메일로 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="회사명, 담당자, 이메일로 검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <Select
+                value={gradeFilter}
+                onValueChange={(value) => setGradeFilter(value as CustomerGrade | 'ALL')}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="등급 필터" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GRADE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>

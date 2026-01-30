@@ -11,6 +11,8 @@ import {
   UpdateCustomerDTO,
   CustomerFilters,
   CustomerResponse,
+  CustomerWithLeadResponse,
+  LinkedLeadInfo,
 } from '../types/customer';
 import { PaginatedResult } from '../types';
 
@@ -96,6 +98,21 @@ export class DataService {
       }
     }
 
+    // If leadId is provided, verify lead exists and belongs to user
+    if (data.leadId) {
+      const lead = await this.prisma.lead.findFirst({
+        where: {
+          id: data.leadId,
+          userId,
+          deletedAt: null,
+        },
+      });
+
+      if (!lead) {
+        throw new AppError('리드를 찾을 수 없습니다', 404, ErrorCodes.RESOURCE_NOT_FOUND);
+      }
+    }
+
     // validUntil 계산
     const validUntil = data.validUntil 
       ? new Date(data.validUntil)
@@ -121,6 +138,7 @@ export class DataService {
             modelId: data.modelId || null,
             modelCategory: data.modelCategory || null,
             indication: data.indication || null,
+            leadId: data.leadId || null,  // 리드 연결 추가
             items: data.items as unknown as Prisma.InputJsonValue,
             subtotalTest: data.subtotalTest ? new Prisma.Decimal(data.subtotalTest) : null,
             subtotalAnalysis: data.subtotalAnalysis ? new Prisma.Decimal(data.subtotalAnalysis) : null,
@@ -140,6 +158,14 @@ export class DataService {
                 id: true,
                 name: true,
                 company: true,
+              },
+            },
+            lead: {
+              select: {
+                id: true,
+                companyName: true,
+                contactName: true,
+                status: true,
               },
             },
           },
@@ -211,6 +237,14 @@ export class DataService {
               company: true,
             },
           },
+          lead: {
+            select: {
+              id: true,
+              companyName: true,
+              contactName: true,
+              status: true,
+            },
+          },
         },
       }),
       this.prisma.quotation.count({ where }),
@@ -244,6 +278,14 @@ export class DataService {
             company: true,
           },
         },
+        lead: {
+          select: {
+            id: true,
+            companyName: true,
+            contactName: true,
+            status: true,
+          },
+        },
       },
     });
 
@@ -274,6 +316,14 @@ export class DataService {
             id: true,
             name: true,
             company: true,
+          },
+        },
+        lead: {
+          select: {
+            id: true,
+            companyName: true,
+            contactName: true,
+            status: true,
           },
         },
       },
@@ -327,6 +377,21 @@ export class DataService {
       }
     }
 
+    // If leadId is provided, verify lead exists and belongs to user
+    if (data.leadId) {
+      const lead = await this.prisma.lead.findFirst({
+        where: {
+          id: data.leadId,
+          userId,
+          deletedAt: null,
+        },
+      });
+
+      if (!lead) {
+        throw new AppError('리드를 찾을 수 없습니다', 404, ErrorCodes.RESOURCE_NOT_FOUND);
+      }
+    }
+
     const quotation = await this.prisma.quotation.update({
       where: { id },
       data: {
@@ -337,6 +402,7 @@ export class DataService {
         ...(data.modelId !== undefined && { modelId: data.modelId }),
         ...(data.modelCategory !== undefined && { modelCategory: data.modelCategory }),
         ...(data.indication !== undefined && { indication: data.indication }),
+        ...(data.leadId !== undefined && { leadId: data.leadId }),  // 리드 연결 추가
         ...(data.items && { items: data.items as unknown as Prisma.InputJsonValue }),
         ...(data.subtotalTest !== undefined && { 
           subtotalTest: data.subtotalTest ? new Prisma.Decimal(data.subtotalTest) : null 
@@ -370,6 +436,14 @@ export class DataService {
             id: true,
             name: true,
             company: true,
+          },
+        },
+        lead: {
+          select: {
+            id: true,
+            companyName: true,
+            contactName: true,
+            status: true,
           },
         },
       },
@@ -409,6 +483,7 @@ export class DataService {
   private toQuotationResponse(
     quotation: Quotation & {
       customer?: { id: string; name: string; company: string | null } | null;
+      lead?: { id: string; companyName: string; contactName: string; status: string } | null;
     }
   ): QuotationResponse {
     return {
@@ -423,6 +498,7 @@ export class DataService {
       modelId: quotation.modelId,
       modelCategory: quotation.modelCategory,
       indication: quotation.indication,
+      leadId: quotation.leadId,  // 리드 ID 추가
       items: quotation.items as unknown[],
       subtotalTest: quotation.subtotalTest ? Number(quotation.subtotalTest) : null,
       subtotalAnalysis: quotation.subtotalAnalysis ? Number(quotation.subtotalAnalysis) : null,
@@ -439,6 +515,7 @@ export class DataService {
       updatedAt: quotation.updatedAt,
       deletedAt: quotation.deletedAt,
       customer: quotation.customer,
+      lead: quotation.lead,  // 리드 정보 추가
     };
   }
 
@@ -466,17 +543,19 @@ export class DataService {
 
   /**
    * Get customers list with pagination and filters
+   * Supports grade filtering and includes linked Lead information
    */
   async getCustomers(
     userId: string,
     filters: CustomerFilters
-  ): Promise<PaginatedResult<CustomerResponse & { quotationCount: number; totalAmount: number }>> {
-    const { page, limit, search } = filters;
+  ): Promise<PaginatedResult<CustomerWithLeadResponse & { quotationCount: number; totalAmount: number }>> {
+    const { page, limit, search, grade } = filters;
     const skip = (page - 1) * limit;
 
     const where: Prisma.CustomerWhereInput = {
       userId,
       deletedAt: null,
+      ...(grade && { grade }),  // grade 필터 추가
       ...(search && {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
@@ -500,17 +579,39 @@ export class DataService {
               totalAmount: true,
             },
           },
+          // 연결된 리드 정보 포함 (가장 최근 리드)
+          leads: {
+            select: {
+              id: true,
+              source: true,
+              status: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
         },
       }),
       this.prisma.customer.count({ where }),
     ]);
 
     return {
-      data: customers.map((c) => ({
-        ...this.toCustomerResponse(c),
-        quotationCount: c.quotations?.length || 0,
-        totalAmount: c.quotations?.reduce((sum, q) => sum + Number(q.totalAmount), 0) || 0,
-      })),
+      data: customers.map((c) => {
+        // 연결된 리드 정보 추출
+        const linkedLead: LinkedLeadInfo | undefined = c.leads && c.leads.length > 0
+          ? {
+              id: c.leads[0].id,
+              source: c.leads[0].source,
+              status: c.leads[0].status,
+            }
+          : undefined;
+
+        return {
+          ...this.toCustomerResponse(c),
+          linkedLead,
+          quotationCount: c.quotations?.length || 0,
+          totalAmount: c.quotations?.reduce((sum, q) => sum + Number(q.totalAmount), 0) || 0,
+        };
+      }),
       pagination: {
         page,
         limit,
@@ -618,6 +719,7 @@ export class DataService {
       phone: customer.phone,
       address: customer.address,
       notes: customer.notes,
+      grade: customer.grade,  // grade 필드 추가
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,
       deletedAt: customer.deletedAt,

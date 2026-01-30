@@ -5,6 +5,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate } from '../middleware/auth';
 import prisma from '../lib/prisma';
 import { LeadStatus, LeadSource } from '@prisma/client';
+import { dataSyncService } from '../services/dataSyncService';
 
 const router = Router();
 
@@ -15,12 +16,19 @@ router.use(authenticate);
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.id;
-    const { status, stageId, search, page = '1', limit = '20' } = req.query;
+    const { status, stageId, search, excludeConverted, page = '1', limit = '20' } = req.query;
 
     const where: any = { userId, deletedAt: null };
     
     if (status) where.status = status as LeadStatus;
     if (stageId) where.stageId = stageId as string;
+    
+    // excludeConverted 필터: 전환된 리드 제외 (Requirements 1.3)
+    // 견적서 작성 시 리드 목록에서 이미 고객으로 전환된 리드를 제외하기 위해 사용
+    if (excludeConverted === 'true') {
+      where.status = { not: LeadStatus.CONVERTED };
+    }
+    
     if (search) {
       where.OR = [
         { companyName: { contains: search as string, mode: 'insensitive' } },
@@ -177,6 +185,20 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
       data: updateData,
       include: { stage: true, customer: true },
     });
+
+    // Requirements 5.1: 리드 정보 수정 시 연결된 Customer 동기화
+    // 동기화 대상 필드가 변경되었는지 확인
+    const syncFields = ['contactName', 'companyName', 'contactEmail', 'contactPhone'];
+    const hasSyncFieldChanged = syncFields.some(field => updateData[field] !== undefined);
+    
+    if (hasSyncFieldChanged && lead.customerId) {
+      try {
+        await dataSyncService.syncLeadToCustomer(id, userId);
+      } catch (syncError) {
+        // 동기화 실패는 로그만 기록하고 주요 작업은 완료 처리
+        console.error('Lead to Customer sync failed:', syncError);
+      }
+    }
 
     res.json({ success: true, data: { lead } });
   } catch (error) {

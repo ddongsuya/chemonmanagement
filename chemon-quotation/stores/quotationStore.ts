@@ -23,6 +23,12 @@ interface QuotationState {
   validDays: number;
   notes: string;
   
+  // 리드 연결 정보 (Requirements 1.4)
+  leadId: string | null;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  
   // Step 2: 모달리티
   modality: string;
   
@@ -55,6 +61,7 @@ interface QuotationState {
     notes: string;
   }) => void;
   setCustomer: (id: string, name: string) => void;
+  setLead: (leadId: string | null, companyName: string, contactName: string, contactEmail: string, contactPhone: string) => void;
   setProjectName: (name: string) => void;
   setModality: (modality: string) => void;
   setValidDays: (days: number) => void;
@@ -98,6 +105,11 @@ const initialState = {
   modality: '',
   validDays: 30,
   notes: '',
+  // 리드 연결 정보 (Requirements 1.4)
+  leadId: null as string | null,
+  contactName: '',
+  contactEmail: '',
+  contactPhone: '',
   selectedItems: [] as QuotationItem[],
   selectedToxicityTests: [] as SelectedToxicityTest[],
   analysisCost: initialAnalysisCost,
@@ -235,6 +247,18 @@ export const useQuotationStore = create<QuotationState>((set, get) => ({
     }),
 
   setCustomer: (id, name) => set({ customerId: id, customerName: name }),
+  
+  // Requirements 1.4: 리드 선택 시 데이터 자동 채우기
+  setLead: (leadId, companyName, contactName, contactEmail, contactPhone) => set({
+    leadId,
+    customerName: companyName,
+    contactName,
+    contactEmail,
+    contactPhone,
+    // 리드 선택 시 customerId는 초기화 (리드와 고객은 별개)
+    customerId: '',
+  }),
+  
   setProjectName: (name) => set({ projectName: name }),
 
   setModality: (modality) =>

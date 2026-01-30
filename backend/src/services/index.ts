@@ -11,3 +11,9 @@ export { KanbanService, kanbanService } from './kanbanService';
 export { ActivityService, activityService } from './activityService';
 export { DashboardService, dashboardService } from './dashboardService';
 export { AnalyticsService, analyticsService } from './analyticsService';
+
+// Pipeline Automation services
+export { PipelineAutomationService, pipelineAutomationService } from './pipelineAutomationService';
+
+// Lead Conversion services
+export { LeadConversionService, leadConversionService } from './leadConversionService';

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CustomerGrade, LeadSource, LeadStatus } from '@prisma/client';
 
 // Create customer schema
 export const createCustomerSchema = z.object({
@@ -24,11 +25,22 @@ export const updateCustomerSchema = z.object({
 
 export type UpdateCustomerDTO = z.infer<typeof updateCustomerSchema>;
 
-// Customer filters
+// Customer grade type (re-export for convenience)
+export { CustomerGrade };
+
+// Customer filters with grade support
 export interface CustomerFilters {
   search?: string;
+  grade?: CustomerGrade;  // 신규: grade 필터
   page: number;
   limit: number;
+}
+
+// Linked lead information for customer response
+export interface LinkedLeadInfo {
+  id: string;
+  source: LeadSource;
+  status: LeadStatus;
 }
 
 // Customer response type
@@ -41,7 +53,13 @@ export interface CustomerResponse {
   phone: string | null;
   address: string | null;
   notes: string | null;
+  grade: CustomerGrade;  // 신규: grade 필드
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
+}
+
+// Extended customer response with linked lead info
+export interface CustomerWithLeadResponse extends CustomerResponse {
+  linkedLead?: LinkedLeadInfo;
 }

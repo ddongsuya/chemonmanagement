@@ -221,7 +221,7 @@ export default function CalendarView({ customerId, onEventClick }: CalendarViewP
                   일정 추가
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-lg">
                 <EventForm
                   customerId={customerId}
                   initialDate={selectedDate || undefined}

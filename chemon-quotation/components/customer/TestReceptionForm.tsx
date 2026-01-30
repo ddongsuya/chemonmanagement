@@ -146,10 +146,10 @@ export default function TestReceptionForm({
         </DialogTitle>
       </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="space-y-5 py-4 max-h-[70vh] overflow-y-auto px-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {/* 의뢰자 선택 */}
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="requester_id">
               의뢰자 <span className="text-red-500">*</span>
             </Label>
@@ -176,7 +176,7 @@ export default function TestReceptionForm({
           </div>
 
           {/* 물질코드 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="substance_code">
               물질코드 <span className="text-red-500">*</span>
             </Label>
@@ -195,7 +195,7 @@ export default function TestReceptionForm({
           </div>
 
           {/* 프로젝트코드 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="project_code">
               프로젝트코드 <span className="text-red-500">*</span>
             </Label>
@@ -214,7 +214,7 @@ export default function TestReceptionForm({
           </div>
 
           {/* 시험물질명 */}
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="substance_name">
               시험물질명 <span className="text-red-500">*</span>
             </Label>
@@ -233,7 +233,7 @@ export default function TestReceptionForm({
           </div>
 
           {/* 의뢰기관명 */}
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="institution_name">
               의뢰기관명 <span className="text-red-500">*</span>
             </Label>
@@ -252,7 +252,7 @@ export default function TestReceptionForm({
           </div>
 
           {/* 시험번호 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="test_number">
               시험번호 <span className="text-red-500">*</span>
             </Label>
@@ -271,7 +271,7 @@ export default function TestReceptionForm({
           </div>
 
           {/* 시험책임자 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="test_director">
               시험책임자 <span className="text-red-500">*</span>
             </Label>
@@ -290,7 +290,7 @@ export default function TestReceptionForm({
           </div>
 
           {/* 시험제목 */}
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="test_title">
               시험제목 <span className="text-red-500">*</span>
             </Label>
@@ -309,7 +309,7 @@ export default function TestReceptionForm({
           </div>
 
           {/* 금액 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="total_amount">총 금액 (원)</Label>
             <Input
               id="total_amount"
@@ -328,7 +328,7 @@ export default function TestReceptionForm({
           </div>
 
           {/* 예상 완료일 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="expected_completion_date">
               예상 완료일 <span className="text-red-500">*</span>
             </Label>
@@ -347,7 +347,7 @@ export default function TestReceptionForm({
           </div>
         </div>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter className="pt-6">
           {onCancel ? (
             <Button type="button" variant="outline" onClick={onCancel}>
               취소

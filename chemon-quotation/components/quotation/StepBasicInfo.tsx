@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useQuotationStore } from '@/stores/quotationStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,146 +13,76 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
-import { ArrowRight, Plus, Building2, Loader2 } from 'lucide-react';
+import { ArrowRight, Building2 } from 'lucide-react';
 import { VALIDITY_OPTIONS } from '@/lib/constants';
 import { addDays, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { getCustomers, createCustomer, Customer } from '@/lib/data-api';
-import { useToast } from '@/hooks/use-toast';
-
-interface CustomerOption {
-  id: string;
-  name: string;
-}
+import CustomerSelector from './CustomerSelector';
+import { Lead } from '@/lib/lead-api';
 
 export default function StepBasicInfo() {
-  const { toast } = useToast();
   const {
     customerId,
     customerName,
+    leadId,
     projectName,
     validDays,
     notes,
     setCustomer,
+    setLead,
     setProjectName,
     setValidDays,
     setNotes,
     nextStep,
   } = useQuotationStore();
 
-  const [customers, setCustomers] = useState<CustomerOption[]>([]);
-  const [loadingCustomers, setLoadingCustomers] = useState(true);
-  const [newCustomerName, setNewCustomerName] = useState('');
-  const [newCustomerContact, setNewCustomerContact] = useState('');
-  const [newCustomerEmail, setNewCustomerEmail] = useState('');
-  const [newCustomerPhone, setNewCustomerPhone] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [savingCustomer, setSavingCustomer] = useState(false);
   const [errors, setErrors] = useState<{ customer?: string; project?: string }>({});
-
-  // API에서 고객 목록 로드
-  const loadCustomers = useCallback(async () => {
-    setLoadingCustomers(true);
-    try {
-      const response = await getCustomers({ limit: 100 });
-      if (response.success && response.data) {
-        const customerList = response.data.data || [];
-        setCustomers(customerList.map((c: Customer) => ({
-          id: c.id,
-          name: c.company || c.name,
-        })));
-      }
-    } catch (error) {
-      console.error('Failed to load customers:', error);
-    } finally {
-      setLoadingCustomers(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadCustomers();
-  }, [loadCustomers]);
 
   // 유효기한 계산
   const validUntil = format(addDays(new Date(), validDays), 'yyyy년 MM월 dd일', { locale: ko });
 
-  const handleCustomerSelect = (value: string) => {
-    const customer = customers.find((c) => c.id === value);
-    if (customer) {
-      setCustomer(customer.id, customer.name);
-      setErrors((prev) => ({ ...prev, customer: undefined }));
-    }
+  /**
+   * 기존 고객 선택 핸들러 (Requirements 1.2)
+   * CustomerSelector에서 기존 고객을 선택했을 때 호출됩니다.
+   */
+  const handleCustomerSelect = (selectedCustomerId: string, selectedCustomerName: string) => {
+    setCustomer(selectedCustomerId, selectedCustomerName);
+    setErrors((prev) => ({ ...prev, customer: undefined }));
   };
 
-  const handleAddCustomer = async () => {
-    if (!newCustomerName.trim()) {
-      toast({
-        title: '입력 오류',
-        description: '회사명을 입력해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
+  /**
+   * 리드 선택 핸들러 (Requirements 1.4)
+   * CustomerSelector에서 리드를 선택했을 때 호출됩니다.
+   * 리드의 companyName, contactName, contactEmail, contactPhone 정보를 견적서에 자동으로 채웁니다.
+   */
+  const handleLeadSelect = (lead: Lead) => {
+    setLead(
+      lead.id,
+      lead.companyName,
+      lead.contactName,
+      lead.contactEmail || '',
+      lead.contactPhone || ''
+    );
+    setErrors((prev) => ({ ...prev, customer: undefined }));
+  };
 
-    setSavingCustomer(true);
-    try {
-      const response = await createCustomer({
-        name: newCustomerContact.trim() || newCustomerName.trim(),
-        company: newCustomerName.trim(),
-        email: newCustomerEmail.trim() || null,
-        phone: newCustomerPhone.trim() || null,
-      });
-
-      if (response.success && response.data) {
-        const newCustomer = response.data;
-        // 고객 목록에 추가
-        setCustomers((prev) => [...prev, { id: newCustomer.id, name: newCustomer.company || newCustomer.name }]);
-        // 새 고객 선택
-        setCustomer(newCustomer.id, newCustomer.company || newCustomer.name);
-        // 폼 초기화
-        setNewCustomerName('');
-        setNewCustomerContact('');
-        setNewCustomerEmail('');
-        setNewCustomerPhone('');
-        setDialogOpen(false);
-        setErrors((prev) => ({ ...prev, customer: undefined }));
-        
-        toast({
-          title: '등록 완료',
-          description: `${newCustomer.company || newCustomer.name}이(가) 등록되었습니다.`,
-        });
-      } else {
-        toast({
-          title: '등록 실패',
-          description: response.error?.message || '고객 등록에 실패했습니다.',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      toast({
-        title: '등록 실패',
-        description: '고객 등록 중 오류가 발생했습니다.',
-        variant: 'destructive',
-      });
-    } finally {
-      setSavingCustomer(false);
-    }
+  /**
+   * 신규 고객 생성 핸들러 (Requirements 1.6)
+   * CustomerSelector에서 신규 고객(리드)을 생성했을 때 호출됩니다.
+   * DetailedCustomerForm을 통해 생성된 리드가 자동으로 견적서에 연결됩니다.
+   */
+  const handleNewCustomerCreate = (lead: Lead) => {
+    // 신규 생성된 리드도 handleLeadSelect와 동일하게 처리
+    // CustomerSelector 내부에서 이미 onLeadSelect를 호출하므로
+    // 추가 처리가 필요한 경우에만 사용
   };
 
   const handleNext = () => {
     const newErrors: { customer?: string; project?: string } = {};
     
-    if (!customerId) {
-      newErrors.customer = '고객사를 선택해주세요';
+    // 고객 또는 리드가 선택되어야 함
+    if (!customerId && !leadId) {
+      newErrors.customer = '고객사 또는 리드를 선택해주세요';
     }
     if (!projectName.trim()) {
       newErrors.project = '프로젝트명을 입력해주세요';
@@ -178,110 +108,26 @@ export default function StepBasicInfo() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* 고객사 선택 */}
+        {/* 고객사/리드 선택 - CustomerSelector 컴포넌트 사용 (Requirements 1.1) */}
         <div className="space-y-2">
-          <Label htmlFor="customer">
-            고객사 <span className="text-red-500">*</span>
+          <Label>
+            고객사 / 리드 <span className="text-red-500">*</span>
           </Label>
-          <div className="flex gap-2">
-            <Select value={customerId} onValueChange={handleCustomerSelect} disabled={loadingCustomers}>
-              <SelectTrigger className={errors.customer ? 'border-red-500' : ''}>
-                {loadingCustomers ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    로딩 중...
-                  </span>
-                ) : (
-                  <SelectValue placeholder="고객사를 선택하세요" />
-                )}
-              </SelectTrigger>
-              <SelectContent>
-                {customers.length === 0 ? (
-                  <SelectItem value="__empty__" disabled>
-                    등록된 고객사가 없습니다
-                  </SelectItem>
-                ) : (
-                  customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>신규 고객사 등록</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="newCustomerName">회사명 <span className="text-red-500">*</span></Label>
-                    <Input
-                      id="newCustomerName"
-                      value={newCustomerName}
-                      onChange={(e) => setNewCustomerName(e.target.value)}
-                      placeholder="회사명을 입력하세요"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newCustomerContact">담당자</Label>
-                    <Input
-                      id="newCustomerContact"
-                      value={newCustomerContact}
-                      onChange={(e) => setNewCustomerContact(e.target.value)}
-                      placeholder="담당자명을 입력하세요"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newCustomerEmail">이메일</Label>
-                    <Input
-                      id="newCustomerEmail"
-                      type="email"
-                      value={newCustomerEmail}
-                      onChange={(e) => setNewCustomerEmail(e.target.value)}
-                      placeholder="이메일을 입력하세요"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newCustomerPhone">연락처</Label>
-                    <Input
-                      id="newCustomerPhone"
-                      value={newCustomerPhone}
-                      onChange={(e) => setNewCustomerPhone(e.target.value)}
-                      placeholder="연락처를 입력하세요"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline" disabled={savingCustomer}>취소</Button>
-                  </DialogClose>
-                  <Button onClick={handleAddCustomer} disabled={savingCustomer}>
-                    {savingCustomer ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        등록 중...
-                      </>
-                    ) : (
-                      '등록'
-                    )}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <CustomerSelector
+            selectedCustomerId={customerId || null}
+            selectedLeadId={leadId}
+            onCustomerSelect={handleCustomerSelect}
+            onLeadSelect={handleLeadSelect}
+            onNewCustomerCreate={handleNewCustomerCreate}
+          />
           {errors.customer && (
             <p className="text-sm text-red-500">{errors.customer}</p>
           )}
           {customerName && (
-            <p className="text-sm text-gray-500">선택됨: {customerName}</p>
+            <p className="text-sm text-gray-500">
+              선택됨: {customerName}
+              {leadId && <span className="ml-2 text-orange-600">(리드)</span>}
+            </p>
           )}
         </div>
 

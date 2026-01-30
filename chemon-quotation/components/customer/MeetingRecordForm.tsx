@@ -146,10 +146,10 @@ export default function MeetingRecordForm({
         </DialogTitle>
       </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="space-y-5 py-4 max-h-[70vh] overflow-y-auto px-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {/* 유형 선택 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="type">
               유형 <span className="text-red-500">*</span>
             </Label>
@@ -173,7 +173,7 @@ export default function MeetingRecordForm({
           </div>
 
           {/* 날짜 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="date">
               날짜 <span className="text-red-500">*</span>
             </Label>
@@ -192,7 +192,7 @@ export default function MeetingRecordForm({
           </div>
 
           {/* 시간 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="time">시간</Label>
             <Input
               id="time"
@@ -205,7 +205,7 @@ export default function MeetingRecordForm({
           </div>
 
           {/* 소요시간 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="duration">소요시간 (분)</Label>
             <Input
               id="duration"
@@ -221,7 +221,7 @@ export default function MeetingRecordForm({
         </div>
 
         {/* 제목 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="title">
             제목 <span className="text-red-500">*</span>
           </Label>
@@ -240,7 +240,7 @@ export default function MeetingRecordForm({
         </div>
 
         {/* 참석자 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label>참석자</Label>
           <div className="flex gap-2">
             <Input
@@ -276,7 +276,7 @@ export default function MeetingRecordForm({
         </div>
 
         {/* 내용 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="content">
             내용 <span className="text-red-500">*</span>
           </Label>
@@ -296,7 +296,7 @@ export default function MeetingRecordForm({
         </div>
 
         {/* 후속조치 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="follow_up_actions">후속조치</Label>
           <Textarea
             id="follow_up_actions"
@@ -326,7 +326,7 @@ export default function MeetingRecordForm({
 
           {/* 요청사항 상태 관리 - Requirements 5.4, 5.5 */}
           {formData.is_request && isEditMode && (
-            <div className="space-y-2 ml-6">
+            <div className="space-y-1.5 ml-6">
               <Label htmlFor="request_status">처리 상태</Label>
               <Select
                 value={formData.request_status}
@@ -347,7 +347,7 @@ export default function MeetingRecordForm({
           )}
         </div>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter className="pt-6">
           {onCancel ? (
             <Button type="button" variant="outline" onClick={onCancel}>
               취소

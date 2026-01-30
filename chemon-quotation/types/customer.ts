@@ -1,3 +1,32 @@
+// 고객 등급 타입 (Requirements 4.1)
+export type CustomerGrade = 'LEAD' | 'PROSPECT' | 'CUSTOMER' | 'VIP' | 'INACTIVE';
+
+// 리드 유입경로 타입
+export type LeadSource = 
+  | 'WEBSITE'
+  | 'REFERRAL'
+  | 'COLD_CALL'
+  | 'EXHIBITION'
+  | 'ADVERTISEMENT'
+  | 'OTHER';
+
+// 리드 상태 타입
+export type LeadStatus = 
+  | 'NEW'
+  | 'CONTACTED'
+  | 'QUALIFIED'
+  | 'PROPOSAL'
+  | 'NEGOTIATION'
+  | 'CONVERTED'
+  | 'LOST';
+
+// 연결된 리드 정보 (Requirements 4.4)
+export interface LinkedLead {
+  id: string;
+  source: LeadSource;
+  status: LeadStatus;
+}
+
 // 고객사
 export interface Customer {
   id: string;
@@ -12,6 +41,8 @@ export interface Customer {
   updated_at: string;
   quotation_count: number;
   total_amount: number;
+  grade?: CustomerGrade;  // 신규: 고객 등급 (Requirements 4.1)
+  linked_lead?: LinkedLead;  // 신규: 연결된 리드 정보 (Requirements 4.4)
 }
 
 // 고객사 생성/수정 폼

@@ -100,9 +100,9 @@ export default function CustomerForm({ customer, onSuccess }: CustomerFormProps)
         </DialogTitle>
       </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4 py-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
+      <form onSubmit={handleSubmit} className="space-y-5 py-4 px-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
             <Label htmlFor="contact_person">
               담당자명 <span className="text-red-500">*</span>
             </Label>
@@ -120,7 +120,7 @@ export default function CustomerForm({ customer, onSuccess }: CustomerFormProps)
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="company_name">회사명</Label>
             <Input
               id="company_name"
@@ -132,7 +132,7 @@ export default function CustomerForm({ customer, onSuccess }: CustomerFormProps)
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="contact_phone">연락처</Label>
             <Input
               id="contact_phone"
@@ -144,7 +144,7 @@ export default function CustomerForm({ customer, onSuccess }: CustomerFormProps)
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="contact_email">이메일</Label>
             <Input
               id="contact_email"
@@ -161,7 +161,7 @@ export default function CustomerForm({ customer, onSuccess }: CustomerFormProps)
             )}
           </div>
 
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="address">주소</Label>
             <Input
               id="address"
@@ -173,7 +173,7 @@ export default function CustomerForm({ customer, onSuccess }: CustomerFormProps)
             />
           </div>
 
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="notes">메모</Label>
             <Textarea
               id="notes"
@@ -187,7 +187,7 @@ export default function CustomerForm({ customer, onSuccess }: CustomerFormProps)
           </div>
         </div>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter className="pt-6">
           <DialogClose asChild>
             <Button type="button" variant="outline">
               취소

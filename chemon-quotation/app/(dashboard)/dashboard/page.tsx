@@ -102,16 +102,27 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* 상단: 환영 메시지 + 빠른 작성 버튼 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            안녕하세요, {user?.name || '사용자'}님! 👋
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-            오늘의 견적 현황을 확인하세요
-          </p>
+      {/* 상단: 환영 메시지 + 실시간 배지 + 빠른 작성 버튼 */}
+      <div className="flex flex-col space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">
+              안녕하세요, {user?.name || '사용자'}님! 👋
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              오늘의 견적 현황을 확인하세요
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* 실시간 모니터링 배지 */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-full">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse-orange"></div>
+              <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">실시간 업데이트</span>
+            </div>
+          </div>
         </div>
+        
+        {/* 빠른 작성 버튼 */}
         <div className="flex gap-2">
           <Button variant="outline" asChild>
             <Link href="/efficacy-quotations/new">
@@ -119,7 +130,7 @@ export default function DashboardPage() {
               효력시험 견적
             </Link>
           </Button>
-          <Button asChild className="shadow-lg shadow-blue-500/20">
+          <Button asChild>
             <Link href="/quotations/new">
               <Plus className="w-4 h-4 mr-2" />
               새 견적서 작성
@@ -128,27 +139,29 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 통계 카드 - 통일된 크기, 파스텔톤 */}
+      {/* 통계 카드 - 오렌지 테마 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="제출완료"
           value={stats.submitted}
           icon={Send}
-          color="blue"
+          color="orange"
+          trend="up"
           href="/quotations?status=sent"
         />
         <StatsCard
           title="수주"
           value={stats.won}
           icon={Trophy}
-          color="pink"
+          color="amber"
+          trend="up"
           href="/quotations?status=accepted"
         />
         <StatsCard
           title="총 견적"
           value={`${stats.totalQuotations}건`}
           icon={FileText}
-          color="yellow"
+          color="blue"
           href="/quotations"
         />
         <StatsCard
@@ -156,6 +169,7 @@ export default function DashboardPage() {
           value={`${stats.winRate}%`}
           icon={TrendingUp}
           color="green"
+          trend={stats.winRate > 50 ? 'up' : stats.winRate < 30 ? 'down' : 'stable'}
           href="/reports"
         />
       </div>
@@ -183,6 +197,7 @@ export default function DashboardPage() {
           icon={DollarSign}
           color="green"
           subtitle={`${stats.monthlyCount}건`}
+          trend="up"
           href="/reports"
         />
         <StatsCard
@@ -190,6 +205,7 @@ export default function DashboardPage() {
           value={stats.lost}
           icon={Clock}
           color="gray"
+          trend="down"
           href="/quotations?status=rejected"
         />
       </div>
@@ -200,69 +216,69 @@ export default function DashboardPage() {
       {/* 빠른 링크 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Link href="/quotations">
-          <Card className="group hover:shadow-soft-lg transition-all duration-300 border-0 shadow-soft overflow-hidden h-[100px]">
+          <Card className="group hover:scale-[1.02] transition-all duration-300 border-orange-200/50 dark:border-orange-800/30 shadow-soft overflow-hidden h-[100px] bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30">
             <CardContent className="p-4 h-full flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center flex-shrink-0">
-                <FileText className="w-6 h-6 text-blue-500" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <FileText className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-slate-900 dark:text-white truncate">
+                <h3 className="font-semibold text-foreground truncate">
                   독성시험 견적
                 </h3>
-                <p className="text-sm text-slate-500 truncate">견적 관리</p>
+                <p className="text-sm text-muted-foreground truncate">견적 관리</p>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
+              <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-orange-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
             </CardContent>
           </Card>
         </Link>
 
         <Link href="/efficacy-quotations">
-          <Card className="group hover:shadow-soft-lg transition-all duration-300 border-0 shadow-soft overflow-hidden h-[100px]">
+          <Card className="group hover:scale-[1.02] transition-all duration-300 border-amber-200/50 dark:border-amber-800/30 shadow-soft overflow-hidden h-[100px] bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30">
             <CardContent className="p-4 h-full flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-pink-50 dark:bg-pink-950/30 flex items-center justify-center flex-shrink-0">
-                <FlaskConical className="w-6 h-6 text-pink-500" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <FlaskConical className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-slate-900 dark:text-white truncate">
+                <h3 className="font-semibold text-foreground truncate">
                   효력시험 견적
                 </h3>
-                <p className="text-sm text-slate-500 truncate">견적 관리</p>
+                <p className="text-sm text-muted-foreground truncate">견적 관리</p>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-pink-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
+              <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-amber-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
             </CardContent>
           </Card>
         </Link>
 
         <Link href="/customers">
-          <Card className="group hover:shadow-soft-lg transition-all duration-300 border-0 shadow-soft overflow-hidden h-[100px]">
+          <Card className="group hover:scale-[1.02] transition-all duration-300 border-emerald-200/50 dark:border-emerald-800/30 shadow-soft overflow-hidden h-[100px] bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
             <CardContent className="p-4 h-full flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center flex-shrink-0">
-                <Users className="w-6 h-6 text-emerald-500" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <Users className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-slate-900 dark:text-white truncate">
+                <h3 className="font-semibold text-foreground truncate">
                   고객사 관리
                 </h3>
-                <p className="text-sm text-slate-500 truncate">고객 정보</p>
+                <p className="text-sm text-muted-foreground truncate">고객 정보</p>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
+              <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-emerald-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
             </CardContent>
           </Card>
         </Link>
 
         <Link href="/reports">
-          <Card className="group hover:shadow-soft-lg transition-all duration-300 border-0 shadow-soft overflow-hidden h-[100px]">
+          <Card className="group hover:scale-[1.02] transition-all duration-300 border-violet-200/50 dark:border-violet-800/30 shadow-soft overflow-hidden h-[100px] bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30">
             <CardContent className="p-4 h-full flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-violet-50 dark:bg-violet-950/30 flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-6 h-6 text-violet-500" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-slate-900 dark:text-white truncate">
+                <h3 className="font-semibold text-foreground truncate">
                   리포트
                 </h3>
-                <p className="text-sm text-slate-500 truncate">통계 분석</p>
+                <p className="text-sm text-muted-foreground truncate">통계 분석</p>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-violet-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
+              <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-violet-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
             </CardContent>
           </Card>
         </Link>

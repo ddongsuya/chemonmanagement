@@ -48,6 +48,10 @@ export default function NewQuotationPage() {
     ? settingsResponse.data.userCode 
     : null;
 
+  // 개발 환경에서는 userCode 검증 건너뛰기
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const shouldSkipUserCodeCheck = isDevelopment;
+
   const handleStepClick = (step: number) => {
     if (quotationType === 'toxicity' && step < toxicityStore.currentStep) {
       toxicityStore.setCurrentStep(step);
@@ -120,8 +124,8 @@ export default function NewQuotationPage() {
     );
   }
 
-  // userCode 미설정 시 안내
-  if (!userCode) {
+  // userCode 미설정 시 안내 (개발 환경에서는 건너뛰기)
+  if (!userCode && !shouldSkipUserCodeCheck) {
     return (
       <div className="max-w-2xl mx-auto">
         <PageHeader

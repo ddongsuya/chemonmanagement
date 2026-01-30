@@ -48,6 +48,9 @@ export const createQuotationSchema = z.object({
   modelCategory: z.string().optional().nullable(),
   indication: z.string().optional().nullable(),
   
+  // 리드 연결 (신규)
+  leadId: z.string().uuid().optional().nullable(),
+  
   items: z.array(z.any()).min(1, '최소 1개의 항목이 필요합니다'),
   
   subtotalTest: z.number().optional().nullable(),
@@ -76,6 +79,9 @@ export const updateQuotationSchema = z.object({
   modelId: z.string().optional().nullable(),
   modelCategory: z.string().optional().nullable(),
   indication: z.string().optional().nullable(),
+  
+  // 리드 연결 (신규)
+  leadId: z.string().uuid().optional().nullable(),
   
   items: z.array(z.any()).min(1).optional(),
   
@@ -120,6 +126,7 @@ export interface QuotationResponse {
   modelId: string | null;
   modelCategory: string | null;
   indication: string | null;
+  leadId: string | null;  // 신규: 연결된 리드 ID
   items: unknown[];
   subtotalTest: number | null;
   subtotalAnalysis: number | null;
@@ -139,5 +146,11 @@ export interface QuotationResponse {
     id: string;
     name: string;
     company: string | null;
+  } | null;
+  lead?: {
+    id: string;
+    companyName: string;
+    contactName: string;
+    status: string;
   } | null;
 }

@@ -5,6 +5,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate } from '../middleware/auth';
 import prisma from '../lib/prisma';
 import { ContractStatus } from '@prisma/client';
+import { leadConversionService } from '../services/leadConversionService';
 
 const router = Router();
 
@@ -160,17 +161,69 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // 계약 상태 변경
+// Requirements 3.1: 계약서 상태가 SIGNED로 변경되고 해당 계약에 연결된 리드가 존재하면
+// 해당 리드의 status를 CONVERTED로 변경
 router.patch('/:id/status', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+    const userId = (req as any).user.id;
 
     const contract = await prisma.contract.update({
       where: { id },
       data: { status },
+      include: {
+        quotations: {
+          where: { deletedAt: null },
+          include: {
+            lead: true,
+          },
+        },
+      },
     });
 
-    res.json({ success: true, data: { contract } });
+    // Requirements 3.1: SIGNED 상태로 변경 시 연결된 리드 자동 전환
+    if (status === ContractStatus.SIGNED) {
+      // 계약에 연결된 견적서들에서 리드 찾기
+      const leadsToConvert = new Set<string>();
+      
+      for (const quotation of contract.quotations) {
+        if (quotation.lead && quotation.lead.status !== 'CONVERTED') {
+          leadsToConvert.add(quotation.lead.id);
+        }
+      }
+
+      // 각 리드를 고객으로 전환
+      const conversionResults = [];
+      for (const leadId of leadsToConvert) {
+        try {
+          const result = await leadConversionService.convertLeadToCustomer(leadId, userId);
+          conversionResults.push({
+            leadId,
+            customerId: result.customer.id,
+            success: true,
+          });
+        } catch (error) {
+          // 전환 실패 시 로그 기록하고 계속 진행
+          console.error(`리드 전환 실패 (leadId: ${leadId}):`, error);
+          conversionResults.push({
+            leadId,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        data: {
+          contract,
+          leadConversions: conversionResults,
+        },
+      });
+    } else {
+      res.json({ success: true, data: { contract } });
+    }
   } catch (error) {
     next(error);
   }

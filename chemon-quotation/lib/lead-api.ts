@@ -6,6 +6,26 @@ import { apiFetch, ApiResponse } from './api-utils';
 // Re-export types
 export type { ApiResponse } from './api-utils';
 
+// 리드 유입경로 타입
+export type LeadSource = 
+  | 'WEBSITE'
+  | 'REFERRAL'
+  | 'COLD_CALL'
+  | 'EXHIBITION'
+  | 'ADVERTISEMENT'
+  | 'PARTNER'
+  | 'OTHER';
+
+// 리드 상태 타입
+export type LeadStatus = 
+  | 'NEW'
+  | 'CONTACTED'
+  | 'QUALIFIED'
+  | 'PROPOSAL'
+  | 'NEGOTIATION'
+  | 'CONVERTED'
+  | 'LOST';
+
 // 리드 타입
 export interface Lead {
   id: string;
@@ -16,13 +36,13 @@ export interface Lead {
   contactPhone?: string;
   department?: string;
   position?: string;
-  source: string;
+  source: LeadSource;
   inquiryType?: string;
   inquiryDetail?: string;
   expectedAmount?: number;
   expectedDate?: string;
   stageId: string;
-  status: string;
+  status: LeadStatus;
   customerId?: string;
   convertedAt?: string;
   lostReason?: string;
@@ -72,6 +92,7 @@ export async function getLeads(params?: {
   status?: string;
   stageId?: string;
   search?: string;
+  excludeConverted?: boolean;  // 신규: 전환된 리드 제외 (Requirements 1.3)
   page?: number;
   limit?: number;
 }): Promise<ApiResponse<{ leads: Lead[]; pagination: unknown }>> {
@@ -79,6 +100,7 @@ export async function getLeads(params?: {
   if (params?.status) query.set('status', params.status);
   if (params?.stageId) query.set('stageId', params.stageId);
   if (params?.search) query.set('search', params.search);
+  if (params?.excludeConverted) query.set('excludeConverted', 'true');
   if (params?.page) query.set('page', String(params.page));
   if (params?.limit) query.set('limit', String(params.limit));
 

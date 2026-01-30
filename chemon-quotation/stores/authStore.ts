@@ -28,6 +28,7 @@ interface AuthState {
   refreshToken: () => Promise<boolean>;
   clearError: () => void;
   setUnreadNotifications: (count: number) => void;
+  setUser: (user: AuthUser | null) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -140,6 +141,12 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => set({ error: null }),
 
       setUnreadNotifications: (count: number) => set({ unreadNotifications: count }),
+
+      setUser: (user: AuthUser | null) => set({ 
+        user, 
+        isAuthenticated: !!user,
+        isLoading: false,
+      }),
     }),
     {
       name: 'auth-storage',

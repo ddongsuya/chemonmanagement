@@ -40,7 +40,9 @@ export default function StepPreview() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const userCode = settingsResponse?.data?.userCode || 'XX';
+  // 개발 환경에서는 기본 코드 'DV' 사용
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const userCode = settingsResponse?.data?.userCode || (isDevelopment ? 'DV' : 'XX');
 
   // 임시 견적번호 (저장 전) - userCode 반영
   const now = new Date();

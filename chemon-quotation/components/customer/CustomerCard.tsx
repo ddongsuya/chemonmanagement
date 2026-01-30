@@ -4,9 +4,20 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, User, Phone, Mail, FileText, ArrowRight } from 'lucide-react';
+import { Building2, User, Phone, Mail, FileText, ArrowRight, Globe } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { Customer } from '@/types';
+import CustomerGradeBadge from './CustomerGradeBadge';
+
+// 리드 유입경로 라벨 매핑
+const sourceLabels: Record<string, string> = {
+  WEBSITE: '웹사이트',
+  REFERRAL: '소개',
+  COLD_CALL: '콜드콜',
+  EXHIBITION: '전시회',
+  ADVERTISEMENT: '광고',
+  OTHER: '기타',
+};
 
 interface CustomerCardProps {
   customer: Customer;
@@ -32,6 +43,10 @@ export default function CustomerCard({ customer }: CustomerCardProps) {
               )}
             </div>
           </div>
+          {/* 고객 등급 배지 표시 (Requirements 4.1) */}
+          {customer.grade && (
+            <CustomerGradeBadge grade={customer.grade} size="sm" />
+          )}
         </div>
 
         <div className="space-y-2 text-sm mb-4">
@@ -49,6 +64,13 @@ export default function CustomerCard({ customer }: CustomerCardProps) {
             <div className="flex items-center gap-2 text-gray-600">
               <Mail className="w-4 h-4" />
               <span>{customer.contact_email}</span>
+            </div>
+          )}
+          {/* 연결된 리드의 유입경로 표시 (Requirements 4.4) */}
+          {customer.linked_lead && (
+            <div className="flex items-center gap-2 text-gray-600">
+              <Globe className="w-4 h-4" />
+              <span>유입경로: {sourceLabels[customer.linked_lead.source] || customer.linked_lead.source}</span>
             </div>
           )}
         </div>

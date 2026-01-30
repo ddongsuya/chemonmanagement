@@ -102,9 +102,9 @@ export default function RequesterForm({
         </DialogTitle>
       </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4 py-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
+      <form onSubmit={handleSubmit} className="space-y-5 py-4 px-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
             <Label htmlFor="name">
               이름 <span className="text-red-500">*</span>
             </Label>
@@ -122,7 +122,7 @@ export default function RequesterForm({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="position">직책</Label>
             <Input
               id="position"
@@ -134,7 +134,7 @@ export default function RequesterForm({
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="department">부서</Label>
             <Input
               id="department"
@@ -146,7 +146,7 @@ export default function RequesterForm({
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="phone">연락처</Label>
             <Input
               id="phone"
@@ -162,7 +162,7 @@ export default function RequesterForm({
             )}
           </div>
 
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="email">이메일</Label>
             <Input
               id="email"
@@ -193,7 +193,7 @@ export default function RequesterForm({
           </div>
         </div>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter className="pt-6">
           {onCancel ? (
             <Button type="button" variant="outline" onClick={onCancel}>
               취소

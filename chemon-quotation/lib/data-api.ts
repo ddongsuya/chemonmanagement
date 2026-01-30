@@ -1,10 +1,14 @@
 // Data API functions for quotations and customers
 import { apiFetch, buildQueryString, ApiResponse, PaginatedResult } from './api-utils';
+import type { LeadSource, LeadStatus } from './lead-api';
 
 // ============ Types ============
 
 export type QuotationStatus = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
 export type QuotationType = 'TOXICITY' | 'EFFICACY' | 'CLINICAL_PATHOLOGY';
+
+// Customer Grade 타입 (Requirements 4.1, 4.2)
+export type CustomerGrade = 'LEAD' | 'PROSPECT' | 'CUSTOMER' | 'VIP' | 'INACTIVE';
 
 export interface Quotation {
   id: string;
@@ -105,6 +109,12 @@ export interface Customer {
   phone: string | null;
   address: string | null;
   notes: string | null;
+  grade: CustomerGrade;  // 신규: 고객 등급 (Requirements 4.1)
+  linkedLead?: {         // 신규: 연결된 리드 정보 (Requirements 4.4)
+    id: string;
+    source: LeadSource;
+    status: LeadStatus;
+  };
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -130,6 +140,7 @@ export interface UpdateCustomerDTO {
 
 export interface CustomerFilters {
   search?: string;
+  grade?: CustomerGrade;  // 신규: 고객 등급 필터 (Requirements 4.2, 4.3)
   page?: number;
   limit?: number;
 }

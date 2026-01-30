@@ -9,13 +9,32 @@ interface ProtectedRouteProps {
   requiredRole?: 'USER' | 'ADMIN';
 }
 
+// 개발 환경에서는 인증 건너뛰기
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// 개발용 더미 유저
+const devUser = {
+  id: 'dev-user',
+  email: 'dev@chemon.co.kr',
+  name: '개발자',
+  role: 'ADMIN' as const,
+  department: 'SUPPORT',
+  position: 'MANAGER',
+};
+
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isLoading, user } = useAuthStore();
+  const { isAuthenticated, isLoading, user, setUser } = useAuthStore();
 
   useEffect(() => {
-    if (!isLoading) {
+    // 개발 환경에서는 자동 로그인
+    if (isDevelopment && !isAuthenticated && !isLoading) {
+      setUser(devUser);
+      return;
+    }
+
+    if (!isLoading && !isDevelopment) {
       if (!isAuthenticated) {
         // Store the intended destination for redirect after login
         const returnUrl = encodeURIComponent(pathname);
@@ -30,7 +49,12 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
         return;
       }
     }
-  }, [isAuthenticated, isLoading, user, requiredRole, router, pathname]);
+  }, [isAuthenticated, isLoading, user, requiredRole, router, pathname, setUser]);
+
+  // 개발 환경에서는 바로 렌더링
+  if (isDevelopment) {
+    return <>{children}</>;
+  }
 
   // Show loading state while checking auth
   if (isLoading) {

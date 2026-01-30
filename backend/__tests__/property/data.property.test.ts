@@ -29,6 +29,9 @@ const createMockPrisma = () => ({
     update: jest.fn(),
     count: jest.fn(),
   },
+  userSettings: {
+    findUnique: jest.fn().mockResolvedValue({ userCode: 'TQ' }),
+  },
 } as unknown as PrismaClient);
 
 describe('Data Property Tests', () => {
@@ -632,6 +635,7 @@ describe('Data Property Tests', () => {
               projectName: createData.projectName,
               items: createData.items,
               totalAmount: createData.totalAmount,
+              validDays: 30,
             });
 
             // Verify createdAt is set
