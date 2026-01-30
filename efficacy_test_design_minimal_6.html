@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>효력시험 디자인 생성기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --font-size: 14px;
+            --radius: 8px;
+            --primary: #f97316;
+            --border: #e5e7eb;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b7280;
+        }
+        
+        html {
+            font-size: var(--font-size);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+        
+        .timeline-bar {
+            position: relative;
+            height: 48px;
+            border-radius: var(--radius);
+            overflow: visible;
+        }
+        
+        .timeline-divider {
+            position: absolute;
+            top: 0;
+            width: 1px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            bottom: 100%;
+            margin-bottom: 8px;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .timeline-marker-line {
+            width: 2px;
+            height: 20px;
+            background: #9ca3af;
+            margin: 0 auto 4px;
+        }
+        
+        .timeline-marker::after {
+            content: '▼';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #9ca3af;
+            font-size: 10px;
+        }
+        
+        .group-timeline {
+            position: relative;
+            height: 40px;
+            border-radius: 6px;
+            margin-bottom: 45px;
+        }
+        
+        .dose-marker {
+            position: absolute;
+            top: -16px;
+            width: 2px;
+            height: 56px;
+            background: var(--primary);
+            opacity: 0.6;
+        }
+        
+        .dose-marker::before {
+            content: '▼';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--primary);
+            font-size: 10px;
+            opacity: 1;
+        }
+        
+        .observation-marker {
+            position: absolute;
+            bottom: -28px;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .observation-line {
+            display: none;
+        }
+        
+        h1 { font-size: 1.75rem; font-weight: 600; }
+        h2 { font-size: 1.125rem; font-weight: 600; }
+        h3 { font-size: 0.875rem; font-weight: 600; }
+        
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+        
+        .card:hover {
+            border-color: #d1d5db;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- 헤더 -->
+        <div class="mb-8">
+            <h1 class="mb-2">효력시험 디자인 다이어그램</h1>
+            <p class="text-[var(--text-secondary)] text-sm">비임상 CRO 효력시험 시각화</p>
+        </div>
+
+        <!-- 상단 정보 -->
+        <div class="grid grid-cols-4 gap-3 mb-8">
+            <div class="card p-4">
+                <div class="text-xs text-[var(--text-secondary)] mb-2">시험 정보</div>
+                <div class="text-sm font-medium mb-1">28일 반복 경구투여 독성시험</div>
+                <div class="text-xs text-[var(--text-secondary)]">ABC-123 · OECD 407</div>
+            </div>
+            
+            <div class="card p-4">
+                <div class="text-xs text-[var(--text-secondary)] mb-2">동물 정보</div>
+                <div class="text-sm font-medium mb-1">SD Rat, 수컷</div>
+                <div class="text-xs text-[var(--text-secondary)]">40마리 · 7주령 · 200±20g</div>
+            </div>
+            
+            <div class="card p-4">
+                <div class="text-xs text-[var(--text-secondary)] mb-2">투여 정보</div>
+                <div class="text-sm font-medium mb-1">경구투여 (P.O.)</div>
+                <div class="text-xs text-[var(--text-secondary)]">1일 1회 · 09:00-11:00</div>
+            </div>
+            
+            <div class="card p-4">
+                <div class="text-xs text-[var(--text-secondary)] mb-2">시험 기간</div>
+                <div class="text-sm font-medium mb-1">총 38일</div>
+                <div class="text-xs text-[var(--text-secondary)]">순화 7일 · 본시험 28일 · 회복 3일</div>
+            </div>
+        </div>
+
+        <!-- 전체 타임라인 -->
+        <div class="card p-6 mb-6">
+            <h2 class="mb-6">전체 시험 타임라인</h2>
+            
+            <div class="relative pt-20 pb-12">
+                <div class="timeline-bar bg-gray-50">
+                    <!-- 순화기간 -->
+                    <div class="absolute left-0 top-0 h-full bg-gray-200" style="width: 18%; border-radius: var(--radius) 0 0 var(--radius);">
+                        <div class="flex items-center justify-center h-full">
+                            <span class="text-xs font-medium text-gray-700">순화 7일</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 본시험기간 -->
+                    <div class="absolute left-[18%] top-0 h-full" style="width: 72%; background: var(--primary);">
+                        <div class="flex items-center justify-center h-full">
+                            <span class="text-sm font-medium text-white">본시험기간 28일</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 회복기간 -->
+                    <div class="absolute right-0 top-0 h-full bg-gray-200" style="width: 10%; border-radius: 0 var(--radius) var(--radius) 0;">
+                        <div class="flex items-center justify-center h-full">
+                            <span class="text-xs font-medium text-gray-700">회복 3일</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 마커들 -->
+                    <div class="timeline-marker" style="left: 18%;">
+                        <div class="text-xs font-medium text-gray-900 mb-1">투여시작</div>
+                        <div class="text-xs text-gray-600 font-medium mb-1">Day 0</div>
+                        <div class="timeline-marker-line"></div>
+                    </div>
+                    
+                    <div class="timeline-marker" style="left: 36%;">
+                        <div class="text-xs font-medium text-gray-900 mb-1">채혈/체중</div>
+                        <div class="text-xs text-gray-600 font-medium mb-1">Day 7</div>
+                        <div class="timeline-marker-line"></div>
+                    </div>
+                    
+                    <div class="timeline-marker" style="left: 54%;">
+                        <div class="text-xs font-medium text-gray-900 mb-1">채혈/체중</div>
+                        <div class="text-xs text-gray-600 font-medium mb-1">Day 14</div>
+                        <div class="timeline-marker-line"></div>
+                    </div>
+                    
+                    <div class="timeline-marker" style="left: 72%;">
+                        <div class="text-xs font-medium text-gray-900 mb-1">체중</div>
+                        <div class="text-xs text-gray-600 font-medium mb-1">Day 21</div>
+                        <div class="timeline-marker-line"></div>
+                    </div>
+                    
+                    <div class="timeline-marker" style="left: 90%;">
+                        <div class="text-xs font-semibold text-gray-900 mb-1">부검</div>
+                        <div class="text-xs text-gray-600 font-medium mb-1">Day 28</div>
+                        <div class="timeline-marker-line"></div>
+                    </div>
+                    
+                    <!-- 타임라인 바 Day 구분선 -->
+                    <div class="timeline-divider" style="left: 18%;"></div>
+                    <div class="timeline-divider" style="left: 36%;"></div>
+                    <div class="timeline-divider" style="left: 54%;"></div>
+                    <div class="timeline-divider" style="left: 72%;"></div>
+                    <div class="timeline-divider" style="left: 90%;"></div>
+                </div>
+                
+                <!-- 하단 Day 표시 (위쪽 마커 위치와 정확히 일치) -->
+                <div class="absolute bottom-0 left-0 right-0 text-xs text-gray-600 font-medium">
+                    <span class="absolute left-0">Day -7</span>
+                    <span class="absolute" style="left: 18%; transform: translateX(-50%);">Day 0</span>
+                    <span class="absolute" style="left: 54%; transform: translateX(-50%);">Day 14</span>
+                    <span class="absolute" style="left: 90%; transform: translateX(-50%);">Day 28</span>
+                    <span class="absolute right-0">Day 31</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 군별 타임라인 -->
+        <div class="card p-6 mb-6">
+            <h2 class="mb-6">군별 상세 타임라인</h2>
+            
+            <div class="space-y-4">
+                <!-- G1 -->
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center text-xs font-medium">G1</div>
+                        <div>
+                            <div class="text-sm font-medium">대조군</div>
+                            <div class="text-xs text-[var(--text-secondary)]">10마리 · Vehicle</div>
+                        </div>
+                    </div>
+                    <div class="group-timeline bg-gray-50 border border-[var(--border)]">
+                        <div class="absolute left-0 top-0 h-full bg-gray-100" style="width: 18%; border-radius: 6px 0 0 6px;"></div>
+                        <div class="absolute left-[18%] top-0 h-full bg-gray-200" style="width: 72%;"></div>
+                        <div class="absolute right-0 top-0 h-full bg-gray-100" style="width: 10%; border-radius: 0 6px 6px 0;"></div>
+                        
+                        <div class="dose-marker" style="left: 18%;"></div>
+                        <div class="dose-marker" style="left: 30%;"></div>
+                        <div class="dose-marker" style="left: 42%;"></div>
+                        <div class="dose-marker" style="left: 54%;"></div>
+                        <div class="dose-marker" style="left: 66%;"></div>
+                        <div class="dose-marker" style="left: 78%;"></div>
+                        
+                        <div class="observation-marker" style="left: 36%;">
+                            <div class="observation-line"></div>
+                            <div class="text-xs text-gray-700 font-medium">D7 채혈</div>
+                        </div>
+                        <div class="observation-marker" style="left: 90%;">
+                            <div class="observation-line"></div>
+                            <div class="text-xs text-gray-700 font-medium">D28 부검</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- G2 -->
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded flex items-center justify-center text-xs font-medium text-white" style="background: var(--primary);">G2</div>
+                        <div>
+                            <div class="text-sm font-medium">저용량군</div>
+                            <div class="text-xs text-[var(--text-secondary)]">10마리 · 100 mg/kg</div>
+                        </div>
+                    </div>
+                    <div class="group-timeline bg-orange-50 border border-orange-200">
+                        <div class="absolute left-0 top-0 h-full bg-orange-100" style="width: 18%; border-radius: 6px 0 0 6px;"></div>
+                        <div class="absolute left-[18%] top-0 h-full bg-orange-200" style="width: 72%;"></div>
+                        <div class="absolute right-0 top-0 h-full bg-orange-100" style="width: 10%; border-radius: 0 6px 6px 0;"></div>
+                        
+                        <div class="dose-marker" style="left: 18%;"></div>
+                        <div class="dose-marker" style="left: 30%;"></div>
+                        <div class="dose-marker" style="left: 42%;"></div>
+                        <div class="dose-marker" style="left: 54%;"></div>
+                        <div class="dose-marker" style="left: 66%;"></div>
+                        <div class="dose-marker" style="left: 78%;"></div>
+                        
+                        <div class="observation-marker" style="left: 36%;">
+                            <div class="observation-line"></div>
+                            <div class="text-xs text-gray-700 font-medium">D7 채혈</div>
+                        </div>
+                        <div class="observation-marker" style="left: 90%;">
+                            <div class="observation-line"></div>
+                            <div class="text-xs text-gray-700 font-medium">D28 부검</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- G3 -->
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded flex items-center justify-center text-xs font-medium text-white" style="background: #ea580c;">G3</div>
+                        <div>
+                            <div class="text-sm font-medium">중용량군</div>
+                            <div class="text-xs text-[var(--text-secondary)]">10마리 · 300 mg/kg</div>
+                        </div>
+                    </div>
+                    <div class="group-timeline bg-orange-50 border border-orange-300">
+                        <div class="absolute left-0 top-0 h-full bg-orange-100" style="width: 18%; border-radius: 6px 0 0 6px;"></div>
+                        <div class="absolute left-[18%] top-0 h-full bg-orange-300" style="width: 72%;"></div>
+                        <div class="absolute right-0 top-0 h-full bg-orange-100" style="width: 10%; border-radius: 0 6px 6px 0;"></div>
+                        
+                        <div class="dose-marker" style="left: 18%;"></div>
+                        <div class="dose-marker" style="left: 30%;"></div>
+                        <div class="dose-marker" style="left: 42%;"></div>
+                        <div class="dose-marker" style="left: 54%;"></div>
+                        <div class="dose-marker" style="left: 66%;"></div>
+                        <div class="dose-marker" style="left: 78%;"></div>
+                        
+                        <div class="observation-marker" style="left: 36%;">
+                            <div class="observation-line"></div>
+                            <div class="text-xs text-gray-700 font-medium">D7 채혈</div>
+                        </div>
+                        <div class="observation-marker" style="left: 90%;">
+                            <div class="observation-line"></div>
+                            <div class="text-xs text-gray-700 font-medium">D28 부검</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- G4 -->
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded flex items-center justify-center text-xs font-medium text-white" style="background: #c2410c;">G4</div>
+                        <div>
+                            <div class="text-sm font-medium">고용량군</div>
+                            <div class="text-xs text-[var(--text-secondary)]">10마리 · 1000 mg/kg</div>
+                        </div>
+                    </div>
+                    <div class="group-timeline bg-orange-100 border border-orange-400">
+                        <div class="absolute left-0 top-0 h-full bg-orange-200" style="width: 18%; border-radius: 6px 0 0 6px;"></div>
+                        <div class="absolute left-[18%] top-0 h-full bg-orange-400" style="width: 72%;"></div>
+                        <div class="absolute right-0 top-0 h-full bg-orange-200" style="width: 10%; border-radius: 0 6px 6px 0;"></div>
+                        
+                        <div class="dose-marker" style="left: 18%;"></div>
+                        <div class="dose-marker" style="left: 30%;"></div>
+                        <div class="dose-marker" style="left: 42%;"></div>
+                        <div class="dose-marker" style="left: 54%;"></div>
+                        <div class="dose-marker" style="left: 66%;"></div>
+                        <div class="dose-marker" style="left: 78%;"></div>
+                        
+                        <div class="observation-marker" style="left: 36%;">
+                            <div class="observation-line"></div>
+                            <div class="text-xs text-gray-700 font-medium">D7 채혈</div>
+                        </div>
+                        <div class="observation-marker" style="left: 90%;">
+                            <div class="observation-line"></div>
+                            <div class="text-xs text-gray-700 font-medium">D28 부검</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 범례 -->
+            <div class="flex gap-4 text-xs text-[var(--text-secondary)] mt-6 pt-4 border-t">
+                <div class="flex items-center gap-1.5">
+                    <div class="text-[var(--primary)]">▼</div>
+                    <span>투여</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-1 h-3 bg-[var(--border)]"></div>
+                    <span>관찰/측정</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 관찰 항목 -->
+        <div class="card p-6">
+            <h2 class="mb-4">관찰 및 측정 항목</h2>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div class="p-3 bg-gray-50 rounded-md">
+                    <div class="text-sm font-medium mb-2">일반증상 관찰</div>
+                    <div class="text-xs text-[var(--text-secondary)] space-y-0.5">
+                        <div>순화: 1회/일</div>
+                        <div>투여: 2회/일 (오전/오후)</div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-gray-50 rounded-md">
+                    <div class="text-sm font-medium mb-2">체중 및 사료섭취량</div>
+                    <div class="text-xs text-[var(--text-secondary)] space-y-0.5">
+                        <div>순화: 입수일, Day -1</div>
+                        <div>투여: Day 0, 7, 14, 21, 28</div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-gray-50 rounded-md">
+                    <div class="text-sm font-medium mb-2">혈액학적 검사</div>
+                    <div class="text-xs text-[var(--text-secondary)] space-y-0.5">
+                        <div>Day 7: 각 군 5마리</div>
+                        <div>Day 28: 전 동물</div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-gray-50 rounded-md">
+                    <div class="text-sm font-medium mb-2">부검 및 조직병리</div>
+                    <div class="text-xs text-[var(--text-secondary)] space-y-0.5">
+                        <div>Day 28: 전 동물</div>
+                        <div>장기 중량 측정 및 조직 고정</div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-gray-50 rounded-md">
+                    <div class="text-sm font-medium mb-2">혈액생화학적 검사</div>
+                    <div class="text-xs text-[var(--text-secondary)] space-y-0.5">
+                        <div>Day 28: 전 동물</div>
+                        <div>AST, ALT, ALP, BUN, Creatinine 등</div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-gray-50 rounded-md">
+                    <div class="text-sm font-medium mb-2">요검사</div>
+                    <div class="text-xs text-[var(--text-secondary)] space-y-0.5">
+                        <div>Day 27: 전 동물</div>
+                        <div>pH, Glucose, Protein, Blood 등</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

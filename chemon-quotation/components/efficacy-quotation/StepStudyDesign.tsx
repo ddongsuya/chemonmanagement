@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ScheduleTimeline from './ScheduleTimeline';
+import EfficacyStudyDesignDiagram from './EfficacyStudyDesignDiagram';
 
 /**
  * StepStudyDesign Component
@@ -295,7 +296,16 @@ export default function StepStudyDesign() {
 
             {/* Schedule Tab */}
             <TabsContent value="schedule" className="mt-0 space-y-4">
-              {/* Timeline Preview */}
+              {/* Full Diagram Preview */}
+              <div className="border rounded-lg overflow-hidden">
+                <EfficacyStudyDesignDiagram
+                  studyDesign={studyDesign}
+                  testName={selectedModel?.model_name}
+                  className="bg-white"
+                />
+              </div>
+
+              {/* Simple Timeline Preview */}
               <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
                 <h4 className="text-sm font-medium text-gray-700 mb-3">타임라인 미리보기</h4>
                 <ScheduleTimeline

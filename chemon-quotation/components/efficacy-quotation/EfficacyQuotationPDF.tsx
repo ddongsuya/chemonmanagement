@@ -2,11 +2,12 @@
 
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import type { SelectedEfficacyItem } from '@/types/efficacy';
+import type { SelectedEfficacyItem, StudyDesign, SchedulePhase } from '@/types/efficacy';
 
 /**
  * EfficacyQuotationPDF Component
  * PDF generation for efficacy quotations using @react-pdf/renderer
+ * Includes study design diagram on second page
  * Requirements: 6.2
  */
 
@@ -243,6 +244,158 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: '#6b7280',
   },
+  // Study Design Page Styles
+  designHeader: {
+    marginBottom: 20,
+  },
+  designTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  designSubtitle: {
+    fontSize: 10,
+    color: '#6b7280',
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    gap: 8,
+  },
+  infoCard: {
+    flex: 1,
+    padding: 10,
+    border: '1px solid #e5e7eb',
+    borderRadius: 4,
+  },
+  infoCardLabel: {
+    fontSize: 8,
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  infoCardTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  infoCardSubtext: {
+    fontSize: 8,
+    color: '#6b7280',
+  },
+  section: {
+    marginBottom: 15,
+    padding: 15,
+    border: '1px solid #e5e7eb',
+    borderRadius: 4,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  timelineContainer: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  timelineBar: {
+    height: 30,
+    flexDirection: 'row',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  timelinePhase: {
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  timelinePhaseText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  dayLabelsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  dayLabel: {
+    fontSize: 8,
+    color: '#6b7280',
+  },
+  groupContainer: {
+    marginBottom: 25,
+  },
+  groupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  groupBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  groupBadgeText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  groupInfo: {
+    flex: 1,
+  },
+  groupName: {
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  groupDetails: {
+    fontSize: 8,
+    color: '#6b7280',
+  },
+  groupTimelineBar: {
+    height: 24,
+    flexDirection: 'row',
+    borderRadius: 4,
+    border: '1px solid #e5e7eb',
+    overflow: 'hidden',
+  },
+  legend: {
+    flexDirection: 'row',
+    gap: 20,
+    marginTop: 15,
+    paddingTop: 10,
+    borderTop: '1px solid #e5e7eb',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  legendText: {
+    fontSize: 8,
+    color: '#6b7280',
+  },
+  observationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  observationCard: {
+    width: '48%',
+    padding: 10,
+    backgroundColor: '#f9fafb',
+    borderRadius: 4,
+  },
+  observationTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  observationText: {
+    fontSize: 8,
+    color: '#6b7280',
+  },
 });
 
 // Format currency for PDF
@@ -292,7 +445,33 @@ interface EfficacyQuotationPDFProps {
   grandTotal: number;
   notes?: string;
   company: CompanyInfo;
+  studyDesign?: StudyDesign;
+  includeStudyDesign?: boolean;
 }
+
+// Helper functions for study design
+function getPhaseDurationInDays(phase: SchedulePhase): number {
+  switch (phase.durationUnit) {
+    case 'day': return phase.duration;
+    case 'week': return phase.duration * 7;
+    case 'month': return phase.duration * 30;
+    default: return phase.duration;
+  }
+}
+
+function calculateTotalDays(phases: SchedulePhase[]): number {
+  return phases.reduce((sum, phase) => sum + getPhaseDurationInDays(phase), 0);
+}
+
+// Group colors for PDF
+const groupColors = [
+  { bg: '#f3f4f6', badge: '#6b7280' },
+  { bg: '#fff7ed', badge: '#f97316' },
+  { bg: '#fff7ed', badge: '#ea580c' },
+  { bg: '#ffedd5', badge: '#c2410c' },
+  { bg: '#fef3c7', badge: '#d97706' },
+  { bg: '#fee2e2', badge: '#dc2626' },
+];
 
 const EfficacyQuotationPDF: React.FC<EfficacyQuotationPDFProps> = ({
   quotationNumber,
@@ -310,6 +489,8 @@ const EfficacyQuotationPDF: React.FC<EfficacyQuotationPDFProps> = ({
   grandTotal,
   notes,
   company,
+  studyDesign,
+  includeStudyDesign = true,
 }) => {
   // Group items by category
   const groupedItems: Record<string, SelectedEfficacyItem[]> = {};
@@ -484,6 +665,188 @@ const EfficacyQuotationPDF: React.FC<EfficacyQuotationPDFProps> = ({
           </Text>
         </View>
       </Page>
+
+      {/* Study Design Page (Page 2) */}
+      {includeStudyDesign && studyDesign && studyDesign.phases.length > 0 && (
+        <Page size="A4" style={styles.page}>
+          {/* Header */}
+          <View style={styles.designHeader}>
+            <Text style={styles.designTitle}>효력시험 디자인 다이어그램</Text>
+            <Text style={styles.designSubtitle}>비임상 CRO 효력시험 시각화</Text>
+          </View>
+
+          {/* Info Cards */}
+          {(() => {
+            const sortedPhases = [...studyDesign.phases].sort((a, b) => a.order - b.order);
+            const totalDays = calculateTotalDays(sortedPhases);
+            const totalAnimals = studyDesign.groups.reduce((sum, g) => sum + g.animalCount, 0);
+            const phaseWidths = sortedPhases.map(phase => ({
+              ...phase,
+              days: getPhaseDurationInDays(phase),
+              widthPercent: (getPhaseDurationInDays(phase) / totalDays) * 100,
+            }));
+            const getPhaseStartPercent = (phaseIndex: number): number => {
+              return phaseWidths.slice(0, phaseIndex).reduce((sum, p) => sum + p.widthPercent, 0);
+            };
+
+            return (
+              <>
+                <View style={styles.infoGrid}>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.infoCardLabel}>시험 정보</Text>
+                    <Text style={styles.infoCardTitle}>{studyDesign.modelName || modelName}</Text>
+                    <Text style={styles.infoCardSubtext}>{modelCategory}</Text>
+                  </View>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.infoCardLabel}>동물 정보</Text>
+                    <Text style={styles.infoCardTitle}>
+                      {studyDesign.animalInfo.species || 'SD Rat'}, {studyDesign.animalInfo.sex || '수컷'}
+                    </Text>
+                    <Text style={styles.infoCardSubtext}>
+                      {totalAnimals}마리 · {studyDesign.animalInfo.age || '7주령'}
+                    </Text>
+                  </View>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.infoCardLabel}>투여 정보</Text>
+                    <Text style={styles.infoCardTitle}>경구투여 (P.O.)</Text>
+                    <Text style={styles.infoCardSubtext}>1일 1회</Text>
+                  </View>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.infoCardLabel}>시험 기간</Text>
+                    <Text style={styles.infoCardTitle}>총 {totalDays}일</Text>
+                    <Text style={styles.infoCardSubtext}>
+                      {sortedPhases.map(p => `${p.name} ${getPhaseDurationInDays(p)}일`).join(' · ')}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Full Timeline Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>전체 시험 타임라인</Text>
+                  
+                  <View style={styles.timelineContainer}>
+                    <View style={styles.timelineBar}>
+                      {phaseWidths.map((phase, idx) => {
+                        const isMainPhase = idx > 0 && idx < phaseWidths.length - 1;
+                        return (
+                          <View
+                            key={phase.id}
+                            style={[
+                              styles.timelinePhase,
+                              {
+                                width: `${phase.widthPercent}%`,
+                                backgroundColor: isMainPhase ? '#f97316' : '#e5e7eb',
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.timelinePhaseText,
+                                { color: isMainPhase ? 'white' : '#374151' },
+                              ]}
+                            >
+                              {phase.name} {phase.days}일
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+
+                    <View style={styles.dayLabelsRow}>
+                      <Text style={styles.dayLabel}>Day -{phaseWidths[0]?.days || 0}</Text>
+                      <Text style={styles.dayLabel}>Day 0</Text>
+                      <Text style={styles.dayLabel}>Day {totalDays - (phaseWidths[0]?.days || 0)}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Group Timelines Section */}
+                {studyDesign.groups.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>군별 상세 타임라인</Text>
+                    
+                    {studyDesign.groups.map((group, groupIdx) => {
+                      const colors = groupColors[groupIdx % groupColors.length];
+                      
+                      return (
+                        <View key={group.id} style={styles.groupContainer}>
+                          <View style={styles.groupHeader}>
+                            <View style={[styles.groupBadge, { backgroundColor: colors.badge }]}>
+                              <Text style={styles.groupBadgeText}>G{group.groupNumber}</Text>
+                            </View>
+                            <View style={styles.groupInfo}>
+                              <Text style={styles.groupName}>{group.treatment}</Text>
+                              <Text style={styles.groupDetails}>
+                                {group.animalCount}마리 · {group.dose}
+                              </Text>
+                            </View>
+                          </View>
+
+                          <View style={[styles.groupTimelineBar, { backgroundColor: colors.bg }]}>
+                            {phaseWidths.map((phase, idx) => {
+                              const isMainPhase = idx > 0 && idx < phaseWidths.length - 1;
+                              const opacity = isMainPhase ? 0.3 + groupIdx * 0.1 : 0.1 + groupIdx * 0.05;
+                              
+                              return (
+                                <View
+                                  key={`${group.id}-${phase.id}`}
+                                  style={{
+                                    width: `${phase.widthPercent}%`,
+                                    height: '100%',
+                                    backgroundColor: groupIdx === 0 
+                                      ? (isMainPhase ? '#d1d5db' : '#f3f4f6')
+                                      : `rgba(249, 115, 22, ${opacity})`,
+                                  }}
+                                />
+                              );
+                            })}
+                          </View>
+                        </View>
+                      );
+                    })}
+
+                    <View style={styles.legend}>
+                      <View style={styles.legendItem}>
+                        <Text style={{ color: '#f97316', fontSize: 10 }}>▼</Text>
+                        <Text style={styles.legendText}>투여</Text>
+                      </View>
+                      <View style={styles.legendItem}>
+                        <View style={{ width: 3, height: 10, backgroundColor: '#e5e7eb' }} />
+                        <Text style={styles.legendText}>관찰/측정</Text>
+                      </View>
+                    </View>
+                  </View>
+                )}
+
+                {/* Observation Items */}
+                {studyDesign.events.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>관찰 및 측정 항목</Text>
+                    
+                    <View style={styles.observationGrid}>
+                      {studyDesign.events.map((event) => (
+                        <View key={event.id} style={styles.observationCard}>
+                          <Text style={styles.observationTitle}>{event.name}</Text>
+                          <Text style={styles.observationText}>
+                            시점: Day {Math.round((event.position / 100) * totalDays)}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </>
+            );
+          })()}
+
+          {/* Company Footer */}
+          <View style={styles.companyFooter}>
+            <Text>
+              {company.name} | {company.tel} | {company.email}
+            </Text>
+          </View>
+        </Page>
+      )}
     </Document>
   );
 };

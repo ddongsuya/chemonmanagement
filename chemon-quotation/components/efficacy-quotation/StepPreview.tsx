@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useEfficacyQuotationStore } from '@/stores/efficacyQuotationStore';
 import { createQuotation } from '@/lib/data-api';
 import { getCompanyInfo } from '@/lib/constants';
@@ -21,8 +22,20 @@ import {
   User,
   Calendar,
   FlaskConical,
+  Download,
 } from 'lucide-react';
 import type { SavedEfficacyQuotation } from '@/types/efficacy';
+import EfficacyStudyDesignDiagram from './EfficacyStudyDesignDiagram';
+
+// Dynamic import for PDF components (client-side only)
+const PDFDownloadLink = dynamic(
+  () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+  { ssr: false, loading: () => <span>PDF 준비중...</span> }
+);
+const EfficacyQuotationPDF = dynamic(
+  () => import('./EfficacyQuotationPDF'),
+  { ssr: false }
+);
 
 /**
  * StepPreview Component
@@ -74,6 +87,7 @@ export default function StepPreview() {
     subtotal,
     vat,
     grandTotal,
+    studyDesign,
     prevStep,
     reset,
   } = useEfficacyQuotationStore();
@@ -208,6 +222,37 @@ export default function StepPreview() {
                 <Printer className="w-4 h-4 mr-2" />
                 인쇄
               </Button>
+              {typeof window !== 'undefined' && EfficacyQuotationPDF && (
+                <PDFDownloadLink
+                  document={
+                    <EfficacyQuotationPDF
+                      quotationNumber={displayQuotationNumber}
+                      quotationDate={quotationDate}
+                      validUntil={validUntil}
+                      customerName={customerName || '-'}
+                      projectName={projectName || '-'}
+                      modelName={selectedModel.model_name}
+                      modelCategory={selectedModel.category}
+                      indication={selectedModel.indication}
+                      items={selectedItems}
+                      subtotalByCategory={subtotalByCategory}
+                      subtotal={subtotal}
+                      vat={vat}
+                      grandTotal={grandTotal}
+                      notes={notes}
+                      company={companyInfo}
+                      studyDesign={studyDesign}
+                      includeStudyDesign={studyDesign.groups.length > 0 || studyDesign.phases.length > 0}
+                    />
+                  }
+                  fileName={`효력시험견적서_${displayQuotationNumber}.pdf`}
+                >
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    PDF 다운로드
+                  </Button>
+                </PDFDownloadLink>
+              )}
               <Button size="sm" onClick={handleSave} disabled={saving}>
                 {saving ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -417,6 +462,17 @@ export default function StepPreview() {
             {companyInfo.name} | {companyInfo.tel} | {companyInfo.email}
           </p>
         </div>
+
+        {/* Study Design Diagram */}
+        {(studyDesign.groups.length > 0 || studyDesign.phases.length > 0) && (
+          <div className="mt-8 pt-8 border-t print:break-before-page">
+            <EfficacyStudyDesignDiagram
+              studyDesign={studyDesign}
+              testName={selectedModel.model_name}
+              className="border rounded-lg"
+            />
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
