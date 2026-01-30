@@ -6,6 +6,9 @@ import {
   AnnouncementFilters,
   AnnouncementResponse,
   AnnouncementViewStats,
+  CreateCommentDTO,
+  UpdateCommentDTO,
+  CommentResponse,
 } from '../types/announcement';
 import { PaginatedResult } from '../types';
 
@@ -387,6 +390,171 @@ export class AnnouncementService {
       deletedAt: announcement.deletedAt,
     };
   }
-}
 
-export default AnnouncementService;
+  // ==================== Comment Methods ====================
+
+  /**
+   * Get comments for an announcement
+   */
+  async getComments(announcementId: string): Promise<CommentResponse[]> {
+    const comments = await this.prisma.announcementComment.findMany({
+      where: {
+        announcementId,
+        parentId: null, // Only top-level comments
+        deletedAt: null,
+      },
+      include: {
+        user: {
+          select: { name: true },
+        },
+        replies: {
+          where: { deletedAt: null },
+          include: {
+            user: {
+              select: { name: true },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return comments.map((c) => this.toCommentResponse(c));
+  }
+
+  /**
+   * Create a comment
+   */
+  async createComment(
+    announcementId: string,
+    userId: string,
+    data: CreateCommentDTO
+  ): Promise<CommentResponse> {
+    // Verify announcement exists and is active
+    const announcement = await this.prisma.announcement.findFirst({
+      where: {
+        id: announcementId,
+        isActive: true,
+        deletedAt: null,
+      },
+    });
+
+    if (!announcement) {
+      throw new AppError('공지사항을 찾을 수 없습니다', 404, ErrorCodes.RESOURCE_NOT_FOUND);
+    }
+
+    // If parentId is provided, verify parent comment exists
+    if (data.parentId) {
+      const parentComment = await this.prisma.announcementComment.findFirst({
+        where: {
+          id: data.parentId,
+          announcementId,
+          deletedAt: null,
+        },
+      });
+
+      if (!parentComment) {
+        throw new AppError('상위 댓글을 찾을 수 없습니다', 404, ErrorCodes.RESOURCE_NOT_FOUND);
+      }
+    }
+
+    const comment = await this.prisma.announcementComment.create({
+      data: {
+        announcementId,
+        userId,
+        content: data.content,
+        parentId: data.parentId || null,
+      },
+      include: {
+        user: {
+          select: { name: true },
+        },
+      },
+    });
+
+    return this.toCommentResponse(comment);
+  }
+
+  /**
+   * Update a comment
+   */
+  async updateComment(
+    commentId: string,
+    userId: string,
+    data: UpdateCommentDTO
+  ): Promise<CommentResponse> {
+    const comment = await this.prisma.announcementComment.findFirst({
+      where: {
+        id: commentId,
+        deletedAt: null,
+      },
+    });
+
+    if (!comment) {
+      throw new AppError('댓글을 찾을 수 없습니다', 404, ErrorCodes.RESOURCE_NOT_FOUND);
+    }
+
+    // Only the author can update their comment
+    if (comment.userId !== userId) {
+      throw new AppError('본인의 댓글만 수정할 수 있습니다', 403, ErrorCodes.FORBIDDEN);
+    }
+
+    const updated = await this.prisma.announcementComment.update({
+      where: { id: commentId },
+      data: { content: data.content },
+      include: {
+        user: {
+          select: { name: true },
+        },
+      },
+    });
+
+    return this.toCommentResponse(updated);
+  }
+
+  /**
+   * Delete a comment (soft delete)
+   */
+  async deleteComment(commentId: string, userId: string, isAdmin: boolean): Promise<void> {
+    const comment = await this.prisma.announcementComment.findFirst({
+      where: {
+        id: commentId,
+        deletedAt: null,
+      },
+    });
+
+    if (!comment) {
+      throw new AppError('댓글을 찾을 수 없습니다', 404, ErrorCodes.RESOURCE_NOT_FOUND);
+    }
+
+    // Only the author or admin can delete
+    if (comment.userId !== userId && !isAdmin) {
+      throw new AppError('본인의 댓글만 삭제할 수 있습니다', 403, ErrorCodes.FORBIDDEN);
+    }
+
+    await this.prisma.announcementComment.update({
+      where: { id: commentId },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  /**
+   * Convert Prisma Comment to CommentResponse
+   */
+  private toCommentResponse(
+    comment: any
+  ): CommentResponse {
+    return {
+      id: comment.id,
+      announcementId: comment.announcementId,
+      userId: comment.userId,
+      userName: comment.user?.name || '알 수 없음',
+      content: comment.content,
+      parentId: comment.parentId,
+      replies: comment.replies?.map((r: any) => this.toCommentResponse(r)),
+      createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
+    };
+  }
+}

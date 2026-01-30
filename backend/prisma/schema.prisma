@@ -165,6 +165,9 @@ model User {
   clinicalTestRequestsAsDirector  ClinicalTestRequest[]  @relation("ClinicalTestDirector")
   clinicalTestRequestsAsReceiver  ClinicalTestRequest[]  @relation("ClinicalReceiver")
   clinicalTestRequestsAsManager   ClinicalTestRequest[]  @relation("ClinicalOperationManager")
+  
+  // Announcement Comments 관계
+  announcementComments            AnnouncementComment[]  @relation("AnnouncementComments")
 }
 
 model RefreshToken {
@@ -718,7 +721,27 @@ model Announcement {
   updatedAt DateTime             @updatedAt
   deletedAt DateTime?
 
-  views AnnouncementView[]
+  views    AnnouncementView[]
+  comments AnnouncementComment[]
+}
+
+model AnnouncementComment {
+  id             String       @id @default(uuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation("AnnouncementComments", fields: [userId], references: [id], onDelete: Cascade)
+  content        String
+  parentId       String?
+  parent         AnnouncementComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies        AnnouncementComment[] @relation("CommentReplies")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([announcementId])
+  @@index([userId])
+  @@index([parentId])
 }
 
 model AnnouncementView {

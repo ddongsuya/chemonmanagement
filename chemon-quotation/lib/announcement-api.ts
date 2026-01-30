@@ -37,3 +37,64 @@ export async function getActiveAnnouncements(): Promise<ApiResponse<Announcement
 export async function getAnnouncementById(id: string): Promise<ApiResponse<Announcement>> {
   return apiFetch<Announcement>(`/api/announcements/${id}`);
 }
+
+// ==================== Comment Types & API ====================
+
+export interface Comment {
+  id: string;
+  announcementId: string;
+  userId: string;
+  userName: string;
+  content: string;
+  parentId: string | null;
+  replies?: Comment[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Get comments for an announcement
+ */
+export async function getComments(announcementId: string): Promise<ApiResponse<Comment[]>> {
+  return apiFetch<Comment[]>(`/api/announcements/${announcementId}/comments`);
+}
+
+/**
+ * Create a comment
+ */
+export async function createComment(
+  announcementId: string,
+  content: string,
+  parentId?: string | null
+): Promise<ApiResponse<Comment>> {
+  return apiFetch<Comment>(`/api/announcements/${announcementId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify({ content, parentId }),
+  });
+}
+
+/**
+ * Update a comment
+ */
+export async function updateComment(
+  announcementId: string,
+  commentId: string,
+  content: string
+): Promise<ApiResponse<Comment>> {
+  return apiFetch<Comment>(`/api/announcements/${announcementId}/comments/${commentId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ content }),
+  });
+}
+
+/**
+ * Delete a comment
+ */
+export async function deleteComment(
+  announcementId: string,
+  commentId: string
+): Promise<ApiResponse<void>> {
+  return apiFetch<void>(`/api/announcements/${announcementId}/comments/${commentId}`, {
+    method: 'DELETE',
+  });
+}

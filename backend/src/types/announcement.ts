@@ -58,3 +58,33 @@ export interface AnnouncementViewStats {
   uniqueViews: number;
   viewsByDate: { date: string; count: number }[];
 }
+
+// ==================== Comment Types ====================
+
+// Create comment schema
+export const createCommentSchema = z.object({
+  content: z.string().min(1, '내용은 필수입니다').max(2000, '내용은 2000자 이하여야 합니다'),
+  parentId: z.string().uuid().optional().nullable(),
+});
+
+export type CreateCommentDTO = z.infer<typeof createCommentSchema>;
+
+// Update comment schema
+export const updateCommentSchema = z.object({
+  content: z.string().min(1, '내용은 필수입니다').max(2000, '내용은 2000자 이하여야 합니다'),
+});
+
+export type UpdateCommentDTO = z.infer<typeof updateCommentSchema>;
+
+// Comment response type
+export interface CommentResponse {
+  id: string;
+  announcementId: string;
+  userId: string;
+  userName: string;
+  content: string;
+  parentId: string | null;
+  replies?: CommentResponse[];
+  createdAt: Date;
+  updatedAt: Date;
+}

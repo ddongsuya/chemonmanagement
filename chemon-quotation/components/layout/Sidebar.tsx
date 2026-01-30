@@ -26,6 +26,7 @@ import {
   TrendingUp,
   Zap,
   X,
+  Megaphone,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -170,6 +171,62 @@ export default function Sidebar() {
         {/* 네비게이션 */}
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
           <div className="space-y-2">
+            {/* 공지사항 (맨 위) */}
+            <div className="relative group">
+              <button
+                onClick={() => handleNavigationClick('/announcements')}
+                className={cn(
+                  'transition-all duration-300 flex items-center relative overflow-hidden',
+                  'hover:scale-105',
+                  isExpanded 
+                    ? 'w-full px-4 py-3 justify-start rounded-xl' 
+                    : 'w-12 h-12 justify-center mx-auto rounded-full',
+                  isActive('/announcements')
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30'
+                    : 'bg-white/5 hover:bg-white/10'
+                )}
+              >
+                <Megaphone className={cn(
+                  'w-5 h-5 flex-shrink-0',
+                  isActive('/announcements') ? 'text-white' : 'text-white/70'
+                )} />
+                
+                {isExpanded && (
+                  <div className="ml-3 overflow-hidden">
+                    <div className={cn(
+                      'font-medium text-sm whitespace-nowrap',
+                      isActive('/announcements') ? 'text-white' : 'text-white/70'
+                    )}>
+                      공지사항
+                    </div>
+                    {isActive('/announcements') && (
+                      <div className="text-xs text-white/70 mt-0.5">Announcements</div>
+                    )}
+                  </div>
+                )}
+                
+                {/* 활성 인디케이터 */}
+                {isActive('/announcements') && !isExpanded && (
+                  <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-400 rounded-l-full" />
+                )}
+                {isActive('/announcements') && isExpanded && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full animate-pulse" />
+                )}
+              </button>
+
+              {/* 툴팁 (접힌 상태) */}
+              {!isExpanded && (
+                <div className="absolute left-full ml-3 px-3 py-2 bg-gradient-to-br from-blue-500 to-blue-600 
+                               text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 
+                               pointer-events-none whitespace-nowrap z-50 shadow-lg 
+                               transform translate-x-2 group-hover:translate-x-0">
+                  <div className="font-medium text-sm">공지사항</div>
+                  <div className="text-xs opacity-75 mt-0.5">Announcements</div>
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-blue-500 rotate-45" />
+                </div>
+              )}
+            </div>
+
             {/* 대시보드 (단독) */}
             <div className="relative group">
               <button
