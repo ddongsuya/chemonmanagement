@@ -49,6 +49,7 @@ import {
   addLeadActivity,
   Lead,
   LeadActivity,
+  LeadSource,
 } from '@/lib/lead-api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -273,7 +274,7 @@ export default function LeadDetailPage() {
                         <Label>유입 경로</Label>
                         <Select
                           value={editForm.source || ''}
-                          onValueChange={(v) => setEditForm({ ...editForm, source: v })}
+                          onValueChange={(v) => setEditForm({ ...editForm, source: v as LeadSource })}
                         >
                           <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>
