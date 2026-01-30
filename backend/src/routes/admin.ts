@@ -302,7 +302,7 @@ router.get(
     try {
       const filters = announcementFiltersSchema.parse(req.query);
       const result = await announcementService.getAll(filters);
-      res.json({ success: true, ...result });
+      res.json({ success: true, data: result });
     } catch (error) {
       next(error);
     }

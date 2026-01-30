@@ -497,7 +497,7 @@ export class AnnouncementService {
 
     // Only the author can update their comment
     if (comment.userId !== userId) {
-      throw new AppError('본인의 댓글만 수정할 수 있습니다', 403, ErrorCodes.FORBIDDEN);
+      throw new AppError('본인의 댓글만 수정할 수 있습니다', 403, ErrorCodes.RESOURCE_ACCESS_DENIED);
     }
 
     const updated = await this.prisma.announcementComment.update({
@@ -530,7 +530,7 @@ export class AnnouncementService {
 
     // Only the author or admin can delete
     if (comment.userId !== userId && !isAdmin) {
-      throw new AppError('본인의 댓글만 삭제할 수 있습니다', 403, ErrorCodes.FORBIDDEN);
+      throw new AppError('본인의 댓글만 삭제할 수 있습니다', 403, ErrorCodes.RESOURCE_ACCESS_DENIED);
     }
 
     await this.prisma.announcementComment.update({
@@ -558,3 +558,7 @@ export class AnnouncementService {
     };
   }
 }
+
+// Create and export singleton instance
+import prisma from '../lib/prisma';
+export default new AnnouncementService(prisma);
