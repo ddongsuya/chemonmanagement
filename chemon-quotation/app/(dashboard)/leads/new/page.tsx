@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ArrowLeft, Save } from 'lucide-react';
-import { createLead, getPipelineStages, PipelineStage } from '@/lib/lead-api';
+import { createLead, getPipelineStages, PipelineStage, LeadSource } from '@/lib/lead-api';
 import { useToast } from '@/hooks/use-toast';
 
 const sourceOptions = [
@@ -88,6 +88,7 @@ export default function NewLeadPage() {
       setLoading(true);
       await createLead({
         ...formData,
+        source: formData.source as LeadSource,
         expectedAmount: formData.expectedAmount ? Number(formData.expectedAmount) : undefined,
         expectedDate: formData.expectedDate || undefined,
       });
