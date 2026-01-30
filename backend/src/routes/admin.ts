@@ -58,7 +58,7 @@ router.get(
     try {
       const filters = userListFiltersSchema.parse(req.query);
       const result = await adminService.getUsers(filters);
-      res.json({ success: true, ...result });
+      res.json({ success: true, data: result });
     } catch (error) {
       next(error);
     }
@@ -282,7 +282,7 @@ router.get(
     try {
       const filters = activityLogFiltersSchema.parse(req.query);
       const result = await adminService.getActivityLogs(filters);
-      res.json({ success: true, ...result });
+      res.json({ success: true, data: result });
     } catch (error) {
       next(error);
     }
@@ -470,7 +470,7 @@ router.get(
     try {
       const filters = backupFiltersSchema.parse(req.query);
       const result = await backupService.getAll(filters);
-      res.json({ success: true, ...result });
+      res.json({ success: true, data: result });
     } catch (error) {
       next(error);
     }
