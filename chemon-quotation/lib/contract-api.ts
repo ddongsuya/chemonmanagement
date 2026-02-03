@@ -78,7 +78,10 @@ function mapContractFromApi(data: any): SavedContract {
 function mapContractToApi(data: Partial<SavedContract>): any {
   const result: any = {};
   
-  if (data.customer_id !== undefined) result.customerId = data.customer_id;
+  if (data.customer_id !== undefined && data.customer_id !== '') result.customerId = data.customer_id;
+  if (data.customer_name !== undefined) result.customerName = data.customer_name;
+  if (data.customer_address !== undefined) result.customerAddress = data.customer_address;
+  if (data.customer_ceo !== undefined) result.customerCeo = data.customer_ceo;
   if (data.project_name !== undefined) result.title = data.project_name;
   if (data.contract_type !== undefined) result.contractType = data.contract_type;
   if (data.total_amount !== undefined) result.totalAmount = data.total_amount;
@@ -89,6 +92,11 @@ function mapContractToApi(data: Partial<SavedContract>): any {
   if (data.status !== undefined) result.status = data.status;
   if (data.terms !== undefined) result.terms = data.terms;
   if (data.notes !== undefined) result.notes = data.notes;
+  if (data.advance_rate !== undefined) result.advanceRate = data.advance_rate;
+  if (data.advance_amount !== undefined) result.advanceAmount = data.advance_amount;
+  if (data.remaining_amount !== undefined) result.remainingAmount = data.remaining_amount;
+  if (data.total_weeks !== undefined) result.totalWeeks = data.total_weeks;
+  if (data.quotation_id !== undefined && data.quotation_id !== '') result.quotationIds = [data.quotation_id];
   
   return result;
 }

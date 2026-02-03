@@ -95,6 +95,9 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     const userId = (req as any).user.id;
     const {
       customerId,
+      customerName,
+      customerAddress,
+      customerCeo,
       title,
       contractType,
       totalAmount,
@@ -104,6 +107,10 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       terms,
       notes,
       quotationIds,
+      advanceRate,
+      advanceAmount,
+      remainingAmount,
+      totalWeeks,
     } = req.body;
 
     // 계약 번호 생성
@@ -113,11 +120,43 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     });
     const contractNumber = `CT-${year}-${String(count + 1).padStart(4, '0')}`;
 
+    // customerId가 없으면 고객 정보로 고객 찾기 또는 생성
+    let finalCustomerId = customerId;
+    if (!finalCustomerId && customerName) {
+      // 기존 고객 찾기
+      const existingCustomer = await prisma.customer.findFirst({
+        where: {
+          userId,
+          name: customerName,
+          deletedAt: null,
+        },
+      });
+
+      if (existingCustomer) {
+        finalCustomerId = existingCustomer.id;
+      } else {
+        // 새 고객 생성
+        const newCustomer = await prisma.customer.create({
+          data: {
+            userId,
+            name: customerName,
+            address: customerAddress || '',
+            grade: 'GENERAL',
+          },
+        });
+        finalCustomerId = newCustomer.id;
+      }
+    }
+
+    if (!finalCustomerId) {
+      return res.status(400).json({ success: false, message: '고객 정보가 필요합니다.' });
+    }
+
     const contract = await prisma.contract.create({
       data: {
         contractNumber,
         userId,
-        customerId,
+        customerId: finalCustomerId,
         title,
         contractType,
         totalAmount,
