@@ -19,8 +19,10 @@ import { efficacyQuotationApi } from '@/lib/efficacy-api';
 import { getUserSettings } from '@/lib/package-api';
 import { generateQuotationNumber } from '@/lib/quotationNumber';
 import { SavedEfficacyQuotation } from '@/types/efficacy';
-import { ArrowLeft, FileText, Check, Eye, Edit, Loader2 } from 'lucide-react';
+import { ArrowLeft, FileText, Check, Eye, Edit, Loader2, Save } from 'lucide-react';
 import Link from 'next/link';
+import { contractApi, createSavedContractFromData } from '@/lib/contract-api';
+import { useToast } from '@/hooks/use-toast';
 
 // SavedQuotation 타입 정의
 interface SavedQuotation {
@@ -50,6 +52,9 @@ function ContractNewContent() {
   const [loadedQuotation, setLoadedQuotation] = useState<SavedQuotation | null>(null);
   const [loadedEfficacyQuotation, setLoadedEfficacyQuotation] = useState<SavedEfficacyQuotation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const { toast } = useToast();
 
   // useQuery로 사용자 설정 조회 (캐시 공유)
   const { data: settingsResponse } = useQuery({
@@ -236,6 +241,41 @@ function ContractNewContent() {
     setIsGenerated(true);
   };
 
+  // 계약서 저장 처리
+  const handleSaveContract = async () => {
+    if (!contractData) return;
+    
+    setIsSaving(true);
+    try {
+      const contractPayload = createSavedContractFromData(
+        contractData,
+        quotationId || efficacyQuotationId || loadedQuotation?.id || loadedEfficacyQuotation?.id
+      );
+      
+      // 계약 유형 설정
+      if (hasEfficacyData) {
+        contractPayload.contract_type = 'EFFICACY';
+      }
+      
+      await contractApi.create(contractPayload);
+      
+      setIsSaved(true);
+      toast({
+        title: '저장 완료',
+        description: '계약서가 성공적으로 저장되었습니다.',
+      });
+    } catch (error) {
+      console.error('Failed to save contract:', error);
+      toast({
+        title: '저장 실패',
+        description: '계약서 저장 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // 로딩 중
   if (isLoading) {
     return (
@@ -347,6 +387,39 @@ function ContractNewContent() {
               
               <TabsContent value="actions" className="mt-4">
                 <div className="space-y-4">
+                  {/* 저장하기 섹션 */}
+                  <div className="p-4 border rounded-lg space-y-3">
+                    <h4 className="font-medium flex items-center gap-2">
+                      <Save className="w-4 h-4" />
+                      계약서 저장
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      계약서를 데이터베이스에 저장하여 계약 목록에서 관리할 수 있습니다.
+                    </p>
+                    <Button 
+                      onClick={handleSaveContract} 
+                      disabled={isSaving || isSaved}
+                      className="w-full sm:w-auto"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          저장 중...
+                        </>
+                      ) : isSaved ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          저장 완료
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          저장하기
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
                   <div className="p-4 border rounded-lg space-y-3">
                     <h4 className="font-medium flex items-center gap-2">
                       <FileText className="w-4 h-4" />
@@ -377,7 +450,14 @@ function ContractNewContent() {
                     </Button>
                   </div>
                   
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
+                    {isSaved && (
+                      <Button asChild>
+                        <Link href="/contracts">
+                          계약 목록으로
+                        </Link>
+                      </Button>
+                    )}
                     <Button variant="outline" asChild>
                       <Link href="/quotations">
                         견적 목록으로
