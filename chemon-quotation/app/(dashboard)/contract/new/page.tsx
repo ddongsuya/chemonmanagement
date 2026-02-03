@@ -258,9 +258,16 @@ function ContractNewContent() {
         quotationId || efficacyQuotationId || loadedQuotation?.id || loadedEfficacyQuotation?.id
       );
       
-      // ISO 형식 날짜로 덮어쓰기
-      contractPayload.start_date = new Date(formDates.startDate).toISOString();
-      contractPayload.end_date = new Date(formDates.endDate).toISOString();
+      // ISO 형식 날짜로 덮어쓰기 (YYYY-MM-DD 형식 검증)
+      const startDateParsed = new Date(formDates.startDate);
+      const endDateParsed = new Date(formDates.endDate);
+      
+      if (isNaN(startDateParsed.getTime()) || isNaN(endDateParsed.getTime())) {
+        throw new Error('날짜 형식이 올바르지 않습니다.');
+      }
+      
+      contractPayload.start_date = startDateParsed.toISOString();
+      contractPayload.end_date = endDateParsed.toISOString();
       
       // 계약 유형 설정
       if (hasEfficacyData) {

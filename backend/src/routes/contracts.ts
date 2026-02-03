@@ -149,7 +149,25 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 
     if (!finalCustomerId) {
-      return res.status(400).json({ success: false, message: '고객 정보가 필요합니다.' });
+      return res.status(400).json({ success: false, message: '고객 정보가 필요합니다. (customerId 또는 customerName)' });
+    }
+
+    // 날짜 유효성 검사
+    let parsedStartDate = null;
+    let parsedEndDate = null;
+    
+    if (startDate) {
+      parsedStartDate = new Date(startDate);
+      if (isNaN(parsedStartDate.getTime())) {
+        return res.status(400).json({ success: false, message: `시작일 형식이 올바르지 않습니다: ${startDate}` });
+      }
+    }
+    
+    if (endDate) {
+      parsedEndDate = new Date(endDate);
+      if (isNaN(parsedEndDate.getTime())) {
+        return res.status(400).json({ success: false, message: `종료일 형식이 올바르지 않습니다: ${endDate}` });
+      }
     }
 
     const contract = await prisma.contract.create({
@@ -161,8 +179,8 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         contractType,
         totalAmount,
         signedDate: signedDate ? new Date(signedDate) : null,
-        startDate: startDate ? new Date(startDate) : null,
-        endDate: endDate ? new Date(endDate) : null,
+        startDate: parsedStartDate,
+        endDate: parsedEndDate,
         terms,
         notes,
         status: signedDate ? ContractStatus.SIGNED : ContractStatus.NEGOTIATING,
