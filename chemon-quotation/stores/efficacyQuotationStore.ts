@@ -25,6 +25,10 @@ export interface EfficacyQuotationState {
   // Step 1: Basic Info
   customerId: string;
   customerName: string;
+  leadId: string | null;
+  leadContactName: string;
+  leadContactEmail: string;
+  leadContactPhone: string;
   projectName: string;
   validDays: number;
   notes: string;
@@ -50,6 +54,7 @@ export interface EfficacyQuotationState {
 
   // Actions
   setCustomer: (id: string, name: string) => void;
+  setLead: (id: string, companyName: string, contactName: string, contactEmail: string, contactPhone: string) => void;
   setProjectName: (name: string) => void;
   setValidDays: (days: number) => void;
   setNotes: (notes: string) => void;
@@ -160,6 +165,10 @@ const initialState = {
   // Step 1: Basic Info
   customerId: '',
   customerName: '',
+  leadId: null as string | null,
+  leadContactName: '',
+  leadContactEmail: '',
+  leadContactPhone: '',
   projectName: '',
   validDays: 30,
   notes: '',
@@ -323,7 +332,23 @@ export const useEfficacyQuotationStore = create<EfficacyQuotationState>()(
       ...initialState,
 
       // Step 1: Basic Info Actions
-      setCustomer: (id, name) => set({ customerId: id, customerName: name }),
+      setCustomer: (id, name) => set({ 
+        customerId: id, 
+        customerName: name,
+        leadId: null,
+        leadContactName: '',
+        leadContactEmail: '',
+        leadContactPhone: '',
+      }),
+      
+      setLead: (id, companyName, contactName, contactEmail, contactPhone) => set({
+        leadId: id,
+        customerName: companyName,
+        customerId: '',
+        leadContactName: contactName,
+        leadContactEmail: contactEmail,
+        leadContactPhone: contactPhone,
+      }),
       
       setProjectName: (name) => set({ projectName: name }),
       
