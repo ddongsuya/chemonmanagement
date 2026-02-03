@@ -21,12 +21,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Save, RotateCcw, Check, Plus, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, RotateCcw, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   ClinicalTestItem,
@@ -38,11 +35,13 @@ import {
   SAMPLE_TYPE_CATEGORIES,
 } from '@/types/clinical-pathology';
 import { clinicalPathologyApi } from '@/lib/clinical-pathology-api';
-import { getCustomers, createCustomer, Customer } from '@/lib/data-api';
+import CustomerSelector from '@/components/quotation/CustomerSelector';
+import { Lead } from '@/lib/lead-api';
 
 interface FormData {
   customerId: string;
   customerName: string;
+  leadId: string | null;
   contactName: string;
   contactPhone: string;
   contactEmail: string;
@@ -58,11 +57,6 @@ interface FormData {
   discountReason: string;
   validDays: number;
   notes: string;
-}
-
-interface CustomerOption {
-  id: string;
-  name: string;
 }
 
 const STEPS = [
@@ -83,6 +77,7 @@ export default function NewClinicalQuotationPage() {
   const [formData, setFormData] = useState<FormData>({
     customerId: '',
     customerName: '',
+    leadId: null,
     contactName: '',
     contactPhone: '',
     contactEmail: '',
@@ -100,13 +95,31 @@ export default function NewClinicalQuotationPage() {
     notes: '',
   });
 
-  // 고객사 관련 상태
-  const [customers, setCustomers] = useState<CustomerOption[]>([]);
-  const [customersLoading, setCustomersLoading] = useState(true);
-  const [newCustomerName, setNewCustomerName] = useState('');
-  const [newCustomerContact, setNewCustomerContact] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [addingCustomer, setAddingCustomer] = useState(false);
+  // 고객사/리드 선택 핸들러
+  const handleCustomerSelect = (selectedCustomerId: string, selectedCustomerName: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      customerId: selectedCustomerId, 
+      customerName: selectedCustomerName,
+      leadId: null,
+    }));
+  };
+
+  const handleLeadSelect = (lead: Lead) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      leadId: lead.id,
+      customerId: '',
+      customerName: lead.companyName,
+      contactName: lead.contactName,
+      contactEmail: lead.contactEmail || '',
+      contactPhone: lead.contactPhone || '',
+    }));
+  };
+
+  const handleNewCustomerCreate = (lead: Lead) => {
+    // CustomerSelector 내부에서 이미 onLeadSelect를 호출하므로 추가 처리 불필요
+  };
 
   const [calculation, setCalculation] = useState<{
     items: any[];
@@ -133,65 +146,6 @@ export default function NewClinicalQuotationPage() {
     };
     loadTestItems();
   }, [toast]);
-
-  // 고객사 목록 로드
-  useEffect(() => {
-    async function fetchCustomers() {
-      try {
-        const response = await getCustomers({ limit: 100 });
-        if (response.success && response.data) {
-          const customerList = response.data.data || [];
-          setCustomers(customerList.map((c: Customer) => ({
-            id: c.id,
-            name: c.company || c.name,
-          })));
-        }
-      } catch (error) {
-        console.error('Failed to fetch customers:', error);
-      } finally {
-        setCustomersLoading(false);
-      }
-    }
-    fetchCustomers();
-  }, []);
-
-  // 고객사 선택 핸들러
-  const handleCustomerSelect = (value: string) => {
-    const customer = customers.find((c) => c.id === value);
-    if (customer) {
-      setFormData(prev => ({ ...prev, customerId: customer.id, customerName: customer.name }));
-    }
-  };
-
-  // 신규 고객사 추가 핸들러
-  const handleAddCustomer = async () => {
-    if (newCustomerName.trim()) {
-      setAddingCustomer(true);
-      try {
-        const response = await createCustomer({
-          name: newCustomerContact.trim() || newCustomerName.trim(),
-          company: newCustomerName.trim(),
-        });
-        if (response.success && response.data) {
-          const newCustomer = response.data;
-          const customerOption = { 
-            id: newCustomer.id, 
-            name: newCustomer.company || newCustomer.name 
-          };
-          setCustomers((prev) => [...prev, customerOption]);
-          setFormData(prev => ({ ...prev, customerId: customerOption.id, customerName: customerOption.name }));
-          setNewCustomerName('');
-          setNewCustomerContact('');
-          setDialogOpen(false);
-        }
-      } catch (error) {
-        console.error('Failed to create customer:', error);
-        toast({ title: '고객사 등록 실패', variant: 'destructive' });
-      } finally {
-        setAddingCustomer(false);
-      }
-    }
-  };
 
   // 선택된 검체 종류에 따라 활성화되는 카테고리
   const availableCategories = useMemo(() => {
@@ -289,8 +243,8 @@ export default function NewClinicalQuotationPage() {
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        if (!formData.customerId) {
-          toast({ title: '의뢰기관을 선택해주세요', variant: 'destructive' });
+        if (!formData.customerId && !formData.leadId) {
+          toast({ title: '의뢰기관 또는 리드를 선택해주세요', variant: 'destructive' });
           return false;
         }
         if (!formData.contactName.trim()) {
@@ -338,6 +292,7 @@ export default function NewClinicalQuotationPage() {
       setFormData({
         customerId: '',
         customerName: '',
+        leadId: null,
         contactName: '',
         contactPhone: '',
         contactEmail: '',
@@ -408,81 +363,27 @@ export default function NewClinicalQuotationPage() {
         <CardTitle>기본정보</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* 고객사/리드 선택 - CustomerSelector 컴포넌트 사용 */}
+        <div className="space-y-2">
+          <Label>
+            의뢰기관 / 리드 <span className="text-red-500">*</span>
+          </Label>
+          <CustomerSelector
+            selectedCustomerId={formData.customerId || null}
+            selectedLeadId={formData.leadId}
+            onCustomerSelect={handleCustomerSelect}
+            onLeadSelect={handleLeadSelect}
+            onNewCustomerCreate={handleNewCustomerCreate}
+          />
+          {formData.customerName && (
+            <p className="text-sm text-gray-500">
+              선택됨: {formData.customerName}
+              {formData.leadId && <span className="ml-2 text-orange-600">(리드)</span>}
+            </p>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="customerName">의뢰기관 *</Label>
-            <div className="flex gap-2">
-              <Select value={formData.customerId} onValueChange={handleCustomerSelect} disabled={customersLoading}>
-                <SelectTrigger className="flex-1">
-                  {customersLoading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      로딩 중...
-                    </span>
-                  ) : (
-                    <SelectValue placeholder="의뢰기관을 선택하세요" />
-                  )}
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>신규 의뢰기관 등록</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="newCustomerName">기관명</Label>
-                      <Input
-                        id="newCustomerName"
-                        value={newCustomerName}
-                        onChange={(e) => setNewCustomerName(e.target.value)}
-                        placeholder="기관명을 입력하세요"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="newCustomerContact">담당자</Label>
-                      <Input
-                        id="newCustomerContact"
-                        value={newCustomerContact}
-                        onChange={(e) => setNewCustomerContact(e.target.value)}
-                        placeholder="담당자명을 입력하세요"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button variant="outline">취소</Button>
-                    </DialogClose>
-                    <Button onClick={handleAddCustomer} disabled={addingCustomer}>
-                      {addingCustomer ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          등록 중...
-                        </>
-                      ) : (
-                        '등록'
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-            {formData.customerName && (
-              <p className="text-sm text-gray-500">선택됨: {formData.customerName}</p>
-            )}
-          </div>
           <div className="space-y-2">
             <Label htmlFor="contactName">담당자 *</Label>
             <Input
@@ -501,7 +402,7 @@ export default function NewClinicalQuotationPage() {
               placeholder="010-0000-0000"
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="contactEmail">이메일</Label>
             <Input
               id="contactEmail"
