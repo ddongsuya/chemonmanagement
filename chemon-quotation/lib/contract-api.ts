@@ -139,7 +139,7 @@ export const contractApi = {
       method: 'POST',
       body: JSON.stringify(mapContractToApi(data)),
     });
-    return mapContractFromApi(response.data);
+    return mapContractFromApi(response.data?.contract || response.data);
   },
 
   // 계약서 수정

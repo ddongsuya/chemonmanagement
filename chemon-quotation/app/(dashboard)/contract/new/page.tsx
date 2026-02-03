@@ -48,6 +48,7 @@ function ContractNewContent() {
   const store = useQuotationStore();
   
   const [contractData, setContractData] = useState<ContractData | null>(null);
+  const [formDates, setFormDates] = useState<{ startDate: Date; endDate: Date; contractDate: Date } | null>(null);
   const [isGenerated, setIsGenerated] = useState(false);
   const [loadedQuotation, setLoadedQuotation] = useState<SavedQuotation | null>(null);
   const [loadedEfficacyQuotation, setLoadedEfficacyQuotation] = useState<SavedEfficacyQuotation | null>(null);
@@ -238,12 +239,17 @@ function ContractNewContent() {
     };
 
     setContractData(data);
+    setFormDates({
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      contractDate: formData.contractDate,
+    });
     setIsGenerated(true);
   };
 
   // 계약서 저장 처리
   const handleSaveContract = async () => {
-    if (!contractData) return;
+    if (!contractData || !formDates) return;
     
     setIsSaving(true);
     try {
@@ -251,6 +257,10 @@ function ContractNewContent() {
         contractData,
         quotationId || efficacyQuotationId || loadedQuotation?.id || loadedEfficacyQuotation?.id
       );
+      
+      // ISO 형식 날짜로 덮어쓰기
+      contractPayload.start_date = formDates.startDate.toISOString();
+      contractPayload.end_date = formDates.endDate.toISOString();
       
       // 계약 유형 설정
       if (hasEfficacyData) {
