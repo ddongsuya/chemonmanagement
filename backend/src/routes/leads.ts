@@ -6,6 +6,7 @@ import { authenticate } from '../middleware/auth';
 import prisma from '../lib/prisma';
 import { LeadStatus, LeadSource } from '@prisma/client';
 import { dataSyncService } from '../services/dataSyncService';
+import { leadNumberService, UserCodeNotSetError } from '../services/leadNumberService';
 
 const router = Router();
 
@@ -13,6 +14,10 @@ const router = Router();
 router.use(authenticate);
 
 // 리드 목록 조회
+// IMMUTABILITY GUARANTEE (Requirements 5.5, 3.5):
+// This endpoint returns leadNumber exactly as stored in the database.
+// When a user changes their User_Code, existing lead numbers are NOT affected.
+// Each lead retains the number assigned at creation time.
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.id;
@@ -73,6 +78,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // 리드 상세 조회
+// IMMUTABILITY GUARANTEE (Requirements 5.5, 3.5):
+// This endpoint returns leadNumber exactly as stored in the database.
+// The stored leadNumber is immutable and reflects the User_Code at the time of creation.
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
@@ -118,12 +126,22 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       stageId,
     } = req.body;
 
-    // 리드 번호 생성
-    const year = new Date().getFullYear();
-    const count = await prisma.lead.count({
-      where: { leadNumber: { startsWith: `LD-${year}` } },
-    });
-    const leadNumber = `LD-${year}-${String(count + 1).padStart(4, '0')}`;
+    // 리드 번호 생성 - LeadNumberService 사용 (Requirements 3.1, 3.4)
+    // User_Code 기반으로 리드 번호 생성 (형식: UC-YYYY-NNNN)
+    let leadNumber: string;
+    try {
+      leadNumber = await leadNumberService.generateLeadNumber(userId);
+    } catch (error) {
+      // Requirement 3.4: User_Code 미설정 시 오류 반환
+      if (error instanceof UserCodeNotSetError) {
+        return res.status(400).json({
+          success: false,
+          message: error.message, // "견적서 코드가 설정되지 않았습니다"
+          code: 'USER_CODE_NOT_SET',
+        });
+      }
+      throw error;
+    }
 
     // 기본 단계 조회 (stageId가 없으면)
     let finalStageId = stageId;

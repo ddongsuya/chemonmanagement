@@ -17,3 +17,11 @@ export { PipelineAutomationService, pipelineAutomationService } from './pipeline
 
 // Lead Conversion services
 export { LeadConversionService, leadConversionService } from './leadConversionService';
+
+// User Code Validation services
+export { UserCodeValidator } from './userCodeValidator';
+export type { ValidationResult } from './userCodeValidator';
+
+// Lead Number services
+export { LeadNumberService, leadNumberService, UserCodeNotSetError } from './leadNumberService';
+export type { LeadNumberConfig } from './leadNumberService';

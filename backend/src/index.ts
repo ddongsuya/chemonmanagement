@@ -21,6 +21,7 @@ import {
   customerDataRoutes,
   excelRoutes,
   clinicalPathologyRoutes,
+  userCodeRoutes,
 } from './routes';
 import masterDataRoutes from './routes/masterData';
 import packageRoutes from './routes/package';
@@ -99,6 +100,12 @@ app.use('/api/excel', excelRoutes);
 
 // Clinical Pathology routes
 app.use('/api/clinical-pathology', clinicalPathologyRoutes);
+
+// User Code routes
+app.use('/api/user-code', userCodeRoutes);
+
+// User Settings routes (for user code save endpoint)
+app.use('/api/user-settings', userCodeRoutes);
 
 // Static file serving for exports
 app.use('/exports', express.static(path.join(process.cwd(), 'exports')));
