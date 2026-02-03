@@ -48,7 +48,7 @@ function ContractNewContent() {
   const store = useQuotationStore();
   
   const [contractData, setContractData] = useState<ContractData | null>(null);
-  const [formDates, setFormDates] = useState<{ startDate: Date; endDate: Date; contractDate: Date } | null>(null);
+  const [formDates, setFormDates] = useState<{ startDate: string; endDate: string; contractDate: string } | null>(null);
   const [isGenerated, setIsGenerated] = useState(false);
   const [loadedQuotation, setLoadedQuotation] = useState<SavedQuotation | null>(null);
   const [loadedEfficacyQuotation, setLoadedEfficacyQuotation] = useState<SavedEfficacyQuotation | null>(null);
@@ -259,8 +259,8 @@ function ContractNewContent() {
       );
       
       // ISO 형식 날짜로 덮어쓰기
-      contractPayload.start_date = formDates.startDate.toISOString();
-      contractPayload.end_date = formDates.endDate.toISOString();
+      contractPayload.start_date = new Date(formDates.startDate).toISOString();
+      contractPayload.end_date = new Date(formDates.endDate).toISOString();
       
       // 계약 유형 설정
       if (hasEfficacyData) {
