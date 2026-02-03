@@ -48,14 +48,14 @@ function mapContractFromApi(data: any): SavedContract {
   return {
     id: data.id,
     contract_number: data.contractNumber,
-    quotation_id: data.quotations?.[0]?.id,
+    quotation_id: data.quotations?.[0]?.id || undefined,
     quotation_number: data.quotations?.[0]?.quotationNumber || '',
-    customer_id: data.customerId,
+    customer_id: data.customerId || '',
     customer_name: data.customer?.name || '',
     customer_address: data.customer?.address || '',
     customer_ceo: '',
-    project_name: data.title,
-    contract_type: data.contractType,
+    project_name: data.title || '',
+    contract_type: data.contractType || 'TOXICITY',
     start_date: data.startDate || '',
     end_date: data.endDate || '',
     total_weeks: 0,
@@ -65,7 +65,7 @@ function mapContractFromApi(data: any): SavedContract {
     advance_amount: 0,
     remaining_amount: Number(data.totalAmount) - Number(data.paidAmount) || 0,
     signed_date: data.signedDate,
-    status: data.status,
+    status: data.status || 'NEGOTIATING',
     terms: data.terms,
     notes: data.notes,
     is_draft: data.status === 'NEGOTIATING',
@@ -79,7 +79,8 @@ function mapContractToApi(data: Partial<SavedContract>): any {
   const result: any = {};
   
   if (data.customer_id !== undefined && data.customer_id !== '') result.customerId = data.customer_id;
-  if (data.customer_name !== undefined) result.customerName = data.customer_name;
+  // customerName은 빈 문자열이 아닐 때만 전달 (백엔드에서 고객 생성에 사용)
+  if (data.customer_name !== undefined && data.customer_name !== '') result.customerName = data.customer_name;
   if (data.customer_address !== undefined) result.customerAddress = data.customer_address;
   if (data.customer_ceo !== undefined) result.customerCeo = data.customer_ceo;
   if (data.project_name !== undefined) result.title = data.project_name;
@@ -139,7 +140,11 @@ export const contractApi = {
       method: 'POST',
       body: JSON.stringify(mapContractToApi(data)),
     });
-    return mapContractFromApi(response.data?.contract || response.data);
+    const contractData = response.data?.contract || response.data;
+    if (!contractData || !contractData.id) {
+      throw new Error('계약서 생성 응답이 올바르지 않습니다.');
+    }
+    return mapContractFromApi(contractData);
   },
 
   // 계약서 수정
