@@ -111,15 +111,16 @@ enum Department {
 
 // 신규 Enum - 직급
 enum Position {
-  STAFF // 사원
-  SENIOR // 주임
-  ASSISTANT // 대리
-  MANAGER // 과장
-  DEPUTY // 차장
-  GENERAL // 부장
-  DIRECTOR // 이사
-  CEO // 대표이사
+  MANAGER // 매니저
+  CENTER_HEAD // 센터장
+  DIVISION_HEAD // 본부장
+  CEO // 대표
   CHAIRMAN // 회장
+}
+
+// 신규 Enum - 직책
+enum Title {
+  TEAM_LEADER // 팀장
 }
 
 // ==================== User & Auth ====================
@@ -132,6 +133,7 @@ model User {
   phone           String?
   department      Department? // 부서 (Enum)
   position        Position? // 직급 (Enum)
+  title           Title? // 직책 (Enum)
   role            UserRole    @default(USER)
   status          UserStatus  @default(ACTIVE)
   canViewAllSales Boolean     @default(false) // 전체 매출 조회 권한

@@ -2,19 +2,23 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // 직급 타입
-export type PositionType = 'STAFF' | 'SENIOR' | 'ASSISTANT' | 'MANAGER' | 'DEPUTY' | 'GENERAL' | 'DIRECTOR' | 'CEO' | 'CHAIRMAN';
+export type PositionType = 'MANAGER' | 'CENTER_HEAD' | 'DIVISION_HEAD' | 'CEO' | 'CHAIRMAN';
+
+// 직책 타입
+export type TitleType = 'TEAM_LEADER';
 
 // 직급 한글 라벨
 export const POSITION_LABELS: Record<PositionType, string> = {
-  STAFF: '사원',
-  SENIOR: '주임',
-  ASSISTANT: '대리',
-  MANAGER: '과장',
-  DEPUTY: '차장',
-  GENERAL: '부장',
-  DIRECTOR: '이사',
-  CEO: '대표이사',
+  MANAGER: '매니저',
+  CENTER_HEAD: '센터장',
+  DIVISION_HEAD: '본부장',
+  CEO: '대표',
   CHAIRMAN: '회장',
+};
+
+// 직책 한글 라벨
+export const TITLE_LABELS: Record<TitleType, string> = {
+  TEAM_LEADER: '팀장',
 };
 
 export interface AuthUser {
@@ -24,6 +28,7 @@ export interface AuthUser {
   phone: string | null;
   department: 'BD1' | 'BD2' | 'SUPPORT' | null;
   position: PositionType | null;
+  title: TitleType | null;
   role: 'USER' | 'ADMIN';
   status: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
   canViewAllSales?: boolean;
@@ -44,6 +49,7 @@ export interface RegisterRequest {
   phone?: string;
   department?: 'BD1' | 'BD2' | 'SUPPORT';
   position?: PositionType;
+  title?: TitleType;
 }
 
 export interface LoginResponse {

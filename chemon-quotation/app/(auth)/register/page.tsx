@@ -26,15 +26,16 @@ const DEPARTMENT_OPTIONS = [
 
 // 직급 옵션 (Position enum)
 const POSITION_OPTIONS = [
-  { value: 'STAFF', label: '사원' },
-  { value: 'SENIOR', label: '주임' },
-  { value: 'ASSISTANT', label: '대리' },
-  { value: 'MANAGER', label: '과장' },
-  { value: 'DEPUTY', label: '차장' },
-  { value: 'GENERAL', label: '부장' },
-  { value: 'DIRECTOR', label: '이사' },
-  { value: 'CEO', label: '대표이사' },
+  { value: 'MANAGER', label: '매니저' },
+  { value: 'CENTER_HEAD', label: '센터장' },
+  { value: 'DIVISION_HEAD', label: '본부장' },
+  { value: 'CEO', label: '대표' },
   { value: 'CHAIRMAN', label: '회장' },
+] as const;
+
+// 직책 옵션 (Title enum)
+const TITLE_OPTIONS = [
+  { value: 'TEAM_LEADER', label: '팀장' },
 ] as const;
 
 export default function RegisterPage() {
@@ -49,6 +50,7 @@ export default function RegisterPage() {
     phone: '',
     department: '',
     position: '',
+    title: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -110,7 +112,8 @@ export default function RegisterPage() {
       name: formData.name.trim(),
       phone: formData.phone.trim() || undefined,
       department: (formData.department || undefined) as 'BD1' | 'BD2' | 'SUPPORT' | undefined,
-      position: (formData.position || undefined) as 'STAFF' | 'SENIOR' | 'ASSISTANT' | 'MANAGER' | 'DEPUTY' | 'GENERAL' | 'DIRECTOR' | 'CEO' | 'CHAIRMAN' | undefined,
+      position: (formData.position || undefined) as 'MANAGER' | 'CENTER_HEAD' | 'DIVISION_HEAD' | 'CEO' | 'CHAIRMAN' | undefined,
+      title: (formData.title || undefined) as 'TEAM_LEADER' | undefined,
     });
     
     setSubmitting(false);
@@ -249,6 +252,26 @@ export default function RegisterPage() {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="title">직책 (선택)</Label>
+        <Select
+          value={formData.title}
+          onValueChange={(value) => handleInputChange('title', value)}
+          disabled={submitting}
+        >
+          <SelectTrigger id="title">
+            <SelectValue placeholder="직책 선택" />
+          </SelectTrigger>
+          <SelectContent>
+            {TITLE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
