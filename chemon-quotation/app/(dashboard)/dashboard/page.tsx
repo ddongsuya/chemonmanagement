@@ -55,18 +55,22 @@ export default function DashboardPage() {
         if (data && data.accessLevel) {
           setStats(data);
         } else {
-          setError('통계 데이터를 불러오는데 실패했습니다.');
+          console.error('Invalid dashboard stats response:', data);
+          setError('통계 데이터 형식이 올바르지 않습니다.');
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to load dashboard stats:', err);
-        setError('통계 데이터를 불러오는데 실패했습니다.');
+        const errorMessage = err?.message || '알 수 없는 오류';
+        setError(`통계 데이터를 불러오는데 실패했습니다. (${errorMessage})`);
       } finally {
         setLoading(false);
       }
     };
 
-    loadStats();
-  }, [year, month]);
+    if (user) {
+      loadStats();
+    }
+  }, [year, month, user]);
 
   // 연도 옵션 (현재 연도 기준 ±2년)
   const yearOptions = Array.from({ length: 5 }, (_, i) => now.getFullYear() - 2 + i);
