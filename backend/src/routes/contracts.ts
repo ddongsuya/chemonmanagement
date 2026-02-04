@@ -141,7 +141,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             userId,
             name: customerName,
             address: customerAddress || '',
-            grade: 'GENERAL',
+            grade: 'CUSTOMER',
           },
         });
         finalCustomerId = newCustomer.id;
