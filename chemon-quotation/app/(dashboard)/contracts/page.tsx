@@ -241,7 +241,7 @@ export default function ContractsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {contractType === 'TOXICITY' ? '독성' : '효력'}
+                          {contractType === 'TOXICITY' ? '독성' : contractType === 'EFFICACY' ? '효력' : contractType === 'CLINICAL_PATHOLOGY' ? '임상병리' : contractType}
                         </Badge>
                       </TableCell>
                       <TableCell>{formatAmount(totalAmount)}</TableCell>

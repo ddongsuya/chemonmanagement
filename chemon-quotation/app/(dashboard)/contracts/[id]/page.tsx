@@ -285,6 +285,7 @@ export default function ContractDetailPage() {
                           <SelectContent>
                             <SelectItem value="TOXICITY">독성시험</SelectItem>
                             <SelectItem value="EFFICACY">효력시험</SelectItem>
+                            <SelectItem value="CLINICAL_PATHOLOGY">임상병리</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -297,7 +298,7 @@ export default function ContractDetailPage() {
                 ) : (
                   <div className="space-y-3">
                     <div className="flex justify-between"><span className="text-muted-foreground">계약명</span><span className="font-medium">{contractTitle}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">계약 유형</span><Badge variant="outline">{contractType === 'TOXICITY' ? '독성' : '효력'}</Badge></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">계약 유형</span><Badge variant="outline">{contractType === 'TOXICITY' ? '독성' : contractType === 'EFFICACY' ? '효력' : contractType === 'CLINICAL_PATHOLOGY' ? '임상병리' : contractType}</Badge></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">계약금액</span><span className="font-medium">{formatAmount(totalAmount)}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">수금액</span><span>{formatAmount(paidAmount)}</span></div>
                   </div>
