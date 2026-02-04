@@ -41,7 +41,7 @@ async function seedAdminUser() {
       role: 'ADMIN',
       status: 'ACTIVE',
       department: 'SUPPORT',
-      position: 'DIRECTOR',
+      position: 'CEO',
       canViewAllSales: true,
       canViewAllData: true,
     },
