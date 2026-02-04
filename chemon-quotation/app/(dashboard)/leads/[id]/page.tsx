@@ -294,6 +294,7 @@ export default function LeadDetailPage() {
                           <SelectContent>
                             <SelectItem value="TOXICITY">독성시험</SelectItem>
                             <SelectItem value="EFFICACY">효력시험</SelectItem>
+                            <SelectItem value="CLINICAL_PATHOLOGY">임상병리</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -311,7 +312,7 @@ export default function LeadDetailPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">문의 유형</span>
-                      <span>{lead.inquiryType === 'TOXICITY' ? '독성시험' : lead.inquiryType === 'EFFICACY' ? '효력시험' : '-'}</span>
+                      <span>{lead.inquiryType === 'TOXICITY' ? '독성시험' : lead.inquiryType === 'EFFICACY' ? '효력시험' : lead.inquiryType === 'CLINICAL_PATHOLOGY' ? '임상병리' : '-'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">등록일</span>

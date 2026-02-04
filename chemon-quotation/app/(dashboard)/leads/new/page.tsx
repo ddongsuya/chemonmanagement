@@ -30,6 +30,7 @@ const sourceOptions = [
 const inquiryTypeOptions = [
   { value: 'TOXICITY', label: '독성시험' },
   { value: 'EFFICACY', label: '효력시험' },
+  { value: 'CLINICAL_PATHOLOGY', label: '임상병리' },
 ];
 
 export default function NewLeadPage() {
