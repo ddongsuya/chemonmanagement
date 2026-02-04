@@ -77,7 +77,7 @@ export interface DashboardStatsResponse {
 }
 
 // 권한 기반 대시보드 통계 조회
-export async function getDashboardStats(params?: { year?: number; month?: number }): Promise<{ success: boolean; data: DashboardStatsResponse }> {
+export async function getDashboardStats(params?: { year?: number; month?: number }): Promise<DashboardStatsResponse> {
   const queryParams = new URLSearchParams();
   if (params?.year) queryParams.append('year', params.year.toString());
   if (params?.month) queryParams.append('month', params.month.toString());

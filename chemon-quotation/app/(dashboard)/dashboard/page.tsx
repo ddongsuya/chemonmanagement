@@ -51,9 +51,9 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await getDashboardStats({ year, month });
-        if (response.success && response.data) {
-          setStats(response.data);
+        const data = await getDashboardStats({ year, month });
+        if (data && data.accessLevel) {
+          setStats(data);
         } else {
           setError('통계 데이터를 불러오는데 실패했습니다.');
         }
