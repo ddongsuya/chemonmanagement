@@ -1,6 +1,6 @@
 // Dashboard Service - 대시보드 및 위젯 관리
 import prisma from '../lib/prisma';
-import { WidgetType, Department } from '@prisma/client';
+import { WidgetType, Department, Position, Title } from '@prisma/client';
 
 interface CreateDashboardInput {
   name: string;
@@ -11,13 +11,56 @@ interface CreateDashboardInput {
   ownerId: string;
 }
 
+// 대시보드 접근 레벨
+export type DashboardAccessLevel = 'PERSONAL' | 'TEAM' | 'FULL';
+
 // 사용자 권한 정보
 interface UserPermissions {
   userId: string;
   department?: Department | null;
+  position?: Position | null;
+  title?: Title | null;
   canViewAllData: boolean;
   canViewAllSales: boolean;
   isAdmin: boolean;
+}
+
+// 전사 데이터 열람 가능 직급 (센터장 이상)
+const FULL_ACCESS_POSITIONS: Position[] = ['CENTER_HEAD', 'DIVISION_HEAD', 'CEO', 'CHAIRMAN'];
+
+// 전사 데이터 열람 가능 직책
+const FULL_ACCESS_TITLES: Title[] = ['TEAM_LEADER'];
+
+// 전사 데이터 열람 가능 부서
+const FULL_ACCESS_DEPARTMENTS: Department[] = ['SUPPORT'];
+
+// 사용자의 대시보드 접근 레벨 결정
+function getDashboardAccessLevel(permissions: UserPermissions): DashboardAccessLevel {
+  // 1. ADMIN → 전사 열람
+  if (permissions.isAdmin) return 'FULL';
+
+  // 2. 사업지원팀 → 전사 열람
+  if (permissions.department && FULL_ACCESS_DEPARTMENTS.includes(permissions.department)) {
+    return 'FULL';
+  }
+
+  // 3. 직책 팀장 → 전사 열람
+  if (permissions.title && FULL_ACCESS_TITLES.includes(permissions.title)) {
+    return 'FULL';
+  }
+
+  // 4. 직급 센터장 이상 → 전사 열람
+  if (permissions.position && FULL_ACCESS_POSITIONS.includes(permissions.position)) {
+    return 'FULL';
+  }
+
+  // 5. canViewAllData 또는 canViewAllSales 권한 → 전사 열람
+  if (permissions.canViewAllData || permissions.canViewAllSales) {
+    return 'FULL';
+  }
+
+  // 6. 일반 사용자 → 본인만
+  return 'PERSONAL';
 }
 
 // 데이터 필터링을 위한 조건 생성
@@ -553,6 +596,374 @@ export class DashboardService {
     const categories = [...new Set(templates.map(t => t.category))];
 
     return { templates, categories };
+  }
+
+  // ==================== 권한 기반 대시보드 통계 ====================
+
+  /**
+   * 권한 기반 대시보드 통계 조회
+   */
+  async getDashboardStats(userId: string, params?: { year?: number; month?: number; quarter?: number }) {
+    // 사용자 권한 정보 조회
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        department: true,
+        position: true,
+        title: true,
+        canViewAllData: true,
+        canViewAllSales: true,
+        role: true
+      }
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const permissions: UserPermissions = {
+      userId: user.id,
+      department: user.department,
+      position: user.position,
+      title: user.title,
+      canViewAllData: user.canViewAllData,
+      canViewAllSales: user.canViewAllSales,
+      isAdmin: user.role === 'ADMIN'
+    };
+
+    const accessLevel = getDashboardAccessLevel(permissions);
+
+    // 기간 설정
+    const now = new Date();
+    const year = params?.year || now.getFullYear();
+    const month = params?.month || now.getMonth() + 1;
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    // 개인 데이터
+    const personalData = await this.getStatsForUser(userId, startDate, endDate);
+
+    // 전사 데이터 (FULL 권한만)
+    let companyData = null;
+    let departmentData = null;
+    let userRanking = null;
+
+    if (accessLevel === 'FULL') {
+      companyData = await this.getCompanyStats(startDate, endDate);
+      departmentData = await this.getDepartmentStats(startDate, endDate);
+      userRanking = await this.getUserRanking(startDate, endDate);
+    }
+
+    return {
+      accessLevel,
+      user: {
+        id: user.id,
+        name: user.name,
+        department: user.department,
+        position: user.position,
+        title: user.title
+      },
+      period: {
+        year,
+        month,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      },
+      personal: personalData,
+      company: companyData,
+      byDepartment: departmentData,
+      userRanking
+    };
+  }
+
+  /**
+   * 특정 사용자의 통계
+   */
+  private async getStatsForUser(userId: string, startDate: Date, endDate: Date) {
+    const [quotations, contracts, leads] = await Promise.all([
+      // 견적서 통계
+      prisma.quotation.aggregate({
+        where: {
+          userId,
+          createdAt: { gte: startDate, lte: endDate },
+          deletedAt: null
+        },
+        _count: true,
+        _sum: { totalAmount: true }
+      }),
+      // 계약 통계
+      prisma.contract.aggregate({
+        where: {
+          userId,
+          createdAt: { gte: startDate, lte: endDate },
+          deletedAt: null
+        },
+        _count: true,
+        _sum: { totalAmount: true }
+      }),
+      // 리드 통계
+      prisma.lead.count({
+        where: {
+          userId,
+          createdAt: { gte: startDate, lte: endDate },
+          deletedAt: null
+        }
+      })
+    ]);
+
+    // 견적서 상태별 통계
+    const quotationsByStatus = await prisma.quotation.groupBy({
+      by: ['status'],
+      where: {
+        userId,
+        createdAt: { gte: startDate, lte: endDate },
+        deletedAt: null
+      },
+      _count: true,
+      _sum: { totalAmount: true }
+    });
+
+    const statusMap: Record<string, { count: number; amount: number }> = {};
+    quotationsByStatus.forEach(q => {
+      statusMap[q.status] = {
+        count: q._count,
+        amount: Number(q._sum.totalAmount || 0)
+      };
+    });
+
+    const won = statusMap['ACCEPTED']?.count || 0;
+    const lost = statusMap['REJECTED']?.count || 0;
+    const totalDecided = won + lost;
+    const conversionRate = totalDecided > 0 ? (won / totalDecided) * 100 : 0;
+
+    return {
+      quotation: {
+        count: quotations._count,
+        amount: Number(quotations._sum.totalAmount || 0),
+        byStatus: statusMap
+      },
+      contract: {
+        count: contracts._count,
+        amount: Number(contracts._sum.totalAmount || 0)
+      },
+      lead: {
+        count: leads
+      },
+      kpi: {
+        conversionRate: Math.round(conversionRate * 10) / 10,
+        won,
+        lost
+      }
+    };
+  }
+
+  /**
+   * 전사 통계
+   */
+  private async getCompanyStats(startDate: Date, endDate: Date) {
+    const [quotations, contracts, leads] = await Promise.all([
+      prisma.quotation.aggregate({
+        where: {
+          createdAt: { gte: startDate, lte: endDate },
+          deletedAt: null
+        },
+        _count: true,
+        _sum: { totalAmount: true }
+      }),
+      prisma.contract.aggregate({
+        where: {
+          createdAt: { gte: startDate, lte: endDate },
+          deletedAt: null
+        },
+        _count: true,
+        _sum: { totalAmount: true }
+      }),
+      prisma.lead.count({
+        where: {
+          createdAt: { gte: startDate, lte: endDate },
+          deletedAt: null
+        }
+      })
+    ]);
+
+    // 견적서 상태별 통계
+    const quotationsByStatus = await prisma.quotation.groupBy({
+      by: ['status'],
+      where: {
+        createdAt: { gte: startDate, lte: endDate },
+        deletedAt: null
+      },
+      _count: true,
+      _sum: { totalAmount: true }
+    });
+
+    const statusMap: Record<string, { count: number; amount: number }> = {};
+    quotationsByStatus.forEach(q => {
+      statusMap[q.status] = {
+        count: q._count,
+        amount: Number(q._sum.totalAmount || 0)
+      };
+    });
+
+    const won = statusMap['ACCEPTED']?.count || 0;
+    const lost = statusMap['REJECTED']?.count || 0;
+    const totalDecided = won + lost;
+    const conversionRate = totalDecided > 0 ? (won / totalDecided) * 100 : 0;
+
+    return {
+      quotation: {
+        count: quotations._count,
+        amount: Number(quotations._sum.totalAmount || 0),
+        byStatus: statusMap
+      },
+      contract: {
+        count: contracts._count,
+        amount: Number(contracts._sum.totalAmount || 0)
+      },
+      lead: {
+        count: leads
+      },
+      kpi: {
+        conversionRate: Math.round(conversionRate * 10) / 10,
+        won,
+        lost
+      }
+    };
+  }
+
+  /**
+   * 부서별 통계
+   */
+  private async getDepartmentStats(startDate: Date, endDate: Date) {
+    const departments: Department[] = ['BD1', 'BD2', 'SUPPORT'];
+    const results = [];
+
+    for (const dept of departments) {
+      // 해당 부서 사용자 ID 목록
+      const deptUsers = await prisma.user.findMany({
+        where: { department: dept },
+        select: { id: true }
+      });
+      const userIds = deptUsers.map(u => u.id);
+
+      if (userIds.length === 0) {
+        results.push({
+          department: dept,
+          departmentName: this.getDepartmentName(dept),
+          quotation: { count: 0, amount: 0 },
+          contract: { count: 0, amount: 0 },
+          conversionRate: 0
+        });
+        continue;
+      }
+
+      const [quotations, contracts] = await Promise.all([
+        prisma.quotation.aggregate({
+          where: {
+            userId: { in: userIds },
+            createdAt: { gte: startDate, lte: endDate },
+            deletedAt: null
+          },
+          _count: true,
+          _sum: { totalAmount: true }
+        }),
+        prisma.contract.aggregate({
+          where: {
+            userId: { in: userIds },
+            createdAt: { gte: startDate, lte: endDate },
+            deletedAt: null
+          },
+          _count: true,
+          _sum: { totalAmount: true }
+        })
+      ]);
+
+      // 수주/실주 통계
+      const wonLost = await prisma.quotation.groupBy({
+        by: ['status'],
+        where: {
+          userId: { in: userIds },
+          createdAt: { gte: startDate, lte: endDate },
+          deletedAt: null,
+          status: { in: ['ACCEPTED', 'REJECTED'] }
+        },
+        _count: true
+      });
+
+      const won = wonLost.find(w => w.status === 'ACCEPTED')?._count || 0;
+      const lost = wonLost.find(w => w.status === 'REJECTED')?._count || 0;
+      const totalDecided = won + lost;
+      const conversionRate = totalDecided > 0 ? (won / totalDecided) * 100 : 0;
+
+      results.push({
+        department: dept,
+        departmentName: this.getDepartmentName(dept),
+        quotation: {
+          count: quotations._count,
+          amount: Number(quotations._sum.totalAmount || 0)
+        },
+        contract: {
+          count: contracts._count,
+          amount: Number(contracts._sum.totalAmount || 0)
+        },
+        conversionRate: Math.round(conversionRate * 10) / 10
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * 사용자별 순위
+   */
+  private async getUserRanking(startDate: Date, endDate: Date, limit: number = 10) {
+    // 견적 금액 기준 상위 사용자
+    const quotationRanking = await prisma.quotation.groupBy({
+      by: ['userId'],
+      where: {
+        createdAt: { gte: startDate, lte: endDate },
+        deletedAt: null
+      },
+      _count: true,
+      _sum: { totalAmount: true },
+      orderBy: { _sum: { totalAmount: 'desc' } },
+      take: limit
+    });
+
+    // 사용자 정보 조회
+    const userIds = quotationRanking.map(q => q.userId);
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, name: true, department: true, position: true }
+    });
+
+    const userMap = new Map(users.map(u => [u.id, u]));
+
+    return quotationRanking.map((q, index) => {
+      const user = userMap.get(q.userId);
+      return {
+        rank: index + 1,
+        userId: q.userId,
+        userName: user?.name || 'Unknown',
+        department: user?.department,
+        departmentName: user?.department ? this.getDepartmentName(user.department) : null,
+        position: user?.position,
+        quotationCount: q._count,
+        quotationAmount: Number(q._sum.totalAmount || 0)
+      };
+    });
+  }
+
+  private getDepartmentName(dept: Department): string {
+    const names: Record<Department, string> = {
+      BD1: '사업개발 1센터',
+      BD2: '사업개발 2센터',
+      SUPPORT: '사업지원팀'
+    };
+    return names[dept] || dept;
   }
 }
 

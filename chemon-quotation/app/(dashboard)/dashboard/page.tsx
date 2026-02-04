@@ -2,123 +2,122 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import StatsCard from '@/components/dashboard/StatsCard';
 import DashboardCarousel from '@/components/dashboard/DashboardCarousel';
+import PersonalDashboard from '@/components/dashboard/PersonalDashboard';
+import CompanyDashboard from '@/components/dashboard/CompanyDashboard';
 import {
   FileText,
-  Send,
-  Trophy,
-  DollarSign,
   Plus,
-  TrendingUp,
-  Clock,
   FlaskConical,
   ArrowRight,
   Users,
+  TrendingUp,
+  Building2,
+  User,
+  Loader2,
+  Calendar,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import { getQuotations, getCustomers } from '@/lib/data-api';
-import { getRevenueAnalytics } from '@/lib/analytics-api';
 import { useAuthStore } from '@/stores/authStore';
+import { getDashboardStats, DashboardStatsResponse } from '@/lib/dashboard-api';
+import { getDashboardAccessLevel, ACCESS_LEVEL_LABELS } from '@/lib/dashboard-permissions';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
-  const [stats, setStats] = useState({
-    draft: 0,
-    submitted: 0,
-    won: 0,
-    lost: 0,
-    monthlyTotal: 0,
-    monthlyCount: 0,
-    winRate: 0,
-    customerCount: 0,
-    totalQuotations: 0,
-  });
+  const [stats, setStats] = useState<DashboardStatsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // 기간 필터
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+
+  // 권한 레벨
+  const accessLevel = getDashboardAccessLevel(user);
 
   useEffect(() => {
     const loadStats = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        // 이번 달 시작일과 종료일 계산
-        const now = new Date();
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        
-        // 견적서 통계 가져오기
-        const [allResponse, draftResponse, sentResponse, acceptedResponse, rejectedResponse, customersResponse] = await Promise.all([
-          getQuotations({ limit: 1 }),
-          getQuotations({ status: 'DRAFT', limit: 1 }),
-          getQuotations({ status: 'SENT', limit: 1 }),
-          getQuotations({ status: 'ACCEPTED', limit: 1 }),
-          getQuotations({ status: 'REJECTED', limit: 1 }),
-          getCustomers({ limit: 1 }),
-        ]);
-
-        const total = allResponse.success ? allResponse.data?.pagination?.total || 0 : 0;
-        const draft = draftResponse.success ? draftResponse.data?.pagination?.total || 0 : 0;
-        const sent = sentResponse.success ? sentResponse.data?.pagination?.total || 0 : 0;
-        const won = acceptedResponse.success ? acceptedResponse.data?.pagination?.total || 0 : 0;
-        const lost = rejectedResponse.success ? rejectedResponse.data?.pagination?.total || 0 : 0;
-        const customerCount = customersResponse.success ? customersResponse.data?.pagination?.total || 0 : 0;
-
-        const totalDecided = won + lost;
-        const winRate = totalDecided > 0 ? (won / totalDecided) * 100 : 0;
-
-        // 월별 매출 통계 가져오기
-        let monthlyTotal = 0;
-        let monthlyCount = 0;
-        try {
-          const revenueData = await getRevenueAnalytics({
-            startDate: monthStart.toISOString().slice(0, 10),
-            endDate: monthEnd.toISOString().slice(0, 10),
-            period: 'monthly',
-          });
-          if (revenueData?.summary) {
-            monthlyTotal = revenueData.summary.totalRevenue || 0;
-            monthlyCount = revenueData.summary.totalCount || 0;
-          }
-        } catch (e) {
-          console.warn('Failed to load revenue analytics:', e);
+        const response = await getDashboardStats({ year, month });
+        if (response.success && response.data) {
+          setStats(response.data);
+        } else {
+          setError('통계 데이터를 불러오는데 실패했습니다.');
         }
-
-        setStats({
-          draft,
-          submitted: sent,
-          won,
-          lost,
-          monthlyTotal,
-          monthlyCount,
-          winRate: Math.round(winRate * 10) / 10,
-          customerCount,
-          totalQuotations: total,
-        });
-      } catch (error) {
-        console.error('Failed to load stats:', error);
+      } catch (err) {
+        console.error('Failed to load dashboard stats:', err);
+        setError('통계 데이터를 불러오는데 실패했습니다.');
+      } finally {
+        setLoading(false);
       }
     };
 
     loadStats();
-  }, []);
+  }, [year, month]);
+
+  // 연도 옵션 (현재 연도 기준 ±2년)
+  const yearOptions = Array.from({ length: 5 }, (_, i) => now.getFullYear() - 2 + i);
+  const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* 상단: 환영 메시지 + 실시간 배지 + 빠른 작성 버튼 */}
+      {/* 상단: 환영 메시지 + 기간 필터 + 빠른 작성 버튼 */}
       <div className="flex flex-col space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">
               안녕하세요, {user?.name || '사용자'}님! 👋
             </h1>
-            <p className="text-muted-foreground mt-1">
-              오늘의 견적 현황을 확인하세요
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* 실시간 모니터링 배지 */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-full">
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse-orange"></div>
-              <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">실시간 업데이트</span>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-muted-foreground">
+                {ACCESS_LEVEL_LABELS[accessLevel]}을 확인하세요
+              </p>
+              <Badge variant="outline" className="text-xs">
+                {accessLevel === 'FULL' ? (
+                  <><Building2 className="w-3 h-3 mr-1" />전사</>
+                ) : (
+                  <><User className="w-3 h-3 mr-1" />개인</>
+                )}
+              </Badge>
             </div>
+          </div>
+          
+          {/* 기간 필터 */}
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-muted-foreground" />
+            <Select value={year.toString()} onValueChange={(v) => setYear(parseInt(v))}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {yearOptions.map((y) => (
+                  <SelectItem key={y} value={y.toString()}>{y}년</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={month.toString()} onValueChange={(v) => setMonth(parseInt(v))}>
+              <SelectTrigger className="w-[80px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map((m) => (
+                  <SelectItem key={m} value={m.toString()}>{m}월</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         
@@ -139,76 +138,45 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 통계 카드 - 오렌지 테마 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard
-          title="제출완료"
-          value={stats.submitted}
-          icon={Send}
-          color="orange"
-          trend="up"
-          href="/quotations?status=sent"
-        />
-        <StatsCard
-          title="수주"
-          value={stats.won}
-          icon={Trophy}
-          color="amber"
-          trend="up"
-          href="/quotations?status=accepted"
-        />
-        <StatsCard
-          title="총 견적"
-          value={`${stats.totalQuotations}건`}
-          icon={FileText}
-          color="blue"
-          href="/quotations"
-        />
-        <StatsCard
-          title="수주율"
-          value={`${stats.winRate}%`}
-          icon={TrendingUp}
-          color="green"
-          trend={stats.winRate > 50 ? 'up' : stats.winRate < 30 ? 'down' : 'stable'}
-          href="/reports"
-        />
-      </div>
+      {/* 로딩 상태 */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+          <span className="ml-2 text-muted-foreground">통계 데이터 로딩 중...</span>
+        </div>
+      )}
 
-      {/* 보조 통계 카드 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard
-          title="작성중"
-          value={stats.draft}
-          icon={FileText}
-          color="gray"
-          subtitle="진행중인 견적"
-          href="/quotations?status=draft"
-        />
-        <StatsCard
-          title="고객사"
-          value={`${stats.customerCount}개`}
-          icon={Users}
-          color="purple"
-          href="/customers"
-        />
-        <StatsCard
-          title="이번달 계약"
-          value={stats.monthlyTotal > 0 ? `${(stats.monthlyTotal / 100000000).toFixed(1)}억` : '0원'}
-          icon={DollarSign}
-          color="green"
-          subtitle={`${stats.monthlyCount}건`}
-          trend="up"
-          href="/reports"
-        />
-        <StatsCard
-          title="실주"
-          value={stats.lost}
-          icon={Clock}
-          color="gray"
-          trend="down"
-          href="/quotations?status=rejected"
-        />
-      </div>
+      {/* 에러 상태 */}
+      {error && !loading && (
+        <div className="text-center py-12">
+          <p className="text-red-500">{error}</p>
+          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+            다시 시도
+          </Button>
+        </div>
+      )}
+
+      {/* 통계 데이터 */}
+      {stats && !loading && (
+        <>
+          {/* 전사 대시보드 (FULL 권한만) */}
+          {accessLevel === 'FULL' && stats.company && (
+            <CompanyDashboard stats={stats} />
+          )}
+
+          {/* 구분선 */}
+          {accessLevel === 'FULL' && (
+            <div className="border-t border-dashed my-6" />
+          )}
+
+          {/* 개인 대시보드 */}
+          <PersonalDashboard 
+            stats={stats.personal} 
+            userName={stats.user.name}
+            period={stats.period}
+          />
+        </>
+      )}
 
       {/* 메인 캐러셀 영역 */}
       <DashboardCarousel />

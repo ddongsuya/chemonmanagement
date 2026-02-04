@@ -14,6 +14,43 @@ const router = Router();
 
 /**
  * @swagger
+ * /api/dashboard/stats:
+ *   get:
+ *     summary: 권한 기반 대시보드 통계 조회
+ *     tags: [Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: integer
+ *         description: 조회 연도
+ *       - in: query
+ *         name: month
+ *         schema:
+ *           type: integer
+ *         description: 조회 월
+ *     responses:
+ *       200:
+ *         description: 대시보드 통계
+ */
+router.get('/stats', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+    const month = req.query.month ? parseInt(req.query.month as string) : undefined;
+    
+    const stats = await dashboardService.getDashboardStats(userId, { year, month });
+    res.json({ success: true, data: stats });
+  } catch (error: any) {
+    console.error('Get dashboard stats error:', error);
+    res.status(500).json({ success: false, error: { message: error.message } });
+  }
+});
+
+/**
+ * @swagger
  * /api/dashboard:
  *   get:
  *     summary: 대시보드 목록 조회

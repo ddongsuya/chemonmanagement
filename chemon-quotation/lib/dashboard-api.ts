@@ -1,5 +1,7 @@
 // Dashboard API Client
 import { api } from './api';
+import { DashboardAccessLevel } from './dashboard-permissions';
+import { PositionType, TitleType } from './auth-api';
 
 export type WidgetType = 
   | 'KPI_CARD' 
@@ -13,6 +15,75 @@ export type WidgetType =
   | 'LEADERBOARD' 
   | 'GAUGE' 
   | 'PROGRESS';
+
+// 대시보드 통계 타입
+export interface DashboardStatsData {
+  count: number;
+  amount: number;
+  byStatus?: Record<string, { count: number; amount: number }>;
+}
+
+export interface DashboardKPI {
+  conversionRate: number;
+  won: number;
+  lost: number;
+}
+
+export interface DashboardPersonalStats {
+  quotation: DashboardStatsData;
+  contract: DashboardStatsData;
+  lead: { count: number };
+  kpi: DashboardKPI;
+}
+
+export interface DepartmentStats {
+  department: string;
+  departmentName: string;
+  quotation: { count: number; amount: number };
+  contract: { count: number; amount: number };
+  conversionRate: number;
+}
+
+export interface UserRankingItem {
+  rank: number;
+  userId: string;
+  userName: string;
+  department: string | null;
+  departmentName: string | null;
+  position: PositionType | null;
+  quotationCount: number;
+  quotationAmount: number;
+}
+
+export interface DashboardStatsResponse {
+  accessLevel: DashboardAccessLevel;
+  user: {
+    id: string;
+    name: string;
+    department: string | null;
+    position: PositionType | null;
+    title: TitleType | null;
+  };
+  period: {
+    year: number;
+    month: number;
+    startDate: string;
+    endDate: string;
+  };
+  personal: DashboardPersonalStats;
+  company: DashboardPersonalStats | null;
+  byDepartment: DepartmentStats[] | null;
+  userRanking: UserRankingItem[] | null;
+}
+
+// 권한 기반 대시보드 통계 조회
+export async function getDashboardStats(params?: { year?: number; month?: number }): Promise<{ success: boolean; data: DashboardStatsResponse }> {
+  const queryParams = new URLSearchParams();
+  if (params?.year) queryParams.append('year', params.year.toString());
+  if (params?.month) queryParams.append('month', params.month.toString());
+  const queryString = queryParams.toString();
+  return api.get(`/dashboard/stats${queryString ? `?${queryString}` : ''}`);
+}
 
 export interface DashboardWidget {
   id: string;
