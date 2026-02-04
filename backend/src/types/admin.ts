@@ -45,7 +45,8 @@ export interface AdminUserResponse {
   email: string;
   name: string;
   department: 'BD1' | 'BD2' | 'SUPPORT' | null;
-  position: 'STAFF' | 'SENIOR' | 'ASSISTANT' | 'MANAGER' | 'DEPUTY' | 'GENERAL' | 'DIRECTOR' | 'CEO' | 'CHAIRMAN' | null;
+  position: 'MANAGER' | 'CENTER_HEAD' | 'DIVISION_HEAD' | 'CEO' | 'CHAIRMAN' | null;
+  title: 'TEAM_LEADER' | null;
   role: 'USER' | 'ADMIN';
   status: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
   canViewAllSales: boolean;

@@ -16,7 +16,7 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 15;
 
 // 부장급 이상 직급 (전체 데이터 조회 권한 부여)
-const SENIOR_POSITIONS: Position[] = ['GENERAL', 'DIRECTOR', 'CEO', 'CHAIRMAN'];
+const SENIOR_POSITIONS: Position[] = ['CENTER_HEAD', 'DIVISION_HEAD', 'CEO', 'CHAIRMAN'];
 
 export class AuthService {
   private prisma: PrismaClient;
@@ -117,6 +117,7 @@ export class AuthService {
       phone: user.phone,
       department: user.department,
       position: user.position,
+      title: user.title,
       role: user.role,
       status: user.status,
       canViewAllSales: user.canViewAllSales,

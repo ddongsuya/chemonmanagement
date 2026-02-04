@@ -651,6 +651,7 @@ export class AdminService {
       name: user.name,
       department: user.department,
       position: user.position,
+      title: user.title,
       role: user.role,
       status: user.status,
       canViewAllSales: user.canViewAllSales,
