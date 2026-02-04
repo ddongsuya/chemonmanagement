@@ -125,12 +125,31 @@ export default function ModalityChart() {
           
           const quotationData = response.data.data || [];
           quotationData.forEach((q: any) => {
-            const modality = q.modality || '기타';
-            if (!modalityMap[modality]) {
-              modalityMap[modality] = { count: 0, amount: 0 };
+            // 견적 유형별 분류 처리
+            // 독성시험: modality 사용
+            // 효력시험: modelCategory 사용
+            // 임상병리: '임상병리'로 표시
+            let displayModality = q.modality;
+            
+            if (!displayModality && q.modelCategory) {
+              displayModality = q.modelCategory; // 효력시험
             }
-            modalityMap[modality].count += 1;
-            modalityMap[modality].amount += Number(q.totalAmount) || 0;
+            
+            if (!displayModality) {
+              if (q.quotationType === 'CLINICAL_PATHOLOGY') {
+                displayModality = '임상병리';
+              } else if (q.quotationType === 'EFFICACY') {
+                displayModality = '효력시험';
+              } else {
+                displayModality = '기타';
+              }
+            }
+            
+            if (!modalityMap[displayModality]) {
+              modalityMap[displayModality] = { count: 0, amount: 0 };
+            }
+            modalityMap[displayModality].count += 1;
+            modalityMap[displayModality].amount += Number(q.totalAmount) || 0;
           });
 
           const chartData = Object.entries(modalityMap)
