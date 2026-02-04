@@ -20,8 +20,11 @@ const devUser = {
   role: 'ADMIN' as const,
   department: 'SUPPORT' as const,
   position: 'MANAGER' as const,
+  title: null,
   phone: '',
   status: 'ACTIVE' as const,
+  canViewAllSales: true,
+  canViewAllData: true,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
