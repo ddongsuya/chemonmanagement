@@ -16,9 +16,11 @@ import { ContractData, ContractFormData, QuotationItem } from '@/lib/contract/ty
 import { numberToKorean, formatDateKorean, calculateWeeks } from '@/lib/contract/number-to-korean';
 import { getQuotationById } from '@/lib/data-api';
 import { efficacyQuotationApi } from '@/lib/efficacy-api';
+import { clinicalPathologyApi } from '@/lib/clinical-pathology-api';
 import { getUserSettings } from '@/lib/package-api';
 import { generateQuotationNumber } from '@/lib/quotationNumber';
 import { SavedEfficacyQuotation } from '@/types/efficacy';
+import { ClinicalQuotation } from '@/types/clinical-pathology';
 import { ArrowLeft, FileText, Check, Eye, Edit, Loader2, Save } from 'lucide-react';
 import Link from 'next/link';
 import { contractApi, createSavedContractFromData } from '@/lib/contract-api';
@@ -52,6 +54,7 @@ function ContractNewContent() {
   const [isGenerated, setIsGenerated] = useState(false);
   const [loadedQuotation, setLoadedQuotation] = useState<SavedQuotation | null>(null);
   const [loadedEfficacyQuotation, setLoadedEfficacyQuotation] = useState<SavedEfficacyQuotation | null>(null);
+  const [loadedClinicalQuotation, setLoadedClinicalQuotation] = useState<ClinicalQuotation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -69,6 +72,7 @@ function ContractNewContent() {
   // URL에서 quotationId 가져오기
   const quotationId = searchParams.get('quotationId');
   const efficacyQuotationId = searchParams.get('efficacyQuotationId');
+  const clinicalQuotationId = searchParams.get('clinicalQuotationId');
 
   // 페이지 로드 시 스크롤 상단으로 이동
   useEffect(() => {
@@ -108,6 +112,12 @@ function ContractNewContent() {
           if (efficacyQuotation) {
             setLoadedEfficacyQuotation(efficacyQuotation);
           }
+        } else if (clinicalQuotationId) {
+          // API에서 임상병리 견적 데이터 로드
+          const clinicalQuotation = await clinicalPathologyApi.getQuotationById(clinicalQuotationId);
+          if (clinicalQuotation) {
+            setLoadedClinicalQuotation(clinicalQuotation);
+          }
         }
       } catch (error) {
         console.error('Failed to load quotation:', error);
@@ -116,12 +126,13 @@ function ContractNewContent() {
       }
     };
     loadData();
-  }, [quotationId, efficacyQuotationId]);
+  }, [quotationId, efficacyQuotationId, clinicalQuotationId]);
 
   // 데이터 소스 결정 (로드된 견적 또는 store)
   const hasStoreData = store.selectedItems.length > 0;
   const hasLoadedData = loadedQuotation !== null;
   const hasEfficacyData = loadedEfficacyQuotation !== null;
+  const hasClinicalData = loadedClinicalQuotation !== null;
   
   // 견적서 데이터 준비
   let quotationNo = '';
@@ -130,7 +141,23 @@ function ContractNewContent() {
   let items: QuotationItem[] = [];
   let subtotal = 0;
 
-  if (hasEfficacyData && loadedEfficacyQuotation) {
+  if (hasClinicalData && loadedClinicalQuotation) {
+    // 임상병리 견적 데이터 사용
+    quotationNo = loadedClinicalQuotation.quotationNumber;
+    customerName = loadedClinicalQuotation.customerName;
+    projectName = `임상병리검사 - ${loadedClinicalQuotation.animalSpecies}`;
+    items = (loadedClinicalQuotation.items || []).map((item, index) => ({
+      no: index + 1,
+      testName: `${item.code} - ${item.nameKr}`,
+      species: undefined,
+      duration: undefined,
+      route: undefined,
+      unitPrice: item.unitPrice || 0,
+      quantity: item.quantity || 1,
+      totalPrice: item.amount || 0,
+    }));
+    subtotal = loadedClinicalQuotation.totalBeforeVat || loadedClinicalQuotation.totalAmount || 0;
+  } else if (hasEfficacyData && loadedEfficacyQuotation) {
     // 효력시험 견적 데이터 사용
     quotationNo = loadedEfficacyQuotation.quotation_number;
     customerName = loadedEfficacyQuotation.customer_name;
@@ -255,7 +282,7 @@ function ContractNewContent() {
     try {
       const contractPayload = createSavedContractFromData(
         contractData,
-        quotationId || efficacyQuotationId || loadedQuotation?.id || loadedEfficacyQuotation?.id
+        quotationId || efficacyQuotationId || clinicalQuotationId || loadedQuotation?.id || loadedEfficacyQuotation?.id || loadedClinicalQuotation?.id
       );
       
       // ISO 형식 날짜로 덮어쓰기 (YYYY-MM-DD 형식 검증)
@@ -270,7 +297,9 @@ function ContractNewContent() {
       contractPayload.end_date = endDateParsed.toISOString();
       
       // 계약 유형 설정
-      if (hasEfficacyData) {
+      if (hasClinicalData) {
+        contractPayload.contract_type = 'CLINICAL_PATHOLOGY';
+      } else if (hasEfficacyData) {
         contractPayload.contract_type = 'EFFICACY';
       }
       
