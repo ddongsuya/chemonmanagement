@@ -165,6 +165,16 @@ export default function DashboardPage() {
                   <p className="text-xs text-muted-foreground">효력시험 견적서</p>
                 </div>
               </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => router.push('/clinical-pathology/quotations/new')}
+                className="cursor-pointer"
+              >
+                <FileText className="w-4 h-4 mr-2 text-emerald-500" />
+                <div>
+                  <p className="font-medium">임상병리 견적</p>
+                  <p className="text-xs text-muted-foreground">임상병리 견적서</p>
+                </div>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
