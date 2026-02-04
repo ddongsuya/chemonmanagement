@@ -10,7 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import StatsCard from '@/components/dashboard/StatsCard';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import DashboardCarousel from '@/components/dashboard/DashboardCarousel';
 import PersonalDashboard from '@/components/dashboard/PersonalDashboard';
 import CompanyDashboard from '@/components/dashboard/CompanyDashboard';
@@ -25,8 +30,11 @@ import {
   User,
   Loader2,
   Calendar,
+  ChevronDown,
+  Beaker,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuthStore } from '@/stores/authStore';
 import { getDashboardStats, DashboardStatsResponse } from '@/lib/dashboard-api';
@@ -34,6 +42,7 @@ import { getDashboardAccessLevel, ACCESS_LEVEL_LABELS } from '@/lib/dashboard-pe
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,20 +134,39 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        {/* 빠른 작성 버튼 */}
+        {/* 빠른 작성 버튼 - 드롭다운 메뉴 */}
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href="/efficacy-quotations/new">
-              <FlaskConical className="w-4 h-4 mr-2" />
-              효력시험 견적
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link href="/quotations/new">
-              <Plus className="w-4 h-4 mr-2" />
-              새 견적서 작성
-            </Link>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                새 견적서 작성
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuItem 
+                onClick={() => router.push('/quotations/new')}
+                className="cursor-pointer"
+              >
+                <Beaker className="w-4 h-4 mr-2 text-orange-500" />
+                <div>
+                  <p className="font-medium">독성시험 견적</p>
+                  <p className="text-xs text-muted-foreground">일반 독성시험 견적서</p>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => router.push('/efficacy-quotations/new')}
+                className="cursor-pointer"
+              >
+                <FlaskConical className="w-4 h-4 mr-2 text-amber-500" />
+                <div>
+                  <p className="font-medium">효력시험 견적</p>
+                  <p className="text-xs text-muted-foreground">효력시험 견적서</p>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
