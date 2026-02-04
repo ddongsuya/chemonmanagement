@@ -77,7 +77,9 @@ export async function apiFetch<T>(
   options: RequestInit = {},
   skipAuthRedirect = false
 ): Promise<ApiResponse<T>> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // endpoint가 /api로 시작하지 않으면 자동으로 추가
+  const normalizedEndpoint = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+  const url = `${API_BASE_URL}${normalizedEndpoint}`;
   const accessToken = getAccessToken();
 
   const headers: HeadersInit = {
