@@ -32,6 +32,7 @@ import analyticsRoutes from './routes/analytics';
 import automationRoutes from './routes/automation';
 import reportsRoutes from './routes/reports';
 import studyDashboardRoutes from './routes/studyDashboard';
+import searchRoutes from './routes/search';
 
 // Load environment variables
 dotenv.config();
@@ -106,6 +107,9 @@ app.use('/api/user-code', userCodeRoutes);
 
 // User Settings routes (for user code save endpoint)
 app.use('/api/user-settings', userCodeRoutes);
+
+// Search routes
+app.use('/api/search', searchRoutes);
 
 // Static file serving for exports
 app.use('/exports', express.static(path.join(process.cwd(), 'exports')));

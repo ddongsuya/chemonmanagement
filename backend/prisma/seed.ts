@@ -304,7 +304,7 @@ async function main() {
 ## ⚠️ 주의사항
 - 견적서 작성 전 **설정 > 견적서 코드**에서 코드를 먼저 설정해야 합니다
 - 기존에 생성된 견적서/리드 번호는 변경되지 않습니다`,
-      priority: 'IMPORTANT',
+      priority: 'HIGH',
       startDate: now,
       endDate: oneMonthLater,
     },

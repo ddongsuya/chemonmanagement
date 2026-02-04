@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "QuotationType" ADD VALUE 'CLINICAL_PATHOLOGY';

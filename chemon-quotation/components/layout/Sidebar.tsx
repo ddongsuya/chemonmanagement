@@ -27,6 +27,7 @@ import {
   Zap,
   X,
   Megaphone,
+  Search,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -83,6 +84,7 @@ const menuGroups: MenuGroup[] = [
 ];
 
 const standaloneItems: MenuItem[] = [
+  { title: '통합 검색', href: '/search', icon: Search, description: '견적서 검색' },
   { title: '캘린더', href: '/calendar', icon: Calendar, description: '일정 관리' },
   { title: '계산기', href: '/calculators', icon: Calculator, description: '시험 계산기' },
   { title: '통계/리포트', href: '/reports', icon: BarChart3, description: '분석 리포트' },
