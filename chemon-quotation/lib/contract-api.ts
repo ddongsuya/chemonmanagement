@@ -23,7 +23,7 @@ export interface SavedContract {
   customer_address: string;
   customer_ceo: string;
   project_name: string;
-  contract_type: 'TOXICITY' | 'EFFICACY';
+  contract_type: 'TOXICITY' | 'EFFICACY' | 'CLINICAL_PATHOLOGY';
   start_date: string;
   end_date: string;
   total_weeks: number;
