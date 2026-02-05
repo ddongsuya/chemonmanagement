@@ -120,8 +120,9 @@ export const contractApi = {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
     
-    const response = await apiFetch<{ data: any[]; pagination: any }>(`/api/contracts?${params.toString()}`);
-    return (response.data?.data || []).map(mapContractFromApi);
+    const response = await apiFetch<{ contracts: any[]; pagination: any }>(`/api/contracts?${params.toString()}`);
+    // 백엔드는 data.contracts로 반환
+    return (response.data?.contracts || []).map(mapContractFromApi);
   },
 
   // 단일 계약서 조회
