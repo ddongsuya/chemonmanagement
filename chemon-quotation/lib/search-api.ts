@@ -69,6 +69,10 @@ export async function unifiedSearch(params: SearchParams): Promise<SearchRespons
     `/api/search?${searchParams.toString()}`
   );
   
+  if (!response || !response.data) {
+    throw new Error('검색 결과를 가져오는데 실패했습니다.');
+  }
+  
   return response.data;
 }
 
