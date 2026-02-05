@@ -22,6 +22,9 @@ export * from './settings';
 // Re-export backup types
 export * from './backup';
 
+// Re-export lostReason types
+export * from './lostReason';
+
 // User types
 export interface User {
   id: string;

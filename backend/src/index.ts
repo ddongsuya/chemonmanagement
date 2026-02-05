@@ -22,6 +22,7 @@ import {
   excelRoutes,
   clinicalPathologyRoutes,
   userCodeRoutes,
+  paymentScheduleRoutes,
 } from './routes';
 import masterDataRoutes from './routes/masterData';
 import packageRoutes from './routes/package';
@@ -110,6 +111,9 @@ app.use('/api/user-settings', userCodeRoutes);
 
 // Search routes
 app.use('/api/search', searchRoutes);
+
+// Payment Schedule routes
+app.use('/api/payment-schedules', paymentScheduleRoutes);
 
 // Static file serving for exports
 app.use('/exports', express.static(path.join(process.cwd(), 'exports')));

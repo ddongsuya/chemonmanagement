@@ -211,6 +211,77 @@ export const TestReceptionService = {
     await prisma.calendarEvent.deleteMany({ where: { testReceptionId: id } });
     return prisma.testReception.delete({ where: { id } });
   },
+
+  // 시험번호 발행 (Requirements 3.3)
+  async issueTestNumber(
+    id: string,
+    testNumber: string,
+    issuedBy: string,
+    testTitle?: string,
+    testDirector?: string
+  ) {
+    // 중복 시험번호 확인
+    const existingReception = await prisma.testReception.findUnique({
+      where: { testNumber },
+    });
+    
+    if (existingReception && existingReception.id !== id) {
+      throw new Error('DUPLICATE_TEST_NUMBER');
+    }
+    
+    return prisma.testReception.update({
+      where: { id },
+      data: {
+        testNumber,
+        testTitle,
+        testDirector,
+        testNumberIssuedAt: new Date(),
+        testNumberIssuedBy: issuedBy,
+      },
+      include: { requester: true, customer: true },
+    });
+  },
+
+  // 시험번호 중복 확인
+  async checkTestNumberExists(testNumber: string, excludeId?: string) {
+    const reception = await prisma.testReception.findUnique({
+      where: { testNumber },
+    });
+    
+    if (!reception) return false;
+    if (excludeId && reception.id === excludeId) return false;
+    return true;
+  },
+
+  // 시험 접수 + 상담기록 조회 (Requirements 3.4, 3.5)
+  async getByIdWithConsultation(id: string) {
+    const testReception = await prisma.testReception.findUnique({
+      where: { id },
+      include: {
+        requester: true,
+        customer: true,
+        invoiceSchedules: true,
+      },
+    });
+
+    if (!testReception) {
+      return null;
+    }
+
+    // 해당 고객의 상담기록 조회 (customerId로 연결)
+    const consultationRecords = await prisma.consultationRecord.findMany({
+      where: {
+        customerId: testReception.customerId,
+        deletedAt: null,
+      },
+      orderBy: { consultDate: 'desc' },
+    });
+
+    return {
+      ...testReception,
+      consultationRecords,
+    };
+  },
 };
 
 

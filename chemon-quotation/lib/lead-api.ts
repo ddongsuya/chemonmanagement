@@ -139,10 +139,18 @@ export async function updateLeadStage(id: string, stageId: string): Promise<ApiR
 }
 
 // 리드 상태 변경
-export async function updateLeadStatus(id: string, status: string, lostReason?: string): Promise<ApiResponse<{ lead: Lead }>> {
+export async function updateLeadStatus(
+  id: string, 
+  status: string, 
+  lostReasonData?: { lostReason: string; lostReasonDetail?: string }
+): Promise<ApiResponse<{ lead: Lead }>> {
   return apiFetch<{ lead: Lead }>(`/api/leads/${id}/status`, {
     method: 'PATCH',
-    body: JSON.stringify({ status, lostReason }),
+    body: JSON.stringify({ 
+      status, 
+      lostReason: lostReasonData?.lostReason,
+      lostReasonDetail: lostReasonData?.lostReasonDetail,
+    }),
   });
 }
 

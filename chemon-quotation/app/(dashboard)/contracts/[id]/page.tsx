@@ -55,6 +55,8 @@ import {
   ContractAmendment,
 } from '@/lib/contract-api';
 import { useToast } from '@/hooks/use-toast';
+import ContractPaymentForm from '@/components/contract/ContractPaymentForm';
+import PaymentScheduleTable from '@/components/contract/PaymentScheduleTable';
 
 const statusLabels: Record<string, string> = {
   NEGOTIATING: '협의중',
@@ -256,6 +258,7 @@ export default function ContractDetailPage() {
       <Tabs defaultValue="info" className="space-y-4">
         <TabsList>
           <TabsTrigger value="info">계약 정보</TabsTrigger>
+          <TabsTrigger value="payment">지급 관리</TabsTrigger>
           <TabsTrigger value="studies">시험 ({contract.studies?.length || 0})</TabsTrigger>
           <TabsTrigger value="amendments">변경계약 ({contract.amendments?.length || 0})</TabsTrigger>
           <TabsTrigger value="quotations">견적서</TabsTrigger>
@@ -383,6 +386,46 @@ export default function ContractDetailPage() {
               <Button onClick={handleSave}>저장</Button>
             </div>
           )}
+        </TabsContent>
+
+        {/* 지급 관리 탭 */}
+        <TabsContent value="payment" className="space-y-6">
+          <ContractPaymentForm
+            contractId={contract.id}
+            totalAmount={totalAmount}
+            currentPaymentType={(contract as any).paymentType || 'LUMP_SUM'}
+            currentDownPaymentRate={(contract as any).downPaymentRate}
+            currentBalanceRate={(contract as any).balanceRate}
+            onSubmit={async (data) => {
+              try {
+                await updateContract(contract.id, data);
+                toast({ title: '성공', description: '지급조건이 저장되었습니다.' });
+                loadContract();
+              } catch (error) {
+                toast({ title: '오류', description: '저장에 실패했습니다.', variant: 'destructive' });
+              }
+            }}
+          />
+          
+          <PaymentScheduleTable
+            contractId={contract.id}
+            schedules={(contract as any).paymentSchedules || []}
+            onAddSchedule={async (schedule) => {
+              // API 호출로 스케줄 추가
+              toast({ title: '성공', description: '지급 일정이 추가되었습니다.' });
+              loadContract();
+            }}
+            onUpdateSchedule={async (scheduleId, data) => {
+              // API 호출로 스케줄 업데이트
+              toast({ title: '성공', description: '지급 일정이 수정되었습니다.' });
+              loadContract();
+            }}
+            onDeleteSchedule={async (scheduleId) => {
+              // API 호출로 스케줄 삭제
+              toast({ title: '성공', description: '지급 일정이 삭제되었습니다.' });
+              loadContract();
+            }}
+          />
         </TabsContent>
 
         {/* 시험 탭 */}

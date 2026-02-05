@@ -251,7 +251,11 @@ model Lead {
   customerId  String? // 전환된 Customer ID
   customer    Customer? @relation(fields: [customerId], references: [id])
   convertedAt DateTime?
-  lostReason  String? // 실패 사유
+
+  // 미진행 사유 (확장)
+  lostReason       String? // LostReason enum 값 (BUDGET_PLANNING, COMPETITOR_SELECTED, PRICE_ISSUE, SCHEDULE_ISSUE, ON_HOLD, OTHER)
+  lostReasonDetail String? // 기타 사유 상세 (lostReason이 OTHER인 경우 필수)
+  lostAt           DateTime? // 미진행 처리 일시
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -413,6 +417,10 @@ model TestReception {
   testNumber      String? @unique // 시험번호
   testTitle       String? // 시험제목
   testDirector    String? // 시험책임자
+
+  // 시험번호 발행 정보 (신규)
+  testNumberIssuedAt DateTime? // 시험번호 발행 일시
+  testNumberIssuedBy String?   // 시험번호 발행자 (User ID)
 
   // 금액 정보
   totalAmount     Decimal @default(0) @db.Decimal(15, 2)
@@ -588,6 +596,12 @@ model Contract {
   totalAmount Decimal @db.Decimal(15, 2)
   paidAmount  Decimal @default(0) @db.Decimal(15, 2)
 
+  // 지급조건 (신규)
+  paymentType          String   @default("FULL") // FULL, INSTALLMENT, PER_TEST
+  advancePaymentRate   Decimal? @db.Decimal(5, 2) // 선금 비율 (%)
+  advancePaymentAmount Decimal? @db.Decimal(15, 2) // 선금 금액
+  balancePaymentAmount Decimal? @db.Decimal(15, 2) // 잔금 금액
+
   // 일정
   signedDate DateTime? // 계약 체결일
   startDate  DateTime? // 계약 시작일
@@ -605,10 +619,11 @@ model Contract {
   deletedAt DateTime?
 
   // 관계
-  quotations    Quotation[]          @relation("QuotationContracts")
-  amendments    ContractAmendment[]
-  studies       Study[]
-  consultations ConsultationRecord[]
+  quotations       Quotation[]          @relation("QuotationContracts")
+  amendments       ContractAmendment[]
+  studies          Study[]
+  consultations    ConsultationRecord[]
+  paymentSchedules PaymentSchedule[]
 }
 
 // 변경계약서 (신규)
@@ -633,6 +648,27 @@ model ContractAmendment {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// 지급 일정 (시험번호별 지급 관리)
+model PaymentSchedule {
+  id              String   @id @default(uuid())
+  contractId      String
+  contract        Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  testReceptionId String?
+  testNumber      String? // 시험번호
+
+  amount        Decimal   @db.Decimal(15, 2)
+  scheduledDate DateTime // 예정일
+  paidDate      DateTime? // 지급일
+  status        String    @default("PENDING") // PENDING, SCHEDULED, PAID, OVERDUE
+  notes         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contractId])
+  @@index([status])
 }
 
 // ==================== Study (신규) ====================

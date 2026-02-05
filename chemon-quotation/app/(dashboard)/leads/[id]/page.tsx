@@ -52,6 +52,7 @@ import {
   LeadSource,
 } from '@/lib/lead-api';
 import { useToast } from '@/hooks/use-toast';
+import LostReasonDialog from '@/components/lead/LostReasonDialog';
 
 const statusLabels: Record<string, string> = {
   NEW: '신규',
@@ -107,6 +108,8 @@ export default function LeadDetailPage() {
     nextAction: '',
     nextDate: '',
   });
+  const [lostReasonDialogOpen, setLostReasonDialogOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (params.id) {
@@ -154,9 +157,30 @@ export default function LeadDetailPage() {
 
   const handleStatusChange = async (status: string) => {
     if (!lead) return;
+    
+    // LOST 상태로 변경 시 미진행 사유 다이얼로그 표시
+    if (status === 'LOST') {
+      setPendingStatus(status);
+      setLostReasonDialogOpen(true);
+      return;
+    }
+    
     try {
       await updateLeadStatus(lead.id, status);
       toast({ title: '성공', description: '상태가 변경되었습니다.' });
+      loadLead();
+    } catch (error) {
+      toast({ title: '오류', description: '상태 변경에 실패했습니다.', variant: 'destructive' });
+    }
+  };
+
+  const handleLostReasonSubmit = async (data: { lostReason: string; lostReasonDetail?: string }) => {
+    if (!lead || !pendingStatus) return;
+    try {
+      await updateLeadStatus(lead.id, pendingStatus, data);
+      toast({ title: '성공', description: '상태가 변경되었습니다.' });
+      setLostReasonDialogOpen(false);
+      setPendingStatus(null);
       loadLead();
     } catch (error) {
       toast({ title: '오류', description: '상태 변경에 실패했습니다.', variant: 'destructive' });
@@ -631,6 +655,14 @@ export default function LeadDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* 미진행 사유 다이얼로그 */}
+      <LostReasonDialog
+        open={lostReasonDialogOpen}
+        onOpenChange={setLostReasonDialogOpen}
+        leadNumber={lead.leadNumber}
+        onSubmit={handleLostReasonSubmit}
+      />
     </div>
   );
 }

@@ -4,8 +4,20 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate } from '../middleware/auth';
 import prisma from '../lib/prisma';
-import { ContractStatus } from '@prisma/client';
+import { ContractStatus, Prisma } from '@prisma/client';
 import { leadConversionService } from '../services/leadConversionService';
+import { PaymentScheduleService } from '../services/paymentScheduleService';
+
+// PaymentType 타입 정의
+type PaymentType = 'FULL' | 'INSTALLMENT' | 'PER_TEST';
+
+// 지급조건 설정 DTO
+interface UpdateContractPaymentDTO {
+  paymentType: PaymentType;
+  advancePaymentRate?: number;
+  advancePaymentAmount?: number;
+  balancePaymentAmount?: number;
+}
 
 const router = Router();
 
@@ -357,6 +369,181 @@ router.get('/:id/amendments', async (req: Request, res: Response, next: NextFunc
     });
 
     res.json({ success: true, data: { amendments } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 지급조건 설정
+// Requirements 4.2: paymentType별 필드 검증
+// Requirements 4.5: 견적서 금액 기반 totalAmount 자동 계산
+router.put('/:id/payment-settings', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { paymentType, advancePaymentRate, advancePaymentAmount, balancePaymentAmount } = req.body as UpdateContractPaymentDTO;
+
+    // 계약 존재 확인 (견적서 포함)
+    const contract = await prisma.contract.findUnique({
+      where: { id },
+      include: {
+        quotations: {
+          where: { deletedAt: null },
+          select: { id: true, totalAmount: true },
+        },
+      },
+    });
+
+    if (!contract) {
+      return res.status(404).json({ success: false, message: '계약을 찾을 수 없습니다.' });
+    }
+
+    // paymentType 유효성 검사
+    const validPaymentTypes: PaymentType[] = ['FULL', 'INSTALLMENT', 'PER_TEST'];
+    if (!paymentType || !validPaymentTypes.includes(paymentType)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '유효하지 않은 지급 유형입니다. (FULL, INSTALLMENT, PER_TEST 중 선택)' 
+      });
+    }
+
+    // Requirements 4.5: 견적서 금액 기반 totalAmount 자동 계산
+    let calculatedTotalAmount = Number(contract.totalAmount);
+    if (contract.quotations.length > 0) {
+      calculatedTotalAmount = contract.quotations.reduce(
+        (sum, q) => sum + Number(q.totalAmount),
+        0
+      );
+    }
+
+    // paymentType별 필드 검증 및 데이터 준비
+    const updateData: any = {
+      paymentType,
+      totalAmount: new Prisma.Decimal(calculatedTotalAmount),
+    };
+
+    if (paymentType === 'INSTALLMENT') {
+      // INSTALLMENT 타입: 선금/잔금 필드 검증
+      // Requirements 4.2: advancePaymentRate, advancePaymentAmount, balancePaymentAmount 필드 제공
+      
+      if (advancePaymentRate !== undefined) {
+        if (advancePaymentRate < 0 || advancePaymentRate > 100) {
+          return res.status(400).json({ 
+            success: false, 
+            message: '선금 비율은 0~100 사이여야 합니다.' 
+          });
+        }
+        updateData.advancePaymentRate = new Prisma.Decimal(advancePaymentRate);
+        
+        // 비율 기반 금액 자동 계산
+        const calculatedAdvanceAmount = (calculatedTotalAmount * advancePaymentRate) / 100;
+        updateData.advancePaymentAmount = new Prisma.Decimal(calculatedAdvanceAmount);
+        updateData.balancePaymentAmount = new Prisma.Decimal(calculatedTotalAmount - calculatedAdvanceAmount);
+      } else if (advancePaymentAmount !== undefined) {
+        // 금액 직접 입력
+        if (advancePaymentAmount < 0 || advancePaymentAmount > calculatedTotalAmount) {
+          return res.status(400).json({ 
+            success: false, 
+            message: '선금 금액이 유효하지 않습니다.' 
+          });
+        }
+        updateData.advancePaymentAmount = new Prisma.Decimal(advancePaymentAmount);
+        updateData.balancePaymentAmount = new Prisma.Decimal(
+          balancePaymentAmount !== undefined 
+            ? balancePaymentAmount 
+            : calculatedTotalAmount - advancePaymentAmount
+        );
+        
+        // 비율 역산
+        updateData.advancePaymentRate = new Prisma.Decimal(
+          (advancePaymentAmount / calculatedTotalAmount) * 100
+        );
+      } else {
+        return res.status(400).json({ 
+          success: false, 
+          message: '분할지급 시 선금 비율 또는 선금 금액을 입력해주세요.' 
+        });
+      }
+
+      // 금액 합계 검증
+      const totalPayment = Number(updateData.advancePaymentAmount) + Number(updateData.balancePaymentAmount);
+      if (Math.abs(totalPayment - calculatedTotalAmount) > 0.01) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `선금과 잔금의 합계(${totalPayment})가 총액(${calculatedTotalAmount})과 일치하지 않습니다.` 
+        });
+      }
+    } else if (paymentType === 'FULL') {
+      // FULL 타입: 분할지급 필드 초기화
+      updateData.advancePaymentRate = null;
+      updateData.advancePaymentAmount = null;
+      updateData.balancePaymentAmount = null;
+    } else if (paymentType === 'PER_TEST') {
+      // PER_TEST 타입: 분할지급 필드 초기화 (PaymentSchedule로 관리)
+      updateData.advancePaymentRate = null;
+      updateData.advancePaymentAmount = null;
+      updateData.balancePaymentAmount = null;
+    }
+
+    // 계약 업데이트
+    const updatedContract = await prisma.contract.update({
+      where: { id },
+      data: updateData,
+      include: {
+        customer: true,
+        quotations: {
+          where: { deletedAt: null },
+          select: { id: true, quotationNumber: true, totalAmount: true },
+        },
+        paymentSchedules: {
+          orderBy: { scheduledDate: 'asc' },
+        },
+      },
+    });
+
+    res.json({ 
+      success: true, 
+      data: { 
+        contract: updatedContract,
+        calculatedTotalAmount,
+      } 
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 지급 현황 조회
+// Requirements 4.7: 계약서별 지급 현황(총액, 지급완료액, 잔액)을 조회
+router.get('/:id/payment-summary', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    
+    const paymentScheduleService = new PaymentScheduleService();
+    
+    try {
+      const summary = await paymentScheduleService.getContractPaymentSummary(id);
+      
+      // 계약 정보도 함께 조회
+      const contract = await prisma.contract.findUnique({
+        where: { id },
+        include: {
+          customer: true,
+        },
+      });
+
+      res.json({ 
+        success: true, 
+        data: { 
+          contract,
+          paymentSummary: summary,
+        } 
+      });
+    } catch (serviceError) {
+      if (serviceError instanceof Error && serviceError.message === '계약을 찾을 수 없습니다') {
+        return res.status(404).json({ success: false, message: '계약을 찾을 수 없습니다.' });
+      }
+      throw serviceError;
+    }
   } catch (error) {
     next(error);
   }

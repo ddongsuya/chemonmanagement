@@ -1,8 +1,8 @@
 // backend/src/services/pipelineAutomationService.ts
 // 파이프라인 자동화 서비스
-// Requirements: 2.1, 2.2, 2.3
+// Requirements: 2.1, 2.2, 2.3, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6
 
-import { PrismaClient, LeadStatus, QuotationStatus, ContractStatus, Lead } from '@prisma/client';
+import { PrismaClient, LeadStatus, QuotationStatus, ContractStatus, Lead, StudyStatus } from '@prisma/client';
 import prisma from '../lib/prisma';
 
 /**
@@ -287,6 +287,386 @@ export class PipelineAutomationService {
     });
 
     return updatedLead;
+  }
+
+  /**
+   * 리드 단계 업데이트 및 태스크 자동 생성
+   * 
+   * Requirements 5.1: 단계 변경 시 해당 단계의 기본 태스크 자동 생성
+   * 
+   * @param leadId - 리드 ID
+   * @param stageCode - 단계 코드
+   * @param userId - 사용자 ID
+   * @returns 업데이트된 리드
+   */
+  async updateLeadStage(leadId: string, stageCode: string, userId: string): Promise<Lead> {
+    // 리드 조회
+    const lead = await this.prisma.lead.findUnique({
+      where: { id: leadId },
+      include: { stage: true },
+    });
+
+    if (!lead) {
+      throw new Error('리드를 찾을 수 없습니다');
+    }
+
+    const previousStageCode = lead.stage?.code;
+
+    // 단계 조회
+    const stage = await this.prisma.pipelineStage.findFirst({
+      where: {
+        code: stageCode,
+        isActive: true,
+      },
+      include: {
+        tasks: {
+          where: { isActive: true },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+
+    if (!stage) {
+      throw new Error(`Pipeline stage with code '${stageCode}' not found`);
+    }
+
+    // 리드 업데이트
+    const updatedLead = await this.prisma.lead.update({
+      where: { id: leadId },
+      data: { stageId: stage.id },
+      include: {
+        stage: true,
+        customer: true,
+      },
+    });
+
+    // Requirements 5.1: 단계별 기본 태스크 자동 생성
+    if (stage.tasks && stage.tasks.length > 0) {
+      for (const task of stage.tasks) {
+        // 이미 완료된 태스크가 있는지 확인
+        const existingCompletion = await this.prisma.leadTaskCompletion.findUnique({
+          where: {
+            leadId_taskId: {
+              leadId,
+              taskId: task.id,
+            },
+          },
+        });
+
+        // 이미 완료된 태스크가 없으면 생성하지 않음 (태스크는 미완료 상태로 시작)
+        // LeadTaskCompletion은 완료 시에만 생성됨
+      }
+    }
+
+    // Requirements 5.6: 단계 변경 활동 로그 생성
+    if (previousStageCode !== stageCode) {
+      await this.createStageChangeActivity(
+        leadId,
+        previousStageCode || 'UNKNOWN',
+        stageCode,
+        userId
+      );
+    }
+
+    return updatedLead;
+  }
+
+  /**
+   * 시험번호 발행 시 파이프라인 자동화 처리
+   * 
+   * Requirements 5.4: 시험번호 발행 시 리드 단계를 IN_PROGRESS로 변경
+   * 
+   * @param testReceptionId - 시험 접수 ID
+   * @param userId - 발행자 ID
+   * @returns 업데이트된 리드 또는 null
+   */
+  async onTestNumberIssued(testReceptionId: string, userId: string): Promise<Lead | null> {
+    // 시험 접수 조회 (계약 및 견적서 연결 정보 포함)
+    const testReception = await this.prisma.testReception.findUnique({
+      where: { id: testReceptionId },
+    });
+
+    if (!testReception || !testReception.contractId) {
+      return null;
+    }
+
+    // 계약에 연결된 견적서의 리드 조회
+    const contract = await this.prisma.contract.findUnique({
+      where: { id: testReception.contractId },
+      include: {
+        quotations: {
+          where: { deletedAt: null },
+          include: { lead: true },
+        },
+      },
+    });
+
+    if (!contract) {
+      return null;
+    }
+
+    // 연결된 리드 찾기
+    let leadToUpdate: Lead | null = null;
+    for (const quotation of contract.quotations) {
+      if (quotation.lead) {
+        leadToUpdate = quotation.lead;
+        break;
+      }
+    }
+
+    if (!leadToUpdate) {
+      return null;
+    }
+
+    // "시험진행" 단계 조회
+    const inProgressStage = await this.prisma.pipelineStage.findFirst({
+      where: {
+        OR: [
+          { code: 'IN_PROGRESS' },
+          { name: { contains: '시험진행' } },
+        ],
+        isActive: true,
+      },
+    });
+
+    if (!inProgressStage) {
+      return null;
+    }
+
+    // 리드 단계 업데이트
+    const updatedLead = await this.prisma.lead.update({
+      where: { id: leadToUpdate.id },
+      data: { stageId: inProgressStage.id },
+      include: {
+        stage: true,
+        customer: true,
+      },
+    });
+
+    // 활동 로그 생성
+    await this.createStageChangeActivity(
+      leadToUpdate.id,
+      leadToUpdate.stageId,
+      inProgressStage.code,
+      userId,
+      `시험번호 발행으로 인한 단계 변경 (시험접수 ID: ${testReceptionId})`
+    );
+
+    return updatedLead;
+  }
+
+  /**
+   * 시험 완료 시 파이프라인 자동화 처리
+   * 
+   * Requirements 5.5: 시험 완료 시 리드 단계를 COMPLETED로 변경
+   * 
+   * @param studyId - 시험 ID
+   * @param userId - 완료 처리자 ID
+   * @returns 업데이트된 리드 또는 null
+   */
+  async onStudyCompleted(studyId: string, userId: string): Promise<Lead | null> {
+    // 시험 조회
+    const study = await this.prisma.study.findUnique({
+      where: { id: studyId },
+      include: {
+        contract: {
+          include: {
+            quotations: {
+              where: { deletedAt: null },
+              include: { lead: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!study || !study.contract) {
+      return null;
+    }
+
+    // 연결된 리드 찾기
+    let leadToUpdate: Lead | null = null;
+    for (const quotation of study.contract.quotations) {
+      if (quotation.lead) {
+        leadToUpdate = quotation.lead;
+        break;
+      }
+    }
+
+    if (!leadToUpdate) {
+      return null;
+    }
+
+    // "완료" 단계 조회
+    const completedStage = await this.prisma.pipelineStage.findFirst({
+      where: {
+        OR: [
+          { code: 'COMPLETED' },
+          { name: { contains: '완료' } },
+        ],
+        isActive: true,
+      },
+    });
+
+    if (!completedStage) {
+      return null;
+    }
+
+    // 리드 단계 업데이트
+    const updatedLead = await this.prisma.lead.update({
+      where: { id: leadToUpdate.id },
+      data: { stageId: completedStage.id },
+      include: {
+        stage: true,
+        customer: true,
+      },
+    });
+
+    // 활동 로그 생성
+    await this.createStageChangeActivity(
+      leadToUpdate.id,
+      leadToUpdate.stageId,
+      completedStage.code,
+      userId,
+      `시험 완료로 인한 단계 변경 (시험 ID: ${studyId})`
+    );
+
+    return updatedLead;
+  }
+
+  /**
+   * 단계 변경 활동 로그 생성
+   * 
+   * Requirements 5.6: 단계 변경 시 LeadActivity 생성
+   * 
+   * @param leadId - 리드 ID
+   * @param previousStageCode - 이전 단계 코드
+   * @param newStageCode - 새로운 단계 코드
+   * @param userId - 사용자 ID
+   * @param additionalContent - 추가 내용 (선택적)
+   */
+  async createStageChangeActivity(
+    leadId: string,
+    previousStageCode: string,
+    newStageCode: string,
+    userId: string,
+    additionalContent?: string
+  ): Promise<void> {
+    try {
+      await this.prisma.leadActivity.create({
+        data: {
+          leadId,
+          userId,
+          type: 'STAGE_CHANGE',
+          subject: `파이프라인 단계 변경: ${previousStageCode} → ${newStageCode}`,
+          content: additionalContent || `파이프라인 단계가 ${previousStageCode}에서 ${newStageCode}로 변경되었습니다.`,
+          contactedAt: new Date(),
+        },
+      });
+    } catch (error) {
+      // 활동 기록 생성 실패는 주요 작업에 영향을 주지 않도록 로그만 기록
+      console.error('Failed to create LeadActivity for stage change:', error);
+    }
+  }
+
+  /**
+   * 태스크 완료 처리
+   * 
+   * @param leadId - 리드 ID
+   * @param taskId - 태스크 ID
+   * @param userId - 완료 처리자 ID
+   * @param notes - 메모 (선택적)
+   */
+  async completeTask(
+    leadId: string,
+    taskId: string,
+    userId: string,
+    notes?: string
+  ): Promise<void> {
+    // 이미 완료된 태스크인지 확인
+    const existingCompletion = await this.prisma.leadTaskCompletion.findUnique({
+      where: {
+        leadId_taskId: {
+          leadId,
+          taskId,
+        },
+      },
+    });
+
+    if (existingCompletion) {
+      return; // 이미 완료됨
+    }
+
+    // 태스크 완료 기록 생성
+    await this.prisma.leadTaskCompletion.create({
+      data: {
+        leadId,
+        taskId,
+        completedBy: userId,
+        completedAt: new Date(),
+        notes,
+      },
+    });
+  }
+
+  /**
+   * 리드의 현재 단계 태스크 완료 현황 조회
+   * 
+   * @param leadId - 리드 ID
+   * @returns 태스크 완료 현황
+   */
+  async getLeadTaskProgress(leadId: string): Promise<{
+    totalTasks: number;
+    completedTasks: number;
+    tasks: Array<{
+      id: string;
+      name: string;
+      isRequired: boolean;
+      isCompleted: boolean;
+      completedAt?: Date;
+      completedBy?: string;
+    }>;
+  }> {
+    const lead = await this.prisma.lead.findUnique({
+      where: { id: leadId },
+      include: {
+        stage: {
+          include: {
+            tasks: {
+              where: { isActive: true },
+              orderBy: { order: 'asc' },
+            },
+          },
+        },
+        taskCompletions: true,
+      },
+    });
+
+    if (!lead || !lead.stage) {
+      return { totalTasks: 0, completedTasks: 0, tasks: [] };
+    }
+
+    const completionMap = new Map(
+      lead.taskCompletions.map(c => [c.taskId, c])
+    );
+
+    const tasks = lead.stage.tasks.map(task => {
+      const completion = completionMap.get(task.id);
+      return {
+        id: task.id,
+        name: task.name,
+        isRequired: task.isRequired,
+        isCompleted: !!completion,
+        completedAt: completion?.completedAt,
+        completedBy: completion?.completedBy,
+      };
+    });
+
+    return {
+      totalTasks: tasks.length,
+      completedTasks: tasks.filter(t => t.isCompleted).length,
+      tasks,
+    };
   }
 }
 

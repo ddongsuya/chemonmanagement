@@ -220,6 +220,19 @@ router.get('/test-receptions/:id', async (req: Request, res: Response, next: Nex
   }
 });
 
+// 시험 접수 + 상담기록 조회 (Requirements 3.4, 3.5)
+router.get('/test-receptions/:id/with-consultation', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await TestReceptionService.getByIdWithConsultation(req.params.id);
+    if (!result) {
+      return res.status(404).json({ success: false, message: '시험 접수를 찾을 수 없습니다.' });
+    }
+    res.json({ success: true, data: { testReception: result } });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // 시험번호로 조회
 router.get('/test-receptions/by-number/:testNumber', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -233,15 +246,34 @@ router.get('/test-receptions/by-number/:testNumber', async (req: Request, res: R
   }
 });
 
-// 시험 접수 생성
+// 시험 접수 생성 (substanceCode, projectCode 필수)
 router.post('/customers/:customerId/test-receptions', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { customerId } = req.params;
-    const { requesterId, ...data } = req.body;
+    const { requesterId, substanceCode, projectCode, ...data } = req.body;
+    
+    // 필수 필드 검증 (Requirements 3.2)
+    const missingFields: string[] = [];
+    if (!substanceCode || substanceCode.trim() === '') {
+      missingFields.push('substanceCode (물질코드)');
+    }
+    if (!projectCode || projectCode.trim() === '') {
+      missingFields.push('projectCode (프로젝트코드)');
+    }
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `필수 필드가 누락되었습니다: ${missingFields.join(', ')}`,
+        missingFields,
+      });
+    }
     
     const reception = await TestReceptionService.create({
       customer: { connect: { id: customerId } },
       requester: requesterId ? { connect: { id: requesterId } } : undefined,
+      substanceCode: substanceCode.trim(),
+      projectCode: projectCode.trim(),
       ...data,
       receptionDate: data.receptionDate ? new Date(data.receptionDate) : new Date(),
       expectedCompletionDate: data.expectedCompletionDate ? new Date(data.expectedCompletionDate) : undefined,
@@ -280,6 +312,60 @@ router.patch('/test-receptions/:id/status', async (req: Request, res: Response, 
     const reception = await TestReceptionService.updateStatus(req.params.id, status);
     res.json({ success: true, data: { testReception: reception } });
   } catch (error) {
+    next(error);
+  }
+});
+
+// 시험번호 발행 (Requirements 3.3)
+router.put('/test-receptions/:id/issue-test-number', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { testNumber, testTitle, testDirector } = req.body;
+    const userId = (req as any).user?.id;
+    
+    // 시험번호 필수 검증
+    if (!testNumber || testNumber.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: '시험번호를 입력해주세요.',
+      });
+    }
+    
+    // 시험 접수 존재 확인
+    const existingReception = await TestReceptionService.getById(id);
+    if (!existingReception) {
+      return res.status(404).json({
+        success: false,
+        message: '시험 접수를 찾을 수 없습니다.',
+      });
+    }
+    
+    // 중복 시험번호 확인
+    const isDuplicate = await TestReceptionService.checkTestNumberExists(testNumber.trim(), id);
+    if (isDuplicate) {
+      return res.status(409).json({
+        success: false,
+        message: '이미 사용 중인 시험번호입니다.',
+      });
+    }
+    
+    // 시험번호 발행 (testNumberIssuedAt, testNumberIssuedBy 자동 기록)
+    const reception = await TestReceptionService.issueTestNumber(
+      id,
+      testNumber.trim(),
+      userId || 'system',
+      testTitle?.trim(),
+      testDirector?.trim()
+    );
+    
+    res.json({ success: true, data: { testReception: reception } });
+  } catch (error: any) {
+    if (error.message === 'DUPLICATE_TEST_NUMBER') {
+      return res.status(409).json({
+        success: false,
+        message: '이미 사용 중인 시험번호입니다.',
+      });
+    }
     next(error);
   }
 });

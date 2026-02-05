@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { getQuotations, Quotation } from '@/lib/data-api';
+import LostReasonStats from '@/components/analytics/LostReasonStats';
 
 // 상태 라벨 매핑
 const STATUS_LABELS: Record<string, string> = {
@@ -396,7 +397,7 @@ export default function ReportsPage() {
 
           {/* 고객사별 순위 */}
           {customerData.length > 0 && (
-            <Card>
+            <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
@@ -456,6 +457,14 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* 미진행 사유 통계 */}
+          <LostReasonStats
+            onPeriodChange={(startDate, endDate) => {
+              console.log('Period changed:', startDate, endDate);
+              // API 호출로 기간별 데이터 로드
+            }}
+          />
         </>
       )}
     </div>

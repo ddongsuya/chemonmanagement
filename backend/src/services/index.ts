@@ -15,6 +15,10 @@ export { AnalyticsService, analyticsService } from './analyticsService';
 // Pipeline Automation services
 export { PipelineAutomationService, pipelineAutomationService } from './pipelineAutomationService';
 
+// Pipeline Initialization services
+export { PipelineInitializationService, pipelineInitializationService, DEFAULT_STAGES } from './pipelineInitializationService';
+export type { DefaultTask } from './pipelineInitializationService';
+
 // Lead Conversion services
 export { LeadConversionService, leadConversionService } from './leadConversionService';
 
@@ -25,3 +29,11 @@ export type { ValidationResult } from './userCodeValidator';
 // Lead Number services
 export { LeadNumberService, leadNumberService, UserCodeNotSetError } from './leadNumberService';
 export type { LeadNumberConfig } from './leadNumberService';
+
+// Payment Schedule services
+export { PaymentScheduleService, paymentScheduleService } from './paymentScheduleService';
+export type { PaymentStatus, CreatePaymentScheduleDTO, PaymentSummary } from './paymentScheduleService';
+
+// Payment Schedule services
+export { PaymentScheduleService, paymentScheduleService } from './paymentScheduleService';
+export type { CreatePaymentScheduleDTO, PaymentSummary, PaymentStatus } from './paymentScheduleService';
