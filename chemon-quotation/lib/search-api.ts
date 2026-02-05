@@ -65,12 +65,12 @@ export async function unifiedSearch(params: SearchParams): Promise<SearchRespons
     searchParams.append('limit', params.limit.toString());
   }
 
-  const response = await apiFetch<{ success: boolean; data: SearchResponse }>(
+  const response = await apiFetch<SearchResponse>(
     `/api/search?${searchParams.toString()}`
   );
   
-  if (!response || !response.data) {
-    throw new Error('검색 결과를 가져오는데 실패했습니다.');
+  if (!response.success || !response.data) {
+    throw new Error(response.error?.message || '검색 결과를 가져오는데 실패했습니다.');
   }
   
   return response.data;
