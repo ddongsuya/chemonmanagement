@@ -1,7 +1,7 @@
 // 통합 검색 라우트
 import { Router, Request, Response } from 'express';
 import { unifiedSearch, SearchParams } from '../services/searchService';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
@@ -57,7 +57,7 @@ const router = Router();
  *       200:
  *         description: 검색 결과
  */
-router.get('/', authenticateToken, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
     const { q, types, status, dateFrom, dateTo, page, limit } = req.query;
 
