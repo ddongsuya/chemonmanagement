@@ -33,7 +33,3 @@ export type { LeadNumberConfig } from './leadNumberService';
 // Payment Schedule services
 export { PaymentScheduleService, paymentScheduleService } from './paymentScheduleService';
 export type { PaymentStatus, CreatePaymentScheduleDTO, PaymentSummary } from './paymentScheduleService';
-
-// Payment Schedule services
-export { PaymentScheduleService, paymentScheduleService } from './paymentScheduleService';
-export type { CreatePaymentScheduleDTO, PaymentSummary, PaymentStatus } from './paymentScheduleService';
