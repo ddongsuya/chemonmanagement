@@ -229,7 +229,7 @@ export interface Contract extends SavedContract {
   // Extended fields from API with relations
   title?: string;
   contractNumber?: string;
-  contractType?: 'TOXICITY' | 'EFFICACY';
+  contractType?: 'TOXICITY' | 'EFFICACY' | 'CLINICAL_PATHOLOGY';
   totalAmount?: number;
   paidAmount?: number;
   signedDate?: string;
@@ -247,7 +247,7 @@ export interface Contract extends SavedContract {
     id: string;
     studyNumber: string;
     testName: string;
-    studyType: 'TOXICITY' | 'EFFICACY';
+    studyType: 'TOXICITY' | 'EFFICACY' | 'CLINICAL_PATHOLOGY';
     status: string;
     startDate?: string;
     expectedEndDate?: string;

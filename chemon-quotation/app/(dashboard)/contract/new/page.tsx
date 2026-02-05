@@ -298,9 +298,9 @@ function ContractNewContent() {
       
       // 계약 유형 설정
       if (hasClinicalData) {
-        contractPayload.contract_type = 'CLINICAL_PATHOLOGY';
+        contractPayload.contract_type = 'CLINICAL_PATHOLOGY' as const;
       } else if (hasEfficacyData) {
-        contractPayload.contract_type = 'EFFICACY';
+        contractPayload.contract_type = 'EFFICACY' as const;
       }
       
       await contractApi.create(contractPayload);
