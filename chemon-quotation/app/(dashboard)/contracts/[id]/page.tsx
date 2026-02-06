@@ -411,18 +411,21 @@ export default function ContractDetailPage() {
           <PaymentScheduleTable
             contractId={contract.id}
             schedules={(contract as any).paymentSchedules || []}
+            summary={{
+              totalAmount: totalAmount,
+              paidAmount: paidAmount,
+              remainingAmount: totalAmount - paidAmount,
+              completionRate: totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0,
+            }}
+            onStatusChange={async (scheduleId, status) => {
+              toast({ title: '성공', description: '지급 상태가 변경되었습니다.' });
+              loadContract();
+            }}
             onAddSchedule={async (schedule) => {
-              // API 호출로 스케줄 추가
               toast({ title: '성공', description: '지급 일정이 추가되었습니다.' });
               loadContract();
             }}
-            onUpdateSchedule={async (scheduleId, data) => {
-              // API 호출로 스케줄 업데이트
-              toast({ title: '성공', description: '지급 일정이 수정되었습니다.' });
-              loadContract();
-            }}
             onDeleteSchedule={async (scheduleId) => {
-              // API 호출로 스케줄 삭제
               toast({ title: '성공', description: '지급 일정이 삭제되었습니다.' });
               loadContract();
             }}
