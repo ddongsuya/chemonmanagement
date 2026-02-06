@@ -4,7 +4,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate } from '../middleware/auth';
 import prisma from '../lib/prisma';
-import { LeadStatus, LeadSource } from '@prisma/client';
+import { LeadStatus, LeadSource, QuotationType } from '@prisma/client';
 import { dataSyncService } from '../services/dataSyncService';
 import { leadNumberService, UserCodeNotSetError } from '../services/leadNumberService';
 import { validateLostReasonData, LostReasonData } from '../types/lostReason';
@@ -265,14 +265,26 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       throw error;
     }
 
-    // 기본 단계 조회 (stageId가 없으면)
-    let finalStageId = stageId;
+    // 기본 단계 조회 (stageId가 없거나 빈 문자열이면)
+    let finalStageId = stageId && stageId.trim() ? stageId : null;
     if (!finalStageId) {
       const defaultStage = await prisma.pipelineStage.findFirst({
         where: { isDefault: true, isActive: true },
       });
       finalStageId = defaultStage?.id;
     }
+
+    // inquiryType 유효성 검사 - QuotationType enum 값만 허용
+    const validQuotationTypes = Object.values(QuotationType);
+    const validInquiryType = inquiryType && validQuotationTypes.includes(inquiryType) 
+      ? inquiryType as QuotationType 
+      : null;
+
+    // source 유효성 검사 - LeadSource enum 값만 허용
+    const validLeadSources = Object.values(LeadSource);
+    const validSource = source && validLeadSources.includes(source)
+      ? source as LeadSource
+      : LeadSource.OTHER;
 
     const lead = await prisma.lead.create({
       data: {
@@ -284,8 +296,8 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         contactPhone: contactPhone || null,
         department: department || null,
         position: position || null,
-        source: source || LeadSource.OTHER,
-        inquiryType: inquiryType || null,
+        source: validSource,
+        inquiryType: validInquiryType,
         inquiryDetail: inquiryDetail || null,
         expectedAmount: expectedAmount || null,
         expectedDate: expectedDate ? new Date(expectedDate) : null,
