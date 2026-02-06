@@ -550,4 +550,36 @@ router.post(
   }
 );
 
+// ==================== Debug Routes ====================
+
+/**
+ * GET /api/admin/debug/db-counts
+ * Get database table counts for debugging
+ */
+router.get(
+  '/debug/db-counts',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const [userCount, quotationCount, leadCount, customerCount] = await Promise.all([
+        prisma.user.count(),
+        prisma.quotation.count(),
+        prisma.lead.count(),
+        prisma.customer.count(),
+      ]);
+      
+      res.json({
+        success: true,
+        data: {
+          users: userCount,
+          quotations: quotationCount,
+          leads: leadCount,
+          customers: customerCount,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default router;
