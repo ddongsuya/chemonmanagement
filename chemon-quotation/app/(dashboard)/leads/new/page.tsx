@@ -87,12 +87,32 @@ export default function NewLeadPage() {
 
     try {
       setLoading(true);
-      await createLead({
+      const result = await createLead({
         ...formData,
         source: formData.source as LeadSource,
         expectedAmount: formData.expectedAmount ? Number(formData.expectedAmount) : undefined,
         expectedDate: formData.expectedDate || undefined,
       });
+      
+      if (!result.success) {
+        // User_Code 미설정 오류 처리
+        if (result.error?.code === 'USER_CODE_NOT_SET') {
+          toast({ 
+            title: '견적서 코드 필요', 
+            description: '리드를 생성하려면 먼저 설정에서 견적서 코드를 설정해주세요.', 
+            variant: 'destructive' 
+          });
+          router.push('/settings');
+          return;
+        }
+        toast({ 
+          title: '오류', 
+          description: result.error?.message || '리드 생성에 실패했습니다.', 
+          variant: 'destructive' 
+        });
+        return;
+      }
+      
       toast({ title: '성공', description: '리드가 생성되었습니다.' });
       router.push('/leads');
     } catch (error) {
