@@ -32,6 +32,7 @@ import {
 import {
   createBackupSchema,
   backupFiltersSchema,
+  restoreBackupSchema,
 } from '../types/backup';
 import { AppError, ErrorCodes } from '../types/error';
 
@@ -488,6 +489,65 @@ router.get(
       const { id } = req.params;
       const backup = await backupService.getById(id);
       res.json({ success: true, data: backup });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/admin/backups/:id/download
+ * Download backup data as JSON file
+ * Requirements: 1.2.3
+ */
+router.get(
+  '/backups/:id/download',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      
+      // Get backup metadata for filename
+      const backup = await backupService.getById(id);
+      
+      // Get backup data
+      const backupData = await backupService.getBackupData(id);
+      
+      // Convert to JSON string with BigInt handling
+      const jsonData = JSON.stringify(backupData, (_key, value) => {
+        if (typeof value === 'bigint') {
+          return value.toString();
+        }
+        return value;
+      }, 2);
+      
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="${backup.filename}"`);
+      res.setHeader('Content-Length', Buffer.byteLength(jsonData, 'utf8'));
+      
+      // Send the JSON data
+      res.send(jsonData);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/admin/backups/:id/restore
+ * Restore data from a backup
+ * Requirements: 1.3.1, 1.3.3, 1.3.4
+ */
+router.post(
+  '/backups/:id/restore',
+  validateBody(restoreBackupSchema),
+  activityLogger('RESTORE', 'backup'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const options = restoreBackupSchema.parse(req.body);
+      const result = await backupService.restore(id, options);
+      res.json({ success: true, data: result });
     } catch (error) {
       next(error);
     }

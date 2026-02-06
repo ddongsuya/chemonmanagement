@@ -7,6 +7,10 @@ import prisma from '../lib/prisma';
 import { ContractStatus, Prisma } from '@prisma/client';
 import { leadConversionService } from '../services/leadConversionService';
 import { PaymentScheduleService } from '../services/paymentScheduleService';
+import { AutomationService } from '../services/automationService';
+
+// AutomationService 인스턴스 생성 (Requirements 2.2.3: 계약 상태 변경 시 트리거 발동)
+const automationService = new AutomationService(prisma);
 
 // PaymentType 타입 정의
 type PaymentType = 'FULL' | 'INSTALLMENT' | 'PER_TEST';
@@ -232,11 +236,24 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
 // 계약 상태 변경
 // Requirements 3.1: 계약서 상태가 SIGNED로 변경되고 해당 계약에 연결된 리드가 존재하면
 // 해당 리드의 status를 CONVERTED로 변경
+// Requirements 2.2.3: 계약 상태 변경 시 트리거 발동
 router.patch('/:id/status', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
     const userId = (req as any).user.id;
+
+    // Requirements 2.2.3: 기존 계약 조회하여 이전 상태 확인
+    const existingContract = await prisma.contract.findUnique({
+      where: { id },
+      select: { status: true, contractNumber: true, title: true },
+    });
+
+    if (!existingContract) {
+      return res.status(404).json({ success: false, message: '계약을 찾을 수 없습니다.' });
+    }
+
+    const oldStatus = existingContract.status;
 
     const contract = await prisma.contract.update({
       where: { id },
@@ -248,8 +265,29 @@ router.patch('/:id/status', async (req: Request, res: Response, next: NextFuncti
             lead: true,
           },
         },
+        customer: true,
       },
     });
+
+    // Requirements 2.2.3: 상태가 변경된 경우 자동화 트리거 호출
+    if (oldStatus !== status) {
+      try {
+        await automationService.handleStatusChange(
+          'Contract',
+          id,
+          oldStatus,
+          status,
+          {
+            contractNumber: contract.contractNumber,
+            title: contract.title,
+            customerName: contract.customer?.name,
+          }
+        );
+      } catch (automationError) {
+        // 자동화 실패는 로그만 기록하고 주요 작업은 완료 처리
+        console.error('Contract status change automation failed:', automationError);
+      }
+    }
 
     // Requirements 3.1: SIGNED 상태로 변경 시 연결된 리드 자동 전환
     if (status === ContractStatus.SIGNED) {

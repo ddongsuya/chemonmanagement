@@ -8,6 +8,10 @@ import { LeadStatus, LeadSource } from '@prisma/client';
 import { dataSyncService } from '../services/dataSyncService';
 import { leadNumberService, UserCodeNotSetError } from '../services/leadNumberService';
 import { validateLostReasonData, LostReasonData } from '../types/lostReason';
+import { AutomationService } from '../services/automationService';
+
+// AutomationService 인스턴스 생성 (Requirements 2.2.1: 리드 상태 변경 시 트리거 발동)
+const automationService = new AutomationService(prisma);
 
 const router = Router();
 
@@ -362,10 +366,23 @@ router.patch('/:id/stage', async (req: Request, res: Response, next: NextFunctio
 });
 
 // 리드 상태 변경
+// Requirements 2.2.1: 리드 상태 변경 시 트리거 발동
 router.patch('/:id/status', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { status, lostReason } = req.body;
+
+    // 기존 리드 조회하여 이전 상태 확인
+    const existingLead = await prisma.lead.findUnique({
+      where: { id },
+      select: { status: true },
+    });
+
+    if (!existingLead) {
+      return res.status(404).json({ success: false, message: '리드를 찾을 수 없습니다.' });
+    }
+
+    const oldStatus = existingLead.status;
 
     const updateData: any = { status };
     if (status === LeadStatus.LOST && lostReason) {
@@ -378,6 +395,22 @@ router.patch('/:id/status', async (req: Request, res: Response, next: NextFuncti
       include: { stage: true },
     });
 
+    // Requirements 2.2.1: 상태가 변경된 경우 자동화 트리거 호출
+    if (oldStatus !== status) {
+      try {
+        await automationService.handleStatusChange(
+          'Lead',
+          id,
+          oldStatus,
+          status,
+          { leadNumber: lead.leadNumber, companyName: lead.companyName }
+        );
+      } catch (automationError) {
+        // 자동화 실패는 로그만 기록하고 주요 작업은 완료 처리
+        console.error('Lead status change automation failed:', automationError);
+      }
+    }
+
     res.json({ success: true, data: { lead } });
   } catch (error) {
     next(error);
@@ -389,6 +422,7 @@ router.patch('/:id/status', async (req: Request, res: Response, next: NextFuncti
 // - lostReason 필수 검증
 // - OTHER 선택 시 lostReasonDetail 필수 검증
 // - LeadActivity 생성 (type: "LOST_REASON")
+// Requirements 2.2.1: 리드 상태 변경 시 트리거 발동
 router.put('/:id/lost', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
@@ -403,6 +437,9 @@ router.put('/:id/lost', async (req: Request, res: Response, next: NextFunction) 
     if (!existing) {
       return res.status(404).json({ success: false, message: '리드를 찾을 수 없습니다.' });
     }
+
+    // 이전 상태 저장 (자동화 트리거용)
+    const oldStatus = existing.status;
 
     // 미진행 사유 유효성 검사 (Requirements 2.3, 2.4)
     const validation = validateLostReasonData({ lostReason, lostReasonDetail });
@@ -441,6 +478,27 @@ router.put('/:id/lost', async (req: Request, res: Response, next: NextFunction) 
       return { lead: updatedLead, activity };
     });
 
+    // Requirements 2.2.1: 상태가 변경된 경우 자동화 트리거 호출
+    if (oldStatus !== LeadStatus.LOST) {
+      try {
+        await automationService.handleStatusChange(
+          'Lead',
+          id,
+          oldStatus,
+          LeadStatus.LOST,
+          { 
+            leadNumber: result.lead.leadNumber, 
+            companyName: result.lead.companyName,
+            lostReason,
+            lostReasonDetail: lostReason === 'OTHER' ? lostReasonDetail : null,
+          }
+        );
+      } catch (automationError) {
+        // 자동화 실패는 로그만 기록하고 주요 작업은 완료 처리
+        console.error('Lead lost status automation failed:', automationError);
+      }
+    }
+
     res.json({ success: true, data: { lead: result.lead, activity: result.activity } });
   } catch (error) {
     next(error);
@@ -448,6 +506,7 @@ router.put('/:id/lost', async (req: Request, res: Response, next: NextFunction) 
 });
 
 // 리드 → 고객 전환
+// Requirements 2.2.1: 리드 상태 변경 시 트리거 발동
 router.post('/:id/convert', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
@@ -460,6 +519,9 @@ router.post('/:id/convert', async (req: Request, res: Response, next: NextFuncti
     if (!lead) {
       return res.status(404).json({ success: false, message: '리드를 찾을 수 없습니다.' });
     }
+
+    // 이전 상태 저장 (자동화 트리거용)
+    const oldStatus = lead.status;
 
     // 고객 생성
     const customer = await prisma.customer.create({
@@ -483,6 +545,27 @@ router.post('/:id/convert', async (req: Request, res: Response, next: NextFuncti
       },
       include: { customer: true, stage: true },
     });
+
+    // Requirements 2.2.1: 상태가 변경된 경우 자동화 트리거 호출
+    if (oldStatus !== LeadStatus.CONVERTED) {
+      try {
+        await automationService.handleStatusChange(
+          'Lead',
+          id,
+          oldStatus,
+          LeadStatus.CONVERTED,
+          { 
+            leadNumber: updatedLead.leadNumber, 
+            companyName: updatedLead.companyName,
+            customerId: customer.id,
+            customerName: customer.name,
+          }
+        );
+      } catch (automationError) {
+        // 자동화 실패는 로그만 기록하고 주요 작업은 완료 처리
+        console.error('Lead conversion automation failed:', automationError);
+      }
+    }
 
     res.json({ success: true, data: { lead: updatedLead, customer } });
   } catch (error) {

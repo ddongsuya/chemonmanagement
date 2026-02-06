@@ -309,3 +309,118 @@
     --card-foreground: 0 0% 3.9%;
   }
 }
+
+
+/* PWA & 모바일 최적화 스타일 */
+@layer utilities {
+  /* Safe area insets for notched devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .pt-safe {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  /* 터치 최적화 */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* 모바일 하단 네비게이션 여백 */
+  .pb-mobile-nav {
+    @apply pb-20 md:pb-0;
+  }
+  
+  /* 모바일에서 스크롤 스냅 */
+  .snap-x-mobile {
+    @apply md:snap-none snap-x snap-mandatory;
+  }
+  
+  /* 모바일 카드 스와이프 */
+  .swipe-card {
+    @apply touch-manipulation select-none;
+  }
+  
+  /* 풀스크린 모바일 모달 */
+  .mobile-fullscreen {
+    @apply fixed inset-0 z-50 bg-background md:relative md:inset-auto md:z-auto;
+  }
+}
+
+/* 모바일 전용 스타일 */
+@media (max-width: 768px) {
+  /* 모바일에서 더 큰 터치 타겟 */
+  button, 
+  a, 
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* 모바일 입력 필드 확대 방지 */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+  
+  /* 모바일 스크롤 성능 최적화 */
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* PWA 설치 프롬프트 스타일 */
+.pwa-install-prompt {
+  @apply fixed bottom-20 left-4 right-4 z-50 p-4 rounded-xl bg-card shadow-lg border;
+  animation: slide-up 0.3s ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 오프라인 인디케이터 */
+.offline-indicator {
+  @apply fixed top-0 left-0 right-0 z-50 py-2 px-4 bg-yellow-500 text-yellow-950 text-center text-sm font-medium;
+}
+
+/* 스플래시 스크린 스타일 */
+.splash-screen {
+  @apply fixed inset-0 z-[100] flex items-center justify-center bg-primary;
+}
+
+.splash-logo {
+  animation: pulse-scale 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}

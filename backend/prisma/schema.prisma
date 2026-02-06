@@ -171,6 +171,9 @@ model User {
 
   // Announcement Comments 관계
   announcementComments AnnouncementComment[] @relation("AnnouncementComments")
+
+  // PWA 푸시 알림 관계
+  pushSubscriptions PushSubscription[]
 }
 
 model RefreshToken {
@@ -843,6 +846,20 @@ model Backup {
   status    String   @default("COMPLETED")
   type      String   @default("AUTO")
   createdAt DateTime @default(now())
+}
+
+// 푸시 구독 정보 (PWA 푸시 알림)
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 // ==================== Master Data - Toxicity (기존 유지) ====================

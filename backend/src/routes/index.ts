@@ -14,3 +14,4 @@ export { default as excelRoutes } from './excel';
 export { default as clinicalPathologyRoutes } from './clinicalPathology';
 export { default as userCodeRoutes } from './userCode';
 export { default as paymentScheduleRoutes } from './paymentSchedules';
+export { default as pushRoutes } from './push';

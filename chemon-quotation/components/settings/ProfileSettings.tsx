@@ -28,6 +28,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { changePassword } from '@/lib/auth-api';
 import { getUserSettings, updateUserSettings } from '@/lib/package-api';
 import UserCodeSetting from './UserCodeSetting';
+import PushNotificationSettings from './PushNotificationSettings';
 
 export default function ProfileSettings() {
   const { toast } = useToast();
@@ -300,6 +301,9 @@ export default function ProfileSettings() {
           </Dialog>
         </CardContent>
       </Card>
+
+      {/* 푸시 알림 설정 */}
+      <PushNotificationSettings />
     </div>
   );
 }

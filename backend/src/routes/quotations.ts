@@ -6,9 +6,13 @@ import { validateBody } from '../middleware/validation';
 import { createQuotationSchema, updateQuotationSchema, QuotationFilters } from '../types/quotation';
 import { QuotationStatus, QuotationType } from '@prisma/client';
 import { pipelineAutomationService } from '../services/pipelineAutomationService';
+import { AutomationService } from '../services/automationService';
 
 const router = Router();
 const dataService = new DataService(prisma);
+
+// AutomationService 인스턴스 생성 (Requirements 2.2.2: 견적서 상태 변경 시 트리거 발동)
+const automationService = new AutomationService(prisma);
 
 /**
  * GET /api/quotations
@@ -92,6 +96,8 @@ router.get(
  * 
  * Requirements 2.1: 견적서 상태가 SENT로 변경되고 해당 견적서에 연결된 리드가 존재하면
  * 해당 리드의 status를 PROPOSAL로 자동 업데이트해야 합니다.
+ * 
+ * Requirements 2.2.2: 견적서 상태 변경 시 트리거 발동
  */
 router.put(
   '/:id',
@@ -99,6 +105,14 @@ router.put(
   validateBody(updateQuotationSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // Requirements 2.2.2: 기존 견적서 조회하여 이전 상태 확인
+      const existingQuotation = await prisma.quotation.findUnique({
+        where: { id: req.params.id },
+        select: { status: true, quotationNumber: true, projectName: true, customerName: true },
+      });
+
+      const oldStatus = existingQuotation?.status;
+
       const quotation = await dataService.updateQuotation(req.user!.id, req.params.id, req.body);
       
       // Requirements 2.1: 상태가 SENT로 변경된 경우 파이프라인 자동화 트리거
@@ -114,6 +128,27 @@ router.put(
           // 자동화 실패는 견적서 업데이트에 영향을 주지 않음
           // 오류 로그만 기록하고 계속 진행
           console.error('Pipeline automation failed:', automationError);
+        }
+      }
+
+      // Requirements 2.2.2: 상태가 변경된 경우 자동화 트리거 호출
+      if (oldStatus && req.body.status && oldStatus !== req.body.status) {
+        try {
+          await automationService.handleStatusChange(
+            'Quotation',
+            req.params.id,
+            oldStatus,
+            req.body.status,
+            { 
+              quotationNumber: existingQuotation?.quotationNumber,
+              projectName: existingQuotation?.projectName,
+              customerName: existingQuotation?.customerName,
+            }
+          );
+        } catch (automationError) {
+          // 자동화 실패는 견적서 업데이트에 영향을 주지 않음
+          // 오류 로그만 기록하고 계속 진행
+          console.error('Quotation status change automation failed:', automationError);
         }
       }
       

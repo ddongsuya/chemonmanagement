@@ -1,0 +1,80 @@
+# .github/workflows/automation-scheduler.yml
+# 날짜 기반 자동화 트리거 스케줄러
+# **Requirements: 2.3.4**
+
+name: Automation Date Trigger Scheduler
+
+on:
+  schedule:
+    # 매일 오전 9시 (KST) = UTC 00:00
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '테스트 실행 (실제 액션 실행 안함)'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  API_BASE_URL: ${{ secrets.API_BASE_URL }}
+  AUTOMATION_API_KEY: ${{ secrets.AUTOMATION_API_KEY }}
+
+jobs:
+  process-date-triggers:
+    name: Process Date-Based Triggers
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Process Date Triggers
+        id: process
+        run: |
+          echo "Processing date-based automation triggers..."
+          
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: $AUTOMATION_API_KEY" \
+            "$API_BASE_URL/api/admin/automation/process-date-triggers")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::Date trigger processing failed with status $HTTP_CODE"
+            exit 1
+          fi
+          
+          echo "process_result=$BODY" >> $GITHUB_OUTPUT
+          echo "✅ Date triggers processed successfully"
+
+      - name: Check Automation Status
+        run: |
+          echo "Checking automation status..."
+          
+          RESPONSE=$(curl -s \
+            -H "x-api-key: $AUTOMATION_API_KEY" \
+            "$API_BASE_URL/api/admin/automation/status")
+          
+          echo "Automation Status: $RESPONSE"
+
+      - name: Summary
+        run: |
+          echo "## Automation Trigger Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Result" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          echo '${{ steps.process.outputs.process_result }}' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Failure
+        if: failure()
+        run: |
+          echo "❌ Automation trigger processing failed"
+          # 여기에 Slack/Discord 알림 추가 가능

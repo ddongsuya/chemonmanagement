@@ -58,3 +58,24 @@ export interface PaginatedBackupResult {
     totalPages: number;
   };
 }
+
+// Restore options interface (Requirements 1.3.3)
+export interface RestoreOptions {
+  tables?: string[];  // 선택적 복구
+  dryRun?: boolean;   // 미리보기 모드
+}
+
+// Restore result interface (Requirements 1.3.4)
+export interface RestoreResult {
+  success: boolean;
+  restoredTables: string[];
+  recordCounts: Record<string, number>;
+  errors?: string[];
+  dryRun?: boolean;
+}
+
+// Restore request schema
+export const restoreBackupSchema = z.object({
+  tables: z.array(z.string()).optional(),
+  dryRun: z.boolean().optional().default(false),
+});
