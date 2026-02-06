@@ -399,7 +399,7 @@ export default function ContractDetailPage() {
             currentBalanceAmount={(contract as any).balancePaymentAmount}
             onSubmit={async (data) => {
               try {
-                await updateContract(contract.id, data);
+                await updateContract(contract.id, data as any);
                 toast({ title: '성공', description: '지급조건이 저장되었습니다.' });
                 loadContract();
               } catch (error) {
