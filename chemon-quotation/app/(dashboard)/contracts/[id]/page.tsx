@@ -393,9 +393,10 @@ export default function ContractDetailPage() {
           <ContractPaymentForm
             contractId={contract.id}
             totalAmount={totalAmount}
-            currentPaymentType={(contract as any).paymentType || 'LUMP_SUM'}
-            currentDownPaymentRate={(contract as any).downPaymentRate}
-            currentBalanceRate={(contract as any).balanceRate}
+            currentPaymentType={(contract as any).paymentType || 'FULL'}
+            currentAdvanceRate={(contract as any).advancePaymentRate}
+            currentAdvanceAmount={(contract as any).advancePaymentAmount}
+            currentBalanceAmount={(contract as any).balancePaymentAmount}
             onSubmit={async (data) => {
               try {
                 await updateContract(contract.id, data);
