@@ -37,7 +37,7 @@ async function queryModelByDateField(
   model: string,
   field: string,
   targetDate: Date
-): Promise<Array<{ id: string; [key: string]: any }>> {
+): Promise<Array<{ id: string; [key: string]: unknown }>> {
   const nextDay = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000);
   
   const whereClause = {
@@ -48,29 +48,33 @@ async function queryModelByDateField(
   };
 
   switch (model) {
-    case 'Lead':
-      return prisma.lead.findMany({
+    case 'Lead': {
+      const leads = await prisma.lead.findMany({
         where: { ...whereClause, deletedAt: null },
-        select: { id: true, [field]: true },
       });
+      return leads.map(l => ({ id: l.id, [field]: (l as Record<string, unknown>)[field] }));
+    }
 
-    case 'Quotation':
-      return prisma.quotation.findMany({
+    case 'Quotation': {
+      const quotations = await prisma.quotation.findMany({
         where: { ...whereClause, deletedAt: null },
-        select: { id: true, [field]: true },
       });
+      return quotations.map(q => ({ id: q.id, [field]: (q as Record<string, unknown>)[field] }));
+    }
 
-    case 'Contract':
-      return prisma.contract.findMany({
+    case 'Contract': {
+      const contracts = await prisma.contract.findMany({
         where: { ...whereClause, deletedAt: null },
-        select: { id: true, [field]: true },
       });
+      return contracts.map(c => ({ id: c.id, [field]: (c as Record<string, unknown>)[field] }));
+    }
 
-    case 'Study':
-      return prisma.study.findMany({
+    case 'Study': {
+      const studies = await prisma.study.findMany({
         where: whereClause,
-        select: { id: true, [field]: true },
       });
+      return studies.map(s => ({ id: s.id, [field]: (s as Record<string, unknown>)[field] }));
+    }
 
     default:
       return [];
@@ -157,12 +161,13 @@ router.post('/process-date-triggers', apiKeyAuth, async (req: Request, res: Resp
         for (const item of matchedItems) {
           try {
             // handleStatusChange를 사용하여 액션 실행
+            const fieldValue = item[triggerConfig.field];
             await automationService.handleStatusChange(
               triggerConfig.model,
               item.id,
-              triggerConfig.field,
-              null, // oldValue
-              item[triggerConfig.field] // newValue (날짜)
+              '', // oldStatus
+              String(fieldValue || ''), // newStatus
+              { dateField: triggerConfig.field, dateValue: fieldValue }
             );
             ruleResult.executedActions++;
           } catch (actionError) {

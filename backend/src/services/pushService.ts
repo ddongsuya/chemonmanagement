@@ -1,3 +1,4 @@
+// @ts-ignore - web-push types
 import webpush from 'web-push';
 import { PrismaClient } from '@prisma/client';
 
