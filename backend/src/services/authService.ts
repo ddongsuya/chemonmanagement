@@ -29,7 +29,7 @@ export class AuthService {
     this.prisma = prisma;
     
     // 환경 변수에서 JWT 시크릿 로드
-    const accessSecret = process.env.JWT_ACCESS_SECRET;
+    const accessSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
     const refreshSecret = process.env.JWT_REFRESH_SECRET;
     
     // 환경 변수 미설정 시 경고 (서버는 시작되도록)

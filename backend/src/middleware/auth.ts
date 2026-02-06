@@ -5,7 +5,7 @@ import { AppError, ErrorCodes } from '../types/error';
 import { TokenPayload } from '../types/auth';
 
 // 환경 변수에서 JWT 시크릿 로드
-const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET;
+const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
 
 // 프로덕션 환경에서 환경 변수 미설정 시 경고 (서버는 시작되도록)
 if (!ACCESS_TOKEN_SECRET) {
