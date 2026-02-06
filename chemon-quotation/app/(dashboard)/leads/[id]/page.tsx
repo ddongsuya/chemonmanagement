@@ -660,6 +660,7 @@ export default function LeadDetailPage() {
       <LostReasonDialog
         open={lostReasonDialogOpen}
         onOpenChange={setLostReasonDialogOpen}
+        leadId={lead.id}
         leadNumber={lead.leadNumber}
         onSubmit={handleLostReasonSubmit}
       />
