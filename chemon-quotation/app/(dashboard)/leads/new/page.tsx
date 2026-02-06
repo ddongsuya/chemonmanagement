@@ -87,11 +87,20 @@ export default function NewLeadPage() {
 
     try {
       setLoading(true);
+      // 빈 문자열을 undefined로 변환하여 API에 전달
       const result = await createLead({
-        ...formData,
+        companyName: formData.companyName,
+        contactName: formData.contactName,
+        contactEmail: formData.contactEmail || undefined,
+        contactPhone: formData.contactPhone || undefined,
+        department: formData.department || undefined,
+        position: formData.position || undefined,
         source: formData.source as LeadSource,
+        inquiryType: formData.inquiryType || undefined,
+        inquiryDetail: formData.inquiryDetail || undefined,
         expectedAmount: formData.expectedAmount ? Number(formData.expectedAmount) : undefined,
         expectedDate: formData.expectedDate || undefined,
+        stageId: formData.stageId || undefined,
       });
       
       if (!result.success) {
