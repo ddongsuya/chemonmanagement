@@ -268,10 +268,20 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     // 기본 단계 조회 (stageId가 없거나 빈 문자열이면)
     let finalStageId = stageId && stageId.trim() ? stageId : null;
     if (!finalStageId) {
-      const defaultStage = await prisma.pipelineStage.findFirst({
+      // 기본 단계 찾기
+      let defaultStage = await prisma.pipelineStage.findFirst({
         where: { isDefault: true, isActive: true },
       });
-      finalStageId = defaultStage?.id;
+      
+      // 기본 단계가 없으면 첫 번째 활성 단계 사용
+      if (!defaultStage) {
+        defaultStage = await prisma.pipelineStage.findFirst({
+          where: { isActive: true },
+          orderBy: { order: 'asc' },
+        });
+      }
+      
+      finalStageId = defaultStage?.id || null;
     }
 
     // stageId가 여전히 없으면 오류 반환

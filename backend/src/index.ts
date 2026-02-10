@@ -35,6 +35,7 @@ import automationRoutes from './routes/automation';
 import reportsRoutes from './routes/reports';
 import studyDashboardRoutes from './routes/studyDashboard';
 import searchRoutes from './routes/search';
+import { pipelineInitializationService } from './services/pipelineInitializationService';
 
 // Load environment variables
 dotenv.config();
@@ -126,10 +127,24 @@ app.use('/exports', express.static(path.join(process.cwd(), 'exports')));
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);
+  
+  // 파이프라인 자동 초기화
+  try {
+    const isInitialized = await pipelineInitializationService.isInitialized();
+    if (!isInitialized) {
+      console.log('🔧 Initializing default pipeline stages...');
+      await pipelineInitializationService.initializeDefaultStages();
+      console.log('✅ Pipeline stages initialized successfully');
+    } else {
+      console.log('✅ Pipeline stages already initialized');
+    }
+  } catch (error) {
+    console.error('❌ Failed to initialize pipeline stages:', error);
+  }
 });
 
 export default app;
