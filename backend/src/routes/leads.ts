@@ -274,6 +274,15 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       finalStageId = defaultStage?.id;
     }
 
+    // stageId가 여전히 없으면 오류 반환
+    if (!finalStageId) {
+      return res.status(400).json({
+        success: false,
+        message: '파이프라인 단계가 설정되지 않았습니다. 관리자에게 문의하세요.',
+        code: 'PIPELINE_STAGE_NOT_FOUND',
+      });
+    }
+
     // inquiryType 유효성 검사 - QuotationType enum 값만 허용
     const validQuotationTypes = Object.values(QuotationType);
     const validInquiryType = inquiryType && validQuotationTypes.includes(inquiryType) 
@@ -285,6 +294,27 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     const validSource = source && validLeadSources.includes(source)
       ? source as LeadSource
       : LeadSource.OTHER;
+
+    // expectedAmount 처리 - 숫자로 변환하거나 null
+    let validExpectedAmount = null;
+    if (expectedAmount !== undefined && expectedAmount !== null && expectedAmount !== '') {
+      const parsed = parseFloat(expectedAmount);
+      if (!isNaN(parsed)) {
+        validExpectedAmount = parsed;
+      }
+    }
+
+    // 디버깅용 로그
+    console.log('Creating lead with data:', {
+      leadNumber,
+      userId,
+      companyName,
+      contactName,
+      stageId: finalStageId,
+      source: validSource,
+      inquiryType: validInquiryType,
+      expectedAmount: validExpectedAmount,
+    });
 
     const lead = await prisma.lead.create({
       data: {
@@ -299,7 +329,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         source: validSource,
         inquiryType: validInquiryType,
         inquiryDetail: inquiryDetail || null,
-        expectedAmount: expectedAmount || null,
+        expectedAmount: validExpectedAmount,
         expectedDate: expectedDate ? new Date(expectedDate) : null,
         stageId: finalStageId,
         status: LeadStatus.NEW,

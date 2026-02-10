@@ -79,11 +79,18 @@ export const errorHandler = (
 
   // Handle Prisma Validation Errors
   if (err instanceof Prisma.PrismaClientValidationError) {
+    // 개발 환경에서는 상세 오류 메시지 표시
+    const detailMessage = process.env.NODE_ENV === 'production'
+      ? '데이터 형식이 올바르지 않습니다'
+      : `Prisma Validation Error: ${err.message}`;
+    
+    console.error('Prisma Validation Error:', err.message);
+    
     res.status(400).json({
       success: false,
       error: {
         code: ErrorCodes.VALIDATION_ERROR,
-        message: '데이터 형식이 올바르지 않습니다',
+        message: detailMessage,
       },
     });
     return;
