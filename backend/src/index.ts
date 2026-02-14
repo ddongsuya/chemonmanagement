@@ -24,6 +24,7 @@ import {
   userCodeRoutes,
   paymentScheduleRoutes,
   pushRoutes,
+  unifiedCustomerRoutes,
 } from './routes';
 import masterDataRoutes from './routes/masterData';
 import packageRoutes from './routes/package';
@@ -119,6 +120,9 @@ app.use('/api/payment-schedules', paymentScheduleRoutes);
 
 // Push Notification routes
 app.use('/api/push', pushRoutes);
+
+// Unified Customer routes
+app.use('/api/unified-customers', unifiedCustomerRoutes);
 
 // Static file serving for exports
 app.use('/exports', express.static(path.join(process.cwd(), 'exports')));

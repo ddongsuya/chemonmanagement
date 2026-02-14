@@ -37,3 +37,6 @@ export type { PaymentStatus, CreatePaymentScheduleDTO, PaymentSummary } from './
 // Push Notification services
 export { PushService } from './pushService';
 export type { PushNotificationPayload, SendPushResult } from './pushService';
+
+// Unified Customer Management services
+export { UnifiedCustomerService, unifiedCustomerService, mapLeadToUnifiedEntity, mapCustomerToUnifiedEntity } from './unifiedCustomerService';

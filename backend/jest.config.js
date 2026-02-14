@@ -11,4 +11,11 @@ module.exports = {
   coverageDirectory: "coverage",
   verbose: true,
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  globals: {
+    "ts-jest": {
+      tsconfig: {
+        types: ["jest", "node"],
+      },
+    },
+  },
 };

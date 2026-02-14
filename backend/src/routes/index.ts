@@ -15,3 +15,4 @@ export { default as clinicalPathologyRoutes } from './clinicalPathology';
 export { default as userCodeRoutes } from './userCode';
 export { default as paymentScheduleRoutes } from './paymentSchedules';
 export { default as pushRoutes } from './push';
+export { default as unifiedCustomerRoutes } from './unifiedCustomers';

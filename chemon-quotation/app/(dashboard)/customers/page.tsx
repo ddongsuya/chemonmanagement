@@ -1,80 +1,108 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import PageHeader from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import CustomerForm from '@/components/customer/CustomerForm';
-import CustomerCard from '@/components/customer/CustomerCard';
-import Skeleton from '@/components/ui/Skeleton';
-import { Plus, Search, Users, RefreshCw, Filter } from 'lucide-react';
-import { Customer } from '@/types';
-import { getCustomers, Customer as ApiCustomer, CustomerGrade } from '@/lib/data-api';
+import UnifiedCustomerCard, { UnifiedCustomerCardSkeleton } from '@/components/customer/UnifiedCustomerCard';
+import UnifiedCustomerFilters, { UnifiedCustomerFiltersSkeleton } from '@/components/customer/UnifiedCustomerFilters';
+import UnifiedCustomerStats, { UnifiedCustomerStatsSkeleton } from '@/components/customer/UnifiedCustomerStats';
+import { Plus, RefreshCw, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ExcelImportExport from '@/components/excel/ExcelImportExport';
+import { 
+  getUnifiedCustomers, 
+  getPipelineStagesForFilter,
+  type UnifiedEntity,
+  type UnifiedCustomerFilters as FilterType,
+  type PipelineStageInfo,
+  type UnifiedCustomerResponse,
+} from '@/lib/unified-customer-api';
+import { DEFAULT_UNIFIED_CUSTOMER_FILTERS } from '@/types/unified-customer';
 
-// Grade 필터 옵션 (Requirements 4.2)
-const GRADE_OPTIONS: { value: CustomerGrade | 'ALL'; label: string }[] = [
-  { value: 'ALL', label: '전체' },
-  { value: 'LEAD', label: '리드' },
-  { value: 'PROSPECT', label: '잠재고객' },
-  { value: 'CUSTOMER', label: '고객' },
-  { value: 'VIP', label: 'VIP' },
-  { value: 'INACTIVE', label: '비활성' },
-];
-
+/**
+ * 통합 고객사 관리 페이지
+ * 
+ * 리드(Lead)와 고객(Customer)을 통합하여 표시하는 페이지입니다.
+ * 
+ * @requirements 1.1 - 리드와 고객을 통합하여 표시
+ * @requirements 3.4 - URL 쿼리 파라미터와 필터 상태 동기화
+ * @requirements 3.5 - 뒤로가기 시 필터 상태 유지
+ * @requirements 8.3 - 네비게이션 로직
+ */
 export default function CustomersPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
-  const [customers, setCustomers] = useState<Customer[]>([]);
+
+  // 상태 관리
+  const [entities, setEntities] = useState<UnifiedEntity[]>([]);
+  const [stages, setStages] = useState<PipelineStageInfo[]>([]);
+  const [stats, setStats] = useState({
+    totalCount: 0,
+    leadCount: 0,
+    customerCount: 0,
+    stageDistribution: {} as Record<string, number>,
+  });
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [gradeFilter, setGradeFilter] = useState<CustomerGrade | 'ALL'>('ALL');
+  const [stagesLoading, setStagesLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
 
-  // API에서 고객 데이터 로드 (Requirements 4.3)
-  const loadCustomers = useCallback(async () => {
+  // URL 파라미터에서 필터 초기화 - Requirements 3.4
+  const [filters, setFilters] = useState<FilterType>(() => {
+    const type = searchParams.get('type') as 'all' | 'lead' | 'customer' | null;
+    const stageId = searchParams.get('stageId');
+    const search = searchParams.get('search');
+    const page = searchParams.get('page');
+
+    return {
+      type: type || DEFAULT_UNIFIED_CUSTOMER_FILTERS.type,
+      stageId: stageId || undefined,
+      search: search || undefined,
+      page: page ? parseInt(page, 10) : DEFAULT_UNIFIED_CUSTOMER_FILTERS.page,
+      limit: DEFAULT_UNIFIED_CUSTOMER_FILTERS.limit,
+      sortBy: DEFAULT_UNIFIED_CUSTOMER_FILTERS.sortBy,
+      sortOrder: DEFAULT_UNIFIED_CUSTOMER_FILTERS.sortOrder,
+    };
+  });
+
+  // 파이프라인 단계 로드
+  useEffect(() => {
+    async function loadStages() {
+      setStagesLoading(true);
+      try {
+        const response = await getPipelineStagesForFilter();
+        if (response.success && response.data) {
+          setStages(response.data.stages);
+        }
+      } catch (error) {
+        console.error('Failed to load pipeline stages:', error);
+      } finally {
+        setStagesLoading(false);
+      }
+    }
+    loadStages();
+  }, []);
+
+  // 통합 고객 데이터 로드
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const filters: { limit: number; grade?: CustomerGrade } = { limit: 100 };
-      if (gradeFilter !== 'ALL') {
-        filters.grade = gradeFilter;
-      }
-      const response = await getCustomers(filters);
+      const response = await getUnifiedCustomers(filters);
       if (response.success && response.data) {
-        // API 응답을 프론트엔드 Customer 타입으로 변환
-        const customerData = response.data.data || [];
-        const mappedCustomers: Customer[] = customerData.map((c: ApiCustomer & { quotationCount?: number; totalAmount?: number }) => ({
-          id: c.id,
-          company_name: c.company || c.name,
-          business_number: '',
-          address: c.address || '',
-          contact_person: c.name,
-          contact_email: c.email || '',
-          contact_phone: c.phone || '',
-          notes: c.notes || '',
-          created_at: c.createdAt,
-          updated_at: c.updatedAt,
-          quotation_count: c.quotationCount || 0,
-          total_amount: c.totalAmount || 0,
-        }));
-        setCustomers(mappedCustomers);
+        setEntities(response.data.data);
+        setStats(response.data.stats);
       } else {
         toast({
           title: '오류',
-          description: response.error?.message || '고객 목록을 불러오는데 실패했습니다',
+          description: response.error?.message || '데이터를 불러오는데 실패했습니다',
           variant: 'destructive',
         });
       }
@@ -87,58 +115,78 @@ export default function CustomersPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast, gradeFilter]);
+  }, [filters, toast]);
 
   useEffect(() => {
-    loadCustomers();
-  }, [loadCustomers]);
+    loadData();
+  }, [loadData]);
 
-  const filteredCustomers = customers.filter((customer) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      customer.company_name.toLowerCase().includes(query) ||
-      customer.contact_person.toLowerCase().includes(query) ||
-      customer.contact_email?.toLowerCase().includes(query)
-    );
-  });
+  // URL 파라미터 동기화 - Requirements 3.4, 3.5
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    if (filters.type && filters.type !== 'all') {
+      params.set('type', filters.type);
+    }
+    if (filters.stageId) {
+      params.set('stageId', filters.stageId);
+    }
+    if (filters.search) {
+      params.set('search', filters.search);
+    }
+    if (filters.page && filters.page > 1) {
+      params.set('page', filters.page.toString());
+    }
 
-  // 통계
-  const totalCustomers = customers.length;
-  const totalQuotations = customers.reduce(
-    (sum, c) => sum + c.quotation_count,
-    0
-  );
-  const totalAmount = customers.reduce((sum, c) => sum + c.total_amount, 0);
+    const queryString = params.toString();
+    const newUrl = queryString ? `?${queryString}` : '/customers';
+    
+    // URL 업데이트 (히스토리에 추가하지 않고 교체)
+    window.history.replaceState(null, '', newUrl);
+  }, [filters]);
 
-  const handleAddSuccess = () => {
+  /**
+   * 필터 변경 핸들러
+   */
+  const handleFilterChange = useCallback((newFilters: FilterType) => {
+    setFilters(newFilters);
+  }, []);
+
+  /**
+   * 엔티티 클릭 핸들러
+   * @requirements 8.1 - 리드 클릭 시 /leads/{leadId} 페이지로 이동
+   * @requirements 8.2 - 고객 클릭 시 상세 모달 또는 페이지 표시
+   */
+  const handleEntityClick = useCallback((entity: UnifiedEntity) => {
+    if (entity.entityType === 'LEAD') {
+      router.push(`/leads/${entity.id}`);
+    } else {
+      // 고객의 경우 상세 페이지로 이동 (또는 모달 표시)
+      router.push(`/customers/${entity.id}`);
+    }
+  }, [router]);
+
+  /**
+   * 신규 고객 등록 성공 핸들러
+   */
+  const handleAddSuccess = useCallback(() => {
     setShowAddDialog(false);
-    loadCustomers();
-  };
+    loadData();
+  }, [loadData]);
 
-  if (loading) {
+  // 로딩 상태 렌더링
+  if (loading && entities.length === 0) {
     return (
       <div>
         <PageHeader
           title="고객사 관리"
-          description="고객사 정보를 관리하고 견적 이력을 확인합니다"
+          description="리드와 고객을 통합하여 관리합니다"
         />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-4">
-                <Skeleton className="h-16 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <UnifiedCustomerStatsSkeleton className="mb-6" />
+        <UnifiedCustomerFiltersSkeleton />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-4">
-                <Skeleton className="h-32 w-full" />
-              </CardContent>
-            </Card>
+            <UnifiedCustomerCardSkeleton key={i} />
           ))}
         </div>
       </div>
@@ -149,12 +197,12 @@ export default function CustomersPage() {
     <div>
       <PageHeader
         title="고객사 관리"
-        description="고객사 정보를 관리하고 견적 이력을 확인합니다"
+        description="리드와 고객을 통합하여 관리합니다"
         actions={
           <div className="flex gap-2">
-            <ExcelImportExport defaultType="customers" onImportSuccess={loadCustomers} />
-            <Button variant="outline" onClick={loadCustomers}>
-              <RefreshCw className="w-4 h-4 mr-2" />
+            <ExcelImportExport defaultType="customers" onImportSuccess={loadData} />
+            <Button variant="outline" onClick={loadData} disabled={loading}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               새로고침
             </Button>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -172,98 +220,45 @@ export default function CustomersPage() {
         }
       />
 
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">총 고객사</p>
-                <p className="text-xl font-bold">{totalCustomers}개</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <Users className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">총 견적 건수</p>
-                <p className="text-xl font-bold">{totalQuotations}건</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <Users className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">총 견적 금액</p>
-                <p className="text-xl font-bold">
-                  {totalAmount > 0 ? `${(totalAmount / 100000000).toFixed(1)}억원` : '0원'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* 통계 카드 - Requirements 7.1, 7.2 */}
+      <UnifiedCustomerStats 
+        stats={stats} 
+        loading={loading} 
+        className="mb-6" 
+      />
 
-      {/* 검색바 및 필터 */}
+      {/* 필터 - Requirements 3.1, 4.1, 5.1 */}
       <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="회사명, 담당자, 이메일로 검색..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-400" />
-              <Select
-                value={gradeFilter}
-                onValueChange={(value) => setGradeFilter(value as CustomerGrade | 'ALL')}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="등급 필터" />
-                </SelectTrigger>
-                <SelectContent>
-                  {GRADE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <UnifiedCustomerFilters
+            filters={filters}
+            stages={stages}
+            onFilterChange={handleFilterChange}
+            loading={loading || stagesLoading}
+          />
         </CardContent>
       </Card>
 
-      {/* 고객 카드 그리드 */}
-      {filteredCustomers.length === 0 ? (
+      {/* 엔티티 목록 */}
+      {entities.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-gray-500">
             <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p>{customers.length === 0 ? '등록된 고객사가 없습니다. 신규 고객을 등록해보세요.' : '검색 결과가 없습니다.'}</p>
+            <p>
+              {filters.search || filters.stageId || filters.type !== 'all'
+                ? '검색 결과가 없습니다. 필터를 조정해보세요.'
+                : '등록된 리드 또는 고객이 없습니다.'}
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredCustomers.map((customer) => (
-            <CustomerCard key={customer.id} customer={customer} />
+          {entities.map((entity) => (
+            <UnifiedCustomerCard
+              key={`${entity.entityType}-${entity.id}`}
+              entity={entity}
+              onClick={handleEntityClick}
+            />
           ))}
         </div>
       )}

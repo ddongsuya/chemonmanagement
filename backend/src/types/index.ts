@@ -25,6 +25,10 @@ export * from './backup';
 // Re-export lostReason types
 export * from './lostReason';
 
+// Re-export unifiedCustomer types
+export * from './unifiedCustomer';
+export * from './unifiedCustomer';
+
 // User types
 export interface User {
   id: string;
