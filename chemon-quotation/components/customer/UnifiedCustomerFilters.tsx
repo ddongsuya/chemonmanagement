@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -69,20 +69,31 @@ export default function UnifiedCustomerFilters({
   // 검색어 로컬 상태 (디바운스용)
   const [searchInput, setSearchInput] = useState(filters.search || '');
 
-  // 검색어 디바운스 처리
+  // Ref로 최신 filters와 onFilterChange를 추적 (무한 루프 방지)
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
+  const onFilterChangeRef = useRef(onFilterChange);
+  onFilterChangeRef.current = onFilterChange;
+
+  // 검색어 디바운스 처리 - searchInput만 의존성으로 사용
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchInput !== filters.search) {
-        onFilterChange({ ...filters, search: searchInput || undefined, page: 1 });
+      const currentFilters = filtersRef.current;
+      if (searchInput !== (currentFilters.search || '')) {
+        onFilterChangeRef.current({ ...currentFilters, search: searchInput || undefined, page: 1 });
       }
     }, SEARCH_DEBOUNCE_DELAY);
 
     return () => clearTimeout(timer);
-  }, [searchInput, filters, onFilterChange]);
+  }, [searchInput]);
 
-  // 외부에서 필터가 변경되면 로컬 상태 동기화
+  // 외부에서 검색어가 초기화되면 로컬 상태 동기화
+  const prevSearchRef = useRef(filters.search);
   useEffect(() => {
-    setSearchInput(filters.search || '');
+    if (filters.search !== prevSearchRef.current) {
+      prevSearchRef.current = filters.search;
+      setSearchInput(filters.search || '');
+    }
   }, [filters.search]);
 
   /**
