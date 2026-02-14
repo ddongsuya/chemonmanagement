@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PageHeader from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,8 @@ export default function CustomersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
 
   // 상태 관리
   const [entities, setEntities] = useState<UnifiedEntity[]>([]);
@@ -97,7 +99,6 @@ export default function CustomersPage() {
     try {
       const response = await getUnifiedCustomers(filters);
       if (response.success && response.data) {
-        // 백엔드는 data.entities로 반환, 또는 data.data로 반환할 수 있음
         const responseData = response.data as any;
         const entityList = responseData.entities || responseData.data || [];
         setEntities(entityList);
@@ -105,10 +106,9 @@ export default function CustomersPage() {
           setStats(responseData.stats);
         }
       } else {
-        // 인증 실패 등의 경우 빈 배열로 설정
         setEntities([]);
         if (response.error?.code !== 'AUTH_TOKEN_EXPIRED') {
-          toast({
+          toastRef.current({
             title: '오류',
             description: response.error?.message || '데이터를 불러오는데 실패했습니다',
             variant: 'destructive',
@@ -117,7 +117,7 @@ export default function CustomersPage() {
       }
     } catch (error) {
       setEntities([]);
-      toast({
+      toastRef.current({
         title: '오류',
         description: '서버 연결에 실패했습니다',
         variant: 'destructive',
@@ -125,7 +125,7 @@ export default function CustomersPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters, toast]);
+  }, [filters]);
 
   useEffect(() => {
     loadData();
