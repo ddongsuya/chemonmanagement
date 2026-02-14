@@ -23,7 +23,6 @@ import {
   type UnifiedEntity,
   type UnifiedCustomerFilters as FilterType,
   type PipelineStageInfo,
-  type UnifiedCustomerResponse,
 } from '@/lib/unified-customer-api';
 import { DEFAULT_UNIFIED_CUSTOMER_FILTERS } from '@/types/unified-customer';
 
@@ -80,7 +79,8 @@ export default function CustomersPage() {
       try {
         const response = await getPipelineStagesForFilter();
         if (response.success && response.data) {
-          setStages(response.data.stages);
+          const stageData = response.data as any;
+          setStages(stageData.stages || stageData || []);
         }
       } catch (error) {
         console.error('Failed to load pipeline stages:', error);
@@ -97,16 +97,26 @@ export default function CustomersPage() {
     try {
       const response = await getUnifiedCustomers(filters);
       if (response.success && response.data) {
-        setEntities(response.data.data);
-        setStats(response.data.stats);
+        // 백엔드는 data.entities로 반환, 또는 data.data로 반환할 수 있음
+        const responseData = response.data as any;
+        const entityList = responseData.entities || responseData.data || [];
+        setEntities(entityList);
+        if (responseData.stats) {
+          setStats(responseData.stats);
+        }
       } else {
-        toast({
-          title: '오류',
-          description: response.error?.message || '데이터를 불러오는데 실패했습니다',
-          variant: 'destructive',
-        });
+        // 인증 실패 등의 경우 빈 배열로 설정
+        setEntities([]);
+        if (response.error?.code !== 'AUTH_TOKEN_EXPIRED') {
+          toast({
+            title: '오류',
+            description: response.error?.message || '데이터를 불러오는데 실패했습니다',
+            variant: 'destructive',
+          });
+        }
       }
     } catch (error) {
+      setEntities([]);
       toast({
         title: '오류',
         description: '서버 연결에 실패했습니다',
