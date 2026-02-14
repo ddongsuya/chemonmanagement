@@ -30,7 +30,6 @@ import {
   Phone,
   Mail,
   Calendar,
-  DollarSign,
   Edit,
   Trash2,
   Plus,
@@ -40,6 +39,7 @@ import {
   XCircle,
   UserCheck,
 } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import {
   getLead,
   updateLead,
@@ -418,7 +418,7 @@ export default function LeadDetailPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
+                  <WonSign className="w-5 h-5" />
                   영업 정보
                 </CardTitle>
               </CardHeader>

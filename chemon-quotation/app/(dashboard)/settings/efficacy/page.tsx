@@ -28,11 +28,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  DollarSign,
   Database,
   Search,
   Loader2,
 } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import { useToast } from '@/hooks/use-toast';
 import {
   getEfficacyPriceItems,
@@ -140,7 +140,7 @@ export default function EfficacySettingsPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="price" className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4" />
+            <WonSign className="w-4 h-4" />
             <span>단가 마스터 ({priceItems.length})</span>
           </TabsTrigger>
           <TabsTrigger value="model" className="flex items-center gap-2">

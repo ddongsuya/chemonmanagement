@@ -215,11 +215,7 @@ export default function TestReceptionTab({
         <div className="flex justify-end text-sm text-gray-600">
           총 금액:{' '}
           <span className="font-semibold ml-1">
-            {new Intl.NumberFormat('ko-KR', {
-              style: 'currency',
-              currency: 'KRW',
-              maximumFractionDigits: 0,
-            }).format(totalAmount)}
+            {new Intl.NumberFormat('ko-KR').format(totalAmount)}원
           </span>
         </div>
       )}

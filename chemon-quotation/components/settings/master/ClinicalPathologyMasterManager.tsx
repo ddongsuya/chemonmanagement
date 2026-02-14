@@ -24,11 +24,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Search,
   Eye,
-  DollarSign,
   TestTube,
   Loader2,
   Settings2,
 } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import { formatCurrency, cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import {

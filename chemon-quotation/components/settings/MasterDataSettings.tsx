@@ -9,7 +9,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, DollarSign, Package, FlaskConical, Microscope } from 'lucide-react';
+import { Database, Package, FlaskConical, Microscope } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import TestItemManager from './master/TestItemManager';
 import PriceManager from './master/PriceManager';
 import PackageManager from './master/PackageManager';
@@ -36,7 +37,7 @@ export default function MasterDataSettings() {
                 독성시험 항목
               </TabsTrigger>
               <TabsTrigger value="prices" className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
+                <WonSign className="w-4 h-4" />
                 독성시험 단가
               </TabsTrigger>
               <TabsTrigger value="packages" className="flex items-center gap-2">

@@ -24,10 +24,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Search,
   Eye,
-  DollarSign,
   Beaker,
   Loader2,
 } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import { formatCurrency, cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -187,7 +187,7 @@ export default function EfficacyMasterManager() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="price" className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4" />
+            <WonSign className="w-4 h-4" />
             단가 마스터
           </TabsTrigger>
           <TabsTrigger value="models" className="flex items-center gap-2">

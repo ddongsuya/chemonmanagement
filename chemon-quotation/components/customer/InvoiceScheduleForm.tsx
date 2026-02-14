@@ -273,11 +273,7 @@ export default function InvoiceScheduleForm({
                       >
                         <span className="text-gray-500">{item.number}회차</span>
                         <span>
-                          {new Intl.NumberFormat('ko-KR', {
-                            style: 'currency',
-                            currency: 'KRW',
-                            maximumFractionDigits: 0,
-                          }).format(item.amount)}
+                          {new Intl.NumberFormat('ko-KR').format(item.amount)}원
                         </span>
                         <span className="text-gray-500">{item.date}</span>
                       </div>

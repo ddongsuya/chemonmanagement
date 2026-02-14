@@ -25,12 +25,12 @@ import {
   TrendingDown,
   FileText,
   FileCheck,
-  DollarSign,
   Users,
   Calendar,
   RefreshCw,
   BarChart3,
 } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import { getSalesStats, SalesStats, SalesUserStats, SalesMonthStats } from '@/lib/admin-api';
 import { format, subMonths, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -39,11 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 type PeriodType = 'thisMonth' | 'lastMonth' | 'last3Months' | 'last6Months' | 'thisYear' | 'lastYear';
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('ko-KR', {
-    style: 'currency',
-    currency: 'KRW',
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return new Intl.NumberFormat('ko-KR').format(amount) + '원';
 }
 
 function formatPercent(value: number): string {
@@ -200,7 +196,7 @@ export default function SalesStatsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">수금액</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <WonSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">

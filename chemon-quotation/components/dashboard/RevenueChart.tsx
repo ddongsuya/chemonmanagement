@@ -12,7 +12,8 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { DollarSign, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import { getRevenueAnalytics } from '@/lib/analytics-api';
 import { formatCurrency } from '@/lib/utils';
 
@@ -80,7 +81,7 @@ export default function RevenueChart() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-emerald-500" />
+              <WonSign className="w-5 h-5 text-emerald-500" />
             </div>
             <div>
               <CardTitle className="text-lg">매출 현황</CardTitle>

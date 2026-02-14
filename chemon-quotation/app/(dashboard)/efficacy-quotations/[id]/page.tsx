@@ -28,13 +28,13 @@ import {
   FileText,
   Building2,
   Calendar,
-  DollarSign,
   ArrowLeft,
   FileSignature,
   Loader2,
   ClipboardList,
   Beaker,
 } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import {
   formatCurrency,
   formatDate,
@@ -354,7 +354,7 @@ export default function EfficacyQuotationDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
+                <WonSign className="w-5 h-5" />
                 금액 요약
               </CardTitle>
             </CardHeader>

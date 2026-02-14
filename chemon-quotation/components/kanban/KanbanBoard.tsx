@@ -13,11 +13,11 @@ import {
   List,
   User,
   Calendar,
-  DollarSign,
   GripVertical,
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,13 +98,13 @@ const KanbanCard: React.FC<{
             <div className="flex flex-wrap gap-1 mt-2">
               {item.fields.totalAmount && (
                 <Badge variant="secondary" className="text-xs">
-                  <DollarSign className="w-3 h-3 mr-1" />
+                  <WonSign className="w-3 h-3 mr-1" />
                   {formatAmount(Number(item.fields.totalAmount))}
                 </Badge>
               )}
               {item.fields.expectedAmount && (
                 <Badge variant="secondary" className="text-xs">
-                  <DollarSign className="w-3 h-3 mr-1" />
+                  <WonSign className="w-3 h-3 mr-1" />
                   {formatAmount(Number(item.fields.expectedAmount))}
                 </Badge>
               )}

@@ -14,7 +14,6 @@ import {
 import {
   TrendingUp,
   TrendingDown,
-  DollarSign,
   FileText,
   Users,
   Target,
@@ -27,6 +26,7 @@ import {
   Loader2,
   RefreshCw,
 } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import { useAuthStore } from '@/stores/authStore';
 import {
   getRevenueAnalytics,
@@ -219,7 +219,7 @@ export default function SalesDashboardPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               총 매출
             </CardTitle>
-            <DollarSign className="w-4 h-4 text-muted-foreground" />
+            <WonSign className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">

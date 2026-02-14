@@ -8,11 +8,11 @@ import {
   PieChart,
   TrendingUp,
   FileText,
-  DollarSign,
   Filter,
   Trophy,
   FlaskConical,
 } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import { Button } from '@/components/ui/button';
 import ModalityChart from './ModalityChart';
 import MonthlyTrendChart from './MonthlyTrendChart';
@@ -48,7 +48,7 @@ const carouselItems: CarouselItem[] = [
   {
     id: 'revenue',
     title: '매출 현황',
-    icon: DollarSign,
+    icon: WonSign,
     color: 'bg-green-500',
     component: <RevenueChart />,
   },

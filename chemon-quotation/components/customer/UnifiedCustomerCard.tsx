@@ -221,11 +221,7 @@ export default function UnifiedCustomerCard({
  * 금액 포맷팅 유틸리티 함수
  */
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('ko-KR', {
-    style: 'currency',
-    currency: 'KRW',
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return new Intl.NumberFormat('ko-KR').format(amount) + '원';
 }
 
 /**

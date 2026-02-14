@@ -45,11 +45,7 @@ export default function ClinicalPathologyPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW',
-      maximumFractionDigits: 0,
-    }).format(amount);
+    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
   };
 
   const getStatusBadge = (status: string) => {

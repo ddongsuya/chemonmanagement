@@ -52,11 +52,7 @@ export function MobileLeadCard({ lead, className }: MobileLeadCardProps) {
 
   const formatAmount = (amount?: number) => {
     if (!amount) return '-';
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW',
-      maximumFractionDigits: 0,
-    }).format(amount);
+    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
   };
 
   return (

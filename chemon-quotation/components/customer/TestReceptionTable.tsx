@@ -36,11 +36,7 @@ const statusConfig: Record<TestReception['status'], { label: string; variant: 'd
 
 // 금액 포맷팅
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('ko-KR', {
-    style: 'currency',
-    currency: 'KRW',
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return new Intl.NumberFormat('ko-KR').format(amount) + '원';
 }
 
 // 날짜 포맷팅

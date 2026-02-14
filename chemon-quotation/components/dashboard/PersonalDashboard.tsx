@@ -3,7 +3,8 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DashboardPersonalStats } from '@/lib/dashboard-api';
-import { FileText, Trophy, TrendingUp, Users, DollarSign, Clock } from 'lucide-react';
+import { FileText, Trophy, TrendingUp, Users, Clock } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import Link from 'next/link';
 
 interface PersonalDashboardProps {
@@ -62,7 +63,7 @@ export default function PersonalDashboard({ stats, userName, period }: PersonalD
           <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-emerald-200/50 hover:scale-[1.02] transition-transform cursor-pointer">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <DollarSign className="w-4 h-4" />
+                <WonSign className="w-4 h-4" />
                 내 계약 금액
               </div>
               <div className="text-2xl font-bold text-emerald-600 mt-1">

@@ -35,7 +35,6 @@ import {
   ArrowLeft,
   Building2,
   Calendar,
-  DollarSign,
   Edit,
   Trash2,
   Plus,
@@ -43,6 +42,7 @@ import {
   FlaskConical,
   FileSignature,
 } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import {
   getContract,
   updateContract,

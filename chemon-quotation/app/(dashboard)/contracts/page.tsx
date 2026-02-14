@@ -21,7 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, FileText, Building2, Calendar, DollarSign } from 'lucide-react';
+import { Plus, Search, FileText, Building2, Calendar } from 'lucide-react';
+import WonSign from '@/components/icons/WonSign';
 import { getContracts, Contract } from '@/lib/contract-api';
 import { useToast } from '@/hooks/use-toast';
 import ExcelImportExport from '@/components/excel/ExcelImportExport';
@@ -153,7 +154,7 @@ export default function ContractsPage() {
                   {formatAmount(contracts.reduce((sum, c) => sum + Number(c.totalAmount ?? c.total_amount ?? 0), 0))}
                 </p>
               </div>
-              <DollarSign className="w-8 h-8 text-muted-foreground" />
+              <WonSign className="w-8 h-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>

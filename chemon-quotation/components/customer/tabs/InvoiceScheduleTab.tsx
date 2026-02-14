@@ -178,11 +178,7 @@ export default function InvoiceScheduleTab({ customerId }: InvoiceScheduleTabPro
                       </div>
                       <div className="text-sm text-gray-400 mt-1">
                         총 금액:{' '}
-                        {new Intl.NumberFormat('ko-KR', {
-                          style: 'currency',
-                          currency: 'KRW',
-                          maximumFractionDigits: 0,
-                        }).format(reception.total_amount)}
+                        {new Intl.NumberFormat('ko-KR').format(reception.total_amount)}원
                       </div>
                     </button>
                   ))}
@@ -279,31 +275,19 @@ export default function InvoiceScheduleTab({ customerId }: InvoiceScheduleTabPro
           <div>
             총 금액:{' '}
             <span className="font-semibold">
-              {new Intl.NumberFormat('ko-KR', {
-                style: 'currency',
-                currency: 'KRW',
-                maximumFractionDigits: 0,
-              }).format(totalAmount)}
+              {new Intl.NumberFormat('ko-KR').format(totalAmount)}원
             </span>
           </div>
           <div>
             대기:{' '}
             <span className="font-semibold text-yellow-600">
-              {new Intl.NumberFormat('ko-KR', {
-                style: 'currency',
-                currency: 'KRW',
-                maximumFractionDigits: 0,
-              }).format(pendingAmount)}
+              {new Intl.NumberFormat('ko-KR').format(pendingAmount)}원
             </span>
           </div>
           <div>
             발행완료:{' '}
             <span className="font-semibold text-green-600">
-              {new Intl.NumberFormat('ko-KR', {
-                style: 'currency',
-                currency: 'KRW',
-                maximumFractionDigits: 0,
-              }).format(issuedAmount)}
+              {new Intl.NumberFormat('ko-KR').format(issuedAmount)}원
             </span>
           </div>
         </div>
