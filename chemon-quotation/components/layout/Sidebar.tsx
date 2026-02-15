@@ -24,13 +24,13 @@ import {
   MessageSquare,
   LucideIcon,
   TrendingUp,
-  Zap,
   X,
   Megaphone,
   Search,
+  PanelLeftClose,
+  PanelLeft,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
 import {
   Collapsible,
@@ -42,7 +42,6 @@ interface MenuItem {
   title: string;
   href: string;
   icon: LucideIcon;
-  description?: string;
 }
 
 interface MenuGroup {
@@ -56,39 +55,39 @@ const menuGroups: MenuGroup[] = [
     title: '영업관리',
     icon: UserPlus,
     items: [
-      { title: '리드 관리', href: '/leads', icon: UserPlus, description: '잠재 고객 관리' },
-      { title: '파이프라인', href: '/pipeline', icon: Kanban, description: '영업 현황' },
-      { title: '고객사 관리', href: '/customers', icon: Users, description: '고객 정보' },
-      { title: '매출 대시보드', href: '/sales', icon: TrendingUp, description: '매출 분석' },
+      { title: '리드 관리', href: '/leads', icon: UserPlus },
+      { title: '파이프라인', href: '/pipeline', icon: Kanban },
+      { title: '고객사 관리', href: '/customers', icon: Users },
+      { title: '매출 대시보드', href: '/sales', icon: TrendingUp },
     ],
   },
   {
     title: '견적관리',
     icon: FileText,
     items: [
-      { title: '견적서 작성', href: '/quotations/new', icon: FileText, description: '새 견적 작성' },
-      { title: '견적 목록', href: '/quotations', icon: FolderOpen, description: '견적 조회' },
-      { title: '패키지 템플릿', href: '/packages', icon: Package, description: '템플릿 관리' },
+      { title: '견적서 작성', href: '/quotations/new', icon: FileText },
+      { title: '견적 목록', href: '/quotations', icon: FolderOpen },
+      { title: '패키지 템플릿', href: '/packages', icon: Package },
     ],
   },
   {
     title: '계약/시험',
     icon: FileSignature,
     items: [
-      { title: '계약 관리', href: '/contracts', icon: FileSignature, description: '계약 현황' },
-      { title: '시험 관리', href: '/studies', icon: FlaskConical, description: '시험 진행' },
-      { title: '시험의뢰서', href: '/clinical-pathology/test-requests', icon: ClipboardList, description: '의뢰서 관리' },
-      { title: '상담기록', href: '/consultations', icon: MessageSquare, description: '상담 이력' },
+      { title: '계약 관리', href: '/contracts', icon: FileSignature },
+      { title: '시험 관리', href: '/studies', icon: FlaskConical },
+      { title: '시험의뢰서', href: '/clinical-pathology/test-requests', icon: ClipboardList },
+      { title: '상담기록', href: '/consultations', icon: MessageSquare },
     ],
   },
 ];
 
 const standaloneItems: MenuItem[] = [
-  { title: '통합 검색', href: '/search', icon: Search, description: '견적서 검색' },
-  { title: '캘린더', href: '/calendar', icon: Calendar, description: '일정 관리' },
-  { title: '계산기', href: '/calculators', icon: Calculator, description: '시험 계산기' },
-  { title: '통계/리포트', href: '/reports', icon: BarChart3, description: '분석 리포트' },
-  { title: '설정', href: '/settings', icon: Settings, description: '시스템 설정' },
+  { title: '통합 검색', href: '/search', icon: Search },
+  { title: '캘린더', href: '/calendar', icon: Calendar },
+  { title: '계산기', href: '/calculators', icon: Calculator },
+  { title: '통계/리포트', href: '/reports', icon: BarChart3 },
+  { title: '설정', href: '/settings', icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -119,170 +118,71 @@ export default function Sidebar() {
     return group.items.some(item => isActive(item.href));
   };
 
-  const handleNavigationClick = (href: string) => {
-    if (!isExpanded) {
-      setIsExpanded(true);
-      setTimeout(() => router.push(href), 150);
-    } else {
-      router.push(href);
-    }
-  };
-
   return (
-    <div className="hidden md:block ml-4 my-4">
+    <div className="hidden md:block">
       <aside
         className={cn(
-          'flex flex-col h-[calc(100vh-2rem)] transition-all duration-300 ease-in-out',
-          'rounded-3xl overflow-hidden',
-          'gradient-sidebar shadow-2xl border border-white/5',
-          isExpanded ? 'w-64' : 'w-20'
+          'flex flex-col h-screen transition-[width] duration-200 ease-out',
+          'gradient-sidebar border-r border-white/[0.06]',
+          isExpanded ? 'w-60' : 'w-[68px]'
         )}
       >
-        {/* 헤더 - 로고 */}
-        <div className="p-5 flex flex-col items-center relative">
-          {/* 닫기 버튼 (확장 시) */}
-          {isExpanded && (
+        {/* 헤더 */}
+        <div className={cn(
+          'h-14 flex items-center border-b border-white/[0.06] flex-shrink-0',
+          isExpanded ? 'px-5 justify-between' : 'justify-center'
+        )}>
+          {isExpanded ? (
+            <>
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">C</span>
+                </div>
+                <span className="text-white/90 font-semibold text-sm tracking-tight">CHEMON</span>
+              </div>
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="text-white/40 hover:text-white/70 transition-colors"
+              >
+                <PanelLeftClose className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
             <button
-              onClick={() => setIsExpanded(false)}
-              className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full 
-                         flex items-center justify-center transition-all duration-200 hover:scale-110"
+              onClick={() => setIsExpanded(true)}
+              className="text-white/40 hover:text-white/70 transition-colors"
             >
-              <X className="w-4 h-4 text-white/70" />
+              <PanelLeft className="w-4 h-4" />
             </button>
-          )}
-          
-          {/* 로고 아이콘 */}
-          <div 
-            className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full 
-                       flex items-center justify-center shadow-lg shadow-orange-500/30 cursor-pointer
-                       hover:scale-110 transition-transform duration-200"
-            onClick={() => !isExpanded && setIsExpanded(true)}
-          >
-            <Zap className="w-6 h-6 text-white" />
-          </div>
-          
-          {/* 로고 텍스트 (확장 시) */}
-          {isExpanded && (
-            <div className="mt-3 text-center">
-              <h2 className="text-white font-semibold text-base">CHEMON</h2>
-              <p className="text-white/60 text-xs mt-0.5">견적관리 시스템</p>
-            </div>
           )}
         </div>
 
         {/* 네비게이션 */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto">
-          <div className="space-y-2">
-            {/* 공지사항 (맨 위) */}
-            <div className="relative group">
-              <button
-                onClick={() => handleNavigationClick('/announcements')}
-                className={cn(
-                  'transition-all duration-300 flex items-center relative overflow-hidden',
-                  'hover:scale-105',
-                  isExpanded 
-                    ? 'w-full px-4 py-3 justify-start rounded-xl' 
-                    : 'w-12 h-12 justify-center mx-auto rounded-full',
-                  isActive('/announcements')
-                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30'
-                    : 'bg-white/5 hover:bg-white/10'
-                )}
-              >
-                <Megaphone className={cn(
-                  'w-5 h-5 flex-shrink-0',
-                  isActive('/announcements') ? 'text-white' : 'text-white/70'
-                )} />
-                
-                {isExpanded && (
-                  <div className="ml-3 overflow-hidden">
-                    <div className={cn(
-                      'font-medium text-sm whitespace-nowrap',
-                      isActive('/announcements') ? 'text-white' : 'text-white/70'
-                    )}>
-                      공지사항
-                    </div>
-                    {isActive('/announcements') && (
-                      <div className="text-xs text-white/70 mt-0.5">Announcements</div>
-                    )}
-                  </div>
-                )}
-                
-                {/* 활성 인디케이터 */}
-                {isActive('/announcements') && !isExpanded && (
-                  <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-400 rounded-l-full" />
-                )}
-                {isActive('/announcements') && isExpanded && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full animate-pulse" />
-                )}
-              </button>
+        <nav className="flex-1 overflow-y-auto py-3 px-2.5">
+          <div className="space-y-0.5">
+            {/* 공지사항 */}
+            <NavItem
+              icon={Megaphone}
+              title="공지사항"
+              href="/announcements"
+              isActive={isActive('/announcements')}
+              isExpanded={isExpanded}
+              onClick={() => router.push('/announcements')}
+            />
 
-              {/* 툴팁 (접힌 상태) */}
-              {!isExpanded && (
-                <div className="absolute left-full ml-3 px-3 py-2 bg-gradient-to-br from-blue-500 to-blue-600 
-                               text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 
-                               pointer-events-none whitespace-nowrap z-50 shadow-lg 
-                               transform translate-x-2 group-hover:translate-x-0">
-                  <div className="font-medium text-sm">공지사항</div>
-                  <div className="text-xs opacity-75 mt-0.5">Announcements</div>
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-blue-500 rotate-45" />
-                </div>
-              )}
-            </div>
+            {/* 대시보드 */}
+            <NavItem
+              icon={LayoutDashboard}
+              title="대시보드"
+              href="/dashboard"
+              isActive={isActive('/dashboard')}
+              isExpanded={isExpanded}
+              onClick={() => router.push('/dashboard')}
+            />
 
-            {/* 대시보드 (단독) */}
-            <div className="relative group">
-              <button
-                onClick={() => handleNavigationClick('/dashboard')}
-                className={cn(
-                  'transition-all duration-300 flex items-center relative overflow-hidden',
-                  'hover:scale-105',
-                  isExpanded 
-                    ? 'w-full px-4 py-3 justify-start rounded-xl' 
-                    : 'w-12 h-12 justify-center mx-auto rounded-full',
-                  isActive('/dashboard')
-                    ? 'bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30'
-                    : 'bg-white/5 hover:bg-white/10'
-                )}
-              >
-                <LayoutDashboard className={cn(
-                  'w-5 h-5 flex-shrink-0',
-                  isActive('/dashboard') ? 'text-white' : 'text-white/70'
-                )} />
-                
-                {isExpanded && (
-                  <div className="ml-3 overflow-hidden">
-                    <div className={cn(
-                      'font-medium text-sm whitespace-nowrap',
-                      isActive('/dashboard') ? 'text-white' : 'text-white/70'
-                    )}>
-                      대시보드
-                    </div>
-                    {isActive('/dashboard') && (
-                      <div className="text-xs text-white/70 mt-0.5">Overview</div>
-                    )}
-                  </div>
-                )}
-                
-                {/* 활성 인디케이터 */}
-                {isActive('/dashboard') && !isExpanded && (
-                  <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-400 rounded-l-full" />
-                )}
-                {isActive('/dashboard') && isExpanded && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full animate-pulse" />
-                )}
-              </button>
-
-              {/* 툴팁 (접힌 상태) */}
-              {!isExpanded && (
-                <div className="absolute left-full ml-3 px-3 py-2 bg-gradient-to-br from-orange-500 to-orange-600 
-                               text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 
-                               pointer-events-none whitespace-nowrap z-50 shadow-lg 
-                               transform translate-x-2 group-hover:translate-x-0">
-                  <div className="font-medium text-sm">대시보드</div>
-                  <div className="text-xs opacity-75 mt-0.5">Overview</div>
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-orange-500 rotate-45" />
-                </div>
-              )}
+            {/* 구분선 */}
+            <div className="py-2">
+              <div className="border-t border-white/[0.06]" />
             </div>
 
             {/* 그룹 메뉴 */}
@@ -296,71 +196,50 @@ export default function Sidebar() {
                     <CollapsibleTrigger asChild>
                       <button
                         className={cn(
-                          'w-full flex items-center justify-between px-4 py-2.5 rounded-xl',
-                          'transition-all duration-200',
+                          'w-full flex items-center justify-between px-2.5 py-1.5 rounded-md',
+                          'transition-colors duration-150 text-[11px] font-medium uppercase tracking-wider',
                           isGroupActive(group)
-                            ? 'bg-white/10 text-white'
-                            : 'text-white/60 hover:bg-white/5 hover:text-white/80'
+                            ? 'text-white/70'
+                            : 'text-white/35 hover:text-white/50'
                         )}
                       >
-                        <div className="flex items-center gap-3">
-                          <group.icon className="w-5 h-5 flex-shrink-0" />
-                          <span className="font-medium text-sm">{group.title}</span>
-                        </div>
+                        <span>{group.title}</span>
                         <ChevronDown
                           className={cn(
-                            'w-4 h-4 transition-transform duration-200',
+                            'w-3 h-3 transition-transform duration-150',
                             openGroups.includes(group.title) && 'rotate-180'
                           )}
                         />
                       </button>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-1 ml-3 space-y-1">
+                    <CollapsibleContent className="space-y-0.5">
                       {group.items.map((item) => (
-                        <Link
+                        <NavItem
                           key={item.href}
+                          icon={item.icon}
+                          title={item.title}
                           href={item.href}
-                          className={cn(
-                            'flex items-center gap-3 px-4 py-2 rounded-lg',
-                            'transition-all duration-200 text-sm',
-                            isActive(item.href)
-                              ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/20'
-                              : 'text-white/50 hover:bg-white/5 hover:text-white/80'
-                          )}
-                        >
-                          <item.icon className="w-4 h-4 flex-shrink-0" />
-                          <span>{item.title}</span>
-                        </Link>
+                          isActive={isActive(item.href)}
+                          isExpanded={isExpanded}
+                          onClick={() => router.push(item.href)}
+                        />
                       ))}
                     </CollapsibleContent>
                   </Collapsible>
                 ) : (
                   <div className="relative group">
                     <button
-                      onClick={() => handleNavigationClick(group.items[0].href)}
+                      onClick={() => router.push(group.items[0].href)}
                       className={cn(
-                        'w-12 h-12 mx-auto rounded-full flex items-center justify-center',
-                        'transition-all duration-300 hover:scale-110',
+                        'w-full h-9 flex items-center justify-center rounded-md transition-colors duration-150',
                         isGroupActive(group)
-                          ? 'bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30'
-                          : 'bg-white/5 hover:bg-white/10'
+                          ? 'bg-white/10 text-white'
+                          : 'text-white/40 hover:bg-white/[0.06] hover:text-white/70'
                       )}
                     >
-                      <group.icon className={cn(
-                        'w-5 h-5',
-                        isGroupActive(group) ? 'text-white' : 'text-white/70'
-                      )} />
+                      <group.icon className="w-[18px] h-[18px]" />
                     </button>
-                    
-                    {/* 툴팁 */}
-                    <div className="absolute left-full ml-3 px-3 py-2 bg-gradient-to-br from-orange-500 to-orange-600 
-                                   text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 
-                                   pointer-events-none whitespace-nowrap z-50 shadow-lg 
-                                   transform translate-x-2 group-hover:translate-x-0">
-                      <div className="font-medium text-sm">{group.title}</div>
-                      <div className="text-xs opacity-75 mt-0.5">{group.items.length}개 메뉴</div>
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-orange-500 rotate-45" />
-                    </div>
+                    <Tooltip label={group.title} />
                   </div>
                 )}
               </div>
@@ -368,134 +247,64 @@ export default function Sidebar() {
 
             {/* 구분선 */}
             <div className="py-2">
-              <div className="border-t border-white/10" />
+              <div className="border-t border-white/[0.06]" />
             </div>
 
-            {/* 기타 단독 메뉴 */}
+            {/* 기타 메뉴 */}
             {standaloneItems.map((item) => (
-              <div key={item.href} className="relative group">
-                <button
-                  onClick={() => handleNavigationClick(item.href)}
-                  className={cn(
-                    'transition-all duration-300 flex items-center relative',
-                    'hover:scale-105',
-                    isExpanded 
-                      ? 'w-full px-4 py-2.5 justify-start rounded-xl' 
-                      : 'w-12 h-12 justify-center mx-auto rounded-full',
-                    isActive(item.href)
-                      ? 'bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30'
-                      : 'bg-white/5 hover:bg-white/10'
-                  )}
-                >
-                  <item.icon className={cn(
-                    'w-5 h-5 flex-shrink-0',
-                    isActive(item.href) ? 'text-white' : 'text-white/70'
-                  )} />
-                  
-                  {isExpanded && (
-                    <span className={cn(
-                      'ml-3 font-medium text-sm',
-                      isActive(item.href) ? 'text-white' : 'text-white/70'
-                    )}>
-                      {item.title}
-                    </span>
-                  )}
-                </button>
-
-                {/* 툴팁 (접힌 상태) */}
-                {!isExpanded && (
-                  <div className="absolute left-full ml-3 px-3 py-2 bg-gradient-to-br from-orange-500 to-orange-600 
-                                 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 
-                                 pointer-events-none whitespace-nowrap z-50 shadow-lg 
-                                 transform translate-x-2 group-hover:translate-x-0">
-                    <div className="font-medium text-sm">{item.title}</div>
-                    <div className="text-xs opacity-75 mt-0.5">{item.description}</div>
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-orange-500 rotate-45" />
-                  </div>
-                )}
-              </div>
+              <NavItem
+                key={item.href}
+                icon={item.icon}
+                title={item.title}
+                href={item.href}
+                isActive={isActive(item.href)}
+                isExpanded={isExpanded}
+                onClick={() => router.push(item.href)}
+              />
             ))}
           </div>
         </nav>
 
         {/* 하단 영역 */}
-        <div className="p-4 border-t border-white/10">
-          {/* 관리자 패널 (관리자만) */}
+        <div className="border-t border-white/[0.06] p-2.5 flex-shrink-0">
+          {/* 관리자 패널 */}
           {user?.role === 'ADMIN' && (
-            <div className="relative group mb-3">
-              <button
-                onClick={() => handleNavigationClick('/admin')}
-                className={cn(
-                  'transition-all duration-300 flex items-center',
-                  'hover:scale-105',
-                  isExpanded 
-                    ? 'w-full px-4 py-2.5 justify-start rounded-xl' 
-                    : 'w-12 h-12 justify-center mx-auto rounded-full',
-                  'bg-red-500/20 hover:bg-red-500/30 text-red-400'
-                )}
-              >
-                <Shield className="w-5 h-5 flex-shrink-0" />
-                {isExpanded && <span className="ml-3 font-medium text-sm">관리자 패널</span>}
-              </button>
-              
-              {!isExpanded && (
-                <div className="absolute left-full ml-3 px-3 py-2 bg-red-500 
-                               text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 
-                               pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                  <div className="font-medium text-sm">관리자 패널</div>
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-red-500 rotate-45" />
-                </div>
-              )}
-            </div>
+            <NavItem
+              icon={Shield}
+              title="관리자 패널"
+              href="/admin"
+              isActive={isActive('/admin')}
+              isExpanded={isExpanded}
+              onClick={() => router.push('/admin')}
+              variant="admin"
+            />
           )}
 
-          {/* 유저 프로필 & 로그아웃 */}
+          {/* 유저 프로필 */}
           <div className={cn(
-            'flex items-center gap-3',
-            isExpanded ? 'justify-between' : 'justify-center'
+            'flex items-center gap-2.5 mt-1.5 px-2 py-2 rounded-md',
+            isExpanded ? '' : 'justify-center'
           )}>
-            {/* 프로필 아바타 */}
-            <div className="relative group">
-              <div 
-                className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full 
-                           flex items-center justify-center shadow-lg cursor-pointer
-                           hover:scale-110 transition-all duration-300 flex-shrink-0"
-                onClick={() => !isExpanded && setIsExpanded(true)}
-              >
-                <span className="text-white font-semibold">
-                  {user?.name?.slice(0, 1) || 'U'}
-                </span>
-              </div>
-              
-              {/* 프로필 툴팁 (접힌 상태) */}
-              {!isExpanded && (
-                <div className="absolute left-full ml-3 px-3 py-2 bg-gradient-to-br from-orange-500 to-orange-600 
-                               text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 
-                               pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                  <div className="font-medium text-sm">{user?.name || '사용자'}</div>
-                  <div className="text-xs opacity-75 mt-0.5">{user?.role === 'ADMIN' ? '관리자' : '사용자'}</div>
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-orange-500 rotate-45" />
-                </div>
-              )}
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+              <span className="text-white/80 text-xs font-medium">
+                {user?.name?.slice(0, 1) || 'U'}
+              </span>
             </div>
             
-            {/* 프로필 정보 & 로그아웃 (확장 시) */}
             {isExpanded && (
               <>
                 <div className="flex-1 min-w-0">
-                  <div className="text-white font-medium text-sm truncate">
+                  <div className="text-white/80 text-sm font-medium truncate">
                     {user?.name || '사용자'}
                   </div>
-                  <div className="text-white/60 text-xs">
+                  <div className="text-white/35 text-[11px]">
                     {user?.role === 'ADMIN' ? '관리자' : '사용자'}
                   </div>
                 </div>
                 
                 <button
                   onClick={handleLogout}
-                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/20 
-                             flex items-center justify-center transition-all duration-200
-                             text-white/60 hover:text-red-400"
+                  className="text-white/30 hover:text-red-400 transition-colors"
                   title="로그아웃"
                 >
                   <LogOut className="w-4 h-4" />
@@ -505,6 +314,79 @@ export default function Sidebar() {
           </div>
         </div>
       </aside>
+    </div>
+  );
+}
+
+/* 네비게이션 아이템 */
+function NavItem({
+  icon: Icon,
+  title,
+  href,
+  isActive,
+  isExpanded,
+  onClick,
+  variant,
+}: {
+  icon: LucideIcon;
+  title: string;
+  href: string;
+  isActive: boolean;
+  isExpanded: boolean;
+  onClick: () => void;
+  variant?: 'admin';
+}) {
+  const isAdmin = variant === 'admin';
+
+  if (!isExpanded) {
+    return (
+      <div className="relative group">
+        <button
+          onClick={onClick}
+          className={cn(
+            'w-full h-9 flex items-center justify-center rounded-md transition-colors duration-150',
+            isAdmin
+              ? 'text-red-400/60 hover:bg-red-500/10 hover:text-red-400'
+              : isActive
+                ? 'bg-white/10 text-white'
+                : 'text-white/40 hover:bg-white/[0.06] hover:text-white/70'
+          )}
+        >
+          <Icon className="w-[18px] h-[18px]" />
+        </button>
+        <Tooltip label={title} />
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-colors duration-150',
+        isAdmin
+          ? 'text-red-400/70 hover:bg-red-500/10 hover:text-red-400'
+          : isActive
+            ? 'bg-white/10 text-white font-medium'
+            : 'text-white/50 hover:bg-white/[0.06] hover:text-white/80'
+      )}
+    >
+      <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+      <span className="truncate">{title}</span>
+      {isActive && (
+        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-400" />
+      )}
+    </button>
+  );
+}
+
+/* 툴팁 */
+function Tooltip({ label }: { label: string }) {
+  return (
+    <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-foreground text-background 
+                   text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-150 
+                   pointer-events-none whitespace-nowrap z-50">
+      {label}
     </div>
   );
 }

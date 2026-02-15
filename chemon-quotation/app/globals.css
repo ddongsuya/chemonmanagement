@@ -4,105 +4,98 @@
 
 @layer base {
   :root {
-    /* 배경 */
-    --background: 30 20% 98%;
-    --foreground: 20 14% 10%;
+    /* 배경 - 따뜻한 뉴트럴 */
+    --background: 40 20% 98%;
+    --foreground: 20 20% 12%;
     
     /* 카드 */
     --card: 0 0% 100%;
-    --card-foreground: 20 14% 10%;
+    --card-foreground: 20 20% 12%;
     
     /* 팝오버 */
     --popover: 0 0% 100%;
-    --popover-foreground: 20 14% 10%;
+    --popover-foreground: 20 20% 12%;
     
-    /* 오렌지 프라이머리 */
-    --primary: 25 95% 53%;
+    /* 프라이머리 - 깊은 오렌지 */
+    --primary: 24 90% 50%;
     --primary-foreground: 0 0% 100%;
     
     /* 세컨더리 */
-    --secondary: 30 20% 96%;
-    --secondary-foreground: 20 14% 10%;
+    --secondary: 40 12% 95%;
+    --secondary-foreground: 20 20% 12%;
     
     /* 뮤트 */
-    --muted: 30 15% 95%;
-    --muted-foreground: 20 10% 45%;
+    --muted: 40 10% 94%;
+    --muted-foreground: 20 8% 46%;
     
     /* 액센트 */
-    --accent: 30 20% 96%;
-    --accent-foreground: 20 14% 10%;
+    --accent: 40 12% 95%;
+    --accent-foreground: 20 20% 12%;
     
     /* 경고/삭제 */
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     
     /* 보더/인풋 */
-    --border: 30 15% 90%;
-    --input: 30 15% 90%;
-    --ring: 25 95% 53%;
-    --radius: 0.75rem;
+    --border: 40 10% 90%;
+    --input: 40 10% 90%;
+    --ring: 24 90% 50%;
+    --radius: 0.625rem;
     
-    /* 컬러풀 카드 색상 */
-    --card-orange: 25 95% 53%;
-    --card-amber: 38 92% 50%;
-    --card-yellow: 45 93% 58%;
-    --card-green: 142 71% 45%;
-    --card-blue: 217 91% 60%;
+    /* 차트 색상 */
+    --chart-1: 24 90% 50%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 220 70% 55%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 262 52% 47%;
     
-    /* 차트 색상 - 오렌지 계열 */
-    --chart-1: 25 95% 53%;
-    --chart-2: 38 92% 50%;
-    --chart-3: 21 90% 48%;
-    --chart-4: 33 100% 60%;
-    --chart-5: 45 93% 47%;
-    
-    /* 사이드바 색상 - 다크 차콜 */
-    --sidebar: 20 14% 12%;
-    --sidebar-foreground: 30 20% 96%;
-    --sidebar-muted: 20 12% 20%;
-    --sidebar-accent: 25 95% 53%;
+    /* 사이드바 - 딥 네이비 */
+    --sidebar: 220 26% 14%;
+    --sidebar-foreground: 220 10% 85%;
+    --sidebar-muted: 220 20% 20%;
+    --sidebar-accent: 24 90% 50%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 20 12% 20%;
-    --sidebar-primary: 25 95% 53%;
+    --sidebar-border: 220 20% 20%;
+    --sidebar-primary: 24 90% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
   }
 
   .dark {
-    --background: 20 14% 8%;
-    --foreground: 30 20% 96%;
+    --background: 220 20% 7%;
+    --foreground: 220 10% 90%;
     
-    --card: 20 14% 12%;
-    --card-foreground: 30 20% 96%;
+    --card: 220 20% 10%;
+    --card-foreground: 220 10% 90%;
     
-    --popover: 20 14% 12%;
-    --popover-foreground: 30 20% 96%;
+    --popover: 220 20% 10%;
+    --popover-foreground: 220 10% 90%;
     
-    --primary: 25 95% 53%;
+    --primary: 24 90% 50%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 20 14% 16%;
-    --secondary-foreground: 30 20% 96%;
+    --secondary: 220 16% 14%;
+    --secondary-foreground: 220 10% 90%;
     
-    --muted: 20 14% 16%;
-    --muted-foreground: 30 15% 60%;
+    --muted: 220 16% 14%;
+    --muted-foreground: 220 10% 55%;
     
-    --accent: 20 14% 16%;
-    --accent-foreground: 30 20% 96%;
+    --accent: 220 16% 14%;
+    --accent-foreground: 220 10% 90%;
     
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 20 14% 18%;
-    --input: 20 14% 18%;
-    --ring: 25 95% 53%;
+    --border: 220 16% 16%;
+    --input: 220 16% 16%;
+    --ring: 24 90% 50%;
     
-    --sidebar: 20 14% 8%;
-    --sidebar-foreground: 30 20% 96%;
-    --sidebar-muted: 20 14% 16%;
-    --sidebar-accent: 25 95% 53%;
+    --sidebar: 220 26% 8%;
+    --sidebar-foreground: 220 10% 85%;
+    --sidebar-muted: 220 20% 14%;
+    --sidebar-accent: 24 90% 50%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 20 14% 18%;
-    --sidebar-primary: 25 95% 53%;
+    --sidebar-border: 220 20% 14%;
+    --sidebar-primary: 24 90% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
   }
 }
@@ -153,59 +146,56 @@
   
   /* 글래스모피즘 효과 */
   .glass {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
   
   .dark .glass {
-    background: rgba(30, 28, 26, 0.85);
+    background: rgba(15, 20, 30, 0.7);
   }
   
   /* 부드러운 그림자 */
   .shadow-soft {
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 
-                0 2px 8px -2px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 
+                0 1px 2px -1px rgba(0, 0, 0, 0.03);
   }
   
   .shadow-soft-lg {
-    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1), 
-                0 4px 16px -4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08), 
+                0 2px 6px -2px rgba(0, 0, 0, 0.04);
   }
   
   /* 호버 리프트 효과 */
   .hover-lift {
-    @apply transition-all duration-300 ease-out;
+    @apply transition-all duration-200 ease-out;
   }
   .hover-lift:hover {
-    @apply -translate-y-1;
-    box-shadow: 0 12px 40px -10px rgba(249, 115, 22, 0.2),
-                0 4px 16px -4px rgba(0, 0, 0, 0.08);
+    @apply -translate-y-0.5;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.1),
+                0 2px 6px -2px rgba(0, 0, 0, 0.06);
   }
   
   /* 카드 호버 효과 */
   .card-hover {
-    @apply transition-all duration-300 ease-out;
+    @apply transition-all duration-200 ease-out;
   }
   .card-hover:hover {
-    @apply scale-[1.02] shadow-xl;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.1);
   }
   
   /* 오렌지 그라데이션 */
   .gradient-orange {
-    @apply bg-gradient-to-br from-orange-400 to-orange-600;
+    @apply bg-gradient-to-br from-orange-500 to-orange-600;
   }
   
   .gradient-orange-light {
     @apply bg-gradient-to-br from-orange-50 to-amber-50;
   }
   
-  /* 사이드바 그라데이션 */
+  /* 사이드바 */
   .gradient-sidebar {
-    background: linear-gradient(180deg, 
-      hsl(20 14% 14%) 0%, 
-      hsl(20 14% 12%) 50%, 
-      hsl(20 14% 10%) 100%);
+    background: hsl(220 26% 14%);
   }
 }
 
@@ -216,8 +206,8 @@
 
 /* 스크롤바 스타일 */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -225,23 +215,45 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(30 15% 75%);
-  border-radius: 3px;
+  background: hsl(220 10% 78%);
+  border-radius: 100px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(25 95% 53%);
+  background: hsl(220 10% 60%);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: hsl(20 14% 25%);
+  background: hsl(220 16% 22%);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: hsl(25 95% 53%);
+  background: hsl(220 16% 30%);
 }
 
 /* 애니메이션 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes slide-in {
   from {
     transform: translateX(100%);
@@ -253,39 +265,8 @@
   }
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes pulse-orange {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
 .animate-slide-in {
-  animation: slide-in 0.3s ease-out;
+  animation: slide-in 0.25s ease-out;
 }
 
 .animate-fade-in {
@@ -294,10 +275,6 @@
 
 .animate-scale-in {
   animation: scale-in 0.2s ease-out;
-}
-
-.animate-pulse-orange {
-  animation: pulse-orange 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* 인쇄 시 다크모드 비활성화 */

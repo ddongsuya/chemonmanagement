@@ -1,11 +1,11 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { DashboardPersonalStats } from '@/lib/dashboard-api';
-import { FileText, Trophy, TrendingUp, Users, Clock } from 'lucide-react';
+import { FileText, TrendingUp, Users } from 'lucide-react';
 import WonSign from '@/components/icons/WonSign';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface PersonalDashboardProps {
   stats: DashboardPersonalStats;
@@ -26,121 +26,87 @@ function formatAmount(amount: number): string {
   return amount.toLocaleString();
 }
 
+const statCards = [
+  { key: 'quotation', label: '내 견적 금액', icon: FileText, color: 'text-orange-600 dark:text-orange-400', iconBg: 'bg-orange-100 dark:bg-orange-900/30', href: '/quotations' },
+  { key: 'contract', label: '내 계약 금액', icon: WonSign, color: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', href: '/contracts' },
+  { key: 'kpi', label: '내 수주율', icon: TrendingUp, color: 'text-blue-600 dark:text-blue-400', iconBg: 'bg-blue-100 dark:bg-blue-900/30', href: '/reports' },
+  { key: 'lead', label: '내 리드', icon: Users, color: 'text-violet-600 dark:text-violet-400', iconBg: 'bg-violet-100 dark:bg-violet-900/30', href: '/leads' },
+] as const;
+
 export default function PersonalDashboard({ stats, userName, period }: PersonalDashboardProps) {
   const { quotation, contract, lead, kpi } = stats;
 
+  const getValue = (key: string) => {
+    switch (key) {
+      case 'quotation': return formatAmount(quotation.amount);
+      case 'contract': return formatAmount(contract.amount);
+      case 'kpi': return `${kpi.conversionRate}%`;
+      case 'lead': return `${lead.count}건`;
+      default: return '-';
+    }
+  };
+
+  const getSub = (key: string) => {
+    switch (key) {
+      case 'quotation': return `${quotation.count}건`;
+      case 'contract': return `${contract.count}건`;
+      case 'kpi': return `수주 ${kpi.won} / 실주 ${kpi.lost}`;
+      case 'lead': return '신규 문의';
+      default: return '';
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      {/* 개인 현황 헤더 */}
-      <div className="flex items-center gap-2">
-        <Users className="w-5 h-5 text-blue-500" />
-        <h2 className="text-lg font-semibold">{userName}님의 현황</h2>
-        <Badge variant="outline" className="ml-2">
-          {period.year}년 {period.month}월
-        </Badge>
+    <div className="space-y-5">
+      {/* 헤더 */}
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-base font-semibold text-foreground">{userName}님의 현황</h2>
+        <span className="text-xs text-muted-foreground">{period.year}년 {period.month}월</span>
       </div>
 
-      {/* 개인 통계 카드 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link href="/quotations">
-          <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200/50 hover:scale-[1.02] transition-transform cursor-pointer">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <FileText className="w-4 h-4" />
-                내 견적 금액
-              </div>
-              <div className="text-2xl font-bold text-orange-600 mt-1">
-                {formatAmount(quotation.amount)}
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {quotation.count}건
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/contracts">
-          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-emerald-200/50 hover:scale-[1.02] transition-transform cursor-pointer">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <WonSign className="w-4 h-4" />
-                내 계약 금액
-              </div>
-              <div className="text-2xl font-bold text-emerald-600 mt-1">
-                {formatAmount(contract.amount)}
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {contract.count}건
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/reports">
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200/50 hover:scale-[1.02] transition-transform cursor-pointer">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <TrendingUp className="w-4 h-4" />
-                내 수주율
-              </div>
-              <div className="text-2xl font-bold text-blue-600 mt-1">
-                {kpi.conversionRate}%
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                수주 {kpi.won} / 실주 {kpi.lost}
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/leads">
-          <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-violet-200/50 hover:scale-[1.02] transition-transform cursor-pointer">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="w-4 h-4" />
-                내 리드
-              </div>
-              <div className="text-2xl font-bold text-violet-600 mt-1">
-                {lead.count}건
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                신규 문의
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+      {/* 통계 카드 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {statCards.map(({ key, label, icon: Icon, color, iconBg, href }) => (
+          <Link key={key} href={href}>
+            <Card className="shadow-soft hover:shadow-soft-lg transition-shadow duration-200">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={cn('p-1.5 rounded-md', iconBg)}>
+                    <Icon className={cn('w-3.5 h-3.5', color)} />
+                  </div>
+                  <span className="text-xs text-muted-foreground">{label}</span>
+                </div>
+                <div className={cn('text-xl font-semibold', color)}>
+                  {getValue(key)}
+                </div>
+                <div className="text-[11px] text-muted-foreground/60 mt-0.5">
+                  {getSub(key)}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
 
       {/* 견적서 상태별 현황 */}
       {quotation.byStatus && Object.keys(quotation.byStatus).length > 0 && (
-        <Card>
+        <Card className="shadow-soft">
           <CardContent className="p-4">
             <h3 className="text-sm font-medium mb-3">견적서 상태별 현황</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <div className="text-xs text-muted-foreground">작성중</div>
-                <div className="text-lg font-semibold">
-                  {quotation.byStatus['DRAFT']?.count || 0}건
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {[
+                { key: 'DRAFT', label: '작성중', color: '' },
+                { key: 'SENT', label: '발송완료', color: 'text-blue-600' },
+                { key: 'ACCEPTED', label: '수주', color: 'text-emerald-600' },
+                { key: 'REJECTED', label: '실주', color: 'text-red-500' },
+              ].map(({ key, label, color: textColor }) => (
+                <div key={key} className="p-3 bg-muted/50 rounded-lg">
+                  <div className="text-[11px] text-muted-foreground">{label}</div>
+                  <div className={cn('text-lg font-semibold mt-0.5', textColor)}>
+                    {quotation.byStatus?.[key]?.count || 0}건
+                  </div>
                 </div>
-              </div>
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                <div className="text-xs text-muted-foreground">발송완료</div>
-                <div className="text-lg font-semibold text-blue-600">
-                  {quotation.byStatus['SENT']?.count || 0}건
-                </div>
-              </div>
-              <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
-                <div className="text-xs text-muted-foreground">수주</div>
-                <div className="text-lg font-semibold text-green-600">
-                  {quotation.byStatus['ACCEPTED']?.count || 0}건
-                </div>
-              </div>
-              <div className="p-3 bg-red-50 dark:bg-red-900/30 rounded-lg">
-                <div className="text-xs text-muted-foreground">실주</div>
-                <div className="text-lg font-semibold text-red-600">
-                  {quotation.byStatus['REJECTED']?.count || 0}건
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>

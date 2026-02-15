@@ -102,19 +102,19 @@ export default function DashboardCarousel() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* 탭 네비게이션 */}
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center justify-center gap-1.5">
         <Button
           variant="ghost"
           size="icon"
           onClick={goToPrev}
-          className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0"
+          className="rounded-full h-8 w-8 flex-shrink-0"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4" />
         </Button>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
           {carouselItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = index === activeIndex;
@@ -124,35 +124,14 @@ export default function DashboardCarousel() {
                 key={item.id}
                 onClick={() => goToSlide(index)}
                 className={cn(
-                  'flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all duration-300 flex-shrink-0',
+                  'flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 flex-shrink-0 text-sm',
                   isActive
-                    ? 'bg-white dark:bg-slate-800 shadow-soft-lg scale-105'
-                    : 'hover:bg-slate-100 dark:hover:bg-slate-800/50 opacity-60 hover:opacity-100'
+                    ? 'bg-card shadow-soft font-medium text-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 )}
               >
-                <div
-                  className={cn(
-                    'w-10 h-10 rounded-lg flex items-center justify-center transition-all',
-                    isActive ? item.color : 'bg-slate-200 dark:bg-slate-700'
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      'w-5 h-5',
-                      isActive ? 'text-white' : 'text-slate-500'
-                    )}
-                  />
-                </div>
-                <span
-                  className={cn(
-                    'text-xs font-medium whitespace-nowrap',
-                    isActive
-                      ? 'text-slate-900 dark:text-white'
-                      : 'text-slate-500'
-                  )}
-                >
-                  {item.title}
-                </span>
+                <Icon className="w-4 h-4" />
+                <span className="whitespace-nowrap">{item.title}</span>
               </button>
             );
           })}
@@ -162,16 +141,16 @@ export default function DashboardCarousel() {
           variant="ghost"
           size="icon"
           onClick={goToNext}
-          className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0"
+          className="rounded-full h-8 w-8 flex-shrink-0"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
 
       {/* 콘텐츠 영역 */}
-      <div className="relative overflow-hidden rounded-2xl">
+      <div className="relative overflow-hidden rounded-xl">
         <div
-          className="flex transition-transform duration-500 ease-out"
+          className="flex transition-transform duration-400 ease-out"
           style={{ transform: `translateX(-${activeIndex * 100}%)` }}
         >
           {carouselItems.map((item) => (
@@ -183,16 +162,16 @@ export default function DashboardCarousel() {
       </div>
 
       {/* 인디케이터 */}
-      <div className="flex justify-center gap-1.5">
+      <div className="flex justify-center gap-1">
         {carouselItems.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
             className={cn(
-              'h-1.5 rounded-full transition-all duration-300',
+              'h-1 rounded-full transition-all duration-200',
               index === activeIndex
-                ? 'w-6 bg-blue-500'
-                : 'w-1.5 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400'
+                ? 'w-5 bg-primary'
+                : 'w-1.5 bg-border hover:bg-muted-foreground/30'
             )}
           />
         ))}

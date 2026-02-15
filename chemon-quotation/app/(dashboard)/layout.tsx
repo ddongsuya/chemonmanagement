@@ -19,7 +19,7 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-background">
         {/* 사이드바 */}
         <Sidebar />
 
@@ -32,7 +32,7 @@ export default function DashboardLayout({
           <Header />
 
           {/* 페이지 콘텐츠 */}
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <main className="flex-1 overflow-y-auto p-5 md:p-8">
             {children}
           </main>
         </div>
