@@ -6,8 +6,6 @@ import { Search, Menu, FileText, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import UserMenu from './UserMenu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import MobileNav from './MobileNav';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import { NotificationDropdown } from '@/components/notification';
 import { getQuotations, getCustomers } from '@/lib/data-api';
@@ -30,6 +28,7 @@ export default function Header({ title }: HeaderProps) {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   // 검색 실행
@@ -115,30 +114,35 @@ export default function Header({ title }: HeaderProps) {
 
   return (
     <header className="h-14 bg-card/80 backdrop-blur-md border-b border-border/60 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
-      {/* 좌측: 모바일 메뉴 + 타이틀 */}
+      {/* 좌측: 타이틀 */}
       <div className="flex items-center gap-4">
-        {/* 모바일 메뉴 버튼 */}
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="w-5 h-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
-            <MobileNav />
-          </SheetContent>
-        </Sheet>
-
         {/* 페이지 타이틀 */}
         {title && (
           <h1 className="text-base font-medium text-foreground hidden sm:block">
             {title}
           </h1>
         )}
+        {/* 모바일: 로고 */}
+        <div className="flex items-center gap-2 md:hidden">
+          <div className="w-6 h-6 rounded-md bg-orange-500 flex items-center justify-center">
+            <span className="text-white text-[10px] font-bold">C</span>
+          </div>
+          <span className="text-sm font-semibold text-foreground">CHEMON</span>
+        </div>
       </div>
 
       {/* 우측: 검색 + 알림 + 사용자 */}
       <div className="flex items-center gap-2 md:gap-4">
+        {/* 모바일 검색 버튼 */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setMobileSearchOpen(true)}
+        >
+          <Search className="w-5 h-5" />
+        </Button>
+
         {/* 검색 (PC만) */}
         <div className="hidden md:flex items-center" ref={searchRef}>
           <div className="relative">
@@ -208,6 +212,72 @@ export default function Header({ title }: HeaderProps) {
         {/* 사용자 메뉴 */}
         <UserMenu />
       </div>
+
+      {/* 모바일 검색 오버레이 */}
+      {mobileSearchOpen && (
+        <div className="fixed inset-0 z-50 bg-background md:hidden">
+          <div className="flex items-center gap-2 px-4 h-14 border-b border-border">
+            <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+            <input
+              autoFocus
+              type="text"
+              placeholder="견적번호, 고객사, 프로젝트 검색..."
+              className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setMobileSearchOpen(false);
+                setSearchQuery('');
+                setSearchResults([]);
+              }}
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+          <div className="overflow-y-auto max-h-[calc(100vh-3.5rem)]">
+            {searchResults.length > 0 ? (
+              <ul className="py-2">
+                {searchResults.map((result) => (
+                  <li key={`${result.type}-${result.id}`}>
+                    <button
+                      onClick={() => {
+                        handleResultClick(result);
+                        setMobileSearchOpen(false);
+                      }}
+                      className="w-full px-4 py-3 flex items-center gap-3 active:bg-muted text-left touch-manipulation"
+                    >
+                      {getResultIcon(result.type)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {result.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {result.subtitle}
+                        </p>
+                      </div>
+                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                        {result.type === 'quotation' ? '견적' : '고객'}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : searchQuery.length >= 2 ? (
+              <div className="px-4 py-12 text-center text-muted-foreground text-sm">
+                {isSearching ? '검색 중...' : '검색 결과가 없습니다'}
+              </div>
+            ) : (
+              <div className="px-4 py-12 text-center text-muted-foreground text-sm">
+                2글자 이상 입력해주세요
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

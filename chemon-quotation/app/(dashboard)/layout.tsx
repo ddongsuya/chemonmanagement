@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AnnouncementBanner, AnnouncementModal } from '@/components/announcement';
 import { preloadMasterData } from '@/hooks/useMasterData';
@@ -36,10 +37,13 @@ export default function DashboardLayout({
           <Header />
 
           {/* 페이지 콘텐츠 */}
-          <main className="flex-1 overflow-y-auto p-5 md:p-8">
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-20 md:pb-8">
             {children}
           </main>
         </div>
+
+        {/* 모바일 하단 네비게이션 */}
+        <MobileBottomNav />
 
         {/* 중요 공지사항 모달 */}
         <AnnouncementModal />
