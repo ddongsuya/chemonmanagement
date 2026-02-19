@@ -103,20 +103,32 @@ function ConsultationNewContent() {
             // 견적 내용 시트용 데이터 준비
             const contentItems: QuotationContentItem[] = rawItems
               .filter((item: any) => !item.is_option && !item.isOption)
-              .map((item: any, index: number) => ({
-                no: index + 1,
-                testName: item.test?.test_name?.split('\n')[0] || item.testName || item.test_name || '',
-                species: item.test?.animal_species || item.species || '-',
-                duration: item.test?.dosing_period || item.duration || '-',
-                route: item.test?.route || item.route || '-',
-                animalCount: '-',
-                groupCount: '-',
-                options: rawItems
-                  .filter((opt: any) => (opt.is_option || opt.isOption) && opt.parent_item_id === item.id)
-                  .map((opt: any) => opt.test?.test_name?.split('\n')[0] || opt.testName || '')
-                  .join(', ') || '-',
-                remarks: '-',
-              }));
+              .map((item: any, index: number) => {
+                // v2 구조: { itemId, name, category, price, isOption, ... }
+                // 레거시 구조: { test: { test_name, ... }, is_option, ... }
+                const isV2 = item.itemId !== undefined;
+                return {
+                  no: index + 1,
+                  testName: isV2
+                    ? (item.name || '')
+                    : (item.test?.test_name?.split('\n')[0] || item.testName || item.test_name || ''),
+                  species: isV2 ? '-' : (item.test?.animal_species || item.species || '-'),
+                  duration: isV2 ? '-' : (item.test?.dosing_period || item.duration || '-'),
+                  route: isV2 ? '-' : (item.test?.route || item.route || '-'),
+                  animalCount: '-',
+                  groupCount: '-',
+                  options: isV2
+                    ? (rawItems
+                        .filter((opt: any) => opt.isOption && opt.parentId === item.id)
+                        .map((opt: any) => opt.name || '')
+                        .join(', ') || '-')
+                    : (rawItems
+                        .filter((opt: any) => (opt.is_option || opt.isOption) && opt.parent_item_id === item.id)
+                        .map((opt: any) => opt.test?.test_name?.split('\n')[0] || opt.testName || '')
+                        .join(', ') || '-'),
+                  remarks: '-',
+                };
+              });
             setQuotationItems(contentItems);
           }
         } else if (store.selectedItems.length > 0) {

@@ -159,14 +159,22 @@ export default function QuotationDetailPage() {
     );
   }
 
-  // 시험 항목 변환 (null/undefined 체크 추가)
-  const items = (quotation.items || []).map(item => ({
-    id: item.id,
-    name: item.test?.test_name?.split('\n')[0] || item.testName || item.test_name || '시험항목',
-    glp: item.test?.glp_status || item.glpStatus || 'N/A',
-    amount: item.amount || item.totalPrice || item.total_price || 0,
-    is_option: item.is_option || item.isOption || false,
-  }));
+  // 시험 항목 변환 — v2 구조와 레거시 구조 모두 지원
+  const items = (quotation.items || []).map((item: any, idx: number) => {
+    // v2 구조: { itemId, name, category, price, isOption, parentId, sortOrder, tkConfig }
+    // 레거시 구조: { id, test: { test_name, glp_status }, amount, is_option }
+    const isV2 = item.itemId !== undefined;
+
+    return {
+      id: item.id || item.itemId || `item-${idx}`,
+      name: isV2
+        ? (item.name || '시험항목')
+        : (item.test?.test_name?.split('\n')[0] || item.testName || item.test_name || '시험항목'),
+      category: isV2 ? (item.category || '-') : (item.test?.glp_status || item.glpStatus || 'N/A'),
+      amount: isV2 ? (item.price || 0) : (item.amount || item.totalPrice || item.total_price || 0),
+      is_option: item.is_option || item.isOption || false,
+    };
+  });
 
   return (
     <div>
@@ -252,7 +260,7 @@ export default function QuotationDetailPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>시험항목</TableHead>
-                    <TableHead>규격</TableHead>
+                    <TableHead>카테고리</TableHead>
                     <TableHead className="text-right">금액</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -266,9 +274,9 @@ export default function QuotationDetailPage() {
                       >
                         {item.is_option ? '└ ' : ''}{item.name}
                       </TableCell>
-                      <TableCell>{item.glp}</TableCell>
+                      <TableCell>{item.category}</TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(item.amount)}
+                        {item.amount > 0 ? formatCurrency(item.amount) : '별도 협의'}
                       </TableCell>
                     </TableRow>
                   ))}

@@ -13,11 +13,9 @@ import PreviewQuote from './PreviewQuote';
 import PreviewDetail from './PreviewDetail';
 import {
   ArrowLeft,
-  FileText,
   Printer,
   Save,
   Loader2,
-  FileSpreadsheet,
   FileSignature,
 } from 'lucide-react';
 import Link from 'next/link';

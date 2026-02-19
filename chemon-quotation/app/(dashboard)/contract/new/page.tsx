@@ -94,15 +94,22 @@ function ContractNewContent() {
               quotation_number: q.quotationNumber,
               customer_name: q.customerName,
               project_name: q.projectName,
-              items: rawItems.map((item: any) => ({
-                test_name: item.testName || item.test_name || item.test?.test_name || '시험항목',
-                species: item.species || item.test?.animal_species,
-                duration: item.duration || item.test?.dosing_period,
-                route: item.route || item.test?.route,
-                unit_price: item.unitPrice || item.unit_price || item.amount || 0,
-                quantity: item.quantity || 1,
-                total_price: item.totalPrice || item.total_price || item.amount || 0,
-              })),
+              items: rawItems.map((item: any) => {
+                // v2 구조: { itemId, name, category, price, isOption, ... }
+                // 레거시 구조: { test: { test_name, animal_species, ... }, amount, ... }
+                const isV2 = item.itemId !== undefined;
+                return {
+                  test_name: isV2
+                    ? (item.name || '시험항목')
+                    : (item.testName || item.test_name || item.test?.test_name || '시험항목'),
+                  species: isV2 ? undefined : (item.species || item.test?.animal_species),
+                  duration: isV2 ? undefined : (item.duration || item.test?.dosing_period),
+                  route: isV2 ? undefined : (item.route || item.test?.route),
+                  unit_price: isV2 ? (item.price || 0) : (item.unitPrice || item.unit_price || item.amount || 0),
+                  quantity: item.quantity || 1,
+                  total_price: isV2 ? (item.price || 0) : (item.totalPrice || item.total_price || item.amount || 0),
+                };
+              }),
               total_amount: Number(q.totalAmount) || 0,
             });
           }
