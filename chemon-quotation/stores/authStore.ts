@@ -150,11 +150,28 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      storage: {
+        getItem: (name) => {
+          if (typeof window === 'undefined') return null;
+          const value = sessionStorage.getItem(name);
+          return value ? JSON.parse(value) : null;
+        },
+        setItem: (name, value) => {
+          if (typeof window === 'undefined') return;
+          sessionStorage.setItem(name, JSON.stringify(value));
+        },
+        removeItem: (name) => {
+          if (typeof window === 'undefined') return;
+          sessionStorage.removeItem(name);
+          // 기존 localStorage 잔여 데이터 정리
+          localStorage.removeItem(name);
+        },
+      },
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
         unreadNotifications: state.unreadNotifications,
-      }),
+      } as unknown as AuthState),
     }
   )
 );

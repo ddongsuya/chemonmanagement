@@ -3,12 +3,15 @@
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useInactivityLogout } from '@/hooks/useInactivityLogout';
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // 30분 비활동 시 자동 로그아웃
+  useInactivityLogout();
   return (
     <ProtectedRoute requiredRole="ADMIN">
       <div className="flex h-screen bg-gray-100 dark:bg-gray-950">

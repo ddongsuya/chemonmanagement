@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AnnouncementBanner, AnnouncementModal } from '@/components/announcement';
 import { preloadMasterData } from '@/hooks/useMasterData';
+import { useInactivityLogout } from '@/hooks/useInactivityLogout';
 
 export default function DashboardLayout({
   children,
@@ -16,6 +17,9 @@ export default function DashboardLayout({
   useEffect(() => {
     preloadMasterData();
   }, []);
+
+  // 30분 비활동 시 자동 로그아웃
+  useInactivityLogout();
 
   return (
     <ProtectedRoute>
