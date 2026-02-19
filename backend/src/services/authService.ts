@@ -42,8 +42,8 @@ export class AuthService {
     
     this.accessTokenSecret = accessSecret || 'chemon-access-secret-dev-only';
     this.refreshTokenSecret = refreshSecret || 'chemon-refresh-secret-dev-only';
-    this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || '15m';
-    this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '7d';
+    this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || process.env.JWT_EXPIRES_IN || '15m';
+    this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || process.env.JWT_REFRESH_EXPIRES_IN || '7d';
   }
 
   /**
