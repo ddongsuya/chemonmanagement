@@ -1,0 +1,1649 @@
+// prisma/schema.prisma
+// CHEMON 견적관리 시스템 - 확장 스키마
+// 리드 관리, 계약 관리, 시험 관리, 상담기록 추가
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== Enums ====================
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum QuotationType {
+  TOXICITY
+  EFFICACY
+  CLINICAL_PATHOLOGY
+}
+
+enum AnnouncementPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NotificationType {
+  ANNOUNCEMENT
+  SYSTEM
+  REMINDER
+}
+
+// 신규 Enum - 리드 관련
+enum LeadSource {
+  EMAIL
+  PHONE
+  WEBSITE
+  REFERRAL
+  EXHIBITION
+  OTHER
+}
+
+enum LeadStatus {
+  NEW // 신규
+  CONTACTED // 연락완료
+  QUALIFIED // 검토완료
+  PROPOSAL // 견적발송 (잠재고객)
+  NEGOTIATION // 협상중
+  CONVERTED // 계약전환 (고객)
+  LOST // 실패
+  DORMANT // 휴면
+}
+
+// 신규 Enum - 계약 관련
+enum ContractStatus {
+  NEGOTIATING // 협의중
+  SIGNED // 체결
+  TEST_RECEIVED // 시험접수
+  IN_PROGRESS // 진행중
+  COMPLETED // 완료
+  TERMINATED // 해지
+}
+
+// 신규 Enum - 시험 관련
+enum StudyStatus {
+  REGISTERED // 접수
+  PREPARING // 준비중
+  IN_PROGRESS // 진행중
+  ANALYSIS // 분석중
+  REPORT_DRAFT // 보고서 작성중
+  REPORT_REVIEW // 보고서 검토중
+  COMPLETED // 완료
+  SUSPENDED // 중단
+}
+
+// 신규 Enum - 고객 등급
+enum CustomerGrade {
+  LEAD // 리드 (문의단계)
+  PROSPECT // 잠재고객 (견적발송)
+  CUSTOMER // 고객 (계약체결)
+  VIP // VIP 고객
+  INACTIVE // 비활성
+}
+
+// 신규 Enum - 부서
+enum Department {
+  BD1 // 사업개발 1센터
+  BD2 // 사업개발 2센터
+  SUPPORT // 사업지원팀
+}
+
+// 신규 Enum - 직급
+enum Position {
+  MANAGER // 매니저
+  CENTER_HEAD // 센터장
+  DIVISION_HEAD // 본부장
+  CEO // 대표
+  CHAIRMAN // 회장
+}
+
+// 신규 Enum - 직책
+enum Title {
+  TEAM_LEADER // 팀장
+}
+
+// ==================== User & Auth ====================
+
+model User {
+  id              String      @id @default(uuid())
+  email           String      @unique
+  password        String
+  name            String
+  phone           String?
+  department      Department? // 부서 (Enum)
+  position        Position? // 직급 (Enum)
+  title           Title? // 직책 (Enum)
+  role            UserRole    @default(USER)
+  status          UserStatus  @default(ACTIVE)
+  canViewAllSales Boolean     @default(false) // 전체 매출 조회 권한
+  canViewAllData  Boolean     @default(false) // 전체 데이터 조회 권한
+  loginAttempts   Int         @default(0)
+  lockedUntil     DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // 기존 관계
+  quotations    Quotation[]
+  customers     Customer[]
+  notifications Notification[]
+  activityLogs  ActivityLog[]
+  announcements Announcement[] @relation("CreatedAnnouncements")
+  refreshTokens RefreshToken[]
+
+  // 신규 관계
+  leads               Lead[]
+  leadActivities      LeadActivity[]
+  contracts           Contract[]
+  consultationRecords ConsultationRecord[]
+
+  // CRM Extension 관계
+  activities Activity[]
+
+  // Clinical Pathology 관계
+  clinicalQuotations             ClinicalQuotation[]
+  clinicalTestRequestsCreated    ClinicalTestRequest[] @relation("ClinicalTestRequestCreatedBy")
+  clinicalTestRequestsAsDirector ClinicalTestRequest[] @relation("ClinicalTestDirector")
+  clinicalTestRequestsAsReceiver ClinicalTestRequest[] @relation("ClinicalReceiver")
+  clinicalTestRequestsAsManager  ClinicalTestRequest[] @relation("ClinicalOperationManager")
+
+  // Announcement Comments 관계
+  announcementComments AnnouncementComment[] @relation("AnnouncementComments")
+
+  // PWA 푸시 알림 관계
+  pushSubscriptions PushSubscription[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// ==================== Pipeline & Workflow (신규) ====================
+
+// 파이프라인 단계 (사용자 정의 가능)
+model PipelineStage {
+  id          String   @id @default(uuid())
+  name        String // 단계명 (문의접수, 검토 등)
+  code        String   @unique // 코드 (INQUIRY, REVIEW 등)
+  order       Int // 순서
+  color       String? // UI 표시 색상
+  description String? // 설명
+  isDefault   Boolean  @default(false) // 기본 단계 여부
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  leads Lead[]
+  tasks StageTask[]
+}
+
+// 단계별 세부 태스크 (사용자 정의 가능)
+model StageTask {
+  id          String        @id @default(uuid())
+  stageId     String
+  stage       PipelineStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  name        String // 태스크명
+  order       Int // 순서
+  isRequired  Boolean       @default(false) // 필수 여부
+  description String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  completions LeadTaskCompletion[]
+}
+
+// ==================== Lead Management (신규) ====================
+
+model Lead {
+  id         String @id @default(uuid())
+  leadNumber String @unique // LD-2025-0001
+
+  // 담당자
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // 고객사 정보 (Customer 전환 전)
+  companyName  String // 회사명
+  contactName  String // 담당자명
+  contactEmail String?
+  contactPhone String?
+  department   String? // 부서
+  position     String? // 직책
+
+  // 문의 정보
+  source         LeadSource     @default(OTHER) // 유입 경로
+  inquiryType    QuotationType? // 독성/효력
+  inquiryDetail  String? // 문의 내용
+  expectedAmount Decimal?       @db.Decimal(15, 2) // 예상 금액
+  expectedDate   DateTime? // 예상 계약일
+
+  // 파이프라인
+  stageId String
+  stage   PipelineStage @relation(fields: [stageId], references: [id])
+  status  LeadStatus    @default(NEW)
+
+  // 전환 정보
+  customerId  String? // 전환된 Customer ID
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  convertedAt DateTime?
+
+  // 미진행 사유 (확장)
+  lostReason       String? // LostReason enum 값 (BUDGET_PLANNING, COMPETITOR_SELECTED, PRICE_ISSUE, SCHEDULE_ISSUE, ON_HOLD, OTHER)
+  lostReasonDetail String? // 기타 사유 상세 (lostReason이 OTHER인 경우 필수)
+  lostAt           DateTime? // 미진행 처리 일시
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  activities      LeadActivity[]
+  taskCompletions LeadTaskCompletion[]
+  quotations      Quotation[]
+}
+
+// 리드 활동 기록 (상담 내역)
+model LeadActivity {
+  id     String @id @default(uuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  type        String // CALL, EMAIL, MEETING, NOTE
+  subject     String // 제목
+  content     String // 내용
+  contactedAt DateTime  @default(now()) // 연락 일시
+  nextAction  String? // 다음 액션
+  nextDate    DateTime? // 다음 일정
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 리드별 태스크 완료 현황
+model LeadTaskCompletion {
+  id          String    @id @default(uuid())
+  leadId      String
+  lead        Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  taskId      String
+  task        StageTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  completedBy String
+  completedAt DateTime  @default(now())
+  notes       String?
+
+  @@unique([leadId, taskId])
+}
+
+// ==================== Customer (확장) ====================
+
+model Customer {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  company   String?
+  email     String?
+  phone     String?
+  address   String?
+  notes     String?
+  grade     CustomerGrade @default(PROSPECT) // 신규: 고객 등급
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  // 기존 관계
+  quotations Quotation[]
+
+  // 신규 관계
+  leads               Lead[]
+  contracts           Contract[]
+  consultationRecords ConsultationRecord[]
+  requesters          Requester[]
+  meetingRecords      MeetingRecord[]
+  testReceptions      TestReception[]
+  invoiceSchedules    InvoiceSchedule[]
+  calendarEvents      CalendarEvent[]
+  progressStages      CustomerProgressStage[]
+
+  // Clinical Pathology 관계
+  clinicalQuotations ClinicalQuotation[]
+
+  // 인덱스 최적화
+  @@index([userId])
+  @@index([grade])
+  @@index([name])
+  @@index([company])
+}
+
+// ==================== Requester (의뢰자) ====================
+
+model Requester {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  name       String // 이름
+  position   String? // 직책
+  department String? // 부서
+  phone      String?
+  email      String?
+  isPrimary  Boolean @default(false) // 주 담당자 여부
+  isActive   Boolean @default(true) // 활성화 상태
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  meetingRecords MeetingRecord[]
+  testReceptions TestReception[]
+
+  // Clinical Pathology 관계
+  clinicalQuotations ClinicalQuotation[]
+}
+
+// ==================== MeetingRecord (미팅 기록) ====================
+
+model MeetingRecord {
+  id          String     @id @default(uuid())
+  customerId  String
+  customer    Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  requesterId String?
+  requester   Requester? @relation(fields: [requesterId], references: [id])
+
+  type     String // meeting, call, email, visit
+  date     DateTime
+  time     String?
+  duration Int? // 분 단위
+
+  title           String
+  attendees       Json    @default("[]") // 참석자 배열
+  content         String // 내용 (리치 텍스트)
+  followUpActions String? // 후속 조치
+
+  attachments Json? // 첨부파일 배열
+
+  // 요청사항 관련
+  isRequest          Boolean   @default(false)
+  requestStatus      String? // pending, in_progress, completed
+  requestCompletedAt DateTime?
+  requestResponse    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  calendarEvents CalendarEvent[]
+}
+
+// ==================== TestReception (시험 접수) ====================
+
+model TestReception {
+  id          String     @id @default(uuid())
+  customerId  String
+  customer    Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  requesterId String?
+  requester   Requester? @relation(fields: [requesterId], references: [id])
+  contractId  String?
+  quotationId String?
+
+  // 헤더 정보
+  substanceCode   String? // 물질코드
+  projectCode     String? // 프로젝트코드
+  substanceName   String? // 시험물질명
+  institutionName String? // 의뢰기관명
+  testNumber      String? @unique // 시험번호
+  testTitle       String? // 시험제목
+  testDirector    String? // 시험책임자
+
+  // 시험번호 발행 정보 (신규)
+  testNumberIssuedAt DateTime? // 시험번호 발행 일시
+  testNumberIssuedBy String?   // 시험번호 발행자 (User ID)
+
+  // 금액 정보
+  totalAmount     Decimal @default(0) @db.Decimal(15, 2)
+  paidAmount      Decimal @default(0) @db.Decimal(15, 2)
+  remainingAmount Decimal @default(0) @db.Decimal(15, 2)
+
+  // 상태
+  status                 String    @default("received") // received, in_progress, completed, cancelled
+  receptionDate          DateTime?
+  expectedCompletionDate DateTime?
+  actualCompletionDate   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoiceSchedules InvoiceSchedule[]
+  calendarEvents   CalendarEvent[]
+  study            Study? // Study 연결 (역방향)
+}
+
+// ==================== InvoiceSchedule (세금계산서 발행 일정) ====================
+
+model InvoiceSchedule {
+  id              String         @id @default(uuid())
+  testReceptionId String?
+  testReception   TestReception? @relation(fields: [testReceptionId], references: [id])
+  customerId      String
+  customer        Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  amount        Decimal   @db.Decimal(15, 2)
+  scheduledDate DateTime // 발행 예정일
+  issuedDate    DateTime? // 실제 발행일
+  invoiceNumber String? // 세금계산서 번호
+
+  paymentType       String @default("full") // full, partial
+  installmentNumber Int? // 분할 회차
+  totalInstallments Int? // 총 분할 횟수
+
+  status String  @default("pending") // pending, issued, paid, overdue
+  notes  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  calendarEvents CalendarEvent[]
+}
+
+// ==================== CalendarEvent (캘린더 이벤트) ====================
+
+model CalendarEvent {
+  id                String           @id @default(uuid())
+  customerId        String?
+  customer          Customer?        @relation(fields: [customerId], references: [id])
+  testReceptionId   String?
+  testReception     TestReception?   @relation(fields: [testReceptionId], references: [id])
+  invoiceScheduleId String?
+  invoiceSchedule   InvoiceSchedule? @relation(fields: [invoiceScheduleId], references: [id])
+  meetingRecordId   String?
+  meetingRecord     MeetingRecord?   @relation(fields: [meetingRecordId], references: [id])
+
+  type        String // meeting, invoice, deadline, reminder, other
+  title       String
+  description String?
+
+  startDate DateTime
+  endDate   DateTime?
+  allDay    Boolean   @default(false)
+
+  color          String?
+  reminderBefore Int? // 분 단위
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== CustomerProgressStage (고객 진행 단계) ====================
+
+model CustomerProgressStage {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  quotationId String?
+  contractId  String?
+
+  currentStage String @default("inquiry") // 현재 단계
+  checklist    Json   @default("[]") // 체크리스트 항목 배열
+  stageHistory Json   @default("[]") // 단계 이력 배열
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([customerId])
+}
+
+// ==================== Quotation (확장) ====================
+
+model Quotation {
+  id              String        @id @default(uuid())
+  quotationNumber String        @unique
+  quotationType   QuotationType @default(TOXICITY)
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId      String?
+  customer        Customer?     @relation(fields: [customerId], references: [id])
+  customerName    String
+  projectName     String
+  modality        String?
+
+  // 효력시험 전용 필드
+  modelId       String?
+  modelCategory String?
+  indication    String?
+
+  items Json
+
+  // 금액 정보
+  subtotalTest     Decimal? @db.Decimal(15, 2)
+  subtotalAnalysis Decimal? @db.Decimal(15, 2)
+  subtotal         Decimal? @db.Decimal(15, 2)
+  discountRate     Decimal? @db.Decimal(5, 2)
+  discountAmount   Decimal? @db.Decimal(15, 2)
+  vat              Decimal? @db.Decimal(15, 2)
+  totalAmount      Decimal  @db.Decimal(15, 2)
+
+  validDays  Int             @default(30)
+  validUntil DateTime?
+  notes      String?
+  status     QuotationStatus @default(DRAFT)
+
+  // 신규: 버전 관리
+  version   Int         @default(1) // 버전 번호
+  parentId  String? // 원본 견적서 ID
+  parent    Quotation?  @relation("QuotationVersions", fields: [parentId], references: [id])
+  revisions Quotation[] @relation("QuotationVersions")
+
+  // 신규: 리드 연결
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // 신규: 계약 연결
+  contracts Contract[] @relation("QuotationContracts")
+
+  // 인덱스 최적화
+  @@index([userId])
+  @@index([customerId])
+  @@index([status])
+  @@index([quotationType])
+  @@index([createdAt])
+  @@index([status, userId]) // 복합 인덱스: 사용자별 상태 조회
+}
+
+// ==================== Contract (신규) ====================
+
+model Contract {
+  id             String @id @default(uuid())
+  contractNumber String @unique // CT-2025-0001
+
+  // 관계
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  // 계약 정보
+  title        String // 계약명
+  contractType QuotationType // 독성/효력
+
+  // 금액
+  totalAmount Decimal @db.Decimal(15, 2)
+  paidAmount  Decimal @default(0) @db.Decimal(15, 2)
+
+  // 지급조건 (신규)
+  paymentType          String   @default("FULL") // FULL, INSTALLMENT, PER_TEST
+  advancePaymentRate   Decimal? @db.Decimal(5, 2) // 선금 비율 (%)
+  advancePaymentAmount Decimal? @db.Decimal(15, 2) // 선금 금액
+  balancePaymentAmount Decimal? @db.Decimal(15, 2) // 잔금 금액
+
+  // 일정
+  signedDate DateTime? // 계약 체결일
+  startDate  DateTime? // 계약 시작일
+  endDate    DateTime? // 계약 종료일
+
+  // 상태
+  status ContractStatus @default(NEGOTIATING)
+
+  // 내용
+  terms String? // 계약 조건
+  notes String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // 관계
+  quotations       Quotation[]          @relation("QuotationContracts")
+  amendments       ContractAmendment[]
+  studies          Study[]
+  consultations    ConsultationRecord[]
+  paymentSchedules PaymentSchedule[]
+}
+
+// 변경계약서 (신규)
+model ContractAmendment {
+  id              String   @id @default(uuid())
+  amendmentNumber String   @unique // CT-2025-0001-A1
+  contractId      String
+  contract        Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  version Int // 변경 차수
+  reason  String // 변경 사유
+  changes Json // 변경 내용 (이전값, 변경값)
+
+  // 금액 변경
+  amountChange   Decimal? @db.Decimal(15, 2) // 금액 증감
+  newTotalAmount Decimal  @db.Decimal(15, 2) // 변경 후 총액
+
+  // 일정 변경
+  newEndDate DateTime?
+
+  signedDate DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 지급 일정 (시험번호별 지급 관리)
+model PaymentSchedule {
+  id              String   @id @default(uuid())
+  contractId      String
+  contract        Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  testReceptionId String?
+  testNumber      String? // 시험번호
+
+  amount        Decimal   @db.Decimal(15, 2)
+  scheduledDate DateTime // 예정일
+  paidDate      DateTime? // 지급일
+  status        String    @default("PENDING") // PENDING, SCHEDULED, PAID, OVERDUE
+  notes         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contractId])
+  @@index([status])
+}
+
+// ==================== Study (신규) ====================
+
+model Study {
+  id          String   @id @default(uuid())
+  studyNumber String   @unique // ST-2025-0001
+  contractId  String
+  contract    Contract @relation(fields: [contractId], references: [id])
+
+  // TestReception 연결 (고객 관리 시험 접수와 연동)
+  testReceptionId String?        @unique
+  testReception   TestReception? @relation(fields: [testReceptionId], references: [id])
+
+  // 시험 정보
+  studyType  QuotationType
+  testName   String // 시험명
+  testItemId String? // ToxicityTest 또는 EfficacyModel ID
+
+  // 일정
+  receivedDate    DateTime? // 시험접수일
+  startDate       DateTime? // 시험시작일
+  expectedEndDate DateTime? // 예상종료일
+  actualEndDate   DateTime? // 실제종료일
+
+  // 상태
+  status StudyStatus @default(REGISTERED)
+
+  // 보고서
+  reportDraftDate DateTime? // 초안 완료일
+  reportFinalDate DateTime? // 최종 발행일
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== Consultation Record (신규) ====================
+
+model ConsultationRecord {
+  id           String @id @default(uuid())
+  recordNumber String @unique // CR-2025-0001
+
+  contractId String?
+  contract   Contract? @relation(fields: [contractId], references: [id])
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+
+  // 고객사 정보 (스냅샷)
+  customerInfo Json // 고객사 상세 정보
+
+  // 시험 정보
+  testInfo Json? // 계약된 시험 정보
+
+  // 물질 정보
+  substanceInfo   Json? // 물질 정보
+  substanceName   String? // 물질명
+  storageStatus   String? // 보관 여부/상태
+  storageLocation String? // 보관 위치
+
+  // 요청사항
+  clientRequests String? // 의뢰자 요청사항
+  internalNotes  String? // 내부 메모
+
+  consultDate DateTime @default(now()) // 상담일
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// ==================== Notification & Activity (기존 유지) ====================
+
+model Announcement {
+  id        String               @id @default(uuid())
+  title     String
+  content   String
+  priority  AnnouncementPriority @default(NORMAL)
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean              @default(true)
+  viewCount Int                  @default(0)
+  createdBy String
+  creator   User                 @relation("CreatedAnnouncements", fields: [createdBy], references: [id])
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  deletedAt DateTime?
+
+  views    AnnouncementView[]
+  comments AnnouncementComment[]
+}
+
+model AnnouncementComment {
+  id             String                @id @default(uuid())
+  announcementId String
+  announcement   Announcement          @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User                  @relation("AnnouncementComments", fields: [userId], references: [id], onDelete: Cascade)
+  content        String
+  parentId       String?
+  parent         AnnouncementComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies        AnnouncementComment[] @relation("CommentReplies")
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  deletedAt      DateTime?
+
+  @@index([announcementId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model AnnouncementView {
+  id             String       @id @default(uuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  viewedAt       DateTime     @default(now())
+
+  @@unique([announcementId, userId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action     String
+  resource   String
+  resourceId String?
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+}
+
+// ==================== System Settings (기존 유지) ====================
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model SettingHistory {
+  id        String   @id @default(uuid())
+  key       String
+  oldValue  String?
+  newValue  String
+  changedBy String
+  changedAt DateTime @default(now())
+}
+
+model Backup {
+  id        String   @id @default(uuid())
+  filename  String
+  size      BigInt
+  status    String   @default("COMPLETED")
+  type      String   @default("AUTO")
+  createdAt DateTime @default(now())
+}
+
+// 푸시 구독 정보 (PWA 푸시 알림)
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ==================== Master Data - Toxicity (기존 유지) ====================
+
+model ToxicityTest {
+  id                    String   @id @default(uuid())
+  itemId                Int      @unique
+  sheet                 String
+  category              String
+  subcategory           String
+  testName              String?
+  oecd                  String?
+  testType              String?
+  animalClass           String?
+  species               String?
+  sexConfig             String?
+  animalsPerSex         Int?
+  controlGroups         Int?
+  testGroups            Int?
+  totalGroups           Int?
+  routeGroup            String?
+  routes                String?
+  duration              String?
+  leadTime              String?
+  price                 Decimal? @db.Decimal(15, 2)
+  samplingPointsTest    Int?
+  samplingPointsControl Int?
+  samplingCount         Int?
+  samplingDays          String?
+  totalSamplingPoints   Int?
+  priceWithAnalysis     Decimal? @db.Decimal(15, 2)
+  priceSamplingOnly     String?
+  optionNote            String?
+  remarks               String?
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model ToxicityCategory {
+  id          String   @id @default(uuid())
+  categoryId  Int      @unique
+  sheet       String
+  category    String
+  subcategory String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AnimalClass {
+  id        String   @id @default(uuid())
+  classId   Int      @unique
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Species {
+  id        String   @id @default(uuid())
+  speciesId Int      @unique
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Route {
+  id        String   @id @default(uuid())
+  routeId   Int      @unique
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== Master Data - Efficacy (기존 유지) ====================
+
+model EfficacyPriceItem {
+  id          String   @id @default(uuid())
+  itemId      String   @unique
+  category    String
+  subcategory String?
+  itemName    String
+  itemDetail  String?
+  unitPrice   Decimal  @db.Decimal(15, 2)
+  unit        String?
+  remarks     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EfficacyModel {
+  id              String   @id @default(uuid())
+  modelId         String   @unique
+  modelName       String
+  category        String
+  indication      String?
+  animalType      String?
+  inductionMethod String?
+  duration        String?
+  description     String?
+  defaultItems    Json?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Modality {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  level       Int      @default(1)
+  parentCode  String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== Package Template (신규) ====================
+
+model PackageTemplate {
+  id            String   @id @default(uuid())
+  packageId     String   @unique // PKG-001
+  packageName   String
+  description   String?
+  modality      String?
+  clinicalPhase String?
+  tests         Json     @default("[]") // 시험 항목 배열
+  optionalTests Json     @default("[]") // 선택 시험 항목 배열
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ==================== Company Info (신규) ====================
+
+model CompanyInfo {
+  id             String   @id @default(uuid())
+  name           String // 회사명 (국문)
+  nameEn         String? // 회사명 (영문)
+  businessNumber String? // 사업자등록번호
+  ceoName        String? // 대표자명
+  address        String? // 주소 (국문)
+  addressEn      String? // 주소 (영문)
+  tel            String? // 전화번호
+  fax            String? // 팩스번호
+  email          String? // 이메일
+  website        String? // 웹사이트
+  logo           String? // 로고 (Base64 또는 URL)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ==================== User Settings (신규) ====================
+
+model UserSettings {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  // 견적 설정
+  userCode            String? @unique // 사용자 코드 (견적번호용) - 고유 제약 조건
+  defaultValidityDays Int     @default(30) // 기본 유효기간
+  defaultDiscountRate Int     @default(0) // 기본 할인율
+
+  // 일련번호 관리 (시험 유형 통합)
+  nextQuotationSeq Int @default(1) // 통합 견적서 일련번호
+  nextLeadSeq      Int @default(1) // 리드 일련번호
+
+  // 조제물분석 자동계산 설정
+  autoAnalysisCalculation Boolean @default(true)
+  validationInvivoCost    Int     @default(10000000)
+  validationInvitroCost   Int     @default(10000000)
+  analysisUnitCost        Int     @default(1000000)
+
+  // 알림 설정
+  emailNotification   Boolean @default(true)
+  browserNotification Boolean @default(false)
+  notifyOnExpiry      Boolean @default(true)
+  expiryReminderDays  Int     @default(7)
+
+  // 표시 설정
+  currencyUnit  String  @default("KRW")
+  dateFormat    String  @default("YYYY.MM.DD")
+  showVatNotice Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userCode])
+}
+
+// ==================== CRM Extension - Automation Engine ====================
+
+enum AutomationTriggerType {
+  STATUS_CHANGE // 상태 변경
+  DATE_REACHED // 날짜 도달
+  ITEM_CREATED // 항목 생성
+  ITEM_UPDATED // 항목 수정
+  FIELD_CHANGE // 필드 변경
+  SCHEDULE // 정기 스케줄
+}
+
+enum AutomationActionType {
+  SEND_NOTIFICATION // 알림 발송
+  SEND_EMAIL // 이메일 발송
+  UPDATE_STATUS // 상태 업데이트
+  ASSIGN_USER // 담당자 배정
+  CREATE_TASK // 태스크 생성
+  CREATE_ACTIVITY // 활동 생성
+  WEBHOOK // 웹훅 호출
+}
+
+enum AutomationStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+enum ActivityType {
+  CALL // 통화
+  EMAIL // 이메일
+  MEETING // 미팅
+  NOTE // 메모
+  TASK // 태스크
+  STATUS_CHANGE // 상태 변경
+  DOCUMENT // 문서
+  SYSTEM // 시스템 자동
+}
+
+enum ReportType {
+  SALES_SUMMARY // 매출 요약
+  PIPELINE_STATUS // 파이프라인 현황
+  CONVERSION_RATE // 전환율 분석
+  LEAD_TIME // 리드타임 분석
+  TEAM_PERFORMANCE // 팀 성과
+  CUSTOMER_ANALYSIS // 고객 분석
+  STUDY_STATUS // 시험 현황
+  CUSTOM // 사용자 정의
+}
+
+enum WidgetType {
+  KPI_CARD // 숫자 카드
+  BAR_CHART // 막대 차트
+  LINE_CHART // 선 차트
+  PIE_CHART // 파이 차트
+  FUNNEL_CHART // 깔때기 차트
+  TABLE // 테이블
+  TIMELINE // 타임라인
+  CALENDAR // 캘린더
+  LEADERBOARD // 리더보드
+  GAUGE // 게이지
+  PROGRESS // 진행률
+}
+
+// 자동화 규칙
+model AutomationRule {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+
+  triggerType   AutomationTriggerType
+  triggerConfig Json // 트리거 설정
+  conditions    Json? // 조건 배열
+
+  status   AutomationStatus @default(ACTIVE)
+  priority Int              @default(0)
+
+  executionCount Int       @default(0)
+  lastExecutedAt DateTime?
+  lastError      String?
+
+  createdBy String
+  isSystem  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  actions    AutomationAction[]
+  executions AutomationExecution[]
+}
+
+// 자동화 액션
+model AutomationAction {
+  id     String         @id @default(uuid())
+  ruleId String
+  rule   AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  actionType   AutomationActionType
+  actionConfig Json
+  order        Int                  @default(0)
+  delayMinutes Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 자동화 실행 로그
+model AutomationExecution {
+  id     String         @id @default(uuid())
+  ruleId String
+  rule   AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  triggerData Json
+  targetModel String
+  targetId    String
+
+  status  String  @default("PENDING")
+  results Json?
+  error   String?
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+// 예약된 자동화 작업
+model ScheduledAutomation {
+  id     String @id @default(uuid())
+  ruleId String
+
+  targetModel String
+  targetId    String
+  actionData  Json
+
+  scheduledAt DateTime
+  executed    Boolean   @default(false)
+  executedAt  DateTime?
+
+  createdAt DateTime @default(now())
+}
+
+// ==================== CRM Extension - Activity Timeline ====================
+
+// 통합 활동 기록
+model Activity {
+  id String @id @default(uuid())
+
+  entityType String // LEAD, CUSTOMER, CONTRACT, STUDY, QUOTATION
+  entityId   String
+
+  type     ActivityType
+  subject  String
+  content  String?
+  metadata Json?
+
+  contactName String?
+  contactInfo String?
+  duration    Int?
+
+  activityDate DateTime  @default(now())
+  nextAction   String?
+  nextDate     DateTime?
+
+  attachments Json?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  isAutoGenerated  Boolean @default(false)
+  automationRuleId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([activityDate])
+}
+
+// ==================== CRM Extension - Dashboard & Widgets ====================
+
+// 대시보드
+model Dashboard {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  layout      Json    @default("{}")
+
+  isDefault  Boolean  @default(false)
+  isPublic   Boolean  @default(false)
+  ownerId    String
+  sharedWith String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  widgets DashboardWidget[]
+}
+
+// 대시보드 위젯
+model DashboardWidget {
+  id          String    @id @default(uuid())
+  dashboardId String
+  dashboard   Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+
+  name String
+  type WidgetType
+
+  x      Int @default(0)
+  y      Int @default(0)
+  width  Int @default(4)
+  height Int @default(3)
+
+  dataSource  String
+  query       Json?
+  aggregation Json?
+  config      Json    @default("{}")
+  filters     Json?
+  dateRange   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 위젯 템플릿
+model WidgetTemplate {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  type        WidgetType
+  category    String
+
+  defaultConfig Json
+  thumbnail     String?
+
+  isSystem Boolean @default(true)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== CRM Extension - Reports ====================
+
+// 리포트 정의
+model ReportDefinition {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  type        ReportType
+
+  dataSources Json
+  columns     Json
+  filters     Json?
+  groupBy     Json?
+  orderBy     Json?
+  charts      Json?
+
+  isSystem   Boolean  @default(false)
+  isPublic   Boolean  @default(false)
+  ownerId    String
+  sharedWith String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  exports ReportExport[]
+}
+
+// 리포트 내보내기 기록
+model ReportExport {
+  id       String           @id @default(uuid())
+  reportId String
+  report   ReportDefinition @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  format    String
+  filters   Json?
+  dateRange Json?
+
+  fileName String
+  fileUrl  String?
+  fileSize Int?
+
+  status String  @default("PENDING")
+  error  String?
+
+  exportedBy  String
+  exportedAt  DateTime  @default(now())
+  completedAt DateTime?
+}
+
+// ==================== CRM Extension - Kanban View Settings ====================
+
+// 칸반 뷰 설정
+model KanbanViewSetting {
+  id     String @id @default(uuid())
+  userId String
+
+  entityType   String // LEAD, QUOTATION, CONTRACT, STUDY
+  groupByField String  @default("status")
+  columns      Json    @default("[]")
+  cardFields   Json    @default("[]")
+  filters      Json?
+  sortBy       String?
+  sortOrder    String  @default("asc")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, entityType])
+}
+
+// ==================== Clinical Pathology Module ====================
+
+// 검체 종류
+enum SampleType {
+  WHOLE_BLOOD // 전혈
+  SERUM // 혈청
+  PLASMA // 혈장
+  URINE // 요
+}
+
+// 임상병리 검사 카테고리
+enum ClinicalTestCategory {
+  CBC // 일반혈액학 (패키지)
+  DIFF // 백혈구감별 (패키지)
+  RETIC // 망상적혈구
+  CHEMISTRY_GENERAL // 혈액생화학 일반
+  ELECTROLYTE // 전해질 (패키지)
+  CHEMISTRY_ADDITIONAL // 혈액생화학 추가
+  COAGULATION // 혈액응고
+  URINALYSIS // 요검사
+  URINE_CHEMISTRY // 요 생화학
+}
+
+// 임상병리 견적서 상태
+enum ClinicalQuotationStatus {
+  DRAFT // 작성중
+  SENT // 발송완료
+  ACCEPTED // 승인됨
+  REJECTED // 거절됨
+  EXPIRED // 만료됨
+  CONVERTED // 의뢰서 전환됨
+}
+
+// 시험의뢰서 상태
+enum ClinicalTestRequestStatus {
+  DRAFT // 작성중
+  SUBMITTED // 제출됨
+  RECEIVED // 접수완료
+  IN_PROGRESS // 진행중
+  COMPLETED // 완료
+  CANCELLED // 취소
+}
+
+// 결과 보고서 유형
+enum ClinicalReportType {
+  SUMMARY // 요약
+  FULL // 결과보고서
+  FULL_WITH_STAT // 결과보고서 (통계포함)
+}
+
+// 검체 처리 방법
+enum SampleDisposal {
+  RETURN // 반환
+  DISPOSE // 폐기
+}
+
+// 임상병리 검사항목 마스터
+model ClinicalTestItem {
+  id String @id @default(uuid())
+
+  category ClinicalTestCategory
+  code     String               @unique
+  nameKr   String
+  nameEn   String
+  unit     String?
+  method   String?
+
+  unitPrice    Int
+  isPackage    Boolean  @default(false)
+  packageItems String[] @default([])
+
+  requiredSampleTypes SampleType[] @default([])
+  minSampleVolume     Int?
+
+  requiresItem String?
+
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quotationItems ClinicalQuotationItem[]
+  requestItems   ClinicalTestRequestItem[]
+
+  @@index([category, isActive])
+  @@index([code])
+}
+
+// QC 비용 설정
+model ClinicalQcSetting {
+  id String @id @default(uuid())
+
+  category       ClinicalTestCategory @unique
+  thresholdCount Int                  @default(100)
+  qcFee          Int                  @default(400000)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 임상병리 견적서
+model ClinicalQuotation {
+  id String @id @default(uuid())
+
+  quotationNumber String @unique
+
+  customerId   String?
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  customerName String
+
+  contactPersonId String?
+  contactPerson   Requester? @relation(fields: [contactPersonId], references: [id])
+  contactName     String
+  contactPhone    String?
+  contactEmail    String?
+
+  testStandard String @default("NON_GLP")
+
+  animalSpecies String
+  sampleTypes   SampleType[]
+  totalSamples  Int
+  maleSamples   Int          @default(0)
+  femaleSamples Int          @default(0)
+
+  items ClinicalQuotationItem[]
+
+  subtotal   Int   @default(0)
+  qcFees     Json?
+  totalQcFee Int   @default(0)
+
+  discountType   String?
+  discountValue  Float?
+  discountAmount Int     @default(0)
+  discountReason String?
+
+  totalBeforeVat Int   @default(0)
+  vatRate        Float @default(10)
+  vatAmount      Int   @default(0)
+  totalAmount    Int   @default(0)
+
+  validDays  Int      @default(60)
+  validUntil DateTime
+
+  notes String?
+
+  status ClinicalQuotationStatus @default(DRAFT)
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  sentAt     DateTime?
+  acceptedAt DateTime?
+
+  testRequest ClinicalTestRequest?
+
+  @@index([quotationNumber])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+// 임상병리 견적서 항목
+model ClinicalQuotationItem {
+  id String @id @default(uuid())
+
+  quotationId String
+  quotation   ClinicalQuotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  testItemId String
+  testItem   ClinicalTestItem @relation(fields: [testItemId], references: [id])
+
+  category  ClinicalTestCategory
+  code      String
+  nameKr    String
+  nameEn    String
+  unit      String?
+  method    String?
+  isPackage Boolean              @default(false)
+
+  unitPrice Int
+  quantity  Int
+  amount    Int
+
+  displayOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([quotationId])
+  @@index([category])
+}
+
+// 임상병리 시험의뢰서
+model ClinicalTestRequest {
+  id String @id @default(uuid())
+
+  testNumber String? @unique
+
+  quotationId String            @unique
+  quotation   ClinicalQuotation @relation(fields: [quotationId], references: [id])
+
+  customerName String
+  contactName  String
+  contactPhone String?
+  contactEmail String?
+  address      String?
+  postalCode   String?
+  fax          String?
+
+  requestDate           DateTime  @default(now())
+  desiredCompletionDate DateTime?
+
+  reportType        ClinicalReportType @default(FULL)
+  includeStatistics Boolean            @default(false)
+
+  animalSpecies  String
+  sampleTypes    SampleType[]
+  totalSamples   Int
+  maleSamples    Int          @default(0)
+  femaleSamples  Int          @default(0)
+  sampleSendDate DateTime?
+
+  items ClinicalTestRequestItem[]
+
+  sampleDisposal SampleDisposal @default(DISPOSE)
+  returnAddress  String?
+
+  testDescription String?
+
+  receivedDate       DateTime?
+  testDirectorId     String?
+  testDirector       User?     @relation("ClinicalTestDirector", fields: [testDirectorId], references: [id])
+  receiverId         String?
+  receiver           User?     @relation("ClinicalReceiver", fields: [receiverId], references: [id])
+  operationManagerId String?
+  operationManager   User?     @relation("ClinicalOperationManager", fields: [operationManagerId], references: [id])
+  approvalDate       DateTime?
+
+  status ClinicalTestRequestStatus @default(DRAFT)
+
+  createdById String
+  createdBy   User   @relation("ClinicalTestRequestCreatedBy", fields: [createdById], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  submittedAt DateTime?
+  completedAt DateTime?
+
+  @@index([testNumber])
+  @@index([quotationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// 시험의뢰서 검사항목
+model ClinicalTestRequestItem {
+  id String @id @default(uuid())
+
+  requestId String
+  request   ClinicalTestRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  testItemId String
+  testItem   ClinicalTestItem @relation(fields: [testItemId], references: [id])
+
+  category ClinicalTestCategory
+  code     String
+  nameKr   String
+  nameEn   String
+
+  isSelected Boolean @default(true)
+
+  displayOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([requestId])
+}
