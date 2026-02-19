@@ -37,6 +37,7 @@ import automationRoutes from './routes/automation';
 import reportsRoutes from './routes/reports';
 import studyDashboardRoutes from './routes/studyDashboard';
 import searchRoutes from './routes/search';
+import toxicityV2Routes from './routes/toxicityV2';
 import { pipelineInitializationService } from './services/pipelineInitializationService';
 
 // Load environment variables
@@ -126,6 +127,9 @@ app.use('/api/push', pushRoutes);
 
 // Unified Customer routes
 app.use('/api/unified-customers', unifiedCustomerRoutes);
+
+// Toxicity V2 routes
+app.use('/api/toxicity-v2', toxicityV2Routes);
 
 // Static file serving for exports (인증 필요)
 app.use('/exports', authenticate, requireAdmin, express.static(path.join(process.cwd(), 'exports')));

@@ -1647,3 +1647,66 @@ model ClinicalTestRequestItem {
 
   @@index([requestId])
 }
+
+// ==================== Toxicity V2 Data (신규) ====================
+
+model ToxicityV2Item {
+  id          String  @id @default(uuid())
+  itemId      Int
+  mode        String  // 시험 모드
+  num         Int?
+  name        String
+  category    String
+  species     String?
+  duration    String?
+  description String?
+  priceOral   Decimal? @db.Decimal(15, 2)
+  routeOral   String?
+  weeksOral   String?
+  priceIv     Decimal? @db.Decimal(15, 2)
+  routeIv     String?
+  weeksIv     String?
+  priceP2     Decimal? @db.Decimal(15, 2)
+  priceP3     Decimal? @db.Decimal(15, 2)
+  priceP4     Decimal? @db.Decimal(15, 2)
+  priceSingle Decimal? @db.Decimal(15, 2)
+  formalName  String?
+  guideline   Json?
+  note        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([mode, itemId])
+  @@index([mode])
+  @@index([category])
+}
+
+model ToxicityV2Relation {
+  id             String @id @default(uuid())
+  mainTestId     Int
+  recoveryTestId Int?
+  tkOptions      Json?
+  createdAt      DateTime @default(now())
+
+  @@unique([mainTestId])
+}
+
+model ToxicityV2Overlay {
+  id       String @id @default(uuid())
+  type     String
+  itemId   Int
+  priceOop Decimal? @db.Decimal(15, 2)
+  priceOip Decimal? @db.Decimal(15, 2)
+  createdAt DateTime @default(now())
+
+  @@unique([type, itemId])
+}
+
+model ToxicityV2Metadata {
+  id    String @id @default(uuid())
+  key   String @unique
+  value Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

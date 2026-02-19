@@ -9,9 +9,10 @@ import { useEfficacyQuotationStore } from '@/stores/efficacyQuotationStore';
 import QuotationWizard from '@/components/quotation/QuotationWizard';
 import EfficacyQuotationWizard from '@/components/efficacy-quotation/EfficacyQuotationWizard';
 import StepBasicInfo from '@/components/quotation/StepBasicInfo';
-import StepTestSelectionNew from '@/components/quotation/StepTestSelectionNew';
 import StepCalculation from '@/components/quotation/StepCalculation';
 import StepPreview from '@/components/quotation/StepPreview';
+import ToxicityV2Step from '@/components/toxicity-v2/ToxicityV2Step';
+import { useToxicityV2Store } from '@/stores/toxicityV2Store';
 import EfficacyStepBasicInfo from '@/components/efficacy-quotation/StepBasicInfo';
 import EfficacyStepModelSelection from '@/components/efficacy-quotation/StepModelSelection';
 import EfficacyStepItemConfiguration from '@/components/efficacy-quotation/StepItemConfiguration';
@@ -34,6 +35,7 @@ export default function NewQuotationPage() {
   
   const toxicityStore = useQuotationStore();
   const efficacyStore = useEfficacyQuotationStore();
+  const toxicityV2Store = useToxicityV2Store();
 
   // useQuery로 사용자 설정 조회 (캐시 공유)
   const { data: settingsResponse, isLoading } = useQuery({
@@ -64,6 +66,7 @@ export default function NewQuotationPage() {
     if (window.confirm('작성 중인 견적서를 초기화하시겠습니까?')) {
       if (quotationType === 'toxicity') {
         toxicityStore.reset();
+        toxicityV2Store.reset();
       } else if (quotationType === 'efficacy') {
         efficacyStore.reset();
       }
@@ -74,6 +77,7 @@ export default function NewQuotationPage() {
     if (window.confirm('견적서 유형 선택으로 돌아가시겠습니까? 작성 중인 내용이 초기화됩니다.')) {
       if (quotationType === 'toxicity') {
         toxicityStore.reset();
+        toxicityV2Store.reset();
       } else if (quotationType === 'efficacy') {
         efficacyStore.reset();
       }
@@ -86,7 +90,7 @@ export default function NewQuotationPage() {
       case 1:
         return <StepBasicInfo />;
       case 2:
-        return <StepTestSelectionNew />;
+        return <ToxicityV2Step />;
       case 3:
         return <StepCalculation />;
       case 4:
@@ -255,7 +259,7 @@ export default function NewQuotationPage() {
   // 독성시험 견적서 작성
   if (quotationType === 'toxicity') {
     return (
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <PageHeader
           title="독성시험 견적서 작성"
           description="단계별로 독성시험 견적서를 작성합니다"
