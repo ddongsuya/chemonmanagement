@@ -217,6 +217,7 @@ export class UnifiedCustomerService {
     const leads = await this.prisma.lead.findMany({
       where: {
         deletedAt: null,
+        userId,
         ...stageCondition,
         ...searchConditions,
       },
@@ -264,6 +265,7 @@ export class UnifiedCustomerService {
     const customers = await this.prisma.customer.findMany({
       where: {
         deletedAt: null,
+        userId,
         ...searchConditions,
       },
       orderBy: {

@@ -123,11 +123,8 @@ export class KanbanService {
 
   // 리드 아이템 조회
   private async getLeadItems(userId: string, filters?: Record<string, any>) {
-    const where: any = { deletedAt: null };
+    const where: any = { deletedAt: null, userId };
     
-    if (filters?.userId) {
-      where.userId = filters.userId;
-    }
     if (filters?.status) {
       where.status = filters.status;
     }
@@ -145,11 +142,8 @@ export class KanbanService {
 
   // 견적서 아이템 조회
   private async getQuotationItems(userId: string, filters?: Record<string, any>) {
-    const where: any = { deletedAt: null };
+    const where: any = { deletedAt: null, userId };
     
-    if (filters?.userId) {
-      where.userId = filters.userId;
-    }
     if (filters?.status) {
       where.status = filters.status;
     }
@@ -166,11 +160,8 @@ export class KanbanService {
 
   // 계약 아이템 조회
   private async getContractItems(userId: string, filters?: Record<string, any>) {
-    const where: any = { deletedAt: null };
+    const where: any = { deletedAt: null, userId };
     
-    if (filters?.userId) {
-      where.userId = filters.userId;
-    }
     if (filters?.status) {
       where.status = filters.status;
     }
@@ -187,7 +178,7 @@ export class KanbanService {
 
   // 시험 아이템 조회
   private async getStudyItems(userId: string, filters?: Record<string, any>) {
-    const where: any = {};
+    const where: any = { contract: { userId } };
     
     if (filters?.status) {
       where.status = filters.status;

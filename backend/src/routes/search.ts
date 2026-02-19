@@ -70,6 +70,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
 
     const searchParams: SearchParams = {
       query: q.trim(),
+      userId: (req as any).user.id,
       page: page ? parseInt(page as string) : 1,
       limit: limit ? parseInt(limit as string) : 20,
     };

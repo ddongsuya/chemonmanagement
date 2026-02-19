@@ -26,7 +26,7 @@ export interface SearchParams {
   status?: string;
   dateFrom?: Date;
   dateTo?: Date;
-  userId?: string;
+  userId: string;
   page?: number;
   limit?: number;
 }
@@ -71,6 +71,7 @@ export async function unifiedSearch(params: SearchParams): Promise<SearchRespons
     
     const whereClause: any = {
       deletedAt: null,
+      userId,
       quotationType: { in: quotationTypes },
       OR: [
         { quotationNumber: { contains: query, mode: 'insensitive' } },
@@ -86,9 +87,6 @@ export async function unifiedSearch(params: SearchParams): Promise<SearchRespons
       whereClause.createdAt = {};
       if (dateFrom) whereClause.createdAt.gte = dateFrom;
       if (dateTo) whereClause.createdAt.lte = dateTo;
-    }
-    if (userId) {
-      whereClause.userId = userId;
     }
 
     const quotations = await prisma.quotation.findMany({
@@ -121,6 +119,7 @@ export async function unifiedSearch(params: SearchParams): Promise<SearchRespons
   // 임상병리 견적서 검색 (ClinicalQuotation 테이블)
   if (types.includes('CLINICAL_PATHOLOGY')) {
     const clinicalWhere: any = {
+      createdById: userId,
       OR: [
         { quotationNumber: { contains: query, mode: 'insensitive' } },
         { customerName: { contains: query, mode: 'insensitive' } },
@@ -135,9 +134,6 @@ export async function unifiedSearch(params: SearchParams): Promise<SearchRespons
       clinicalWhere.createdAt = {};
       if (dateFrom) clinicalWhere.createdAt.gte = dateFrom;
       if (dateTo) clinicalWhere.createdAt.lte = dateTo;
-    }
-    if (userId) {
-      clinicalWhere.createdById = userId;
     }
 
     const clinicalQuotations = await prisma.clinicalQuotation.findMany({
