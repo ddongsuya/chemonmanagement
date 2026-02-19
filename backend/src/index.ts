@@ -6,6 +6,7 @@ import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
 import { errorHandler, requestLogger, rateLimiter } from './middleware';
+import { authenticate, requireAdmin } from './middleware/auth';
 import { 
   authRoutes, 
   quotationRoutes, 
@@ -68,12 +69,14 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Swagger API documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.get('/api-docs.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
-});
+// Swagger API documentation (개발 환경에서만)
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
+}
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -124,8 +127,8 @@ app.use('/api/push', pushRoutes);
 // Unified Customer routes
 app.use('/api/unified-customers', unifiedCustomerRoutes);
 
-// Static file serving for exports
-app.use('/exports', express.static(path.join(process.cwd(), 'exports')));
+// Static file serving for exports (인증 필요)
+app.use('/exports', authenticate, requireAdmin, express.static(path.join(process.cwd(), 'exports')));
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

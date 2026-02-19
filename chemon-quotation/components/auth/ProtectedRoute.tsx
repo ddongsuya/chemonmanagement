@@ -9,61 +9,26 @@ interface ProtectedRouteProps {
   requiredRole?: 'USER' | 'ADMIN';
 }
 
-// 개발 환경에서는 인증 건너뛰기
-const isDevelopment = process.env.NODE_ENV === 'development';
-
-// 개발용 더미 유저
-const devUser = {
-  id: 'dev-user',
-  email: 'dev@chemon.co.kr',
-  name: '개발자',
-  role: 'ADMIN' as const,
-  department: 'SUPPORT' as const,
-  position: 'MANAGER' as const,
-  title: null,
-  phone: '',
-  status: 'ACTIVE' as const,
-  canViewAllSales: true,
-  canViewAllData: true,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
-
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isLoading, user, setUser } = useAuthStore();
+  const { isAuthenticated, isLoading, user } = useAuthStore();
 
   useEffect(() => {
-    // 개발 환경에서는 자동 로그인
-    if (isDevelopment && !isAuthenticated && !isLoading) {
-      setUser(devUser);
-      return;
-    }
-
-    if (!isLoading && !isDevelopment) {
+    if (!isLoading) {
       if (!isAuthenticated) {
-        // Store the intended destination for redirect after login
         const returnUrl = encodeURIComponent(pathname);
         router.push(`/login?returnUrl=${returnUrl}`);
         return;
       }
 
-      // Check role if required
       if (requiredRole && user?.role !== requiredRole) {
-        // User doesn't have required role - redirect to dashboard
         router.push('/dashboard');
         return;
       }
     }
-  }, [isAuthenticated, isLoading, user, requiredRole, router, pathname, setUser]);
+  }, [isAuthenticated, isLoading, user, requiredRole, router, pathname]);
 
-  // 개발 환경에서는 바로 렌더링
-  if (isDevelopment) {
-    return <>{children}</>;
-  }
-
-  // Show loading state while checking auth
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -72,12 +37,10 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     );
   }
 
-  // Don't render children if not authenticated
   if (!isAuthenticated) {
     return null;
   }
 
-  // Don't render if role check fails
   if (requiredRole && user?.role !== requiredRole) {
     return null;
   }
