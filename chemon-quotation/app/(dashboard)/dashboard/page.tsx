@@ -114,7 +114,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">
+            <h1 className="text-lg sm:text-xl font-semibold text-foreground">
               안녕하세요, {user?.name || '사용자'}님
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
@@ -349,7 +349,7 @@ export default function DashboardPage() {
       <DashboardCarousel />
 
       {/* 빠른 링크 */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
           { href: '/quotations', icon: FileText, label: '독성시험 견적', sub: '견적 관리', color: 'text-orange-500' },
           { href: '/efficacy-quotations', icon: FlaskConical, label: '효력시험 견적', sub: '견적 관리', color: 'text-amber-500' },
@@ -359,15 +359,15 @@ export default function DashboardPage() {
         ].map(({ href, icon: Icon, label, sub, color }) => (
           <Link key={href} href={href}>
             <Card className="shadow-soft hover:shadow-soft-lg transition-shadow duration-200 group">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-muted/80 flex items-center justify-center flex-shrink-0">
+              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-muted/80 flex items-center justify-center flex-shrink-0">
                   <Icon className={`w-4 h-4 ${color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-foreground truncate">{label}</h3>
-                  <p className="text-[11px] text-muted-foreground truncate">{sub}</p>
+                  <h3 className="text-xs sm:text-sm font-medium text-foreground truncate">{label}</h3>
+                  <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate hidden sm:block">{sub}</p>
                 </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground/60 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground/60 group-hover:translate-x-0.5 transition-all flex-shrink-0 hidden sm:block" />
               </CardContent>
             </Card>
           </Link>

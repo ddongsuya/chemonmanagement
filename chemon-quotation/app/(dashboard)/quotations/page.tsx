@@ -265,11 +265,14 @@ function QuotationsContent() {
         description="작성된 견적서를 관리합니다"
         actions={
           <div className="flex gap-2">
-            <ExcelImportExport defaultType="quotations" onImportSuccess={loadQuotations} />
-            <Button asChild>
+            <div className="hidden sm:block">
+              <ExcelImportExport defaultType="quotations" onImportSuccess={loadQuotations} />
+            </div>
+            <Button asChild size="sm">
               <Link href="/quotations/new">
-                <Plus className="w-4 h-4 mr-2" />
-                새 견적서 작성
+                <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">새 견적서 작성</span>
+                <span className="sm:hidden">작성</span>
               </Link>
             </Button>
           </div>
@@ -279,34 +282,36 @@ function QuotationsContent() {
       <Card>
         <CardContent className="pt-6">
           {/* 필터 */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            <Select value={typeFilter} onValueChange={(v) => updateFilter('type', v)}>
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="유형" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 유형</SelectItem>
-                <SelectItem value="toxicity">독성시험</SelectItem>
-                <SelectItem value="efficacy">효력시험</SelectItem>
-                <SelectItem value="clinical_pathology">임상병리</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mb-6">
+            <div className="flex gap-2">
+              <Select value={typeFilter} onValueChange={(v) => updateFilter('type', v)}>
+                <SelectTrigger className="w-full sm:w-36">
+                  <SelectValue placeholder="유형" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체 유형</SelectItem>
+                  <SelectItem value="toxicity">독성시험</SelectItem>
+                  <SelectItem value="efficacy">효력시험</SelectItem>
+                  <SelectItem value="clinical_pathology">임상병리</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={statusFilter} onValueChange={(v) => updateFilter('status', v)}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="상태" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 상태</SelectItem>
-                <SelectItem value="draft">작성중</SelectItem>
-                <SelectItem value="sent">제출</SelectItem>
-                <SelectItem value="accepted">수주</SelectItem>
-                <SelectItem value="rejected">실주</SelectItem>
-                <SelectItem value="expired">만료</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={statusFilter} onValueChange={(v) => updateFilter('status', v)}>
+                <SelectTrigger className="w-full sm:w-32">
+                  <SelectValue placeholder="상태" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체 상태</SelectItem>
+                  <SelectItem value="draft">작성중</SelectItem>
+                  <SelectItem value="sent">제출</SelectItem>
+                  <SelectItem value="accepted">수주</SelectItem>
+                  <SelectItem value="rejected">실주</SelectItem>
+                  <SelectItem value="expired">만료</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <div className="relative flex-1 min-w-64">
+            <div className="relative flex-1 min-w-0 sm:min-w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 placeholder="견적번호, 고객사, 프로젝트 검색..."
@@ -319,6 +324,7 @@ function QuotationsContent() {
             {(typeFilter !== 'all' || statusFilter !== 'all') && (
               <Button 
                 variant="ghost" 
+                size="sm"
                 onClick={() => {
                   setTypeFilter('all');
                   setStatusFilter('all');
@@ -330,8 +336,58 @@ function QuotationsContent() {
             )}
           </div>
 
-          {/* 테이블 */}
-          <div className="rounded-lg border">
+          {/* 모바일: 카드 리스트 */}
+          <div className="md:hidden space-y-3">
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+              </div>
+            ) : quotations.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                {searchQuery || statusFilter !== 'all' || typeFilter !== 'all'
+                  ? '검색 결과가 없습니다.'
+                  : '저장된 견적서가 없습니다.'}
+              </div>
+            ) : (
+              quotations.map((quotation) => {
+                const detailPath = `/quotations/${quotation.id}`;
+                return (
+                  <Link key={quotation.id} href={detailPath} className="block">
+                    <Card className="touch-manipulation active:bg-muted/50 transition-colors">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            {quotation.quotationType === 'EFFICACY' ? (
+                              <Microscope className="w-4 h-4 text-emerald-500" />
+                            ) : quotation.quotationType === 'CLINICAL_PATHOLOGY' ? (
+                              <ClipboardList className="w-4 h-4 text-purple-500" />
+                            ) : (
+                              <FlaskConical className="w-4 h-4 text-blue-500" />
+                            )}
+                            <span className="text-xs font-mono text-muted-foreground">
+                              {quotation.quotationNumber}
+                            </span>
+                          </div>
+                          <Badge className={STATUS_COLORS[quotation.status] || ''} variant="secondary">
+                            {STATUS_LABELS[quotation.status] || quotation.status}
+                          </Badge>
+                        </div>
+                        <div className="font-medium text-sm mb-1 truncate">{quotation.customerName}</div>
+                        <div className="text-xs text-muted-foreground truncate mb-3">{quotation.projectName}</div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">{formatDate(quotation.createdAt)}</span>
+                          <span className="font-semibold">{formatCurrency(quotation.totalAmount)}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })
+            )}
+          </div>
+
+          {/* 데스크톱: 테이블 */}
+          <div className="hidden md:block rounded-lg border">
             <Table>
               <TableHeader>
                 <TableRow>
