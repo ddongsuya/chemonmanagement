@@ -3,93 +3,105 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Cloud, CloudRain, CloudSnow, CloudFog, Wind, Loader2 } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSnow, CloudDrizzle, CloudFog, CloudLightning, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
-type WeatherType = 'sunny' | 'cloudy' | 'rainy' | 'snowy' | 'foggy' | 'windy';
-
-interface WeatherInfo {
-  type: WeatherType;
+interface WeatherData {
   temp: number;
+  code: number;
   description: string;
+  icon: React.ReactNode;
+  message: string;
 }
 
-const WEATHER_ICONS: Record<WeatherType, React.ReactNode> = {
-  sunny: <Sun className="w-16 h-16 text-yellow-400" />,
-  cloudy: <Cloud className="w-16 h-16 text-gray-400" />,
-  rainy: <CloudRain className="w-16 h-16 text-blue-400" />,
-  snowy: <CloudSnow className="w-16 h-16 text-blue-200" />,
-  foggy: <CloudFog className="w-16 h-16 text-gray-300" />,
-  windy: <Wind className="w-16 h-16 text-teal-400" />,
-};
+function parseWeatherCode(code: number, temp: number): { description: string; icon: React.ReactNode; message: string } {
+  const iconClass = 'w-8 h-8';
 
-const WEATHER_MESSAGES: Record<WeatherType, string[]> = {
-  sunny: [
-    '날씨가 화창해요! 오늘도 화이팅하세요 ☀️',
-    '맑은 하늘처럼 기분 좋은 하루 되세요!',
-    '햇살 가득한 하루, 좋은 일만 가득하길!',
-  ],
-  cloudy: [
-    '구름이 많지만 마음은 맑게! 💪',
-    '흐린 날씨에도 당신의 미소는 빛나요!',
-    '구름 사이로 햇살이 비출 거예요!',
-  ],
-  rainy: [
-    '비가 와요! 우산 챙기셨나요? ☔',
-    '비 오는 날, 안전 운전하세요!',
-    '촉촉한 비가 내리네요. 따뜻한 차 한잔 어때요?',
-  ],
-  snowy: [
-    '눈이 와요! 어서 퇴근해야 할 것 같아요 ❄️',
-    '하얀 눈이 내려요. 미끄럼 조심하세요!',
-    '눈 오는 날, 따뜻하게 입고 다니세요!',
-  ],
-  foggy: [
-    '안개가 자욱해요. 운전 조심하세요! 🌫️',
-    '안개 낀 날, 시야 확보에 주의하세요!',
-    '안개 속에서도 당신의 길을 찾으세요!',
-  ],
-  windy: [
-    '바람이 많이 불어요. 외출 시 주의하세요! 🍃',
-    '바람 부는 날, 머리카락 날림 주의!',
-    '시원한 바람과 함께 상쾌한 하루 되세요!',
-  ],
-};
+  if (code === 0 || code === 1) {
+    return {
+      description: '맑음',
+      icon: <Sun className={`${iconClass} text-amber-400`} />,
+      message: temp > 25 ? '맑고 더운 날이에요. 수분 보충 잊지 마세요.' : '맑은 하루, 기분 좋은 하루 되세요.',
+    };
+  }
+  if (code === 2 || code === 3) {
+    return {
+      description: code === 2 ? '구름 조금' : '흐림',
+      icon: <Cloud className={`${iconClass} text-slate-400`} />,
+      message: '구름이 있지만 나쁘지 않은 날씨예요.',
+    };
+  }
+  if (code === 45 || code === 48) {
+    return {
+      description: '안개',
+      icon: <CloudFog className={`${iconClass} text-slate-300`} />,
+      message: '안개가 있어요. 운전 시 주의하세요.',
+    };
+  }
+  if (code >= 51 && code <= 57) {
+    return {
+      description: '이슬비',
+      icon: <CloudDrizzle className={`${iconClass} text-blue-300`} />,
+      message: '가벼운 비가 내려요. 우산 챙기세요.',
+    };
+  }
+  if (code >= 61 && code <= 67) {
+    return {
+      description: '비',
+      icon: <CloudRain className={`${iconClass} text-blue-400`} />,
+      message: '비가 와요. 우산 꼭 챙기세요.',
+    };
+  }
+  if (code >= 71 && code <= 77) {
+    return {
+      description: '눈',
+      icon: <CloudSnow className={`${iconClass} text-sky-300`} />,
+      message: '눈이 내려요. 미끄럼 조심하세요.',
+    };
+  }
+  if (code >= 80 && code <= 82) {
+    return {
+      description: '소나기',
+      icon: <CloudRain className={`${iconClass} text-blue-500`} />,
+      message: '소나기가 예상돼요. 우산 준비하세요.',
+    };
+  }
+  if (code >= 95) {
+    return {
+      description: '뇌우',
+      icon: <CloudLightning className={`${iconClass} text-yellow-400`} />,
+      message: '천둥번개가 있어요. 외출 시 주의하세요.',
+    };
+  }
+  return {
+    description: '흐림',
+    icon: <Cloud className={`${iconClass} text-slate-400`} />,
+    message: '오늘도 좋은 하루 되세요.',
+  };
+}
 
-function getTimeBasedGreeting(): string {
+
+function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return '좋은 아침이에요!';
-  if (hour >= 12 && hour < 18) return '좋은 오후에요!';
-  if (hour >= 18 && hour < 22) return '좋은 저녁이에요!';
-  return '늦은 시간까지 수고하세요!';
+  if (hour < 6) return '늦은 밤이에요';
+  if (hour < 12) return '좋은 아침이에요';
+  if (hour < 18) return '좋은 오후예요';
+  return '좋은 저녁이에요';
 }
 
-function getRandomMessage(messages: string[]): string {
-  return messages[Math.floor(Math.random() * messages.length)];
-}
-
-function simulateWeather(): WeatherInfo {
-  const month = new Date().getMonth() + 1;
-  const random = Math.random();
-  
-  if (month >= 12 || month <= 2) {
-    if (random < 0.3) return { type: 'snowy', temp: -5 + Math.floor(Math.random() * 10), description: '눈' };
-    if (random < 0.6) return { type: 'cloudy', temp: -2 + Math.floor(Math.random() * 8), description: '흐림' };
-    return { type: 'sunny', temp: 0 + Math.floor(Math.random() * 10), description: '맑음' };
-  } else if (month >= 3 && month <= 5) {
-    if (random < 0.2) return { type: 'rainy', temp: 10 + Math.floor(Math.random() * 10), description: '비' };
-    if (random < 0.4) return { type: 'cloudy', temp: 12 + Math.floor(Math.random() * 10), description: '흐림' };
-    if (random < 0.5) return { type: 'windy', temp: 15 + Math.floor(Math.random() * 8), description: '바람' };
-    return { type: 'sunny', temp: 15 + Math.floor(Math.random() * 10), description: '맑음' };
-  } else if (month >= 6 && month <= 8) {
-    if (random < 0.4) return { type: 'rainy', temp: 25 + Math.floor(Math.random() * 8), description: '비' };
-    if (random < 0.5) return { type: 'cloudy', temp: 28 + Math.floor(Math.random() * 5), description: '흐림' };
-    return { type: 'sunny', temp: 28 + Math.floor(Math.random() * 7), description: '맑음' };
-  } else {
-    if (random < 0.2) return { type: 'rainy', temp: 12 + Math.floor(Math.random() * 10), description: '비' };
-    if (random < 0.3) return { type: 'foggy', temp: 10 + Math.floor(Math.random() * 8), description: '안개' };
-    if (random < 0.5) return { type: 'cloudy', temp: 15 + Math.floor(Math.random() * 8), description: '흐림' };
-    return { type: 'sunny', temp: 15 + Math.floor(Math.random() * 10), description: '맑음' };
+async function fetchWeather(): Promise<WeatherData | null> {
+  try {
+    const res = await fetch(
+      'https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.978&current=temperature_2m,weather_code&timezone=Asia/Seoul'
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const temp = Math.round(data.current.temperature_2m);
+    const code = data.current.weather_code;
+    const parsed = parseWeatherCode(code, temp);
+    return { temp, code, ...parsed };
+  } catch {
+    return null;
   }
 }
 
@@ -97,171 +109,106 @@ export default function WelcomePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl');
-  const { user, isAuthenticated } = useAuthStore();
-  
-  const [step, setStep] = useState(0);
-  const [weather] = useState<WeatherInfo>(() => simulateWeather());
-  const [greeting] = useState(() => getTimeBasedGreeting());
-  const [weatherMessage] = useState(() => getRandomMessage(WEATHER_MESSAGES[weather.type]));
+  const { user } = useAuthStore();
 
+  const [step, setStep] = useState(0); // 0: greeting, 1: weather, 2: redirect
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+
+  const greeting = getGreeting();
   const userName = user?.name || '사용자';
 
-  // 로그인 안 된 상태면 로그인 페이지로
+  // 날씨 데이터 가져오기
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthenticated, router]);
+    fetchWeather().then((data) => {
+      setWeather(data);
+      setWeatherLoading(false);
+    });
+  }, []);
 
-  // 애니메이션 타이머
+  // 애니메이션 스텝 진행
   useEffect(() => {
     const timers: NodeJS.Timeout[] = [];
-    
-    timers.push(setTimeout(() => setStep(1), 300));
-    timers.push(setTimeout(() => setStep(2), 2000));
-    timers.push(setTimeout(() => setStep(3), 4000));
-    timers.push(setTimeout(() => {
-      const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
-      router.push(redirectTo);
-    }, 6000));
-    
+
+    // step 0 → 1 (인사 → 날씨): 1.5초
+    timers.push(setTimeout(() => setStep(1), 1500));
+
+    // step 1 → 2 (날씨 → 리다이렉트): 3.5초
+    timers.push(
+      setTimeout(() => {
+        const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
+        router.push(redirectTo);
+      }, 3500)
+    );
+
     return () => timers.forEach(clearTimeout);
   }, [router, returnUrl]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.5 } },
-  };
-
-  const textVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.4 } },
-  };
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
-    <motion.div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* 배경 장식 */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative text-center text-white px-8">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-sm text-center">
         <AnimatePresence mode="wait">
-          {step === 1 && (
-            <motion.div
-              key="step1"
-              variants={textVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="space-y-4"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-                className="w-20 h-20 mx-auto mb-6 rounded-full bg-white/20 flex items-center justify-center"
-              >
-                <span className="text-4xl">👋</span>
-              </motion.div>
-              <h1 className="text-4xl md:text-5xl font-bold">
-                안녕하세요
-              </h1>
-              <p className="text-2xl md:text-3xl font-medium text-white/90">
-                {userName}님
-              </p>
-            </motion.div>
-          )}
-
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              variants={textVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="space-y-4"
-            >
-              <motion.div
-                initial={{ rotate: -10 }}
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 1, repeat: Infinity, repeatDelay: 1 }}
-                className="text-6xl mb-6"
-              >
-                ✨
-              </motion.div>
-              <h1 className="text-4xl md:text-5xl font-bold">
-                {greeting}
-              </h1>
-            </motion.div>
-          )}
-
-          {step === 3 && (
-            <motion.div
-              key="step3"
-              variants={textVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="space-y-6"
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
-                className="flex justify-center mb-4"
-              >
-                {WEATHER_ICONS[weather.type]}
-              </motion.div>
-              <div className="space-y-2">
-                <p className="text-xl text-white/80">
-                  오늘의 날씨: {weather.description} {weather.temp}°C
-                </p>
-                <h1 className="text-2xl md:text-3xl font-bold leading-relaxed">
-                  {weatherMessage}
-                </h1>
-              </div>
-            </motion.div>
-          )}
-
           {step === 0 && (
             <motion.div
-              key="loading"
-              variants={textVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              key="greeting"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-3"
             >
-              <Loader2 className="w-12 h-12 animate-spin mx-auto text-white/80" />
+              <p className="text-muted-foreground text-sm">{greeting}</p>
+              <h1 className="text-2xl font-semibold text-foreground">
+                {userName}님, 안녕하세요
+              </h1>
+            </motion.div>
+          )}
+
+          {step >= 1 && (
+            <motion.div
+              key="weather"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-5"
+            >
+              <div className="space-y-1">
+                <p className="text-muted-foreground text-sm">{greeting}</p>
+                <h1 className="text-2xl font-semibold text-foreground">
+                  {userName}님, 안녕하세요
+                </h1>
+              </div>
+
+              {weatherLoading ? (
+                <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>날씨 확인 중...</span>
+                </div>
+              ) : weather ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="inline-flex flex-col items-center gap-3 px-6 py-4 rounded-xl bg-card border border-border shadow-soft"
+                >
+                  <div className="flex items-center gap-3">
+                    {weather.icon}
+                    <div className="text-left">
+                      <p className="text-lg font-medium text-foreground">
+                        서울 {weather.temp}°C
+                      </p>
+                      <p className="text-sm text-muted-foreground">{weather.description}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{weather.message}</p>
+                </motion.div>
+              ) : (
+                <p className="text-sm text-muted-foreground">오늘도 좋은 하루 되세요.</p>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* 진행 표시 */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-          {[1, 2, 3].map((s) => (
-            <motion.div
-              key={s}
-              className={`w-2 h-2 rounded-full ${step >= s ? 'bg-white' : 'bg-white/30'}`}
-              initial={{ scale: 0.8 }}
-              animate={{ scale: step === s ? 1.2 : 1 }}
-              transition={{ duration: 0.3 }}
-            />
-          ))}
-        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
