@@ -162,8 +162,8 @@ export default function SearchPage() {
     <div className="space-y-6">
       {/* 헤더 */}
       <div>
-        <h1 className="text-2xl font-bold">통합 검색</h1>
-        <p className="text-muted-foreground">모든 견적서를 한 번에 검색하세요</p>
+        <h1 className="text-xl sm:text-2xl font-bold">통합 검색</h1>
+        <p className="text-sm text-muted-foreground">모든 견적서를 한 번에 검색하세요</p>
       </div>
 
       {/* 검색 바 */}
@@ -207,7 +207,7 @@ export default function SearchPage() {
               {/* 유형 필터 */}
               <div className="space-y-2">
                 <label className="text-sm text-muted-foreground">견적 유형</label>
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-3 sm:gap-4">
                   {['TOXICITY', 'EFFICACY', 'CLINICAL_PATHOLOGY'].map((type) => (
                     <label key={type} className="flex items-center gap-2 cursor-pointer">
                       <Checkbox
@@ -267,11 +267,11 @@ export default function SearchPage() {
       {results && (
         <>
           {/* 결과 요약 */}
-          <div className="flex items-center gap-4">
-            <span className="text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <span className="text-sm text-muted-foreground">
               총 <span className="font-semibold text-foreground">{results.counts.total}</span>건
             </span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {results.counts.toxicity > 0 && (
                 <Badge variant="outline" className="gap-1">
                   {TYPE_ICONS.TOXICITY}
@@ -299,35 +299,33 @@ export default function SearchPage() {
               {results.results.map((result) => (
                 <Card
                   key={`${result.type}-${result.id}`}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  className="cursor-pointer hover:shadow-md transition-shadow touch-manipulation active:bg-muted/30"
                   onClick={() => navigateToDetail(result)}
                 >
                   <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                          {TYPE_ICONS[result.type]}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{result.quotationNumber}</span>
-                            <Badge className={TYPE_COLORS[result.type]}>
-                              {TYPE_LABELS[result.type]}
-                            </Badge>
-                            <Badge className={STATUS_COLORS[result.status] || 'bg-gray-100'}>
-                              {STATUS_LABELS[result.status] || result.status}
-                            </Badge>
-                          </div>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            {result.customerName}
-                            {result.projectName && ` · ${result.projectName}`}
-                          </div>
-                        </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                        {TYPE_ICONS[result.type]}
                       </div>
-                      <div className="text-right">
-                        <div className="font-semibold">₩{formatAmount(result.totalAmount)}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {formatDate(result.createdAt)} · {result.createdBy.name}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-sm">{result.quotationNumber}</span>
+                          <Badge className={`${TYPE_COLORS[result.type]} text-[10px] sm:text-xs`}>
+                            {TYPE_LABELS[result.type]}
+                          </Badge>
+                          <Badge className={`${STATUS_COLORS[result.status] || 'bg-gray-100'} text-[10px] sm:text-xs`}>
+                            {STATUS_LABELS[result.status] || result.status}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1 truncate">
+                          {result.customerName}
+                          {result.projectName && ` · ${result.projectName}`}
+                        </div>
+                        <div className="flex items-center justify-between mt-2 sm:mt-1">
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(result.createdAt)} · {result.createdBy.name}
+                          </span>
+                          <span className="font-semibold text-sm">{formatAmount(result.totalAmount)}원</span>
                         </div>
                       </div>
                     </div>

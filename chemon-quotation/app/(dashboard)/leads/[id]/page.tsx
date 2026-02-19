@@ -447,7 +447,7 @@ export default function LeadDetailPage() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">예상 금액</span>
                       <span className="font-medium">
-                        {lead.expectedAmount ? `₩${Number(lead.expectedAmount).toLocaleString()}` : '-'}
+                        {lead.expectedAmount ? `${Number(lead.expectedAmount).toLocaleString()}원` : '-'}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -640,7 +640,7 @@ export default function LeadDetailPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">₩{Number(q.totalAmount).toLocaleString()}</p>
+                        <p className="font-medium">{Number(q.totalAmount).toLocaleString()}원</p>
                         <p className="text-sm text-muted-foreground">{formatDate(q.createdAt)}</p>
                       </div>
                     </div>

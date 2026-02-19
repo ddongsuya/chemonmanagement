@@ -409,7 +409,7 @@ function ContractNewContent() {
               <p><span className="text-muted-foreground">고객사:</span> <span className="font-medium">{contractData?.customer.companyName}</span></p>
               <p><span className="text-muted-foreground">프로젝트:</span> <span className="font-medium">{contractData?.project.name}</span></p>
               <p><span className="text-muted-foreground">연구기간:</span> <span className="font-medium">{contractData?.period.displayText}</span></p>
-              <p><span className="text-muted-foreground">계약금액:</span> <span className="font-medium text-primary">₩ {contractData?.payment.subtotal.toLocaleString()} (VAT 별도)</span></p>
+              <p><span className="text-muted-foreground">계약금액:</span> <span className="font-medium text-primary">{contractData?.payment.subtotal.toLocaleString()}원 (VAT 별도)</span></p>
             </div>
             
             <Separator />

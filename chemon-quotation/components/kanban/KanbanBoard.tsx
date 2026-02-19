@@ -58,12 +58,12 @@ interface KanbanBoardProps {
 // 금액 포맷팅
 const formatAmount = (amount: number) => {
   if (amount >= 100000000) {
-    return `₩${(amount / 100000000).toFixed(1)}억`;
+    return `${(amount / 100000000).toFixed(1)}억원`;
   }
   if (amount >= 10000) {
-    return `₩${(amount / 10000).toFixed(0)}만`;
+    return `${(amount / 10000).toFixed(0)}만원`;
   }
-  return `₩${amount.toLocaleString()}`;
+  return `${amount.toLocaleString()}원`;
 };
 
 // 날짜 포맷팅

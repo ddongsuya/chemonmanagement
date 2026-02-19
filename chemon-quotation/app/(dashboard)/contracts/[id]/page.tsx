@@ -213,7 +213,7 @@ export default function ContractDetailPage() {
 
   const formatAmount = (amount?: number) => {
     if (!amount) return '-';
-    return `₩${Number(amount).toLocaleString()}`;
+    return Number(amount).toLocaleString() + '원';
   };
 
   if (loading) return <div className="flex items-center justify-center h-64">로딩 중...</div>;

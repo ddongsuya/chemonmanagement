@@ -133,13 +133,13 @@ export default function NewLeadPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">새 리드 등록</h1>
-          <p className="text-muted-foreground">잠재 고객 정보를 입력하세요</p>
+          <h1 className="text-xl sm:text-2xl font-bold">새 리드 등록</h1>
+          <p className="text-sm text-muted-foreground">잠재 고객 정보를 입력하세요</p>
         </div>
       </div>
 

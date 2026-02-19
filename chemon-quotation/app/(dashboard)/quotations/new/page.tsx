@@ -165,30 +165,30 @@ export default function NewQuotationPage() {
           description="견적서 유형을 선택해주세요"
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
           {/* 독성시험 카드 */}
           <Card
             className={cn(
-              'cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
+              'cursor-pointer transition-all duration-200 hover:shadow-lg',
               'border-2 border-transparent hover:border-blue-400/50',
-              'bg-gradient-to-br from-blue-50 to-cyan-50'
+              'bg-gradient-to-br from-blue-50 to-cyan-50',
+              'touch-manipulation active:scale-[0.98]'
             )}
             onClick={() => setQuotationType('toxicity')}
           >
-            <CardContent className="p-8 text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-lg">
-                <FlaskConical className="w-10 h-10 text-white" />
+            <CardContent className="p-5 sm:p-8 text-center">
+              <div className="w-14 h-14 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-2xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-lg">
+                <FlaskConical className="w-7 h-7 sm:w-10 sm:h-10 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-3">독성시험 견적서</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                GLP 독성시험 관련 견적서를 작성합니다.<br />
-                모달리티 선택, 시험항목 구성, 가격 산출까지<br />
-                단계별로 진행됩니다.
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">독성시험 견적서</h3>
+              <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
+                GLP 독성시험 관련 견적서를 작성합니다.
+                <span className="hidden sm:inline"><br />모달리티 선택, 시험항목 구성, 가격 산출까지<br />단계별로 진행됩니다.</span>
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">단회투여</span>
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">반복투여</span>
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">유전독성</span>
+              <div className="mt-4 sm:mt-6 flex flex-wrap justify-center gap-1.5 sm:gap-2">
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-100 text-blue-700 text-[10px] sm:text-xs rounded-full">단회투여</span>
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-100 text-blue-700 text-[10px] sm:text-xs rounded-full">반복투여</span>
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-100 text-blue-700 text-[10px] sm:text-xs rounded-full">유전독성</span>
               </div>
             </CardContent>
           </Card>
@@ -196,26 +196,26 @@ export default function NewQuotationPage() {
           {/* 효력시험 카드 */}
           <Card
             className={cn(
-              'cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
+              'cursor-pointer transition-all duration-200 hover:shadow-lg',
               'border-2 border-transparent hover:border-emerald-400/50',
-              'bg-gradient-to-br from-emerald-50 to-teal-50'
+              'bg-gradient-to-br from-emerald-50 to-teal-50',
+              'touch-manipulation active:scale-[0.98]'
             )}
             onClick={() => setQuotationType('efficacy')}
           >
-            <CardContent className="p-8 text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg">
-                <Microscope className="w-10 h-10 text-white" />
+            <CardContent className="p-5 sm:p-8 text-center">
+              <div className="w-14 h-14 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg">
+                <Microscope className="w-7 h-7 sm:w-10 sm:h-10 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-3">효력시험 견적서</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                효력시험 관련 견적서를 작성합니다.<br />
-                모델 선택, 항목 구성, 가격 산출까지<br />
-                단계별로 진행됩니다.
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">효력시험 견적서</h3>
+              <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
+                효력시험 관련 견적서를 작성합니다.
+                <span className="hidden sm:inline"><br />모델 선택, 항목 구성, 가격 산출까지<br />단계별로 진행됩니다.</span>
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">동물모델</span>
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">세포모델</span>
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">분석항목</span>
+              <div className="mt-4 sm:mt-6 flex flex-wrap justify-center gap-1.5 sm:gap-2">
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs rounded-full">동물모델</span>
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs rounded-full">세포모델</span>
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs rounded-full">분석항목</span>
               </div>
             </CardContent>
           </Card>
@@ -223,26 +223,27 @@ export default function NewQuotationPage() {
           {/* 임상병리검사 카드 */}
           <Card
             className={cn(
-              'cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
+              'cursor-pointer transition-all duration-200 hover:shadow-lg',
               'border-2 border-transparent hover:border-purple-400/50',
-              'bg-gradient-to-br from-purple-50 to-pink-50'
+              'bg-gradient-to-br from-purple-50 to-pink-50',
+              'touch-manipulation active:scale-[0.98]',
+              'sm:col-span-2 md:col-span-1'
             )}
             onClick={() => router.push('/clinical-pathology/quotations/new')}
           >
-            <CardContent className="p-8 text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-lg">
-                <TestTube className="w-10 h-10 text-white" />
+            <CardContent className="p-5 sm:p-8 text-center">
+              <div className="w-14 h-14 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-lg">
+                <TestTube className="w-7 h-7 sm:w-10 sm:h-10 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-3">임상병리검사 견적서</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                임상병리검사 관련 견적서를 작성합니다.<br />
-                검체 정보, 검사항목 선택, 가격 산출까지<br />
-                단계별로 진행됩니다.
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">임상병리검사 견적서</h3>
+              <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
+                임상병리검사 관련 견적서를 작성합니다.
+                <span className="hidden sm:inline"><br />검체 정보, 검사항목 선택, 가격 산출까지<br />단계별로 진행됩니다.</span>
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
-                <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">혈액학검사</span>
-                <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">혈액생화학</span>
-                <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">요검사</span>
+              <div className="mt-4 sm:mt-6 flex flex-wrap justify-center gap-1.5 sm:gap-2">
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-purple-100 text-purple-700 text-[10px] sm:text-xs rounded-full">혈액학검사</span>
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-purple-100 text-purple-700 text-[10px] sm:text-xs rounded-full">혈액생화학</span>
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-purple-100 text-purple-700 text-[10px] sm:text-xs rounded-full">요검사</span>
               </div>
             </CardContent>
           </Card>
@@ -261,12 +262,12 @@ export default function NewQuotationPage() {
           actions={
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleBack}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                유형 선택
+                <ArrowLeft className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">유형 선택</span>
               </Button>
               <Button variant="outline" size="sm" onClick={handleReset}>
-                <RotateCcw className="w-4 h-4 mr-2" />
-                초기화
+                <RotateCcw className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">초기화</span>
               </Button>
             </div>
           }
@@ -288,12 +289,12 @@ export default function NewQuotationPage() {
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleBack}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              유형 선택
+              <ArrowLeft className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">유형 선택</span>
             </Button>
             <Button variant="outline" size="sm" onClick={handleReset}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              초기화
+              <RotateCcw className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">초기화</span>
             </Button>
           </div>
         }

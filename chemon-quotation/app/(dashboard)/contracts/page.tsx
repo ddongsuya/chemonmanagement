@@ -83,27 +83,30 @@ export default function ContractsPage() {
 
   const formatAmount = (amount?: number) => {
     if (!amount) return '-';
-    return `₩${Number(amount).toLocaleString()}`;
+    return Number(amount).toLocaleString() + '원';
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-2xl font-bold">계약 관리</h1>
-          <p className="text-muted-foreground">계약서 및 시험 진행 관리</p>
+          <h1 className="text-xl sm:text-2xl font-bold">계약 관리</h1>
+          <p className="text-sm text-muted-foreground">계약서 및 시험 진행 관리</p>
         </div>
-        <div className="flex gap-2">
-          <ExcelImportExport defaultType="contracts" onImportSuccess={loadData} />
-          <Button onClick={() => router.push('/contract/new')}>
-            <Plus className="w-4 h-4 mr-2" />
-            새 계약
+        <div className="flex gap-2 flex-shrink-0">
+          <div className="hidden sm:block">
+            <ExcelImportExport defaultType="contracts" onImportSuccess={loadData} />
+          </div>
+          <Button size="sm" onClick={() => router.push('/contract/new')}>
+            <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">새 계약</span>
+            <span className="sm:hidden">추가</span>
           </Button>
         </div>
       </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -163,8 +166,8 @@ export default function ContractsPage() {
       {/* 필터 */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 flex-wrap">
+            <div className="flex-1 min-w-0 sm:min-w-[200px]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -176,95 +179,142 @@ export default function ContractsPage() {
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="상태" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 상태</SelectItem>
-                {Object.entries(statusLabels).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={handleSearch}>검색</Button>
+            <div className="flex gap-2">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[150px]">
+                  <SelectValue placeholder="상태" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체 상태</SelectItem>
+                  {Object.entries(statusLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button onClick={handleSearch} className="flex-shrink-0">검색</Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* 계약 목록 */}
       <Card>
-        <CardHeader>
-          <CardTitle>계약 목록</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">계약 목록</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
+            <div className="text-center py-8 text-muted-foreground text-sm">로딩 중...</div>
           ) : contracts.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-muted-foreground text-sm">
               등록된 계약이 없습니다.
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>계약번호</TableHead>
-                  <TableHead>계약명</TableHead>
-                  <TableHead>고객사</TableHead>
-                  <TableHead>유형</TableHead>
-                  <TableHead>계약금액</TableHead>
-                  <TableHead>상태</TableHead>
-                  <TableHead>체결일</TableHead>
-                  <TableHead>시험</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* 모바일: 카드 리스트 */}
+              <div className="md:hidden space-y-3">
                 {contracts.map((contract) => {
                   const contractNumber = contract.contractNumber || contract.contract_number || '';
                   const title = contract.title || contract.project_name || '';
                   const contractType = contract.contractType || contract.contract_type || 'TOXICITY';
                   const totalAmount = contract.totalAmount ?? contract.total_amount ?? 0;
                   const signedDate = contract.signedDate || contract.signed_date;
-                  
+
                   return (
-                    <TableRow
+                    <Card
                       key={contract.id}
-                      className="cursor-pointer hover:bg-muted/50"
+                      className="touch-manipulation active:bg-muted/50 transition-colors cursor-pointer"
                       onClick={() => router.push(`/contracts/${contract.id}`)}
                     >
-                      <TableCell className="font-medium">{contractNumber}</TableCell>
-                      <TableCell>{title}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-muted-foreground" />
-                          {contract.customer?.company || contract.customer?.name || contract.customer_name || '-'}
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <span className="text-xs font-mono text-muted-foreground">{contractNumber}</span>
+                          <Badge className={statusColors[contract.status]}>
+                            {statusLabels[contract.status]}
+                          </Badge>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {contractType === 'TOXICITY' ? '독성' : contractType === 'EFFICACY' ? '효력' : contractType === 'CLINICAL_PATHOLOGY' ? '임상병리' : contractType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatAmount(totalAmount)}</TableCell>
-                      <TableCell>
-                        <Badge className={statusColors[contract.status]}>
-                          {statusLabels[contract.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          {formatDate(signedDate)}
+                        <div className="font-medium text-sm mb-1 truncate">{title}</div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                          <Building2 className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{contract.customer?.company || contract.customer?.name || contract.customer_name || '-'}</span>
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex-shrink-0">
+                            {contractType === 'TOXICITY' ? '독성' : contractType === 'EFFICACY' ? '효력' : '임상병리'}
+                          </Badge>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {(contract as any)._count?.studies || contract.studies?.length || 0}건
-                      </TableCell>
-                    </TableRow>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">{formatDate(signedDate)}</span>
+                          <span className="font-semibold">{formatAmount(totalAmount)}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
                   );
                 })}
-              </TableBody>
-            </Table>
+              </div>
+
+              {/* 데스크톱: 테이블 */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>계약번호</TableHead>
+                      <TableHead>계약명</TableHead>
+                      <TableHead>고객사</TableHead>
+                      <TableHead>유형</TableHead>
+                      <TableHead>계약금액</TableHead>
+                      <TableHead>상태</TableHead>
+                      <TableHead>체결일</TableHead>
+                      <TableHead>시험</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contracts.map((contract) => {
+                      const contractNumber = contract.contractNumber || contract.contract_number || '';
+                      const title = contract.title || contract.project_name || '';
+                      const contractType = contract.contractType || contract.contract_type || 'TOXICITY';
+                      const totalAmount = contract.totalAmount ?? contract.total_amount ?? 0;
+                      const signedDate = contract.signedDate || contract.signed_date;
+                      
+                      return (
+                        <TableRow
+                          key={contract.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => router.push(`/contracts/${contract.id}`)}
+                        >
+                          <TableCell className="font-medium">{contractNumber}</TableCell>
+                          <TableCell>{title}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-muted-foreground" />
+                              {contract.customer?.company || contract.customer?.name || contract.customer_name || '-'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {contractType === 'TOXICITY' ? '독성' : contractType === 'EFFICACY' ? '효력' : contractType === 'CLINICAL_PATHOLOGY' ? '임상병리' : contractType}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{formatAmount(totalAmount)}</TableCell>
+                          <TableCell>
+                            <Badge className={statusColors[contract.status]}>
+                              {statusLabels[contract.status]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Calendar className="w-3 h-3" />
+                              {formatDate(signedDate)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {(contract as any)._count?.studies || contract.studies?.length || 0}건
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

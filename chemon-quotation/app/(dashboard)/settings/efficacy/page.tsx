@@ -205,7 +205,7 @@ export default function EfficacySettingsPage() {
                         </TableCell>
                         <TableCell className="font-medium">{item.itemName}</TableCell>
                         <TableCell className="text-right font-medium">
-                          ₩{item.unitPrice.toLocaleString()}
+                          {item.unitPrice.toLocaleString()}원
                         </TableCell>
                         <TableCell className="text-sm">{item.unit || '-'}</TableCell>
                         <TableCell>
