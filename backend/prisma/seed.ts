@@ -278,84 +278,9 @@ async function main() {
   await seedClinicalPathology();
 
   // ==================== 5. 업데이트 공지사항 ====================
-  console.log('📢 Creating update announcements...');
-
-  const now = new Date();
-  const oneMonthLater = new Date(now);
-  oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
-
-  const announcements = [
-    {
-      title: '🎉 v1.2.0 업데이트 - 통합 견적서 코드 시스템',
-      content: `## 새로운 기능
-
-### 통합 견적서 번호 체계
-- 모든 시험 유형(독성, 효력, 임상병리)에서 동일한 번호 형식 사용
-- 형식: \`YY-UC-MM-NNNN\` (예: 26-DL-01-0001)
-
-### 리드 번호 개선
-- 사용자 코드 기반 리드 번호 생성
-- 형식: \`UC-YYYY-NNNN\` (예: DL-2026-0001)
-
-### 견적서 코드 중복 방지
-- 사용자 간 코드 중복 검사 (대소문자 무시)
-- 실시간 중복 확인 피드백
-
-## ⚠️ 주의사항
-- 견적서 작성 전 **설정 > 견적서 코드**에서 코드를 먼저 설정해야 합니다
-- 기존에 생성된 견적서/리드 번호는 변경되지 않습니다`,
-      priority: 'HIGH',
-      startDate: now,
-      endDate: oneMonthLater,
-    },
-    {
-      title: '📋 v1.1.0 업데이트 - 공지사항 댓글 & 임상병리 모듈',
-      content: `## 새로운 기능
-
-### 공지사항 댓글
-- 공지사항에 댓글 작성 가능
-- 대댓글 지원
-
-### 임상병리 모듈
-- 임상병리시험 견적서 작성 기능 추가
-- 검사 항목별 가격 관리
-
-### 성능 개선
-- 데이터베이스 인덱스 최적화
-- 페이지 로딩 속도 개선`,
-      priority: 'NORMAL',
-      startDate: new Date('2026-01-30'),
-      endDate: new Date('2026-02-28'),
-    },
-  ];
-
-  for (const announcement of announcements) {
-    await prisma.announcement.upsert({
-      where: { 
-        // title은 unique가 아니므로 id로 찾거나 새로 생성
-        id: `seed-${announcement.title.slice(0, 20).replace(/[^a-zA-Z0-9]/g, '-')}`,
-      },
-      update: {
-        title: announcement.title,
-        content: announcement.content,
-        priority: announcement.priority as any,
-        startDate: announcement.startDate,
-        endDate: announcement.endDate,
-      },
-      create: {
-        id: `seed-${announcement.title.slice(0, 20).replace(/[^a-zA-Z0-9]/g, '-')}`,
-        title: announcement.title,
-        content: announcement.content,
-        priority: announcement.priority as any,
-        startDate: announcement.startDate,
-        endDate: announcement.endDate,
-        createdBy: adminUser.id,
-        isActive: true,
-      },
-    });
-  }
-
-  console.log(`✅ Created ${announcements.length} update announcements`);
+  // 공지사항은 서버 시작 시 release-notes/ 폴더에서 자동 동기화됩니다.
+  // backend/release-notes/ 폴더에 JSON 파일을 추가하면 됩니다.
+  console.log('📢 Update announcements are now managed via release-notes/ folder');
 
   // ==================== 6. 완료 ====================
   console.log('');
@@ -365,7 +290,6 @@ async function main() {
   console.log(`   - Admin User: admin@chemon.co.kr (password: admin1234!)`);
   console.log(`   - Pipeline Stages: ${stages.length}`);
   console.log(`   - Stage Tasks: ${createdTasks.count}`);
-  console.log(`   - Update Announcements: ${announcements.length}`);
   console.log(`   - System Settings: ${settings.length}`);
   console.log('');
   console.log('⚠️  IMPORTANT: Change the admin password after first login!');

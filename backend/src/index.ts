@@ -39,6 +39,7 @@ import studyDashboardRoutes from './routes/studyDashboard';
 import searchRoutes from './routes/search';
 import toxicityV2Routes from './routes/toxicityV2';
 import { pipelineInitializationService } from './services/pipelineInitializationService';
+import { syncReleaseNotes } from './services/releaseNoteService';
 
 // Load environment variables
 dotenv.config();
@@ -155,6 +156,13 @@ app.listen(PORT, async () => {
     }
   } catch (error) {
     console.error('❌ Failed to initialize pipeline stages:', error);
+  }
+
+  // 릴리즈 노트 → 공지사항 자동 동기화
+  try {
+    await syncReleaseNotes();
+  } catch (error) {
+    console.error('❌ Failed to sync release notes:', error);
   }
 });
 
