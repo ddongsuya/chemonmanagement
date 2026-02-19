@@ -42,10 +42,10 @@ export interface ToxicityV2Item {
   description: string;           // desc: 설명
   priceOral: number | null;      // op: 경구 가격
   routeOral: string;             // or: 경구 투여경로
-  weeksOral: number | string;    // ow: 경구 소요기간(주)
-  priceIv: number | null;        // ip: 정맥 가격
-  routeIv: string;               // ir: 정맥 투여경로
-  weeksIv: number | string;      // iw: 정맥 소요기간(주)
+  weeksOral: number | string | null;  // ow: 경구 소요기간(주)
+  priceIv: number | null;             // ip: 정맥 가격
+  routeIv: string;                    // ir: 정맥 투여경로
+  weeksIv: number | string | null;    // iw: 정맥 소요기간(주)
   formalName?: string;           // FN 매핑: 정식명칭
   guideline?: string[];          // GL 매핑: 가이드라인
   note?: string;                 // 비고
