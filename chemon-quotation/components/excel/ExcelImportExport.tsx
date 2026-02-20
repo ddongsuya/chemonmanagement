@@ -20,12 +20,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Download, Upload, FileSpreadsheet, AlertCircle, CheckCircle } from 'lucide-react';
-import { exportData, importData, getTemplate, downloadFile, ExportType, ExportFilters } from '@/lib/excel-api';
+import { exportData, importData, importQuotationsLegacy, getTemplate, getLegacyTemplate, downloadFile, ExportType, ExportFilters } from '@/lib/excel-api';
 
 interface ExcelImportExportProps {
   defaultType?: ExportType;
   onImportSuccess?: () => void;
 }
+
+type ImportMode = 'standard' | 'legacy';
 
 const typeLabels: Record<ExportType, string> = {
   leads: '리드',
@@ -45,6 +47,7 @@ export default function ExcelImportExport({ defaultType, onImportSuccess }: Exce
   const [selectedType, setSelectedType] = useState<ExportType>(defaultType || 'leads');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [importMode, setImportMode] = useState<ImportMode>('standard');
   const [importResult, setImportResult] = useState<{ success: number; failed: number; errors: Array<{ row: number; message: string }> } | null>(null);
 
   // 내보내기
@@ -71,7 +74,9 @@ export default function ExcelImportExport({ defaultType, onImportSuccess }: Exce
   const handleDownloadTemplate = async () => {
     setLoading(true);
     try {
-      const result = await getTemplate(selectedType);
+      const result = importMode === 'legacy'
+        ? await getLegacyTemplate()
+        : await getTemplate(selectedType);
       downloadFile(result.downloadUrl, result.filename);
       toast({ title: '템플릿 다운로드 완료' });
     } catch (error: any) {
@@ -89,7 +94,9 @@ export default function ExcelImportExport({ defaultType, onImportSuccess }: Exce
     setLoading(true);
     setImportResult(null);
     try {
-      const result = await importData(selectedType, file);
+      const result = importMode === 'legacy'
+        ? await importQuotationsLegacy(file)
+        : await importData(selectedType, file);
       setImportResult(result);
       
       if (result.success > 0) {
@@ -173,16 +180,37 @@ export default function ExcelImportExport({ defaultType, onImportSuccess }: Exce
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>데이터 유형</Label>
-              <Select value={selectedType} onValueChange={(v) => setSelectedType(v as ExportType)}>
+              <Label>가져오기 방식</Label>
+              <Select value={importMode} onValueChange={(v) => setImportMode(v as ImportMode)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(typeLabels).filter(([key]) => key !== 'studies').map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
-                  ))}
+                  <SelectItem value="standard">표준 양식</SelectItem>
+                  <SelectItem value="legacy">기존 엑셀 양식 (견적서)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {importMode === 'standard' && (
+              <div className="space-y-2">
+                <Label>데이터 유형</Label>
+                <Select value={selectedType} onValueChange={(v) => setSelectedType(v as ExportType)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(typeLabels).filter(([key]) => key !== 'studies').map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {importMode === 'legacy' && (
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg text-sm text-amber-700 dark:text-amber-300">
+                <p className="font-medium mb-1">기존 엑셀 양식 헤더:</p>
+                <p className="text-xs">견적 송부 날짜 | 견적서 번호 | 계약번호 | 시험기준 | 견적명 | 의뢰기관 | 의뢰자 | 의뢰자 연락처 | 의뢰자 e-mail | 제출용도 | 물질종류 | 담당자 | 견적금액 | 할인율 | 계약금액 | 결론</p>
+                <p className="mt-1 text-xs">견적서 + 고객 + 계약이 자동으로 생성됩니다.</p>
+              </div>
+            )}
 
             <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">

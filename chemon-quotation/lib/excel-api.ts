@@ -62,6 +62,33 @@ export async function getTemplate(type: ExportType): Promise<ExportResponse> {
   return api.get(`/excel/template/${type}`);
 }
 
+// 기존 양식 견적서 가져오기
+export async function importQuotationsLegacy(file: File): Promise<ImportResult> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const token = getAccessToken();
+
+  const response = await fetch(`${API_BASE_URL}/api/excel/import/quotations-legacy`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  const data = await response.json();
+  if (!data.success) {
+    throw new Error(data.error?.message || '가져오기 실패');
+  }
+  return data.data;
+}
+
+// 기존 양식 템플릿 다운로드
+export async function getLegacyTemplate(): Promise<ExportResponse> {
+  return api.get('/excel/template/quotations-legacy');
+}
+
 // 파일 다운로드 헬퍼
 export function downloadFile(downloadUrl: string, filename: string) {
   const link = document.createElement('a');

@@ -126,6 +126,49 @@ router.post('/import/:type', authenticate, upload.single('file'), async (req: Re
 });
 
 /**
+ * POST /api/excel/import/quotations-legacy
+ * 기존 엑셀 양식으로 견적서 가져오기
+ */
+router.post('/import/quotations-legacy', authenticate, upload.single('file'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: { message: '파일이 필요합니다' } });
+    }
+
+    const result = await excelService.importQuotationsLegacy(userId, req.file.path);
+
+    // 업로드된 파일 삭제
+    fs.unlinkSync(req.file.path);
+
+    res.json({
+      success: true,
+      data: result,
+      message: `${result.success}건 성공, ${result.failed}건 실패`,
+    });
+  } catch (error) {
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    next(error);
+  }
+});
+
+/**
+ * GET /api/excel/template/quotations-legacy
+ * 기존 견적서 양식 템플릿 다운로드
+ */
+router.get('/template/quotations-legacy', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const filename = await excelService.generateLegacyTemplate();
+    res.json({ success: true, data: { filename, downloadUrl: `/exports/${filename}` } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /api/excel/template/:type
  * 가져오기용 템플릿 다운로드
  */

@@ -406,6 +406,165 @@ export class ExcelService {
     return result;
   }
 
+  /**
+   * 기존 엑셀 양식으로 견적서 + 고객 + 계약 일괄 가져오기
+   * 헤더: 견적 송부 날짜 | 견적서 번호 | 계약번호 | 시험기준 | 견적명 | 의뢰기관 | 의뢰자 | 의뢰자 연락처 | 의뢰자 e-mail | 제출용도 | 물질종류 | 담당자 | 견적금액 | 할인율 | 계약금액 | 결론
+   */
+  async importQuotationsLegacy(userId: string, filePath: string): Promise<ImportResult> {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(filePath);
+    const sheet = workbook.worksheets[0];
+
+    if (!sheet) throw new AppError('Excel 파일에 시트가 없습니다', 400, ErrorCodes.VALIDATION_ERROR);
+
+    const result: ImportResult = { success: 0, failed: 0, errors: [] };
+
+    const rows: any[] = [];
+    sheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      rows.push({ row, rowNumber });
+    });
+
+    for (const { row, rowNumber } of rows) {
+      try {
+        // 컬럼 매핑 (1-indexed)
+        const sentDate = this.getCellValue(row, 1);
+        const quotationNumber = this.getCellValue(row, 2);
+        const contractNumber = this.getCellValue(row, 3);
+        const testStandard = this.getCellValue(row, 4);
+        const quotationName = this.getCellValue(row, 5);
+        const company = this.getCellValue(row, 6);
+        const contactName = this.getCellValue(row, 7);
+        const contactPhone = this.getCellValue(row, 8);
+        const contactEmail = this.getCellValue(row, 9);
+        const purpose = this.getCellValue(row, 10);
+        const substanceType = this.getCellValue(row, 11);
+        const quotationAmount = this.parseNumber(this.getCellValue(row, 13));
+        const discountRateRaw = this.getCellValue(row, 14);
+        const contractAmount = this.parseNumber(this.getCellValue(row, 15));
+        const conclusion = this.getCellValue(row, 16);
+
+        if (!quotationName && !company) {
+          result.errors.push({ row: rowNumber, message: '견적명 또는 의뢰기관이 필요합니다' });
+          result.failed++;
+          continue;
+        }
+
+        // 고객 찾기 또는 생성
+        let customer = null;
+        if (company || contactName) {
+          const orConditions: any[] = [];
+          if (company) orConditions.push({ company: { equals: company, mode: 'insensitive' as const } });
+          if (contactName) orConditions.push({ name: { equals: contactName, mode: 'insensitive' as const } });
+
+          customer = await prisma.customer.findFirst({
+            where: { userId, OR: orConditions, deletedAt: null },
+          });
+          if (!customer) {
+            customer = await prisma.customer.create({
+              data: {
+                userId,
+                name: contactName || company || '미지정',
+                company: company || null,
+                phone: contactPhone || null,
+                email: contactEmail || null,
+              },
+            });
+          }
+        }
+
+        // 할인율 파싱
+        let discountRate: number | null = null;
+        if (discountRateRaw) {
+          const parsed = parseFloat(discountRateRaw.replace(/%/g, '').trim());
+          if (!isNaN(parsed)) discountRate = parsed;
+        }
+
+        // 결론 → 상태 매핑
+        const status = this.mapConclusionToStatus(conclusion);
+
+        // 견적서 번호
+        let finalQuotationNumber = quotationNumber;
+        if (!finalQuotationNumber) {
+          finalQuotationNumber = await this.generateQuotationNumber('TOXICITY');
+        } else {
+          const existing = await prisma.quotation.findUnique({ where: { quotationNumber: finalQuotationNumber } });
+          if (existing) {
+            result.errors.push({ row: rowNumber, message: `견적서 번호 중복: ${finalQuotationNumber}` });
+            result.failed++;
+            continue;
+          }
+        }
+
+        const totalAmount = quotationAmount || 0;
+        const discountAmount = discountRate ? totalAmount * (discountRate / 100) : null;
+
+        const notesParts: string[] = [];
+        if (testStandard) notesParts.push(`시험기준: ${testStandard}`);
+        if (purpose) notesParts.push(`제출용도: ${purpose}`);
+        if (substanceType) notesParts.push(`물질종류: ${substanceType}`);
+
+        const quotation = await prisma.quotation.create({
+          data: {
+            userId,
+            quotationNumber: finalQuotationNumber,
+            quotationType: 'TOXICITY',
+            customerId: customer?.id || null,
+            customerName: company || contactName || '미지정',
+            projectName: quotationName || '미지정',
+            modality: substanceType || null,
+            status,
+            totalAmount,
+            discountRate,
+            discountAmount,
+            items: [],
+            notes: notesParts.length > 0 ? notesParts.join(' | ') : null,
+            createdAt: this.parseDate(sentDate) || new Date(),
+          },
+        });
+
+        // 계약번호가 있으면 계약도 생성
+        if (contractNumber && customer) {
+          const existingContract = await prisma.contract.findUnique({ where: { contractNumber } });
+          if (!existingContract) {
+            try {
+              await prisma.contract.create({
+                data: {
+                  userId,
+                  customerId: customer.id,
+                  contractNumber,
+                  title: quotationName || '미지정',
+                  contractType: 'TOXICITY',
+                  status: contractAmount ? 'SIGNED' : 'NEGOTIATING',
+                  totalAmount: contractAmount || totalAmount,
+                  quotations: { connect: { id: quotation.id } },
+                },
+              });
+            } catch {
+              // 계약 생성 실패해도 견적서는 이미 생성됨
+            }
+          }
+        }
+
+        result.success++;
+      } catch (error: any) {
+        result.errors.push({ row: rowNumber, message: error.message || '알 수 없는 오류' });
+        result.failed++;
+      }
+    }
+    return result;
+  }
+
+  private mapConclusionToStatus(conclusion: string): 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' {
+    if (!conclusion) return 'DRAFT';
+    const c = conclusion.trim().toLowerCase();
+    if (c.includes('수주') || c.includes('계약') || c.includes('성공') || c.includes('수락')) return 'ACCEPTED';
+    if (c.includes('실주') || c.includes('실패') || c.includes('거절') || c.includes('탈락')) return 'REJECTED';
+    if (c.includes('만료') || c.includes('취소')) return 'EXPIRED';
+    if (c.includes('제출') || c.includes('송부') || c.includes('발송')) return 'SENT';
+    return 'DRAFT';
+  }
+
   async importContracts(userId: string, filePath: string): Promise<ImportResult> {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
@@ -715,6 +874,56 @@ export class ExcelService {
       default:
         return {};
     }
+  }
+
+  async generateLegacyTemplate(): Promise<string> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('기존 견적서 양식');
+
+    sheet.columns = [
+      { header: '견적 송부 날짜', key: 'sentDate', width: 18 },
+      { header: '견적서 번호', key: 'quotationNumber', width: 18 },
+      { header: '계약번호', key: 'contractNumber', width: 18 },
+      { header: '시험기준', key: 'testStandard', width: 15 },
+      { header: '견적명', key: 'quotationName', width: 30 },
+      { header: '의뢰기관', key: 'company', width: 25 },
+      { header: '의뢰자', key: 'contactName', width: 15 },
+      { header: '의뢰자 연락처', key: 'contactPhone', width: 18 },
+      { header: '의뢰자 e-mail', key: 'contactEmail', width: 25 },
+      { header: '제출용도', key: 'purpose', width: 15 },
+      { header: '물질종류', key: 'substanceType', width: 15 },
+      { header: '담당자', key: 'manager', width: 15 },
+      { header: '견적금액', key: 'quotationAmount', width: 18 },
+      { header: '할인율', key: 'discountRate', width: 12 },
+      { header: '계약금액', key: 'contractAmount', width: 18 },
+      { header: '결론', key: 'conclusion', width: 12 },
+    ];
+
+    this.styleHeader(sheet);
+
+    sheet.addRow({
+      sentDate: '2026-01-15',
+      quotationNumber: '(비워두면 자동생성)',
+      contractNumber: 'CT-2026-0001',
+      testStandard: 'KGLP',
+      quotationName: '신약개발 독성시험',
+      company: '(주)예시제약',
+      contactName: '홍길동',
+      contactPhone: '010-1234-5678',
+      contactEmail: 'hong@example.com',
+      purpose: 'IND',
+      substanceType: 'Small Molecule',
+      manager: '(현재 로그인 사용자)',
+      quotationAmount: 50000000,
+      discountRate: '10%',
+      contractAmount: 45000000,
+      conclusion: '수주',
+    });
+
+    const filename = 'template_quotations_legacy.xlsx';
+    const filepath = path.join(this.exportDir, filename);
+    await workbook.xlsx.writeFile(filepath);
+    return filename;
   }
 }
 
