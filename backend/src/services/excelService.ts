@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import { AppError, ErrorCodes } from '../types/error';
 import path from 'path';
 import fs from 'fs';
+import DataService from './dataService';
 
 // 내보내기 가능한 데이터 타입
 export type ExportType = 'leads' | 'quotations' | 'contracts' | 'studies' | 'customers';
@@ -376,7 +377,7 @@ export class ExcelService {
 
         const typeStr = this.getCellValue(row, 2);
         const quotationType = typeStr === '효력' ? 'EFFICACY' : 'TOXICITY';
-        const quotationNumber = await this.generateQuotationNumber(quotationType);
+        const quotationNumber = await this.generateQuotationNumber(quotationType, userId);
 
         await prisma.quotation.create({
           data: {
@@ -486,7 +487,7 @@ export class ExcelService {
         // 견적서 번호
         let finalQuotationNumber = quotationNumber;
         if (!finalQuotationNumber) {
-          finalQuotationNumber = await this.generateQuotationNumber('TOXICITY');
+          finalQuotationNumber = await this.generateQuotationNumber('TOXICITY', userId);
         } else {
           const existing = await prisma.quotation.findUnique({ where: { quotationNumber: finalQuotationNumber } });
           if (existing) {
@@ -833,7 +834,17 @@ export class ExcelService {
     return map[status] || status;
   }
 
-  private async generateQuotationNumber(type: 'TOXICITY' | 'EFFICACY'): Promise<string> {
+  private async generateQuotationNumber(type: 'TOXICITY' | 'EFFICACY', userId?: string): Promise<string> {
+    // userId가 있으면 DataService의 통합 번호 생성 사용 (YY-UC-MM-NNNN)
+    if (userId) {
+      try {
+        const ds = new DataService(prisma);
+        return await ds.generateQuotationNumber(userId, type);
+      } catch {
+        // userCode 미설정 등의 경우 fallback
+      }
+    }
+    // fallback: 기존 방식
     const prefix = type === 'TOXICITY' ? 'TQ' : 'EQ';
     const year = new Date().getFullYear();
     const last = await prisma.quotation.findFirst({
