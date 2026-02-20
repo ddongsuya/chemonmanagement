@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils';
 interface TestItemCardProps {
   name: string;
   category: string;
-  species: string;
-  duration: string;
+  species?: string;
+  duration?: string;
   price: number | null;
   isSelected: boolean;
   categoryColor?: string;

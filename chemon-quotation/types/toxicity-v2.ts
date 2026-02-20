@@ -10,16 +10,22 @@ export type TestMode =
   | 'drug_vaccine'    // 백신
   | 'drug_screen_tox' // 독성 스크리닝
   | 'drug_screen_cv'  // 심혈관계 스크리닝
+  | 'drug_celltx'     // 세포치료제
   | 'hf_indv'         // 건기식 개별인정형
   | 'hf_prob'         // 건기식 프로바이오틱스
   | 'hf_temp'         // 건기식 한시적식품
-  | 'md_bio';         // 의료기기 생물학적안전성
+  | 'md_bio'          // 의료기기 생물학적안전성
+  | 'cos_alt'         // 화장품 대체시험
+  | 'cos_stem'        // 화장품 줄기세포배양액
+  | 'doc_send'        // 문서작업 SEND
+  | 'doc_ctd'         // 문서작업 CTD
+  | 'doc_trans';      // 문서작업 번역
 
 /**
  * 투여 경로
  * 경구(oral) 또는 정맥(iv)
  */
-export type RouteType = 'oral' | 'iv';
+export type RouteType = 'oral' | 'iv' | 'sc' | 'im' | 'td';
 
 /**
  * 시험 기준
@@ -165,4 +171,22 @@ export interface QuotationInfo {
   purpose: string;
   substance: string;
   quotationNumber: string;
+}
+
+
+/**
+ * 문서작업 시험 항목 (SEND/CTD/번역)
+ * species, duration 없이 단일 가격 체계를 사용한다.
+ */
+export interface DocumentItem {
+  id: number;
+  num: number;
+  name: string;
+  formalName: string;
+  category: string;
+  description?: string;
+  price: number;
+  weeks: number | string;
+  guideline: string[];
+  note?: string;
 }

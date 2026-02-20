@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useToxicityV2Store } from '@/stores/toxicityV2Store';
-import type { TestMode, ToxicityV2Item, ComboItem, SimpleItem } from '@/types/toxicity-v2';
+import type { TestMode, ToxicityV2Item, ComboItem, SimpleItem, DocumentItem, RouteType } from '@/types/toxicity-v2';
 import { CATS_MAPPING, CC_MAPPING } from '@/lib/toxicity-v2/data/metadata';
 import { OPT_IDS } from '@/lib/toxicity-v2/data/relations';
 import { OV_OVERLAY, OE_OVERLAY } from '@/lib/toxicity-v2/data/overlays';
@@ -14,31 +14,40 @@ import { VACCINE_DATA } from '@/lib/toxicity-v2/data/vaccineData';
 import { SCREEN_DATA, CV_SCREEN_DATA } from '@/lib/toxicity-v2/data/screenData';
 import { HF_INDV_DATA, HF_PROB_DATA, HF_TEMP_DATA } from '@/lib/toxicity-v2/data/healthFoodData';
 import { MD_BIO_DATA } from '@/lib/toxicity-v2/data/medicalDeviceData';
+import { COS_ALT_DATA, COS_STEM_DATA } from '@/lib/toxicity-v2/data/cosmeticsData';
+import { CELL_TX_DATA } from '@/lib/toxicity-v2/data/cellTherapyData';
+import { DOC_SEND_DATA, DOC_CTD_DATA, DOC_TRANS_DATA } from '@/lib/toxicity-v2/data/documentWorkData';
 import { getItemPrice, getComboPrice } from '@/lib/toxicity-v2/priceEngine';
 import { cn } from '@/lib/utils';
 import TestItemCard from './TestItemCard';
 import PriceOptionBar from './PriceOptionBar';
 
 /** 모드별 데이터 배열 반환 */
-function getDataForMode(mode: TestMode): (ToxicityV2Item | ComboItem | SimpleItem)[] {
+function getDataForMode(mode: TestMode): (ToxicityV2Item | ComboItem | SimpleItem | DocumentItem)[] {
   switch (mode) {
     case 'drug_single': return TOXICITY_DATA;
     case 'drug_combo': return COMBO_DATA;
     case 'drug_vaccine': return VACCINE_DATA;
     case 'drug_screen_tox': return SCREEN_DATA;
     case 'drug_screen_cv': return CV_SCREEN_DATA;
+    case 'drug_celltx': return CELL_TX_DATA;
     case 'hf_indv': return HF_INDV_DATA;
     case 'hf_prob': return HF_PROB_DATA;
     case 'hf_temp': return HF_TEMP_DATA;
     case 'md_bio': return MD_BIO_DATA;
+    case 'cos_alt': return COS_ALT_DATA;
+    case 'cos_stem': return COS_STEM_DATA;
+    case 'doc_send': return DOC_SEND_DATA;
+    case 'doc_ctd': return DOC_CTD_DATA;
+    case 'doc_trans': return DOC_TRANS_DATA;
   }
 }
 
 /** 항목의 현재 가격 계산 */
 function calcPrice(
-  item: ToxicityV2Item | ComboItem | SimpleItem,
+  item: ToxicityV2Item | ComboItem | SimpleItem | DocumentItem,
   mode: TestMode,
-  route: 'oral' | 'iv',
+  route: RouteType,
   standard: 'KGLP' | 'KGLP_OECD',
   comboType: 2 | 3 | 4,
 ): number | null {
@@ -48,7 +57,8 @@ function calcPrice(
   if (mode === 'drug_combo') {
     return getComboPrice(item as ComboItem, comboType);
   }
-  return (item as SimpleItem).price ?? null;
+  // DocumentItem and SimpleItem both have .price
+  return (item as SimpleItem | DocumentItem).price ?? null;
 }
 
 export default function V2TestSelector() {
@@ -123,13 +133,15 @@ export default function V2TestSelector() {
         {filteredItems.map((item) => {
           const price = calcPrice(item, mode, route, standard, comboType);
           const color = CC_MAPPING[item.category];
+          const species = 'species' in item ? (item as SimpleItem).species : undefined;
+          const duration = 'duration' in item ? (item as SimpleItem).duration : undefined;
           return (
             <TestItemCard
               key={item.id}
               name={item.name}
               category={item.category}
-              species={item.species}
-              duration={item.duration}
+              species={species}
+              duration={duration}
               price={price}
               isSelected={selectedItemIds.has(item.id)}
               categoryColor={color}

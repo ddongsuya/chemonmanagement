@@ -8,49 +8,58 @@ import { VACCINE_DATA } from '@/lib/toxicity-v2/data/vaccineData';
 import { SCREEN_DATA, CV_SCREEN_DATA } from '@/lib/toxicity-v2/data/screenData';
 import { HF_INDV_DATA, HF_PROB_DATA, HF_TEMP_DATA } from '@/lib/toxicity-v2/data/healthFoodData';
 import { MD_BIO_DATA } from '@/lib/toxicity-v2/data/medicalDeviceData';
-import type { TestMode, ToxicityV2Item, ComboItem, SimpleItem } from '@/types/toxicity-v2';
+import { COS_ALT_DATA, COS_STEM_DATA } from '@/lib/toxicity-v2/data/cosmeticsData';
+import { CELL_TX_DATA } from '@/lib/toxicity-v2/data/cellTherapyData';
+import { DOC_SEND_DATA, DOC_CTD_DATA, DOC_TRANS_DATA } from '@/lib/toxicity-v2/data/documentWorkData';
+import type { TestMode, ToxicityV2Item, ComboItem, SimpleItem, DocumentItem, RouteType } from '@/types/toxicity-v2';
 
 /** 모드별 데이터 배열 반환 */
-function getDataForMode(mode: TestMode | null): (ToxicityV2Item | ComboItem | SimpleItem)[] {
+function getDataForMode(mode: TestMode | null): (ToxicityV2Item | ComboItem | SimpleItem | DocumentItem)[] {
   switch (mode) {
     case 'drug_single': return TOXICITY_DATA;
     case 'drug_combo': return COMBO_DATA;
     case 'drug_vaccine': return VACCINE_DATA;
     case 'drug_screen_tox': return SCREEN_DATA;
     case 'drug_screen_cv': return CV_SCREEN_DATA;
+    case 'drug_celltx': return CELL_TX_DATA;
     case 'hf_indv': return HF_INDV_DATA;
     case 'hf_prob': return HF_PROB_DATA;
     case 'hf_temp': return HF_TEMP_DATA;
     case 'md_bio': return MD_BIO_DATA;
+    case 'cos_alt': return COS_ALT_DATA;
+    case 'cos_stem': return COS_STEM_DATA;
+    case 'doc_send': return DOC_SEND_DATA;
+    case 'doc_ctd': return DOC_CTD_DATA;
+    case 'doc_trans': return DOC_TRANS_DATA;
     default: return [];
   }
 }
 
 /** 항목의 정식명칭 조회 */
-function getFormalName(itemId: number, mode: TestMode | null, item: ToxicityV2Item | ComboItem | SimpleItem): string {
+function getFormalName(itemId: number, mode: TestMode | null, item: ToxicityV2Item | ComboItem | SimpleItem | DocumentItem): string {
   if (mode === 'drug_single') {
     return FN_MAPPING[itemId] ?? item.name;
   }
-  return (item as ComboItem | SimpleItem).formalName ?? item.name;
+  return (item as any).formalName ?? item.name;
 }
 
 /** 항목의 가이드라인 조회 */
-function getGuideline(itemId: number, mode: TestMode | null, item: ToxicityV2Item | ComboItem | SimpleItem): string[] {
+function getGuideline(itemId: number, mode: TestMode | null, item: ToxicityV2Item | ComboItem | SimpleItem | DocumentItem): string[] {
   if (mode === 'drug_single') {
     return GL_MAPPING[itemId] ?? [];
   }
-  return (item as ComboItem | SimpleItem).guideline ?? [];
+  return (item as any).guideline ?? [];
 }
 
 /** 항목의 소요기간(주) 조회 */
-function getWeeks(item: ToxicityV2Item | ComboItem | SimpleItem, mode: TestMode | null, route: 'oral' | 'iv'): string {
+function getWeeks(item: ToxicityV2Item | ComboItem | SimpleItem | DocumentItem, mode: TestMode | null, route: RouteType): string {
   if (mode === 'drug_single') {
     const toxItem = item as ToxicityV2Item;
     const w = route === 'oral' ? toxItem.weeksOral : toxItem.weeksIv;
     return w != null ? String(w) : '-';
   }
-  const simpleOrCombo = item as ComboItem | SimpleItem;
-  return simpleOrCombo.weeks != null ? String(simpleOrCombo.weeks) : '-';
+  const w = (item as any).weeks;
+  return w != null ? String(w) : '-';
 }
 
 export default function PreviewDetail() {
@@ -70,7 +79,7 @@ export default function PreviewDetail() {
             if (!item) return null;
 
             const formalName = getFormalName(test.itemId, mode, item);
-            const description = item.description;
+            const description = 'description' in item ? (item as any).description : undefined;
             const guideline = getGuideline(test.itemId, mode, item);
             const weeks = getWeeks(item, mode, route);
 
@@ -113,14 +122,18 @@ export default function PreviewDetail() {
 
                 {/* 동물종 / 기간 / 소요기간 */}
                 <div className="flex gap-6 text-sm text-gray-600 mt-3 pt-2 border-t border-gray-100">
-                  <div>
-                    <span className="text-xs text-gray-400 mr-1">동물종</span>
-                    {item.species || '-'}
-                  </div>
-                  <div>
-                    <span className="text-xs text-gray-400 mr-1">기간</span>
-                    {item.duration || '-'}
-                  </div>
+                  {'species' in item && (
+                    <div>
+                      <span className="text-xs text-gray-400 mr-1">동물종</span>
+                      {(item as any).species || '-'}
+                    </div>
+                  )}
+                  {'duration' in item && (
+                    <div>
+                      <span className="text-xs text-gray-400 mr-1">기간</span>
+                      {(item as any).duration || '-'}
+                    </div>
+                  )}
                   <div>
                     <span className="text-xs text-gray-400 mr-1">소요기간</span>
                     {weeks === '-' ? '-' : weeks.includes('주') || weeks.endsWith('~') ? weeks : `${weeks}주`}

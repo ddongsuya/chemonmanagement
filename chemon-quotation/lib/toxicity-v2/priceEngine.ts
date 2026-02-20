@@ -31,25 +31,28 @@ export function getItemPrice(
   ovOverlay: OecdOverlay,
   oeOverlay: OecdOverlay
 ): number | null {
+  // sc/im/td 경로는 정맥(iv) 가격 체계를 사용
+  const effectiveRoute = route === 'oral' ? 'oral' : 'iv';
+
   if (standard === 'KGLP') {
-    return route === 'oral' ? item.priceOral : item.priceIv;
+    return effectiveRoute === 'oral' ? item.priceOral : item.priceIv;
   }
 
   // KGLP_OECD: OV overlay first, then OE overlay, then base price
   const ovEntry = ovOverlay[item.id];
   if (ovEntry) {
-    const oecdPrice = route === 'oral' ? ovEntry.oop : ovEntry.oip;
+    const oecdPrice = effectiveRoute === 'oral' ? ovEntry.oop : ovEntry.oip;
     if (oecdPrice !== undefined) return oecdPrice;
   }
 
   const oeEntry = oeOverlay[item.id];
   if (oeEntry) {
-    const oecdPrice = route === 'oral' ? oeEntry.oop : oeEntry.oip;
+    const oecdPrice = effectiveRoute === 'oral' ? oeEntry.oop : oeEntry.oip;
     if (oecdPrice !== undefined) return oecdPrice;
   }
 
   // Fall back to base price
-  return route === 'oral' ? item.priceOral : item.priceIv;
+  return effectiveRoute === 'oral' ? item.priceOral : item.priceIv;
 }
 
 

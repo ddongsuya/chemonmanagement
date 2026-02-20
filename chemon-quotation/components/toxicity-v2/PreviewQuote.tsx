@@ -8,20 +8,29 @@ import { VACCINE_DATA } from '@/lib/toxicity-v2/data/vaccineData';
 import { SCREEN_DATA, CV_SCREEN_DATA } from '@/lib/toxicity-v2/data/screenData';
 import { HF_INDV_DATA, HF_PROB_DATA, HF_TEMP_DATA } from '@/lib/toxicity-v2/data/healthFoodData';
 import { MD_BIO_DATA } from '@/lib/toxicity-v2/data/medicalDeviceData';
-import type { TestMode, SelectedTest, ToxicityV2Item, ComboItem, SimpleItem } from '@/types/toxicity-v2';
+import { COS_ALT_DATA, COS_STEM_DATA } from '@/lib/toxicity-v2/data/cosmeticsData';
+import { CELL_TX_DATA } from '@/lib/toxicity-v2/data/cellTherapyData';
+import { DOC_SEND_DATA, DOC_CTD_DATA, DOC_TRANS_DATA } from '@/lib/toxicity-v2/data/documentWorkData';
+import type { TestMode, SelectedTest, ToxicityV2Item, ComboItem, SimpleItem, DocumentItem } from '@/types/toxicity-v2';
 
 /** 모드별 데이터 배열 반환 */
-function getDataForMode(mode: TestMode | null): (ToxicityV2Item | ComboItem | SimpleItem)[] {
+function getDataForMode(mode: TestMode | null): (ToxicityV2Item | ComboItem | SimpleItem | DocumentItem)[] {
   switch (mode) {
     case 'drug_single': return TOXICITY_DATA;
     case 'drug_combo': return COMBO_DATA;
     case 'drug_vaccine': return VACCINE_DATA;
     case 'drug_screen_tox': return SCREEN_DATA;
     case 'drug_screen_cv': return CV_SCREEN_DATA;
+    case 'drug_celltx': return CELL_TX_DATA;
     case 'hf_indv': return HF_INDV_DATA;
     case 'hf_prob': return HF_PROB_DATA;
     case 'hf_temp': return HF_TEMP_DATA;
     case 'md_bio': return MD_BIO_DATA;
+    case 'cos_alt': return COS_ALT_DATA;
+    case 'cos_stem': return COS_STEM_DATA;
+    case 'doc_send': return DOC_SEND_DATA;
+    case 'doc_ctd': return DOC_CTD_DATA;
+    case 'doc_trans': return DOC_TRANS_DATA;
     default: return [];
   }
 }
@@ -31,8 +40,8 @@ function lookupItemInfo(itemId: number, mode: TestMode | null): { species: strin
   const data = getDataForMode(mode);
   const item = data.find((d) => d.id === itemId);
   return {
-    species: item?.species ?? '-',
-    duration: item?.duration ?? '-',
+    species: item && 'species' in item ? (item as any).species ?? '-' : '-',
+    duration: item && 'duration' in item ? (item as any).duration ?? '-' : '-',
   };
 }
 

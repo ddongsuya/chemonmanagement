@@ -24,6 +24,18 @@ function getPurposeText(mode: TestMode | null, comboType: 2 | 3 | 4): string {
       return '건강기능식품(한시적식품) 안전성시험';
     case 'md_bio':
       return '의료기기 생물학적 안전성시험';
+    case 'cos_alt':
+      return '화장품 대체시험';
+    case 'cos_stem':
+      return '화장품 줄기세포배양액 안전성시험';
+    case 'drug_celltx':
+      return '세포치료제 독성시험';
+    case 'doc_send':
+      return 'SEND 데이터셋 작성';
+    case 'doc_ctd':
+      return 'CTD Module 2.6 작성';
+    case 'doc_trans':
+      return '보고서 영문 번역';
     default:
       return '';
   }

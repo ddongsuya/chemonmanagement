@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Pill, Leaf, Cpu } from 'lucide-react';
+import { ArrowLeft, Pill, Leaf, Cpu, FlaskConical, FileText } from 'lucide-react';
 import type { TestMode } from '@/types/toxicity-v2';
 
 interface ModeSelectorProps {
   onModeSelect: (mode: TestMode) => void;
 }
 
-type Level = 'top' | 'drug' | 'screening' | 'healthFood';
+type Level = 'top' | 'drug' | 'screening' | 'healthFood' | 'cosmetics' | 'document';
 
 interface ModeCard {
   label: string;
@@ -24,12 +24,15 @@ const TOP_CATEGORIES: ModeCard[] = [
   { label: '의약품', description: '의약품 독성시험', icon: <Pill className="h-8 w-8" />, next: 'drug' },
   { label: '건강기능식품', description: '건기식 안전성시험', icon: <Leaf className="h-8 w-8" />, next: 'healthFood' },
   { label: '의료기기', description: '생물학적 안전성시험', icon: <Cpu className="h-8 w-8" />, mode: 'md_bio' },
+  { label: '화장품', description: '화장품 안전성시험', icon: <FlaskConical className="h-8 w-8" />, next: 'cosmetics' },
+  { label: '문서작업', description: 'SEND / CTD / 번역', icon: <FileText className="h-8 w-8" />, next: 'document' },
 ];
 
 const DRUG_MODES: ModeCard[] = [
   { label: '의약품', description: '일반 의약품 독성시험', mode: 'drug_single' },
   { label: '복합제', description: '복합제 독성시험', mode: 'drug_combo' },
   { label: '백신', description: '백신 독성시험', mode: 'drug_vaccine' },
+  { label: '세포치료제', description: '세포치료제 독성시험', mode: 'drug_celltx' },
   { label: '스크리닝', description: '스크리닝 시험', next: 'screening' },
 ];
 
@@ -44,11 +47,24 @@ const HEALTH_FOOD_MODES: ModeCard[] = [
   { label: '한시적식품', description: '한시적식품 안전성시험', mode: 'hf_temp' },
 ];
 
+const COSMETICS_MODES: ModeCard[] = [
+  { label: '대체시험', description: '화장품 대체시험', mode: 'cos_alt' },
+  { label: '줄기세포배양액', description: '줄기세포배양액 안전성시험', mode: 'cos_stem' },
+];
+
+const DOCUMENT_MODES: ModeCard[] = [
+  { label: 'SEND', description: 'CDISC SEND 데이터셋', mode: 'doc_send' },
+  { label: 'CTD Module 2.6', description: 'CTD 문서 작성', mode: 'doc_ctd' },
+  { label: '영문 번역', description: '보고서 영문 번역', mode: 'doc_trans' },
+];
+
 const LEVEL_CONFIG: Record<Level, { title: string; cards: ModeCard[]; parent?: Level }> = {
   top: { title: '시험 유형 선택', cards: TOP_CATEGORIES },
   drug: { title: '의약품 시험 모드', cards: DRUG_MODES, parent: 'top' },
   screening: { title: '스크리닝 모드', cards: SCREENING_MODES, parent: 'drug' },
   healthFood: { title: '건강기능식품 시험 모드', cards: HEALTH_FOOD_MODES, parent: 'top' },
+  cosmetics: { title: '화장품 시험 모드', cards: COSMETICS_MODES, parent: 'top' },
+  document: { title: '문서작업 모드', cards: DOCUMENT_MODES, parent: 'top' },
 };
 
 export default function ModeSelector({ onModeSelect }: ModeSelectorProps) {

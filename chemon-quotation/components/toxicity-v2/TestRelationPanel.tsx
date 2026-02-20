@@ -8,6 +8,7 @@ import { TEST_RELATIONS } from '@/lib/toxicity-v2/data/relations';
 import { TOXICITY_DATA } from '@/lib/toxicity-v2/data/toxicityData';
 import { OV_OVERLAY, OE_OVERLAY } from '@/lib/toxicity-v2/data/overlays';
 import { getItemPrice, formatKRW } from '@/lib/toxicity-v2/priceEngine';
+import type { RouteType } from '@/types/toxicity-v2';
 import type { TestRelationNode, TkOptionTree, SelectedTest } from '@/types/toxicity-v2';
 
 /**
@@ -216,7 +217,7 @@ function RecoveryOption({
   onAccept,
 }: {
   recoveryTestId: number;
-  route: 'oral' | 'iv';
+  route: RouteType;
   standard: 'KGLP' | 'KGLP_OECD';
   onAccept: () => void;
 }) {
@@ -264,7 +265,7 @@ function TkOptionTreeUI({
   onSelectPoints: (p: string | null) => void;
   onSelectCount: (c: string | null) => void;
   onAccept: (method: string, points: string, count?: string) => void;
-  route: 'oral' | 'iv';
+  route: RouteType;
   standard: 'KGLP' | 'KGLP_OECD';
 }) {
   const methods = Object.keys(tkOptions);
