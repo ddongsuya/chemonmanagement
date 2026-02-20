@@ -153,18 +153,24 @@ export const useAuthStore = create<AuthState>()(
       storage: {
         getItem: (name) => {
           if (typeof window === 'undefined') return null;
-          const value = sessionStorage.getItem(name);
+          // localStorage 우선, sessionStorage fallback (마이그레이션)
+          const value = localStorage.getItem(name) || sessionStorage.getItem(name);
+          if (value && sessionStorage.getItem(name)) {
+            // sessionStorage → localStorage 마이그레이션
+            localStorage.setItem(name, value);
+            sessionStorage.removeItem(name);
+          }
           return value ? JSON.parse(value) : null;
         },
         setItem: (name, value) => {
           if (typeof window === 'undefined') return;
-          sessionStorage.setItem(name, JSON.stringify(value));
+          localStorage.setItem(name, JSON.stringify(value));
+          sessionStorage.removeItem(name);
         },
         removeItem: (name) => {
           if (typeof window === 'undefined') return;
-          sessionStorage.removeItem(name);
-          // 기존 localStorage 잔여 데이터 정리
           localStorage.removeItem(name);
+          sessionStorage.removeItem(name);
         },
       },
       partialize: (state) => ({

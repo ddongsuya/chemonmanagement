@@ -1,5 +1,6 @@
 // Excel Import/Export API Client
 import { api } from './api';
+import { getAccessToken } from './auth-api';
 
 export type ExportType = 'leads' | 'quotations' | 'contracts' | 'studies' | 'customers';
 
@@ -39,7 +40,7 @@ export async function importData(type: ExportType, file: File): Promise<ImportRe
   const formData = new FormData();
   formData.append('file', file);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  const token = getAccessToken();
   
   const response = await fetch(`${API_BASE_URL}/api/excel/import/${type}`, {
     method: 'POST',

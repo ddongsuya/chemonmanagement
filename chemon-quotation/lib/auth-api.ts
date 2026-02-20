@@ -80,30 +80,33 @@ const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 
 // Token management functions
-// sessionStorage 사용 — 브라우저/탭 닫으면 자동 로그아웃
+// localStorage 사용 — 모바일/PWA에서도 앱 재시작 시 토큰 유지
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return sessionStorage.getItem(ACCESS_TOKEN_KEY);
+  // localStorage 우선, sessionStorage fallback (마이그레이션)
+  return localStorage.getItem(ACCESS_TOKEN_KEY) || sessionStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
 export function getRefreshToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return sessionStorage.getItem(REFRESH_TOKEN_KEY);
+  return localStorage.getItem(REFRESH_TOKEN_KEY) || sessionStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
 export function setTokens(accessToken: string, refreshToken: string): void {
   if (typeof window === 'undefined') return;
-  sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  // 기존 sessionStorage 잔여 데이터 정리
+  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 export function clearTokens(): void {
   if (typeof window === 'undefined') return;
-  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
-  // 기존 localStorage에 남아있을 수 있는 토큰도 정리
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 
@@ -178,7 +181,7 @@ async function tryRefreshToken(): Promise<boolean> {
 
     const data: ApiResponse<{ accessToken: string }> = await response.json();
     if (data.success && data.data?.accessToken) {
-      sessionStorage.setItem(ACCESS_TOKEN_KEY, data.data.accessToken);
+      localStorage.setItem(ACCESS_TOKEN_KEY, data.data.accessToken);
       return true;
     }
 
@@ -250,7 +253,7 @@ export async function refreshAccessToken(): Promise<ApiResponse<{ accessToken: s
   });
 
   if (response.success && response.data?.accessToken) {
-    sessionStorage.setItem(ACCESS_TOKEN_KEY, response.data.accessToken);
+    localStorage.setItem(ACCESS_TOKEN_KEY, response.data.accessToken);
   }
 
   return response;

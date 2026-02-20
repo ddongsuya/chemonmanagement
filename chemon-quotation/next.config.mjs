@@ -29,16 +29,9 @@ const pwaConfig = withPWA({
       },
     },
     {
+      // API 요청은 캐싱하지 않음 — 항상 최신 데이터 사용
       urlPattern: /\/api\/.*$/i,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'api-cache',
-        networkTimeoutSeconds: 10,
-        expiration: {
-          maxEntries: 50,
-          maxAgeSeconds: 60 * 5, // 5 minutes
-        },
-      },
+      handler: 'NetworkOnly',
     },
     {
       urlPattern: /\.(?:js|css)$/i,
