@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useToxicityV2Store } from '@/stores/toxicityV2Store';
 import { useQuotationStore } from '@/stores/quotationStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,7 @@ import {
   X,
   ChevronUp,
   ChevronDown,
+  Pencil,
 } from 'lucide-react';
 
 
@@ -49,7 +51,37 @@ export default function StepCalculationV2() {
     totalAmount,
     setDiscountRate,
     setDiscountReason,
+    updateTestName,
+    updateTestPrice,
   } = useToxicityV2Store();
+
+  // 인라인 편집 상태
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editField, setEditField] = useState<'name' | 'price' | null>(null);
+  const [editValue, setEditValue] = useState('');
+
+  const startEdit = (testId: string, field: 'name' | 'price', currentValue: string) => {
+    setEditingId(testId);
+    setEditField(field);
+    setEditValue(currentValue);
+  };
+
+  const commitEdit = () => {
+    if (!editingId || !editField) return;
+    if (editField === 'name') {
+      updateTestName(editingId, editValue.trim());
+    } else {
+      const num = parseInt(editValue.replace(/[^0-9-]/g, ''), 10);
+      if (!isNaN(num)) updateTestPrice(editingId, num);
+    }
+    setEditingId(null);
+    setEditField(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditField(null);
+  };
 
   // 조제물분석 상세 계산
   const formCost = calcFormulationCost(
@@ -144,14 +176,64 @@ export default function StepCalculationV2() {
                     </TableCell>
                     <TableCell>{test.isOption ? '' : idx + 1}</TableCell>
                     <TableCell className={test.isOption ? 'pl-8 text-gray-600' : ''}>
-                      {test.isOption && <span className="text-gray-400 mr-1">└</span>}
-                      {test.name}
+                      {editingId === test.id && editField === 'name' ? (
+                        <Input
+                          autoFocus
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={commitEdit}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') commitEdit();
+                            if (e.key === 'Escape') cancelEdit();
+                          }}
+                          className="h-7 text-sm"
+                        />
+                      ) : (
+                        <span
+                          className="group cursor-pointer inline-flex items-center gap-1"
+                          onClick={() =>
+                            startEdit(test.id, 'name', test.customName || test.name)
+                          }
+                        >
+                          {test.isOption && <span className="text-gray-400 mr-1">└</span>}
+                          <span className={test.customName ? 'text-blue-600' : ''}>
+                            {test.customName || test.name}
+                          </span>
+                          <Pencil className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-center text-sm text-gray-600">
                       {test.category}
                     </TableCell>
                     <TableCell className="text-right font-mono whitespace-nowrap">
-                      {test.price > 0 ? formatKRW(test.price) : '별도 협의'}
+                      {editingId === test.id && editField === 'price' ? (
+                        <Input
+                          autoFocus
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={commitEdit}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') commitEdit();
+                            if (e.key === 'Escape') cancelEdit();
+                          }}
+                          className="h-7 text-sm text-right w-32 ml-auto"
+                        />
+                      ) : (
+                        <span
+                          className={`group cursor-pointer inline-flex items-center gap-1 justify-end ${test.customPrice !== undefined ? 'text-blue-600' : ''}`}
+                          onClick={() => {
+                            const effectivePrice = test.customPrice ?? test.price;
+                            startEdit(test.id, 'price', String(effectivePrice));
+                          }}
+                        >
+                          <Pencil className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          {(test.customPrice ?? test.price) > 0
+                            ? formatKRW(test.customPrice ?? test.price)
+                            : '별도 협의'}
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

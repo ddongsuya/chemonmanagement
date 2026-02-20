@@ -54,13 +54,15 @@ interface ToxicityV2State {
   totalAmount: number;
 
   // 액션
-  setMode: (mode: TestMode | null) => void;
+  setMode: (mode: TestMode | null, keepItems?: boolean) => void;
   setRoute: (route: RouteType) => void;
   setStandard: (standard: StandardType) => void;
   setComboType: (type: 2 | 3 | 4) => void;
   addTest: (test: SelectedTest) => void;
   removeTest: (id: string) => void;
   toggleTest: (itemId: number, allItems: ToxicityV2Item[]) => void;
+  updateTestName: (id: string, customName: string) => void;
+  updateTestPrice: (id: string, customPrice: number) => void;
   setInfo: (info: Partial<QuotationInfo>) => void;
   setDiscountRate: (rate: number) => void;
   setDiscountReason: (reason: string) => void;
@@ -111,8 +113,13 @@ export const useToxicityV2Store = create<ToxicityV2State>()((set, get) => ({
   discountAmount: 0,
   totalAmount: 0,
 
-  setMode: (mode) => {
-    set({ mode, selectedTests: [], subtotalTest: 0, formulationCost: 0, discountAmount: 0, totalAmount: 0 });
+  setMode: (mode, keepItems) => {
+    if (keepItems) {
+      // 기존 항목 유지하면서 모드만 변경
+      set({ mode });
+    } else {
+      set({ mode, selectedTests: [], subtotalTest: 0, formulationCost: 0, discountAmount: 0, totalAmount: 0 });
+    }
   },
 
   // Req 3.4: 투여 경로 변경 시 즉시 재계산
@@ -191,6 +198,7 @@ export const useToxicityV2Store = create<ToxicityV2State>()((set, get) => ({
         category: item.category,
         price,
         isOption: false,
+        sourceMode: state.mode ?? undefined,
       };
       get().addTest(newTest);
     }
@@ -209,6 +217,23 @@ export const useToxicityV2Store = create<ToxicityV2State>()((set, get) => ({
     set({ discountReason: reason });
   },
 
+  updateTestName: (id, customName) => {
+    set((state) => ({
+      selectedTests: state.selectedTests.map((t) =>
+        t.id === id ? { ...t, customName: customName || undefined } : t
+      ),
+    }));
+  },
+
+  updateTestPrice: (id, customPrice) => {
+    set((state) => ({
+      selectedTests: state.selectedTests.map((t) =>
+        t.id === id ? { ...t, customPrice } : t
+      ),
+    }));
+    get().recalculate();
+  },
+
   setPreviewTab: (tab) => {
     set({ previewTab: tab });
   },
@@ -216,9 +241,13 @@ export const useToxicityV2Store = create<ToxicityV2State>()((set, get) => ({
   // Req 15.3: 가격 재계산
   recalculate: () => {
     const { selectedTests, mode, discountRate } = get();
-    const formCost = calcFormulationCost(selectedTests, mode ?? 'drug_single', TOXICITY_DATA, IM_MAPPING);
+    // customPrice가 설정된 항목은 해당 가격을 사용
+    const effectiveTests = selectedTests.map((t) =>
+      t.customPrice !== undefined ? { ...t, price: t.customPrice } : t
+    );
+    const formCost = calcFormulationCost(effectiveTests, mode ?? 'drug_single', TOXICITY_DATA, IM_MAPPING);
     const totalFormulation = formCost.assayBase + formCost.contentTotal + formCost.hfFormulation;
-    const totals = calculateTotal(selectedTests, totalFormulation, discountRate);
+    const totals = calculateTotal(effectiveTests, totalFormulation, discountRate);
 
     set({
       subtotalTest: totals.subtotalTest,

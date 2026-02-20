@@ -100,12 +100,12 @@ export default function PreviewQuote() {
                   <td className="py-2 px-1.5 sm:px-2 text-center text-gray-600">{idx + 1}</td>
                   <td className="py-2 px-2 sm:px-3">
                     {test.isOption && <span className="text-xs text-gray-400 mr-1">└</span>}
-                    {test.name}
+                    {test.customName || test.name}
                   </td>
                   <td className="py-2 px-1.5 sm:px-2 text-center text-gray-600">{info.species}</td>
                   <td className="py-2 px-1.5 sm:px-2 text-center text-gray-600">{info.duration}</td>
                   <td className="py-2 px-2 sm:px-3 text-right font-mono whitespace-nowrap">
-                    {test.price > 0 ? formatKRW(test.price) : '별도 협의'}
+                    {(test.customPrice ?? test.price) > 0 ? formatKRW(test.customPrice ?? test.price) : '별도 협의'}
                   </td>
                 </tr>
               );

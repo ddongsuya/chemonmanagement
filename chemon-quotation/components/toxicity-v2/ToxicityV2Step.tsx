@@ -1,8 +1,18 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useQuotationStore } from '@/stores/quotationStore';
 import { useToxicityV2Store } from '@/stores/toxicityV2Store';
 import type { TestMode } from '@/types/toxicity-v2';
@@ -28,16 +38,46 @@ export default function ToxicityV2Step() {
   const setMode = useToxicityV2Store((s) => s.setMode);
   const selectedTests = useToxicityV2Store((s) => s.selectedTests);
 
+  // 모드 변경 시 기존 항목 처리 다이얼로그
+  const [pendingMode, setPendingMode] = useState<TestMode | null>(null);
+  const [showModeDialog, setShowModeDialog] = useState(false);
+
   const handleModeSelect = useCallback(
     (selected: TestMode) => {
-      setMode(selected);
+      if (selectedTests.length > 0) {
+        // 기존 항목이 있으면 다이얼로그로 확인
+        setPendingMode(selected);
+        setShowModeDialog(true);
+      } else {
+        setMode(selected);
+      }
     },
-    [setMode],
+    [setMode, selectedTests.length],
   );
 
   const handleModeReset = useCallback(() => {
-    setMode(null);
-  }, [setMode]);
+    // 모드 선택 화면으로 돌아갈 때도 항목이 있으면 확인
+    if (selectedTests.length > 0) {
+      setPendingMode(null);
+      setShowModeDialog(true);
+    } else {
+      setMode(null);
+    }
+  }, [setMode, selectedTests.length]);
+
+  const handleKeepItems = useCallback(() => {
+    // 기존 항목 유지하면서 모드 변경
+    setMode(pendingMode, true);
+    setShowModeDialog(false);
+    setPendingMode(null);
+  }, [setMode, pendingMode]);
+
+  const handleClearItems = useCallback(() => {
+    // 기존 항목 삭제하고 모드 변경
+    setMode(pendingMode, false);
+    setShowModeDialog(false);
+    setPendingMode(null);
+  }, [setMode, pendingMode]);
 
   // 모드 미선택 → ModeSelector
   if (!mode) {
@@ -51,6 +91,15 @@ export default function ToxicityV2Step() {
             <ArrowLeft className="w-4 h-4 mr-2" /> 이전
           </Button>
         </div>
+
+        {/* 모드 변경 확인 다이얼로그 */}
+        <ModeChangeDialog
+          open={showModeDialog}
+          onOpenChange={setShowModeDialog}
+          onKeep={handleKeepItems}
+          onClear={handleClearItems}
+          itemCount={selectedTests.length}
+        />
       </div>
     );
   }
@@ -96,7 +145,59 @@ export default function ToxicityV2Step() {
           검토/계산 <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
+
+      {/* 모드 변경 확인 다이얼로그 */}
+      <ModeChangeDialog
+        open={showModeDialog}
+        onOpenChange={setShowModeDialog}
+        onKeep={handleKeepItems}
+        onClear={handleClearItems}
+        itemCount={selectedTests.length}
+      />
     </div>
+  );
+}
+
+/** 모드 변경 시 기존 항목 처리 확인 다이얼로그 */
+function ModeChangeDialog({
+  open,
+  onOpenChange,
+  onKeep,
+  onClear,
+  itemCount,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onKeep: () => void;
+  onClear: () => void;
+  itemCount: number;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>선택된 항목이 있습니다</AlertDialogTitle>
+          <AlertDialogDescription>
+            현재 {itemCount}개의 시험 항목이 선택되어 있습니다.
+            기존 항목을 유지하면서 다른 카테고리의 항목을 추가하시겠습니까?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          <AlertDialogCancel onClick={() => onOpenChange(false)}>
+            취소
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onClear}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            초기화하고 새로 선택
+          </AlertDialogAction>
+          <AlertDialogAction onClick={onKeep}>
+            이어서 추가
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

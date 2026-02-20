@@ -88,7 +88,7 @@ export default function PreviewDetail() {
                 {/* 번호 + 시험명 */}
                 <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-sm font-bold text-gray-500">{idx + 1}.</span>
-                  <span className="font-bold text-gray-900">{test.name}</span>
+                  <span className="font-bold text-gray-900">{test.customName || test.name}</span>
                 </div>
 
                 {/* 정식명칭 */}

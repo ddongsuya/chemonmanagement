@@ -157,6 +157,9 @@ export interface SelectedTest {
     points: string;
     count?: string;
   };
+  sourceMode?: TestMode;   // 원래 선택된 모드 (크로스 모드 추가 시 추적용)
+  customName?: string;     // 사용자 수정 이름 (설정 시 name 대신 표시)
+  customPrice?: number;    // 사용자 수정 가격 (설정 시 price 대신 사용)
 }
 
 /**
