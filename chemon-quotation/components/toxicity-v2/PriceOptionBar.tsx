@@ -33,23 +33,30 @@ export default function PriceOptionBar() {
         {/* 투여 경로 선택 (Req 3.1) */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium whitespace-nowrap">투여 경로</span>
-          <div className="flex rounded-md border">
-            <Button
-              variant={route === 'oral' ? 'default' : 'ghost'}
-              size="sm"
-              className="rounded-r-none"
-              onClick={() => setRoute('oral' as RouteType)}
-            >
-              경구
-            </Button>
-            <Button
-              variant={route === 'iv' ? 'default' : 'ghost'}
-              size="sm"
-              className="rounded-l-none"
-              onClick={() => setRoute('iv' as RouteType)}
-            >
-              정맥
-            </Button>
+          <div className="flex rounded-md border overflow-x-auto">
+            {([
+              { value: 'oral', label: '경구' },
+              { value: 'iv', label: '정맥' },
+              { value: 'sc', label: '피하' },
+              { value: 'im', label: '근육' },
+              { value: 'td', label: '경피' },
+            ] as const).map((r, i) => (
+              <Button
+                key={r.value}
+                variant={route === r.value ? 'default' : 'ghost'}
+                size="sm"
+                className={
+                  i === 0
+                    ? 'rounded-r-none'
+                    : i === 4
+                      ? 'rounded-l-none'
+                      : 'rounded-none'
+                }
+                onClick={() => setRoute(r.value as RouteType)}
+              >
+                {r.label}
+              </Button>
+            ))}
           </div>
         </div>
 
