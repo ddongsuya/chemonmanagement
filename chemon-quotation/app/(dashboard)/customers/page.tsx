@@ -55,6 +55,7 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [stagesLoading, setStagesLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 20, totalPages: 1 });
 
   // URL 파라미터에서 필터 초기화 - Requirements 3.4
   const [filters, setFilters] = useState<FilterType>(() => {
@@ -104,6 +105,9 @@ export default function CustomersPage() {
         setEntities(entityList);
         if (responseData.stats) {
           setStats(responseData.stats);
+        }
+        if (responseData.pagination) {
+          setPagination(responseData.pagination);
         }
       } else {
         setEntities([]);
@@ -262,15 +266,72 @@ export default function CustomersPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {entities.map((entity) => (
-            <UnifiedCustomerCard
-              key={`${entity.entityType}-${entity.id}`}
-              entity={entity}
-              onClick={handleEntityClick}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {entities.map((entity) => (
+              <UnifiedCustomerCard
+                key={`${entity.entityType}-${entity.id}`}
+                entity={entity}
+                onClick={handleEntityClick}
+              />
+            ))}
+          </div>
+
+          {/* 페이지네이션 */}
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <p className="text-sm text-gray-500">
+                전체 {pagination.total}건 중 {(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)}건
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pagination.page <= 1 || loading}
+                  onClick={() => setFilters(prev => ({ ...prev, page: (prev.page || 1) - 1 }))}
+                >
+                  이전
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                    .filter(p => {
+                      const current = pagination.page;
+                      return p === 1 || p === pagination.totalPages || Math.abs(p - current) <= 2;
+                    })
+                    .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                      if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('...');
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((item, idx) =>
+                      item === '...' ? (
+                        <span key={`ellipsis-${idx}`} className="px-2 text-gray-400">…</span>
+                      ) : (
+                        <Button
+                          key={item}
+                          variant={pagination.page === item ? 'default' : 'outline'}
+                          size="sm"
+                          className="min-w-[36px]"
+                          onClick={() => setFilters(prev => ({ ...prev, page: item as number }))}
+                          disabled={loading}
+                        >
+                          {item}
+                        </Button>
+                      )
+                    )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pagination.page >= pagination.totalPages || loading}
+                  onClick={() => setFilters(prev => ({ ...prev, page: (prev.page || 1) + 1 }))}
+                >
+                  다음
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
