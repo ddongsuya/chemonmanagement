@@ -152,11 +152,12 @@ async function authFetch<T>(
 
     return data;
   } catch (error) {
+    console.error(`[Auth API] Network error for ${endpoint}:`, error);
     return {
       success: false,
       error: {
         code: 'NETWORK_ERROR',
-        message: '네트워크 오류가 발생했습니다. 서버 연결을 확인해주세요.',
+        message: `서버에 연결할 수 없습니다. (${API_BASE_URL}) 네트워크 연결을 확인해주세요.`,
       },
     };
   }

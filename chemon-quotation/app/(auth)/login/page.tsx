@@ -23,6 +23,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [apiStatus, setApiStatus] = useState<'checking' | 'ok' | 'error'>('checking');
+
+  // API 서버 연결 상태 확인
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    fetch(`${apiUrl}/health`, { method: 'GET' })
+      .then((res) => {
+        setApiStatus(res.ok ? 'ok' : 'error');
+      })
+      .catch(() => {
+        setApiStatus('error');
+      });
+  }, []);
 
   // 이미 로그인된 상태로 페이지 접근 시
   useEffect(() => {
@@ -102,6 +115,15 @@ export default function LoginPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{displayError}</AlertDescription>
+              </Alert>
+            )}
+
+            {apiStatus === 'error' && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.
+                </AlertDescription>
               </Alert>
             )}
 
