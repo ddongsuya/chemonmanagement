@@ -105,8 +105,8 @@ describe('Quotation Integration Tests', () => {
 
       expect(result).toBeDefined();
       expect(result.id).toBeDefined();
-      // New quotation number format: YY-UC-MM-NNNN (e.g., 26-TQ-01-0001)
-      expect(result.quotationNumber).toMatch(/^\d{2}-TQ-\d{2}-\d{4}$/);
+      // New quotation number format: YY-MM-UC-NNNN (e.g., 26-01-TQ-0001)
+      expect(result.quotationNumber).toMatch(/^\d{2}-\d{2}-TQ-\d{4}$/);
       expect(result.quotationType).toBe('TOXICITY');
       expect(result.customerName).toBe('Test Customer');
       expect(result.projectName).toBe('Test Project');
@@ -142,9 +142,9 @@ describe('Quotation Integration Tests', () => {
 
       const result = await dataService.createQuotation(testUserId, quotationData);
 
-      // New quotation number format: YY-UC-MM-NNNN (e.g., 26-TQ-01-0004)
+      // New quotation number format: YY-MM-UC-NNNN (e.g., 26-01-TQ-0004)
       // Note: The userCode is 'TQ' for all quotation types in this test setup
-      expect(result.quotationNumber).toMatch(/^\d{2}-TQ-\d{2}-\d{4}$/);
+      expect(result.quotationNumber).toMatch(/^\d{2}-\d{2}-TQ-\d{4}$/);
       expect(result.quotationType).toBe('EFFICACY');
     });
   });

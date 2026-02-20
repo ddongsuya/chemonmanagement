@@ -33,10 +33,10 @@ export class DataService {
 
   /**
    * Quotation number format configuration
-   * Format: YY-UC-MM-NNNN (연도-사용자코드-월-일련번호)
+   * Format: YY-MM-UC-NNNN (연도-월-사용자코드-일련번호)
    */
   public static readonly QUOTATION_NUMBER_CONFIG = {
-    format: 'YY-UC-MM-NNNN' as const,
+    format: 'YY-MM-UC-NNNN' as const,
     yearDigits: 2,
     sequenceDigits: 4,
   };
@@ -82,8 +82,8 @@ export class DataService {
       );
     }
     
-    // 형식: YY-UC-MM-NNNN
-    const prefix = `${year}-${userCode}-${month}-`;
+    // 형식: YY-MM-UC-NNNN
+    const prefix = `${year}-${month}-${userCode}-`;
     
     // 해당 사용자의 해당 월 마지막 견적번호 조회 (모든 시험 유형 통합)
     const lastQuotation = await this.prisma.quotation.findFirst({
@@ -109,8 +109,8 @@ export class DataService {
 
   /**
    * Generate quotation number with user code
-   * Format: YY-UC-MM-NNNN (연도-사용자코드-월-일련번호)
-   * Example: 26-DL-01-0001
+   * Format: YY-MM-UC-NNNN (연도-월-사용자코드-일련번호)
+   * Example: 26-01-DL-0001
    * 
    * This method generates a unified quotation number for all test types:
    * - TOXICITY (독성시험)
@@ -122,14 +122,14 @@ export class DataService {
    * 
    * @param userId - User ID for quotation ownership
    * @param quotationType - Type of test (TOXICITY, EFFICACY, or CLINICAL)
-   * @returns Generated quotation number in YY-UC-MM-NNNN format
+   * @returns Generated quotation number in YY-MM-UC-NNNN format
    * @throws AppError if userCode is not set
    * 
    * @example
    * // User Code: DL, 2025년 1월, 일련번호 1
-   * generateQuotationNumber('user-id', 'TOXICITY') // Returns: "25-DL-01-0001"
-   * generateQuotationNumber('user-id', 'EFFICACY') // Returns: "25-DL-01-0002" (next in sequence)
-   * generateQuotationNumber('user-id', 'CLINICAL') // Returns: "25-DL-01-0003" (next in sequence)
+   * generateQuotationNumber('user-id', 'TOXICITY') // Returns: "25-01-DL-0001"
+   * generateQuotationNumber('user-id', 'EFFICACY') // Returns: "25-01-DL-0002" (next in sequence)
+   * generateQuotationNumber('user-id', 'CLINICAL') // Returns: "25-01-DL-0003" (next in sequence)
    */
   async generateQuotationNumber(userId: string, quotationType: QuotationType | 'CLINICAL'): Promise<string> {
     const now = new Date();
@@ -153,8 +153,8 @@ export class DataService {
       );
     }
     
-    // 형식: YY-UC-MM-NNNN
-    const prefix = `${year}-${userCode}-${month}-`;
+    // 형식: YY-MM-UC-NNNN
+    const prefix = `${year}-${month}-${userCode}-`;
     
     // 해당 사용자의 해당 월 마지막 견적번호 조회
     // 모든 시험 유형(TOXICITY, EFFICACY, CLINICAL)에서 동일한 시퀀스 사용

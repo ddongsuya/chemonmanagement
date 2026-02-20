@@ -54,7 +54,7 @@ describe('QuotationNumberService Unit Tests', () => {
   describe('Static Configuration', () => {
     it('should have correct quotation number format configuration', () => {
       expect(DataService.QUOTATION_NUMBER_CONFIG).toEqual({
-        format: 'YY-UC-MM-NNNN',
+        format: 'YY-MM-UC-NNNN',
         yearDigits: 2,
         sequenceDigits: 4,
       });
@@ -132,7 +132,7 @@ describe('QuotationNumberService Unit Tests', () => {
         userCode: 'DL',
       });
       (mockPrisma.quotation.findFirst as jest.Mock).mockResolvedValue({
-        quotationNumber: '25-DL-01-0005',
+        quotationNumber: '25-01-DL-0005',
       });
 
       const result = await dataService.getNextQuotationSequence(userId);
@@ -167,12 +167,12 @@ describe('QuotationNumberService Unit Tests', () => {
 
       const result = await dataService.generateQuotationNumber(userId, 'TOXICITY');
 
-      expect(result).toBe('25-DL-01-0001');
+      expect(result).toBe('25-01-DL-0001');
     });
 
     /**
      * Validates: Requirement 1.2
-     * 효력시험 견적서 생성 시 독성시험과 동일한 번호 체계(YY-UC-MM-NNNN)로 Quotation_Number 생성
+     * 효력시험 견적서 생성 시 독성시험과 동일한 번호 체계(YY-MM-UC-NNNN)로 Quotation_Number 생성
      */
     it('should generate quotation number for EFFICACY type with same format', async () => {
       (mockPrisma.userSettings.findUnique as jest.Mock).mockResolvedValue({
@@ -182,8 +182,8 @@ describe('QuotationNumberService Unit Tests', () => {
 
       const result = await dataService.generateQuotationNumber(userId, 'EFFICACY');
 
-      expect(result).toBe('25-DL-01-0001');
-      expect(result).toMatch(/^\d{2}-[A-Z]{2}-\d{2}-\d{4}$/);
+      expect(result).toBe('25-01-DL-0001');
+      expect(result).toMatch(/^\d{2}-\d{2}-[A-Z]{2}-\d{4}$/);
     });
 
     /**
@@ -198,8 +198,8 @@ describe('QuotationNumberService Unit Tests', () => {
 
       const result = await dataService.generateQuotationNumber(userId, 'CLINICAL');
 
-      expect(result).toBe('25-DL-01-0001');
-      expect(result).toMatch(/^\d{2}-[A-Z]{2}-\d{2}-\d{4}$/);
+      expect(result).toBe('25-01-DL-0001');
+      expect(result).toMatch(/^\d{2}-\d{2}-[A-Z]{2}-\d{4}$/);
     });
 
     /**
@@ -210,20 +210,18 @@ describe('QuotationNumberService Unit Tests', () => {
       (mockPrisma.userSettings.findUnique as jest.Mock).mockResolvedValue({
         userCode: 'DL',
       });
-      // Simulate existing quotation (could be any type)
       (mockPrisma.quotation.findFirst as jest.Mock).mockResolvedValue({
-        quotationNumber: '25-DL-01-0003',
+        quotationNumber: '25-01-DL-0003',
       });
 
-      // Generate for different types - all should get next sequence
       const toxicityResult = await dataService.generateQuotationNumber(userId, 'TOXICITY');
-      expect(toxicityResult).toBe('25-DL-01-0004');
+      expect(toxicityResult).toBe('25-01-DL-0004');
 
       const efficacyResult = await dataService.generateQuotationNumber(userId, 'EFFICACY');
-      expect(efficacyResult).toBe('25-DL-01-0004');
+      expect(efficacyResult).toBe('25-01-DL-0004');
 
       const clinicalResult = await dataService.generateQuotationNumber(userId, 'CLINICAL');
-      expect(clinicalResult).toBe('25-DL-01-0004');
+      expect(clinicalResult).toBe('25-01-DL-0004');
     });
 
     it('should throw error when user code is not set', async () => {
@@ -243,7 +241,7 @@ describe('QuotationNumberService Unit Tests', () => {
       await expect(dataService.generateQuotationNumber(userId, 'EFFICACY')).rejects.toThrow(AppError);
     });
 
-    it('should use correct date format (YY-UC-MM-NNNN)', async () => {
+    it('should use correct date format (YY-MM-UC-NNNN)', async () => {
       (mockPrisma.userSettings.findUnique as jest.Mock).mockResolvedValue({
         userCode: 'PK',
       });
@@ -252,7 +250,7 @@ describe('QuotationNumberService Unit Tests', () => {
       const result = await dataService.generateQuotationNumber(userId, 'TOXICITY');
 
       // Date is mocked to 2025-01-15
-      expect(result).toBe('25-PK-01-0001');
+      expect(result).toBe('25-01-PK-0001');
     });
 
     it('should pad sequence number to 4 digits', async () => {
@@ -260,12 +258,12 @@ describe('QuotationNumberService Unit Tests', () => {
         userCode: 'DL',
       });
       (mockPrisma.quotation.findFirst as jest.Mock).mockResolvedValue({
-        quotationNumber: '25-DL-01-0099',
+        quotationNumber: '25-01-DL-0099',
       });
 
       const result = await dataService.generateQuotationNumber(userId, 'TOXICITY');
 
-      expect(result).toBe('25-DL-01-0100');
+      expect(result).toBe('25-01-DL-0100');
     });
 
     it('should handle high sequence numbers', async () => {
@@ -273,12 +271,12 @@ describe('QuotationNumberService Unit Tests', () => {
         userCode: 'DL',
       });
       (mockPrisma.quotation.findFirst as jest.Mock).mockResolvedValue({
-        quotationNumber: '25-DL-01-9999',
+        quotationNumber: '25-01-DL-9999',
       });
 
       const result = await dataService.generateQuotationNumber(userId, 'TOXICITY');
 
-      expect(result).toBe('25-DL-01-10000');
+      expect(result).toBe('25-01-DL-10000');
     });
 
     it('should query quotations with correct prefix for current month', async () => {
@@ -293,7 +291,7 @@ describe('QuotationNumberService Unit Tests', () => {
         where: {
           userId,
           quotationNumber: {
-            startsWith: '25-DL-01-',
+            startsWith: '25-01-DL-',
           },
         },
         orderBy: {
@@ -306,7 +304,7 @@ describe('QuotationNumberService Unit Tests', () => {
   describe('Quotation Number Format Validation', () => {
     const userId = 'user-123';
 
-    it('should generate numbers matching YY-UC-MM-NNNN pattern', async () => {
+    it('should generate numbers matching YY-MM-UC-NNNN pattern', async () => {
       (mockPrisma.userSettings.findUnique as jest.Mock).mockResolvedValue({
         userCode: 'KS',
       });
@@ -314,8 +312,8 @@ describe('QuotationNumberService Unit Tests', () => {
 
       const result = await dataService.generateQuotationNumber(userId, 'TOXICITY');
 
-      // Pattern: 2 digits - 2 uppercase letters - 2 digits - 4 digits
-      const pattern = /^\d{2}-[A-Z]{2}-\d{2}-\d{4}$/;
+      // Pattern: 2 digits - 2 digits - 2 uppercase letters - 4 digits
+      const pattern = /^\d{2}-\d{2}-[A-Z]{2}-\d{4}$/;
       expect(result).toMatch(pattern);
     });
 
@@ -341,8 +339,8 @@ describe('QuotationNumberService Unit Tests', () => {
       const result = await dataService.generateQuotationNumber(userId, 'TOXICITY');
 
       const parts = result.split('-');
-      expect(parts[2]).toBe('01'); // January -> 01
-      expect(parts[2].length).toBe(2);
+      expect(parts[1]).toBe('01'); // January -> 01
+      expect(parts[1].length).toBe(2);
     });
 
     it('should use 4-digit sequence with leading zeros', async () => {
@@ -372,7 +370,7 @@ describe('QuotationNumberService Unit Tests', () => {
 
       const result = await dataService.generateQuotationNumber(userId, 'TOXICITY');
 
-      expect(result).toBe('25-DL-12-0001');
+      expect(result).toBe('25-12-DL-0001');
     });
 
     it('should generate correct month for single-digit months', async () => {
@@ -385,7 +383,7 @@ describe('QuotationNumberService Unit Tests', () => {
 
       const result = await dataService.generateQuotationNumber(userId, 'TOXICITY');
 
-      expect(result).toBe('25-DL-09-0001');
+      expect(result).toBe('25-09-DL-0001');
     });
   });
 
@@ -400,21 +398,21 @@ describe('QuotationNumberService Unit Tests', () => {
         userCode: 'PK',
       });
       let result = await dataService.generateQuotationNumber(userId, 'TOXICITY');
-      expect(result).toBe('25-PK-01-0001');
+      expect(result).toBe('25-01-PK-0001');
 
       // Test with user code 'KS'
       (mockPrisma.userSettings.findUnique as jest.Mock).mockResolvedValue({
         userCode: 'KS',
       });
       result = await dataService.generateQuotationNumber(userId, 'EFFICACY');
-      expect(result).toBe('25-KS-01-0001');
+      expect(result).toBe('25-01-KS-0001');
 
       // Test with user code 'AB'
       (mockPrisma.userSettings.findUnique as jest.Mock).mockResolvedValue({
         userCode: 'AB',
       });
       result = await dataService.generateQuotationNumber(userId, 'CLINICAL');
-      expect(result).toBe('25-AB-01-0001');
+      expect(result).toBe('25-01-AB-0001');
     });
   });
 });

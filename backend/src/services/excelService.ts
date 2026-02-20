@@ -835,7 +835,7 @@ export class ExcelService {
   }
 
   private async generateQuotationNumber(type: 'TOXICITY' | 'EFFICACY', userId?: string): Promise<string> {
-    // userId가 있으면 DataService의 통합 번호 생성 사용 (YY-UC-MM-NNNN)
+    // userId가 있으면 DataService의 통합 번호 생성 사용 (YY-MM-UC-NNNN)
     if (userId) {
       try {
         const ds = new DataService(prisma);

@@ -135,7 +135,8 @@ async function generateQuotationNumber(): Promise<string> {
   const month = (now.getMonth() + 1).toString().padStart(2, '0');
   
   // 해당 월의 마지막 견적서 번호 조회
-  const prefix = `${year}-DL-${month}`;
+  // 형식: YY-MM-UC-NNNN (연도-월-사용자코드-일련번호)
+  const prefix = `${year}-${month}-DL`;
   const lastQuotation = await prisma.clinicalQuotation.findFirst({
     where: { quotationNumber: { startsWith: prefix } },
     orderBy: { quotationNumber: 'desc' },

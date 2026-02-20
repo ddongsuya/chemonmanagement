@@ -79,7 +79,7 @@ export function QuotationCodeGuard({
             <AlertDescription className="text-orange-700">
               견적서 코드는 견적번호 생성에 사용되는 2글자 영문 코드입니다.
               <br />
-              예: <span className="font-mono font-semibold">25-DL-01-0001</span> (DL이 견적서 코드)
+              예: <span className="font-mono font-semibold">25-01-DL-0001</span> (DL이 견적서 코드)
             </AlertDescription>
           </Alert>
 

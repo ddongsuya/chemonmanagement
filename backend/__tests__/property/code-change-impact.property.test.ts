@@ -115,9 +115,9 @@ describe('Code Change Impact Property Tests', () => {
 
             const quotationWithOldCode = await dataService.generateQuotationNumber(userId, quotationType);
 
-            // Verify old code is used
+            // Verify old code is used (format: YY-MM-UC-NNNN)
             const oldCodeParts = quotationWithOldCode.split('-');
-            expect(oldCodeParts[1]).toBe(oldCode);
+            expect(oldCodeParts[2]).toBe(oldCode);
 
             // Phase 2: Simulate code change - update mock to return new code
             (mockPrisma.userSettings.findUnique as jest.Mock).mockResolvedValue({
@@ -129,10 +129,10 @@ describe('Code Change Impact Property Tests', () => {
             // Generate quotation with new code
             const quotationWithNewCode = await dataService.generateQuotationNumber(userId, quotationType);
 
-            // Property: New quotation should use the new code
+            // Property: New quotation should use the new code (format: YY-MM-UC-NNNN)
             const newCodeParts = quotationWithNewCode.split('-');
-            expect(newCodeParts[1]).toBe(newCode);
-            expect(newCodeParts[1]).not.toBe(oldCode);
+            expect(newCodeParts[2]).toBe(newCode);
+            expect(newCodeParts[2]).not.toBe(oldCode);
 
             jest.useRealTimers();
           }
@@ -201,7 +201,7 @@ describe('Code Change Impact Property Tests', () => {
             const yearStr = year.toString().slice(-2);
             const monthStr = month.toString().padStart(2, '0');
             const seqStr = seq.toString().padStart(4, '0');
-            const existingQuotationNumber = `${yearStr}-${oldCode}-${monthStr}-${seqStr}`;
+            const existingQuotationNumber = `${yearStr}-${monthStr}-${oldCode}-${seqStr}`;
 
             // Mock existing quotation in database
             const existingQuotation = {
@@ -226,10 +226,10 @@ describe('Code Change Impact Property Tests', () => {
             expect(existingQuotation.quotationNumber).toContain(oldCode);
             expect(existingQuotation.quotationNumber).not.toContain(newCode);
 
-            // Verify the format is preserved
+            // Verify the format is preserved (YY-MM-UC-NNNN)
             const parts = existingQuotation.quotationNumber.split('-');
             expect(parts).toHaveLength(4);
-            expect(parts[1]).toBe(oldCode);
+            expect(parts[2]).toBe(oldCode);
           }
         ),
         { numRuns: 100 }
@@ -309,7 +309,7 @@ describe('Code Change Impact Property Tests', () => {
               } else {
                 const yearStr = year.toString().slice(-2);
                 const monthStr = month.toString().padStart(2, '0');
-                const prevNumber = `${yearStr}-${oldCode}-${monthStr}-${oldSeq.toString().padStart(4, '0')}`;
+                const prevNumber = `${yearStr}-${monthStr}-${oldCode}-${oldSeq.toString().padStart(4, '0')}`;
                 (mockPrisma.quotation.findFirst as jest.Mock).mockResolvedValue({
                   quotationNumber: prevNumber,
                 });
@@ -332,7 +332,7 @@ describe('Code Change Impact Property Tests', () => {
               } else {
                 const yearStr = year.toString().slice(-2);
                 const monthStr = month.toString().padStart(2, '0');
-                const prevNumber = `${yearStr}-${newCode}-${monthStr}-${newSeq.toString().padStart(4, '0')}`;
+                const prevNumber = `${yearStr}-${monthStr}-${newCode}-${newSeq.toString().padStart(4, '0')}`;
                 (mockPrisma.quotation.findFirst as jest.Mock).mockResolvedValue({
                   quotationNumber: prevNumber,
                 });
@@ -343,19 +343,19 @@ describe('Code Change Impact Property Tests', () => {
               newSeq++;
             }
 
-            // Property: All old code quotations should contain old code
+            // Property: All old code quotations should contain old code (format: YY-MM-UC-NNNN)
             for (const number of quotationsWithOldCode) {
-              expect(number.split('-')[1]).toBe(oldCode);
+              expect(number.split('-')[2]).toBe(oldCode);
             }
 
             // Property: All new code quotations should contain new code
             for (const number of quotationsWithNewCode) {
-              expect(number.split('-')[1]).toBe(newCode);
+              expect(number.split('-')[2]).toBe(newCode);
             }
 
             // Property: Old and new code quotations should be distinct
-            const oldSet = new Set(quotationsWithOldCode.map(n => n.split('-')[1]));
-            const newSet = new Set(quotationsWithNewCode.map(n => n.split('-')[1]));
+            const oldSet = new Set(quotationsWithOldCode.map(n => n.split('-')[2]));
+            const newSet = new Set(quotationsWithNewCode.map(n => n.split('-')[2]));
             expect(oldSet.has(newCode)).toBe(false);
             expect(newSet.has(oldCode)).toBe(false);
 
@@ -834,7 +834,7 @@ describe('Code Change Impact Property Tests', () => {
               } else {
                 const yearStr = year.toString().slice(-2);
                 const monthStr = month.toString().padStart(2, '0');
-                const prevNumber = `${yearStr}-${oldCode}-${monthStr}-${seq.toString().padStart(4, '0')}`;
+                const prevNumber = `${yearStr}-${monthStr}-${oldCode}-${seq.toString().padStart(4, '0')}`;
                 (mockPrisma.quotation.findFirst as jest.Mock).mockResolvedValue({
                   quotationNumber: prevNumber,
                 });
@@ -858,7 +858,7 @@ describe('Code Change Impact Property Tests', () => {
               } else {
                 const yearStr = year.toString().slice(-2);
                 const monthStr = month.toString().padStart(2, '0');
-                const prevNumber = `${yearStr}-${newCode}-${monthStr}-${seq.toString().padStart(4, '0')}`;
+                const prevNumber = `${yearStr}-${monthStr}-${newCode}-${seq.toString().padStart(4, '0')}`;
                 (mockPrisma.quotation.findFirst as jest.Mock).mockResolvedValue({
                   quotationNumber: prevNumber,
                 });
@@ -869,21 +869,21 @@ describe('Code Change Impact Property Tests', () => {
               seq++;
             }
 
-            // Property: Pre-change quotations should all have old code
+            // Property: Pre-change quotations should all have old code (format: YY-MM-UC-NNNN)
             for (const number of preChangeQuotations) {
               const parts = number.split('-');
-              expect(parts[1]).toBe(oldCode);
+              expect(parts[2]).toBe(oldCode);
             }
 
             // Property: Post-change quotations should all have new code
             for (const number of postChangeQuotations) {
               const parts = number.split('-');
-              expect(parts[1]).toBe(newCode);
+              expect(parts[2]).toBe(newCode);
             }
 
             // Property: No overlap between pre and post change codes
-            const preCodeSet = new Set(preChangeQuotations.map(n => n.split('-')[1]));
-            const postCodeSet = new Set(postChangeQuotations.map(n => n.split('-')[1]));
+            const preCodeSet = new Set(preChangeQuotations.map(n => n.split('-')[2]));
+            const postCodeSet = new Set(postChangeQuotations.map(n => n.split('-')[2]));
             
             for (const code of preCodeSet) {
               expect(postCodeSet.has(code)).toBe(false);

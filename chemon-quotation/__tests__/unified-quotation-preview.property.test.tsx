@@ -43,15 +43,15 @@ const quotationTypeArb: fc.Arbitrary<QuotationType> = fc.constantFrom(
 );
 
 /**
- * Generator for valid quotation numbers (YY-UC-MM-NNNN format)
+ * Generator for valid quotation numbers (YY-MM-UC-NNNN format)
  */
 const quotationNumberArb = fc.tuple(
   fc.integer({ min: 20, max: 99 }),  // Year (YY)
-  fc.string({ minLength: 2, maxLength: 2 }).filter(s => /^[A-Z]{2}$/.test(s)),  // User code
   fc.integer({ min: 1, max: 12 }),   // Month
+  fc.string({ minLength: 2, maxLength: 2 }).filter(s => /^[A-Z]{2}$/.test(s)),  // User code
   fc.integer({ min: 1, max: 9999 })  // Sequence
-).map(([year, code, month, seq]) => 
-  `${year}-${code}-${String(month).padStart(2, '0')}-${String(seq).padStart(4, '0')}`
+).map(([year, month, code, seq]) => 
+  `${year}-${String(month).padStart(2, '0')}-${code}-${String(seq).padStart(4, '0')}`
 );
 
 /**

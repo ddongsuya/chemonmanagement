@@ -160,7 +160,7 @@ export default function NewQuotationPage() {
             </p>
             <p className="text-sm text-muted-foreground mb-4">
               견적서 코드는 견적번호 생성에 사용되는 2글자 영문 코드입니다.<br />
-              예: DL, PK, KS → 견적번호: 26-DL-01-0001
+              예: DL, PK, KS → 견적번호: 26-01-DL-0001
             </p>
             <Button asChild>
               <Link href="/settings">
