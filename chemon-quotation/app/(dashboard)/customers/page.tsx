@@ -10,11 +10,28 @@ import {
   DialogContent,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import CustomerForm from '@/components/customer/CustomerForm';
 import UnifiedCustomerCard, { UnifiedCustomerCardSkeleton } from '@/components/customer/UnifiedCustomerCard';
 import UnifiedCustomerFilters, { UnifiedCustomerFiltersSkeleton } from '@/components/customer/UnifiedCustomerFilters';
 import UnifiedCustomerStats, { UnifiedCustomerStatsSkeleton } from '@/components/customer/UnifiedCustomerStats';
-import { Plus, RefreshCw, Users } from 'lucide-react';
+import { Plus, RefreshCw, Users, CheckSquare, X, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ExcelImportExport from '@/components/excel/ExcelImportExport';
 import { 
@@ -24,7 +41,8 @@ import {
   type UnifiedCustomerFilters as FilterType,
   type PipelineStageInfo,
 } from '@/lib/unified-customer-api';
-import { updateCustomer } from '@/lib/data-api';
+import { updateCustomer, bulkUpdateCustomerGrade, bulkDeleteCustomers } from '@/lib/data-api';
+import type { CustomerGrade } from '@/lib/data-api';
 import { DEFAULT_UNIFIED_CUSTOMER_FILTERS } from '@/types/unified-customer';
 
 /**
@@ -57,6 +75,14 @@ export default function CustomersPage() {
   const [stagesLoading, setStagesLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 20, totalPages: 1 });
+
+  // 다중 선택 상태
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkGradeDialogOpen, setBulkGradeDialogOpen] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [bulkGrade, setBulkGrade] = useState<CustomerGrade>('CUSTOMER');
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   // URL 파라미터에서 필터 초기화 - Requirements 3.4
   const [filters, setFilters] = useState<FilterType>(() => {
@@ -185,7 +211,7 @@ export default function CustomersPage() {
    */
   const handleGradeChange = useCallback(async (entity: UnifiedEntity, newGrade: string) => {
     try {
-      const response = await updateCustomer(entity.id, { grade: newGrade } as any);
+      const response = await updateCustomer(entity.id, { grade: newGrade as CustomerGrade });
       if (response.success) {
         toastRef.current({ title: '등급 변경 완료' });
         loadData();
@@ -196,6 +222,83 @@ export default function CustomersPage() {
       toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
     }
   }, [loadData]);
+
+  /**
+   * 다중 선택 토글
+   */
+  const handleSelectChange = useCallback((entity: UnifiedEntity, selected: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (selected) next.add(entity.id);
+      else next.delete(entity.id);
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    // 고객 타입만 선택 (리드는 bulk grade 변경 불가)
+    const customerIds = entities.filter(e => e.entityType === 'CUSTOMER').map(e => e.id);
+    setSelectedIds(new Set(customerIds));
+  }, [entities]);
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const toggleSelectionMode = useCallback(() => {
+    setSelectionMode(prev => {
+      if (prev) setSelectedIds(new Set());
+      return !prev;
+    });
+  }, []);
+
+  /**
+   * 일괄 등급 변경
+   */
+  const handleBulkGradeChange = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkProcessing(true);
+    try {
+      const response = await bulkUpdateCustomerGrade(Array.from(selectedIds), bulkGrade);
+      if (response.success) {
+        toastRef.current({ title: '일괄 등급 변경 완료', description: `${response.data?.updatedCount || selectedIds.size}건 변경됨` });
+        setSelectedIds(new Set());
+        setSelectionMode(false);
+        setBulkGradeDialogOpen(false);
+        loadData();
+      } else {
+        toastRef.current({ title: '오류', description: response.error?.message || '일괄 변경 실패', variant: 'destructive' });
+      }
+    } catch {
+      toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
+    } finally {
+      setBulkProcessing(false);
+    }
+  }, [selectedIds, bulkGrade, loadData]);
+
+  /**
+   * 일괄 삭제
+   */
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkProcessing(true);
+    try {
+      const response = await bulkDeleteCustomers(Array.from(selectedIds));
+      if (response.success) {
+        toastRef.current({ title: '일괄 삭제 완료', description: `${response.data?.deletedCount || selectedIds.size}건 삭제됨` });
+        setSelectedIds(new Set());
+        setSelectionMode(false);
+        setBulkDeleteDialogOpen(false);
+        loadData();
+      } else {
+        toastRef.current({ title: '오류', description: response.error?.message || '일괄 삭제 실패', variant: 'destructive' });
+      }
+    } catch {
+      toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
+    } finally {
+      setBulkProcessing(false);
+    }
+  }, [selectedIds, loadData]);
 
   /**
    * 신규 고객 등록 성공 핸들러
@@ -231,6 +334,13 @@ export default function CustomersPage() {
         description="리드와 고객을 통합하여 관리합니다"
         actions={
           <div className="flex gap-2">
+            <Button
+              variant={selectionMode ? 'default' : 'outline'}
+              onClick={toggleSelectionMode}
+            >
+              <CheckSquare className="w-4 h-4 mr-2" />
+              {selectionMode ? '선택 해제' : '다중 선택'}
+            </Button>
             <ExcelImportExport defaultType="customers" onImportSuccess={loadData} />
             <Button variant="outline" onClick={loadData} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -284,6 +394,35 @@ export default function CustomersPage() {
         </Card>
       ) : (
         <>
+          {/* 다중 선택 액션 바 */}
+          {selectionMode && selectedIds.size > 0 && (
+            <Card className="mb-4 border-primary">
+              <CardContent className="p-3 flex items-center justify-between flex-wrap gap-2">
+                <span className="text-sm font-medium">{selectedIds.size}건 선택됨</span>
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm" onClick={handleSelectAll}>전체 선택 (고객)</Button>
+                  <Button variant="outline" size="sm" onClick={handleDeselectAll}>선택 해제</Button>
+                  <Button variant="outline" size="sm" onClick={() => setBulkGradeDialogOpen(true)}>
+                    등급 일괄 변경
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => setBulkDeleteDialogOpen(true)}>
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    일괄 삭제
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {selectionMode && selectedIds.size === 0 && (
+            <Card className="mb-4">
+              <CardContent className="p-3 flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">카드를 클릭하여 선택하세요</span>
+                <Button variant="outline" size="sm" onClick={handleSelectAll}>전체 선택 (고객)</Button>
+              </CardContent>
+            </Card>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {entities.map((entity) => (
               <UnifiedCustomerCard
@@ -291,6 +430,9 @@ export default function CustomersPage() {
                 entity={entity}
                 onClick={handleEntityClick}
                 onGradeChange={handleGradeChange}
+                selectable={selectionMode}
+                selected={selectedIds.has(entity.id)}
+                onSelectChange={handleSelectChange}
               />
             ))}
           </div>
@@ -351,6 +493,58 @@ export default function CustomersPage() {
           )}
         </>
       )}
+
+      {/* 일괄 등급 변경 다이얼로그 */}
+      <AlertDialog open={bulkGradeDialogOpen} onOpenChange={setBulkGradeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>등급 일괄 변경</AlertDialogTitle>
+            <AlertDialogDescription>
+              선택한 {selectedIds.size}건의 고객 등급을 변경합니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Select value={bulkGrade} onValueChange={(v) => setBulkGrade(v as CustomerGrade)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="LEAD">리드</SelectItem>
+              <SelectItem value="PROSPECT">잠재고객</SelectItem>
+              <SelectItem value="CUSTOMER">고객</SelectItem>
+              <SelectItem value="VIP">VIP</SelectItem>
+              <SelectItem value="INACTIVE">비활성</SelectItem>
+            </SelectContent>
+          </Select>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkProcessing}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkGradeChange} disabled={bulkProcessing}>
+              {bulkProcessing ? '처리 중...' : '변경'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 일괄 삭제 다이얼로그 */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>일괄 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              선택한 {selectedIds.size}건의 고객을 삭제합니다. 이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkProcessing}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              disabled={bulkProcessing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {bulkProcessing ? '처리 중...' : '삭제'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

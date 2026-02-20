@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -20,13 +21,13 @@ import { ENTITY_TYPE_BADGE_CONFIG } from '@/types/unified-customer';
  * @requirements 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 8.1, 8.2
  */
 export interface UnifiedCustomerCardProps {
-  /** 통합 엔티티 (리드 또는 고객) */
   entity: UnifiedEntity;
-  /** 클릭 이벤트 핸들러 (상세 페이지 이동) */
   onClick: (entity: UnifiedEntity) => void;
-  /** 등급 변경 핸들러 (고객 전용) */
   onGradeChange?: (entity: UnifiedEntity, newGrade: string) => void;
-  /** 추가 CSS 클래스 */
+  /** 다중 선택 모드 */
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectChange?: (entity: UnifiedEntity, selected: boolean) => void;
   className?: string;
 }
 
@@ -106,16 +107,23 @@ export default function UnifiedCustomerCard({
   entity, 
   onClick,
   onGradeChange,
+  selectable,
+  selected,
+  onSelectChange,
   className 
 }: UnifiedCustomerCardProps) {
   const handleClick = () => {
+    if (selectable && onSelectChange) {
+      onSelectChange(entity, !selected);
+      return;
+    }
     onClick(entity);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      onClick(entity);
+      handleClick();
     }
   };
 
@@ -124,6 +132,7 @@ export default function UnifiedCustomerCard({
       className={cn(
         'cursor-pointer hover:shadow-md transition-all duration-200',
         'focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2',
+        selectable && selected && 'ring-2 ring-primary bg-primary/5',
         className
       )}
       onClick={handleClick}
@@ -133,6 +142,17 @@ export default function UnifiedCustomerCard({
       aria-label={`${entity.companyName} - ${entity.entityType === 'LEAD' ? '리드' : '고객'}`}
     >
       <CardContent className="p-4">
+        {/* 선택 체크박스 */}
+        {selectable && (
+          <div className="flex items-center mb-2">
+            <Checkbox
+              checked={selected}
+              onCheckedChange={(checked) => onSelectChange?.(entity, !!checked)}
+              onClick={(e) => e.stopPropagation()}
+              aria-label={`${entity.companyName} 선택`}
+            />
+          </div>
+        )}
         {/* 상단: 회사명, 배지들, 화살표 */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">

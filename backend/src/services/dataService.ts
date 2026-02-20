@@ -795,11 +795,48 @@ export class DataService {
         ...(data.phone !== undefined && { phone: data.phone }),
         ...(data.address !== undefined && { address: data.address }),
         ...(data.notes !== undefined && { notes: data.notes }),
-        ...((data as any).grade !== undefined && { grade: (data as any).grade }),
+        ...(data.grade !== undefined && { grade: data.grade }),
       },
     });
 
     return this.toCustomerResponse(customer);
+  }
+
+  /**
+   * 고객 등급 일괄 변경
+   */
+  async bulkUpdateCustomerGrade(
+    userId: string,
+    customerIds: string[],
+    grade: string
+  ): Promise<number> {
+    const result = await this.prisma.customer.updateMany({
+      where: {
+        id: { in: customerIds },
+        userId,
+        deletedAt: null,
+      },
+      data: { grade: grade as any },
+    });
+    return result.count;
+  }
+
+  /**
+   * 고객 일괄 삭제 (soft delete)
+   */
+  async bulkDeleteCustomers(
+    userId: string,
+    customerIds: string[]
+  ): Promise<number> {
+    const result = await this.prisma.customer.updateMany({
+      where: {
+        id: { in: customerIds },
+        userId,
+        deletedAt: null,
+      },
+      data: { deletedAt: new Date() },
+    });
+    return result.count;
   }
 
   /**
@@ -826,6 +863,8 @@ export class DataService {
       data: { deletedAt: new Date() },
     });
   }
+
+
 
   /**
    * Convert Prisma Customer to CustomerResponse

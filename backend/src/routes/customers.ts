@@ -13,6 +13,51 @@ const dataService = new DataService(prisma);
 const validGrades: CustomerGrade[] = ['LEAD', 'PROSPECT', 'CUSTOMER', 'VIP', 'INACTIVE'];
 
 /**
+ * PATCH /api/customers/bulk/grade
+ * 고객 등급 일괄 변경
+ */
+router.patch(
+  '/bulk/grade',
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { customerIds, grade } = req.body;
+      if (!Array.isArray(customerIds) || customerIds.length === 0) {
+        return res.status(400).json({ success: false, error: { message: '고객 ID 목록이 필요합니다' } });
+      }
+      if (!grade || !validGrades.includes(grade.toUpperCase() as CustomerGrade)) {
+        return res.status(400).json({ success: false, error: { message: '유효한 등급이 필요합니다' } });
+      }
+      const count = await dataService.bulkUpdateCustomerGrade(req.user!.id, customerIds, grade.toUpperCase());
+      res.json({ success: true, data: { updatedCount: count } });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * DELETE /api/customers/bulk
+ * 고객 일괄 삭제
+ */
+router.delete(
+  '/bulk',
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { customerIds } = req.body;
+      if (!Array.isArray(customerIds) || customerIds.length === 0) {
+        return res.status(400).json({ success: false, error: { message: '고객 ID 목록이 필요합니다' } });
+      }
+      const count = await dataService.bulkDeleteCustomers(req.user!.id, customerIds);
+      res.json({ success: true, data: { deletedCount: count } });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
  * GET /api/customers
  * Get customers list with pagination and filters
  * Supports grade filtering via query parameter

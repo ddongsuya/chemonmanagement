@@ -136,6 +136,7 @@ export interface UpdateCustomerDTO {
   phone?: string | null;
   address?: string | null;
   notes?: string | null;
+  grade?: CustomerGrade;
 }
 
 export interface CustomerFilters {
@@ -251,5 +252,30 @@ export async function updateCustomer(
 export async function deleteCustomer(id: string): Promise<ApiResponse<void>> {
   return apiFetch<void>(`/api/customers/${id}`, {
     method: 'DELETE',
+  });
+}
+
+/**
+ * Bulk update customer grade
+ */
+export async function bulkUpdateCustomerGrade(
+  customerIds: string[],
+  grade: CustomerGrade
+): Promise<ApiResponse<{ updatedCount: number }>> {
+  return apiFetch<{ updatedCount: number }>('/api/customers/bulk/grade', {
+    method: 'PATCH',
+    body: JSON.stringify({ customerIds, grade }),
+  });
+}
+
+/**
+ * Bulk delete customers
+ */
+export async function bulkDeleteCustomers(
+  customerIds: string[]
+): Promise<ApiResponse<{ deletedCount: number }>> {
+  return apiFetch<{ deletedCount: number }>('/api/customers/bulk', {
+    method: 'DELETE',
+    body: JSON.stringify({ customerIds }),
   });
 }

@@ -93,7 +93,7 @@ export default function CustomerDetailPage() {
     if (!customer) return;
     setGradeUpdating(true);
     try {
-      const response = await updateCustomer(customer.id, { grade: newGrade } as any);
+      const response = await updateCustomer(customer.id, { grade: newGrade as any });
       if (response.success) {
         setCustomer(prev => prev ? { ...prev, grade: newGrade as any } : null);
         toast({ title: '등급 변경 완료', description: `${getGradeLabel(newGrade)}(으)로 변경되었습니다.` });
