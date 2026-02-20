@@ -77,6 +77,37 @@ router.get('/export/:type', authenticate, async (req: Request, res: Response, ne
 });
 
 /**
+ * POST /api/excel/import/quotations-legacy
+ * 기존 엑셀 양식으로 견적서 가져오기
+ * NOTE: 이 라우트는 /import/:type 보다 먼저 정의되어야 합니다
+ */
+router.post('/import/quotations-legacy', authenticate, upload.single('file'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: { message: '파일이 필요합니다' } });
+    }
+
+    const result = await excelService.importQuotationsLegacy(userId, req.file.path);
+
+    // 업로드된 파일 삭제
+    fs.unlinkSync(req.file.path);
+
+    res.json({
+      success: true,
+      data: result,
+      message: `${result.success}건 성공, ${result.failed}건 실패`,
+    });
+  } catch (error) {
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    next(error);
+  }
+});
+
+/**
  * POST /api/excel/import/:type
  * 데이터 가져오기 (Excel 업로드)
  */
@@ -108,36 +139,6 @@ router.post('/import/:type', authenticate, upload.single('file'), async (req: Re
         fs.unlinkSync(req.file.path);
         return res.status(400).json({ success: false, error: { message: '지원하지 않는 가져오기 유형입니다' } });
     }
-
-    // 업로드된 파일 삭제
-    fs.unlinkSync(req.file.path);
-
-    res.json({
-      success: true,
-      data: result,
-      message: `${result.success}건 성공, ${result.failed}건 실패`,
-    });
-  } catch (error) {
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-    next(error);
-  }
-});
-
-/**
- * POST /api/excel/import/quotations-legacy
- * 기존 엑셀 양식으로 견적서 가져오기
- */
-router.post('/import/quotations-legacy', authenticate, upload.single('file'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user!.id;
-
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: { message: '파일이 필요합니다' } });
-    }
-
-    const result = await excelService.importQuotationsLegacy(userId, req.file.path);
 
     // 업로드된 파일 삭제
     fs.unlinkSync(req.file.path);
