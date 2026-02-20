@@ -265,34 +265,35 @@ export default function QuotationDetailPage() {
                       <TableHead className="text-right whitespace-nowrap">금액</TableHead>
                     </TableRow>
                   </TableHeader>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell
-                        className={
-                          item.is_option ? 'pl-8 text-gray-600' : 'font-medium'
-                        }
-                      >
-                        {item.is_option ? '└ ' : ''}{item.name}
-                      </TableCell>
-                      <TableCell>{item.category}</TableCell>
-                      <TableCell className="text-right whitespace-nowrap">
-                        {item.amount > 0 ? formatCurrency(item.amount) : '별도 협의'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {/* 조제물분석 */}
-                  {quotation.subtotal_analysis > 0 && (
-                    <TableRow>
-                      <TableCell className="font-medium">조제물분석</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(quotation.subtotal_analysis)}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  <TableBody>
+                    {items.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell
+                          className={
+                            item.is_option ? 'pl-8 text-gray-600' : 'font-medium'
+                          }
+                        >
+                          {item.is_option ? '└ ' : ''}{item.name}
+                        </TableCell>
+                        <TableCell>{item.category}</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          {item.amount > 0 ? formatCurrency(item.amount) : '별도 협의'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {/* 조제물분석 */}
+                    {quotation.subtotal_analysis > 0 && (
+                      <TableRow>
+                        <TableCell className="font-medium">조제물분석</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(quotation.subtotal_analysis)}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </div>

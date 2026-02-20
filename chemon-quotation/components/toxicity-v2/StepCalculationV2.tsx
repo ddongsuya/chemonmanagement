@@ -28,7 +28,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from 'lucide-react';
-import type { TestMode, SelectedTest } from '@/types/toxicity-v2';
+
 
 /**
  * StepCalculationV2
@@ -113,58 +113,59 @@ export default function StepCalculationV2() {
                   <TableHead className="w-24 sm:w-32 text-right">금액</TableHead>
                 </TableRow>
               </TableHeader>
-            <TableBody>
-              {selectedTests.map((test, idx) => (
-                <TableRow key={test.id}>
-                  <TableCell className="p-1">
-                    {!test.isOption && (
-                      <div className="flex items-center gap-0.5">
-                        <div className="flex flex-col">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5"
-                            disabled={idx === 0}
-                            onClick={() => handleMove(test.id, 'up')}
-                          >
-                            <ChevronUp className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5"
-                            disabled={idx === selectedTests.length - 1}
-                            onClick={() => handleMove(test.id, 'down')}
-                          >
-                            <ChevronDown className="w-3 h-3" />
-                          </Button>
+              <TableBody>
+                {selectedTests.map((test, idx) => (
+                  <TableRow key={test.id}>
+                    <TableCell className="p-1">
+                      {!test.isOption && (
+                        <div className="flex items-center gap-0.5">
+                          <div className="flex flex-col">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5"
+                              disabled={idx === 0}
+                              onClick={() => handleMove(test.id, 'up')}
+                            >
+                              <ChevronUp className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5"
+                              disabled={idx === selectedTests.length - 1}
+                              onClick={() => handleMove(test.id, 'down')}
+                            >
+                              <ChevronDown className="w-3 h-3" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </TableCell>
+                    <TableCell>{test.isOption ? '' : idx + 1}</TableCell>
+                    <TableCell className={test.isOption ? 'pl-8 text-gray-600' : ''}>
+                      {test.isOption && <span className="text-gray-400 mr-1">└</span>}
+                      {test.name}
+                    </TableCell>
+                    <TableCell className="text-center text-sm text-gray-600">
+                      {test.category}
+                    </TableCell>
+                    <TableCell className="text-right font-mono whitespace-nowrap">
+                      {test.price > 0 ? formatKRW(test.price) : '별도 협의'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="bg-gray-50 font-semibold">
+                  <TableCell colSpan={4} className="text-right">
+                    시험비용 소계
                   </TableCell>
-                  <TableCell>{test.isOption ? '' : idx + 1}</TableCell>
-                  <TableCell className={test.isOption ? 'pl-8 text-gray-600' : ''}>
-                    {test.isOption && <span className="text-gray-400 mr-1">└</span>}
-                    {test.name}
-                  </TableCell>
-                  <TableCell className="text-center text-sm text-gray-600">
-                    {test.category}
-                  </TableCell>
-                  <TableCell className="text-right font-mono whitespace-nowrap">
-                    {test.price > 0 ? formatKRW(test.price) : '별도 협의'}
+                  <TableCell className="text-right">
+                    {formatKRW(subtotalTest)}
                   </TableCell>
                 </TableRow>
-              ))}
-              <TableRow className="bg-gray-50 font-semibold">
-                <TableCell colSpan={4} className="text-right">
-                  시험비용 소계
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatKRW(subtotalTest)}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
