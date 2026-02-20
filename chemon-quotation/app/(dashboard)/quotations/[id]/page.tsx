@@ -182,31 +182,31 @@ export default function QuotationDetailPage() {
         title={quotation.quotation_number}
         description={`${quotation.customer_name} | ${quotation.project_name}`}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
               <Link href="/quotations">
-                <ArrowLeft className="w-4 h-4 mr-2" /> 목록
+                <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">목록</span>
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
               <Link href={`/quotations/${params.id}/edit`}>
-                <Edit className="w-4 h-4 mr-2" /> 수정
+                <Edit className="w-4 h-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">수정</span>
               </Link>
             </Button>
             <Button variant="outline" size="sm">
-              <Copy className="w-4 h-4 mr-2" /> 복사
+              <Copy className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">복사</span>
             </Button>
             <Button variant="outline" size="sm">
-              <FileText className="w-4 h-4 mr-2" /> PDF
+              <FileText className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">PDF</span>
             </Button>
             <Button variant="outline" size="sm" asChild>
               <Link href={`/contract/new?quotationId=${params.id}`}>
-                <FileSignature className="w-4 h-4 mr-2" /> 계약서 생성
+                <FileSignature className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">계약서 생성</span>
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
               <Link href={`/consultation/new?quotationId=${params.id}`}>
-                <ClipboardList className="w-4 h-4 mr-2" /> 상담기록지
+                <ClipboardList className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">상담기록지</span>
               </Link>
             </Button>
           </div>
@@ -256,14 +256,15 @@ export default function QuotationDetailPage() {
               <CardTitle>시험 항목</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>시험항목</TableHead>
-                    <TableHead>카테고리</TableHead>
-                    <TableHead className="text-right">금액</TableHead>
-                  </TableRow>
-                </TableHeader>
+              <div className="overflow-x-auto -mx-6 px-6">
+                <Table className="min-w-[380px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>시험항목</TableHead>
+                      <TableHead className="w-20 sm:w-auto">카테고리</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">금액</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {items.map((item) => (
                     <TableRow key={item.id}>
@@ -275,7 +276,7 @@ export default function QuotationDetailPage() {
                         {item.is_option ? '└ ' : ''}{item.name}
                       </TableCell>
                       <TableCell>{item.category}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right whitespace-nowrap">
                         {item.amount > 0 ? formatCurrency(item.amount) : '별도 협의'}
                       </TableCell>
                     </TableRow>

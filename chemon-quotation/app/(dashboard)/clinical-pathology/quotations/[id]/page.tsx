@@ -218,14 +218,14 @@ export default function ClinicalQuotationDetailPage() {
   return (
     <div className="space-y-6">
       {/* 헤더 */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{quotation.quotationNumber}</h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold">{quotation.quotationNumber}</h1>
               <Badge className={statusColors[quotation.status]}>
                 {QUOTATION_STATUS_LABELS[quotation.status]}
               </Badge>
@@ -233,7 +233,7 @@ export default function ClinicalQuotationDetailPage() {
             <p className="text-muted-foreground">{quotation.customerName}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {quotation.status === 'DRAFT' && (
             <Button onClick={handleSend} disabled={actionLoading}>
               <Send className="w-4 h-4 mr-2" />

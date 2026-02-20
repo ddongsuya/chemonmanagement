@@ -254,7 +254,7 @@ export default function PaymentScheduleTable({
         {isAdding && (
           <div className="p-4 border rounded-lg space-y-4">
             <h4 className="font-medium">새 지급 일정</h4>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-gray-500">시험번호</label>
                 <Input
@@ -302,24 +302,25 @@ export default function PaymentScheduleTable({
 
         {/* 지급 일정 테이블 */}
         {schedules.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>시험번호</TableHead>
-                <TableHead className="text-right">금액</TableHead>
-                <TableHead>예정일</TableHead>
-                <TableHead>지급일</TableHead>
-                <TableHead>상태</TableHead>
-                {editable && <TableHead className="text-right">작업</TableHead>}
-              </TableRow>
-            </TableHeader>
+          <div className="overflow-x-auto -mx-6 px-6">
+            <Table className="min-w-[580px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>시험번호</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">금액</TableHead>
+                  <TableHead className="whitespace-nowrap">예정일</TableHead>
+                  <TableHead className="whitespace-nowrap">지급일</TableHead>
+                  <TableHead>상태</TableHead>
+                  {editable && <TableHead className="text-right">작업</TableHead>}
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {schedules.map((schedule) => (
                 <TableRow key={schedule.id}>
                   <TableCell className="font-medium">
                     {schedule.testNumber || '-'}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right whitespace-nowrap">
                     {formatCurrency(schedule.amount)}원
                   </TableCell>
                   <TableCell>{formatDate(schedule.scheduledDate)}</TableCell>
@@ -381,6 +382,7 @@ export default function PaymentScheduleTable({
               ))}
             </TableBody>
           </Table>
+          </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
             등록된 지급 일정이 없습니다.

@@ -91,7 +91,33 @@ export default function CompanyDashboard({ stats }: CompanyDashboardProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
-            <div className="overflow-x-auto">
+            {/* 모바일: 카드 레이아웃 */}
+            <div className="sm:hidden space-y-3">
+              {byDepartment.map((dept) => (
+                <div key={dept.department} className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="font-medium text-sm">{dept.departmentName}</div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">견적</span>
+                      <span>{formatAmount(dept.quotation.amount)} · {dept.quotation.count}건</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">계약</span>
+                      <span>{formatAmount(dept.contract.amount)} · {dept.contract.count}건</span>
+                    </div>
+                    <div className="flex justify-between col-span-2">
+                      <span className="text-muted-foreground">수주율</span>
+                      <span className={cn(
+                        'font-medium',
+                        dept.conversionRate >= 30 ? 'text-emerald-600' : 'text-muted-foreground'
+                      )}>{dept.conversionRate}%</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* 데스크톱: 테이블 레이아웃 */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/60">
@@ -139,7 +165,35 @@ export default function CompanyDashboard({ stats }: CompanyDashboardProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
-            <div className="overflow-x-auto">
+            {/* 모바일: 카드 레이아웃 */}
+            <div className="sm:hidden space-y-2">
+              {userRanking.map((user) => (
+                <div key={user.userId} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className="flex-shrink-0">
+                    {user.rank <= 3 ? (
+                      <span className={cn(
+                        'inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold',
+                        user.rank === 1 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                        user.rank === 2 ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' :
+                        'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                      )}>{user.rank}</span>
+                    ) : (
+                      <span className="inline-flex items-center justify-center w-7 h-7 text-muted-foreground text-sm">{user.rank}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{user.userName}</div>
+                    <div className="text-xs text-muted-foreground">{user.departmentName || '-'}</div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="font-medium text-sm">{formatAmount(user.quotationAmount)}</div>
+                    <div className="text-xs text-muted-foreground">{user.quotationCount}건</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* 데스크톱: 테이블 레이아웃 */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/60">

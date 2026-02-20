@@ -102,16 +102,17 @@ export default function StepCalculationV2() {
           <CardTitle>견적 상세</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16">순서</TableHead>
-                <TableHead className="w-12">No</TableHead>
-                <TableHead>시험항목</TableHead>
-                <TableHead className="w-24 text-center">카테고리</TableHead>
-                <TableHead className="w-32 text-right">금액</TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="overflow-x-auto -mx-6 px-6">
+            <Table className="min-w-[520px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12 sm:w-16">순서</TableHead>
+                  <TableHead className="w-10 sm:w-12">No</TableHead>
+                  <TableHead>시험항목</TableHead>
+                  <TableHead className="w-20 sm:w-24 text-center">카테고리</TableHead>
+                  <TableHead className="w-24 sm:w-32 text-right">금액</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {selectedTests.map((test, idx) => (
                 <TableRow key={test.id}>
@@ -149,7 +150,7 @@ export default function StepCalculationV2() {
                   <TableCell className="text-center text-sm text-gray-600">
                     {test.category}
                   </TableCell>
-                  <TableCell className="text-right font-mono">
+                  <TableCell className="text-right font-mono whitespace-nowrap">
                     {test.price > 0 ? formatKRW(test.price) : '별도 협의'}
                   </TableCell>
                 </TableRow>

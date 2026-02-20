@@ -344,6 +344,16 @@
     min-width: 44px;
   }
   
+  /* 테이블 내부 버튼은 작게 유지 */
+  table button,
+  table a,
+  table [role="button"],
+  [data-compact] button,
+  [data-compact] a {
+    min-height: unset;
+    min-width: unset;
+  }
+  
   /* 모바일 입력 필드 확대 방지 */
   input[type="text"],
   input[type="email"],
@@ -359,6 +369,11 @@
   .scroll-container {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+  }
+  
+  /* 모바일 카드 내 패딩 축소 */
+  .card-compact {
+    padding: 0.75rem;
   }
 }
 
