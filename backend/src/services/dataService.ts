@@ -795,6 +795,7 @@ export class DataService {
         ...(data.phone !== undefined && { phone: data.phone }),
         ...(data.address !== undefined && { address: data.address }),
         ...(data.notes !== undefined && { notes: data.notes }),
+        ...((data as any).grade !== undefined && { grade: (data as any).grade }),
       },
     });
 

@@ -24,6 +24,7 @@ import {
   type UnifiedCustomerFilters as FilterType,
   type PipelineStageInfo,
 } from '@/lib/unified-customer-api';
+import { updateCustomer } from '@/lib/data-api';
 import { DEFAULT_UNIFIED_CUSTOMER_FILTERS } from '@/types/unified-customer';
 
 /**
@@ -175,10 +176,26 @@ export default function CustomersPage() {
     if (entity.entityType === 'LEAD') {
       router.push(`/leads/${entity.id}`);
     } else {
-      // 고객의 경우 상세 페이지로 이동 (또는 모달 표시)
       router.push(`/customers/${entity.id}`);
     }
   }, [router]);
+
+  /**
+   * 고객 등급 변경 핸들러
+   */
+  const handleGradeChange = useCallback(async (entity: UnifiedEntity, newGrade: string) => {
+    try {
+      const response = await updateCustomer(entity.id, { grade: newGrade } as any);
+      if (response.success) {
+        toastRef.current({ title: '등급 변경 완료' });
+        loadData();
+      } else {
+        toastRef.current({ title: '오류', description: response.error?.message || '등급 변경 실패', variant: 'destructive' });
+      }
+    } catch {
+      toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
+    }
+  }, [loadData]);
 
   /**
    * 신규 고객 등록 성공 핸들러
@@ -273,6 +290,7 @@ export default function CustomersPage() {
                 key={`${entity.entityType}-${entity.id}`}
                 entity={entity}
                 onClick={handleEntityClick}
+                onGradeChange={handleGradeChange}
               />
             ))}
           </div>

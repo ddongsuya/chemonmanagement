@@ -21,6 +21,7 @@ export const updateCustomerSchema = z.object({
   phone: z.string().max(50, '전화번호는 50자 이하여야 합니다').optional().nullable(),
   address: z.string().max(500, '주소는 500자 이하여야 합니다').optional().nullable(),
   notes: z.string().max(2000, '메모는 2000자 이하여야 합니다').optional().nullable(),
+  grade: z.enum(['LEAD', 'PROSPECT', 'CUSTOMER', 'VIP', 'INACTIVE']).optional(),
 });
 
 export type UpdateCustomerDTO = z.infer<typeof updateCustomerSchema>;

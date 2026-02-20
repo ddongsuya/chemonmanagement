@@ -2,6 +2,13 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Building2, User, Phone, Mail, ChevronRight, Hash } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UnifiedEntity, EntityType } from '@/types/unified-customer';
@@ -17,6 +24,8 @@ export interface UnifiedCustomerCardProps {
   entity: UnifiedEntity;
   /** 클릭 이벤트 핸들러 (상세 페이지 이동) */
   onClick: (entity: UnifiedEntity) => void;
+  /** 등급 변경 핸들러 (고객 전용) */
+  onGradeChange?: (entity: UnifiedEntity, newGrade: string) => void;
   /** 추가 CSS 클래스 */
   className?: string;
 }
@@ -85,9 +94,18 @@ function StageBadge({
  * @requirements 8.1 - 리드 클릭 시 /leads/{leadId} 페이지로 이동
  * @requirements 8.2 - 고객 클릭 시 상세 모달 또는 페이지 표시
  */
+const GRADE_OPTIONS = [
+  { value: 'LEAD', label: '리드', color: '#6B7280' },
+  { value: 'PROSPECT', label: '잠재고객', color: '#3B82F6' },
+  { value: 'CUSTOMER', label: '고객', color: '#10B981' },
+  { value: 'VIP', label: 'VIP', color: '#8B5CF6' },
+  { value: 'INACTIVE', label: '비활성', color: '#EF4444' },
+] as const;
+
 export default function UnifiedCustomerCard({ 
   entity, 
   onClick,
+  onGradeChange,
   className 
 }: UnifiedCustomerCardProps) {
   const handleClick = () => {
@@ -124,10 +142,34 @@ export default function UnifiedCustomerCard({
               <EntityTypeBadge entityType={entity.entityType} />
               
               {/* 파이프라인 단계 배지 - Requirements 2.1, 2.2, 2.3 */}
-              <StageBadge 
-                displayStage={entity.displayStage} 
-                stageColor={entity.stageColor} 
-              />
+              {entity.entityType === 'CUSTOMER' && onGradeChange ? (
+                <Select
+                  value={entity.grade || 'LEAD'}
+                  onValueChange={(val) => {
+                    onGradeChange(entity, val);
+                  }}
+                >
+                  <SelectTrigger
+                    className="h-6 w-auto px-2 text-xs font-semibold border rounded-full"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GRADE_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <span style={{ color: opt.color }}>{opt.label}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <StageBadge 
+                  displayStage={entity.displayStage} 
+                  stageColor={entity.stageColor} 
+                />
+              )}
               
               {/* 리드 번호 표시 (리드인 경우) */}
               {entity.entityType === 'LEAD' && entity.leadNumber && (
