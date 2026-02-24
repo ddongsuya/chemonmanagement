@@ -2,13 +2,20 @@
 // 임상병리검사 견적서 및 시험의뢰서 API
 
 import { Router, Request, Response } from 'express';
-import { authenticate } from '../middleware/auth';
+import { authenticate, requireAdmin } from '../middleware/auth';
 import * as clinicalPathologyService from '../services/clinicalPathologyService';
 
 const router = Router();
 
 // 모든 라우트에 인증 적용
 router.use(authenticate);
+
+// userId 추출 헬퍼
+function getUserId(req: Request): string {
+  const userId = (req as any).user?.id;
+  if (!userId) throw new Error('인증이 필요합니다.');
+  return userId;
+}
 
 // ==================== 마스터데이터 - 검사항목 ====================
 
@@ -40,8 +47,8 @@ router.get('/master/test-items/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/clinical-pathology/master/test-items
-router.post('/master/test-items', async (req: Request, res: Response) => {
+// POST /api/clinical-pathology/master/test-items (관리자 전용)
+router.post('/master/test-items', requireAdmin, async (req: Request, res: Response) => {
   try {
     const item = await clinicalPathologyService.createTestItem(req.body);
     res.status(201).json(item);
@@ -50,8 +57,8 @@ router.post('/master/test-items', async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/clinical-pathology/master/test-items/:id
-router.put('/master/test-items/:id', async (req: Request, res: Response) => {
+// PUT /api/clinical-pathology/master/test-items/:id (관리자 전용)
+router.put('/master/test-items/:id', requireAdmin, async (req: Request, res: Response) => {
   try {
     const item = await clinicalPathologyService.updateTestItem(req.params.id, req.body);
     res.json(item);
@@ -60,8 +67,8 @@ router.put('/master/test-items/:id', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/clinical-pathology/master/test-items/:id/toggle
-router.post('/master/test-items/:id/toggle', async (req: Request, res: Response) => {
+// PATCH /api/clinical-pathology/master/test-items/:id/toggle (관리자 전용)
+router.post('/master/test-items/:id/toggle', requireAdmin, async (req: Request, res: Response) => {
   try {
     const item = await clinicalPathologyService.toggleTestItemActive(req.params.id);
     res.json(item);
@@ -82,8 +89,8 @@ router.get('/master/qc-settings', async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/clinical-pathology/master/qc-settings
-router.put('/master/qc-settings', async (req: Request, res: Response) => {
+// PUT /api/clinical-pathology/master/qc-settings (관리자 전용)
+router.put('/master/qc-settings', requireAdmin, async (req: Request, res: Response) => {
   try {
     const { settings } = req.body;
     const result = await clinicalPathologyService.updateQcSettings(settings);
@@ -161,7 +168,8 @@ router.post('/quotations', async (req: Request, res: Response) => {
 // PUT /api/clinical-pathology/quotations/:id
 router.put('/quotations/:id', async (req: Request, res: Response) => {
   try {
-    const quotation = await clinicalPathologyService.updateQuotation(req.params.id, req.body);
+    const userId = getUserId(req);
+    const quotation = await clinicalPathologyService.updateQuotation(req.params.id, userId, req.body);
     res.json(quotation);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -171,7 +179,8 @@ router.put('/quotations/:id', async (req: Request, res: Response) => {
 // DELETE /api/clinical-pathology/quotations/:id
 router.delete('/quotations/:id', async (req: Request, res: Response) => {
   try {
-    await clinicalPathologyService.deleteQuotation(req.params.id);
+    const userId = getUserId(req);
+    await clinicalPathologyService.deleteQuotation(req.params.id, userId);
     res.json({ success: true });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -181,7 +190,8 @@ router.delete('/quotations/:id', async (req: Request, res: Response) => {
 // POST /api/clinical-pathology/quotations/:id/send
 router.post('/quotations/:id/send', async (req: Request, res: Response) => {
   try {
-    const quotation = await clinicalPathologyService.sendQuotation(req.params.id);
+    const userId = getUserId(req);
+    const quotation = await clinicalPathologyService.sendQuotation(req.params.id, userId);
     res.json(quotation);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -191,7 +201,8 @@ router.post('/quotations/:id/send', async (req: Request, res: Response) => {
 // POST /api/clinical-pathology/quotations/:id/accept
 router.post('/quotations/:id/accept', async (req: Request, res: Response) => {
   try {
-    const quotation = await clinicalPathologyService.acceptQuotation(req.params.id);
+    const userId = getUserId(req);
+    const quotation = await clinicalPathologyService.acceptQuotation(req.params.id, userId);
     res.json(quotation);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -201,7 +212,8 @@ router.post('/quotations/:id/accept', async (req: Request, res: Response) => {
 // POST /api/clinical-pathology/quotations/:id/reject
 router.post('/quotations/:id/reject', async (req: Request, res: Response) => {
   try {
-    const quotation = await clinicalPathologyService.rejectQuotation(req.params.id);
+    const userId = getUserId(req);
+    const quotation = await clinicalPathologyService.rejectQuotation(req.params.id, userId);
     res.json(quotation);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -275,7 +287,8 @@ router.get('/test-requests/:id', async (req: Request, res: Response) => {
 // PUT /api/clinical-pathology/test-requests/:id
 router.put('/test-requests/:id', async (req: Request, res: Response) => {
   try {
-    const request = await clinicalPathologyService.updateTestRequest(req.params.id, req.body);
+    const userId = getUserId(req);
+    const request = await clinicalPathologyService.updateTestRequest(req.params.id, userId, req.body);
     res.json(request);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -285,7 +298,8 @@ router.put('/test-requests/:id', async (req: Request, res: Response) => {
 // DELETE /api/clinical-pathology/test-requests/:id
 router.delete('/test-requests/:id', async (req: Request, res: Response) => {
   try {
-    await clinicalPathologyService.deleteTestRequest(req.params.id);
+    const userId = getUserId(req);
+    await clinicalPathologyService.deleteTestRequest(req.params.id, userId);
     res.json({ success: true });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -295,7 +309,8 @@ router.delete('/test-requests/:id', async (req: Request, res: Response) => {
 // POST /api/clinical-pathology/test-requests/:id/submit
 router.post('/test-requests/:id/submit', async (req: Request, res: Response) => {
   try {
-    const request = await clinicalPathologyService.submitTestRequest(req.params.id);
+    const userId = getUserId(req);
+    const request = await clinicalPathologyService.submitTestRequest(req.params.id, userId);
     res.json(request);
   } catch (error: any) {
     res.status(400).json({ error: error.message });

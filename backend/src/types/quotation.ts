@@ -35,6 +35,14 @@ export const efficacyItemSchema = z.object({
   usage_note: z.string().optional(),
 });
 
+// 견적서 항목 공통 스키마 (최소 구조 검증)
+const quotationItemSchema = z.object({
+  id: z.string(),
+  quantity: z.number().min(1),
+  unit_price: z.number().min(0),
+  amount: z.number().min(0),
+}).passthrough(); // 시험 유형별 추가 필드 허용
+
 // 견적서 생성 스키마
 export const createQuotationSchema = z.object({
   quotationType: z.nativeEnum(QuotationType),
@@ -42,16 +50,16 @@ export const createQuotationSchema = z.object({
   customerName: z.string().min(1, '고객사명은 필수입니다'),
   projectName: z.string().min(1, '프로젝트명은 필수입니다'),
   modality: z.string().optional().nullable(),
-  
+
   // 효력시험 전용
   modelId: z.string().optional().nullable(),
   modelCategory: z.string().optional().nullable(),
   indication: z.string().optional().nullable(),
-  
+
   // 리드 연결 (신규)
   leadId: z.string().uuid().optional().nullable(),
-  
-  items: z.array(z.any()).min(1, '최소 1개의 항목이 필요합니다'),
+
+  items: z.array(quotationItemSchema).min(1, '최소 1개의 항목이 필요합니다'),
   
   subtotalTest: z.number().optional().nullable(),
   subtotalAnalysis: z.number().optional().nullable(),
@@ -83,7 +91,7 @@ export const updateQuotationSchema = z.object({
   // 리드 연결 (신규)
   leadId: z.string().uuid().optional().nullable(),
   
-  items: z.array(z.any()).min(1).optional(),
+  items: z.array(quotationItemSchema).min(1).optional(),
   
   subtotalTest: z.number().optional().nullable(),
   subtotalAnalysis: z.number().optional().nullable(),

@@ -416,7 +416,7 @@ export async function createQuotation(data: {
   return { quotation, quotationNumber };
 }
 
-export async function updateQuotation(id: string, data: Partial<{
+export async function updateQuotation(id: string, userId: string, data: Partial<{
   customerId: string;
   customerName: string;
   contactPersonId: string;
@@ -439,8 +439,9 @@ export async function updateQuotation(id: string, data: Partial<{
 }>) {
   const existing = await prisma.clinicalQuotation.findUnique({ where: { id } });
   if (!existing) throw new Error('견적서를 찾을 수 없습니다.');
+  if (existing.createdById !== userId) throw new Error('접근 권한이 없습니다.');
   if (existing.status !== 'DRAFT') throw new Error('작성중 상태의 견적서만 수정할 수 있습니다.');
-  
+
   // 항목이 변경된 경우 금액 재계산
   let calculation: Awaited<ReturnType<typeof calculateQuotation>> | null = null;
   
@@ -541,9 +542,10 @@ export async function updateQuotation(id: string, data: Partial<{
   });
 }
 
-export async function deleteQuotation(id: string) {
+export async function deleteQuotation(id: string, userId: string) {
   const existing = await prisma.clinicalQuotation.findUnique({ where: { id } });
   if (!existing) throw new Error('견적서를 찾을 수 없습니다.');
+  if (existing.createdById !== userId) throw new Error('접근 권한이 없습니다.');
   if (existing.status !== 'DRAFT') throw new Error('작성중 상태의 견적서만 삭제할 수 있습니다.');
   
   return prisma.clinicalQuotation.delete({ where: { id } });
@@ -552,9 +554,10 @@ export async function deleteQuotation(id: string) {
 
 // ==================== 견적서 상태 변경 ====================
 
-export async function sendQuotation(id: string) {
+export async function sendQuotation(id: string, userId: string) {
   const existing = await prisma.clinicalQuotation.findUnique({ where: { id } });
   if (!existing) throw new Error('견적서를 찾을 수 없습니다.');
+  if (existing.createdById !== userId) throw new Error('접근 권한이 없습니다.');
   if (existing.status !== 'DRAFT') throw new Error('작성중 상태의 견적서만 발송할 수 있습니다.');
   
   return prisma.clinicalQuotation.update({
@@ -566,9 +569,10 @@ export async function sendQuotation(id: string) {
   });
 }
 
-export async function acceptQuotation(id: string) {
+export async function acceptQuotation(id: string, userId: string) {
   const existing = await prisma.clinicalQuotation.findUnique({ where: { id } });
   if (!existing) throw new Error('견적서를 찾을 수 없습니다.');
+  if (existing.createdById !== userId) throw new Error('접근 권한이 없습니다.');
   if (existing.status !== 'SENT') throw new Error('발송완료 상태의 견적서만 승인할 수 있습니다.');
   
   return prisma.clinicalQuotation.update({
@@ -580,9 +584,10 @@ export async function acceptQuotation(id: string) {
   });
 }
 
-export async function rejectQuotation(id: string) {
+export async function rejectQuotation(id: string, userId: string) {
   const existing = await prisma.clinicalQuotation.findUnique({ where: { id } });
   if (!existing) throw new Error('견적서를 찾을 수 없습니다.');
+  if (existing.createdById !== userId) throw new Error('접근 권한이 없습니다.');
   if (existing.status !== 'SENT') throw new Error('발송완료 상태의 견적서만 거절할 수 있습니다.');
   
   return prisma.clinicalQuotation.update({
@@ -597,7 +602,8 @@ export async function copyQuotation(id: string, userId: string) {
     include: { items: true },
   });
   if (!original) throw new Error('견적서를 찾을 수 없습니다.');
-  
+  if (original.createdById !== userId) throw new Error('접근 권한이 없습니다.');
+
   const quotationNumber = await generateQuotationNumber();
   const validUntil = new Date();
   validUntil.setDate(validUntil.getDate() + original.validDays);
@@ -669,6 +675,7 @@ export async function convertToTestRequest(quotationId: string, userId: string) 
   });
   
   if (!quotation) throw new Error('견적서를 찾을 수 없습니다.');
+  if (quotation.createdById !== userId) throw new Error('접근 권한이 없습니다.');
   if (quotation.status !== 'ACCEPTED') throw new Error('승인된 견적서만 시험의뢰서로 전환할 수 있습니다.');
   
   return prisma.$transaction(async (tx) => {
@@ -786,7 +793,7 @@ export async function getTestRequestById(id: string) {
 }
 
 
-export async function updateTestRequest(id: string, data: Partial<{
+export async function updateTestRequest(id: string, userId: string, data: Partial<{
   customerName: string;
   contactName: string;
   contactPhone: string;
@@ -809,17 +816,19 @@ export async function updateTestRequest(id: string, data: Partial<{
 }>) {
   const existing = await prisma.clinicalTestRequest.findUnique({ where: { id } });
   if (!existing) throw new Error('시험의뢰서를 찾을 수 없습니다.');
+  if (existing.createdById !== userId) throw new Error('접근 권한이 없습니다.');
   if (existing.status !== 'DRAFT') throw new Error('작성중 상태의 시험의뢰서만 수정할 수 있습니다.');
-  
+
   return prisma.clinicalTestRequest.update({
     where: { id },
     data,
   });
 }
 
-export async function deleteTestRequest(id: string) {
+export async function deleteTestRequest(id: string, userId: string) {
   const existing = await prisma.clinicalTestRequest.findUnique({ where: { id } });
   if (!existing) throw new Error('시험의뢰서를 찾을 수 없습니다.');
+  if (existing.createdById !== userId) throw new Error('접근 권한이 없습니다.');
   if (existing.status !== 'DRAFT') throw new Error('작성중 상태의 시험의뢰서만 삭제할 수 있습니다.');
   
   // 연결된 견적서 상태 복원
@@ -831,9 +840,10 @@ export async function deleteTestRequest(id: string) {
   return prisma.clinicalTestRequest.delete({ where: { id } });
 }
 
-export async function submitTestRequest(id: string) {
+export async function submitTestRequest(id: string, userId: string) {
   const existing = await prisma.clinicalTestRequest.findUnique({ where: { id } });
   if (!existing) throw new Error('시험의뢰서를 찾을 수 없습니다.');
+  if (existing.createdById !== userId) throw new Error('접근 권한이 없습니다.');
   if (existing.status !== 'DRAFT') throw new Error('작성중 상태의 시험의뢰서만 제출할 수 있습니다.');
   
   return prisma.clinicalTestRequest.update({
