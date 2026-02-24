@@ -328,8 +328,12 @@ export class DataService {
           { projectName: { contains: search, mode: 'insensitive' } },
         ],
       }),
-      ...(startDate && { createdAt: { gte: startDate } }),
-      ...(endDate && { createdAt: { lte: endDate } }),
+      ...((startDate || endDate) && {
+        createdAt: {
+          ...(startDate && { gte: startDate }),
+          ...(endDate && { lte: endDate }),
+        },
+      }),
     };
 
     const [quotations, total] = await Promise.all([

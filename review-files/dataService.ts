@@ -11,6 +11,8 @@ import {
   UpdateCustomerDTO,
   CustomerFilters,
   CustomerResponse,
+  CustomerWithLeadResponse,
+  LinkedLeadInfo,
 } from '../types/customer';
 import { PaginatedResult } from '../types';
 
@@ -21,15 +23,115 @@ export class DataService {
     this.prisma = prisma;
   }
 
-  // ==================== Quotation Methods ====================
+  // ==================== Quotation Number Service ====================
+
+  /**
+   * QuotationType for unified quotation number generation
+   * Supports: TOXICITY, EFFICACY, CLINICAL (all use the same number format)
+   */
+  public static readonly SUPPORTED_QUOTATION_TYPES = ['TOXICITY', 'EFFICACY', 'CLINICAL'] as const;
+
+  /**
+   * Quotation number format configuration
+   * Format: YY-MM-UC-NNNN (연도-월-사용자코드-일련번호)
+   */
+  public static readonly QUOTATION_NUMBER_CONFIG = {
+    format: 'YY-MM-UC-NNNN' as const,
+    yearDigits: 2,
+    sequenceDigits: 4,
+  };
+
+  /**
+   * Validate if user has a valid user code set
+   * @param userId - User ID to validate
+   * @returns true if user code is set, false otherwise
+   */
+  async validateUserCode(userId: string): Promise<boolean> {
+    const userSettings = await this.prisma.userSettings.findUnique({
+      where: { userId },
+      select: { userCode: true },
+    });
+    
+    return !!(userSettings?.userCode);
+  }
+
+  /**
+   * Get the next sequence number for quotation generation
+   * Uses nextQuotationSeq from UserSettings if available, otherwise calculates from existing quotations
+   * @param userId - User ID
+   * @returns Next sequence number
+   */
+  async getNextQuotationSequence(userId: string): Promise<number> {
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    
+    // 사용자 설정에서 userCode 조회
+    const userSettings = await this.prisma.userSettings.findUnique({
+      where: { userId },
+      select: { userCode: true },
+    });
+    
+    const userCode = userSettings?.userCode;
+    
+    if (!userCode) {
+      throw new AppError(
+        '견적서 코드가 설정되지 않았습니다. 설정 > 프로필에서 견적서 코드를 먼저 설정해주세요.',
+        400,
+        ErrorCodes.VALIDATION_ERROR
+      );
+    }
+    
+    // 형식: YY-MM-UC-NNNN
+    const prefix = `${year}-${month}-${userCode}-`;
+    
+    // 해당 사용자의 해당 월 마지막 견적번호 조회 (모든 시험 유형 통합)
+    const lastQuotation = await this.prisma.quotation.findFirst({
+      where: {
+        userId,
+        quotationNumber: {
+          startsWith: prefix,
+        },
+      },
+      orderBy: {
+        quotationNumber: 'desc',
+      },
+    });
+
+    if (lastQuotation) {
+      const parts = lastQuotation.quotationNumber.split('-');
+      const lastSeq = parseInt(parts[3], 10);
+      return lastSeq + 1;
+    }
+    
+    return 1;
+  }
 
   /**
    * Generate quotation number with user code
-   * Format: YY-UC-MM-NNNN (연도-사용자코드-월-일련번호)
-   * Example: 26-DL-01-0001
-   * Throws error if userCode is not set
+   * Format: YY-MM-UC-NNNN (연도-월-사용자코드-일련번호)
+   * Example: 26-01-DL-0001
+   * 
+   * This method generates a unified quotation number for all test types:
+   * - TOXICITY (독성시험)
+   * - EFFICACY (효력시험)
+   * - CLINICAL (임상병리시험)
+   * 
+   * All test types share the same sequence number, ensuring sequential numbering
+   * regardless of the test type. This satisfies Requirements 1.1, 1.2, 1.3, 1.4, 1.5.
+   * 
+   * @param userId - User ID for quotation ownership
+   * @param quotationType - Type of test (TOXICITY, EFFICACY, or CLINICAL)
+   * @returns Generated quotation number in YY-MM-UC-NNNN format
+   * @throws AppError if userCode is not set
+   * 
+   * @example
+   * // User Code: DL, 2025년 1월, 일련번호 1
+   * generateQuotationNumber('user-id', 'TOXICITY') // Returns: "25-01-DL-0001"
+   * generateQuotationNumber('user-id', 'EFFICACY') // Returns: "25-01-DL-0002" (next in sequence)
+   * generateQuotationNumber('user-id', 'CLINICAL') // Returns: "25-01-DL-0003" (next in sequence)
    */
-  private async generateQuotationNumber(userId: string, type: QuotationType): Promise<string> {
+  async generateQuotationNumber(userId: string, quotationType: QuotationType | 'CLINICAL'): Promise<string> {
     const now = new Date();
     const year = now.getFullYear().toString().slice(-2); // 26
     const month = (now.getMonth() + 1).toString().padStart(2, '0'); // 01
@@ -51,10 +153,12 @@ export class DataService {
       );
     }
     
-    // 형식: YY-UC-MM-NNNN
-    const prefix = `${year}-${userCode}-${month}-`;
+    // 형식: YY-MM-UC-NNNN
+    const prefix = `${year}-${month}-${userCode}-`;
     
     // 해당 사용자의 해당 월 마지막 견적번호 조회
+    // 모든 시험 유형(TOXICITY, EFFICACY, CLINICAL)에서 동일한 시퀀스 사용
+    // Requirements 1.4: 시험 유형에 관계없이 일련번호 순차 증가
     const lastQuotation = await this.prisma.quotation.findFirst({
       where: {
         userId,
@@ -77,6 +181,8 @@ export class DataService {
     return `${prefix}${seq.toString().padStart(4, '0')}`;
   }
 
+  // ==================== Quotation Methods ====================
+
   /**
    * Create a new quotation with retry logic for race condition handling
    */
@@ -93,6 +199,21 @@ export class DataService {
 
       if (!customer) {
         throw new AppError('고객을 찾을 수 없습니다', 404, ErrorCodes.RESOURCE_NOT_FOUND);
+      }
+    }
+
+    // If leadId is provided, verify lead exists and belongs to user
+    if (data.leadId) {
+      const lead = await this.prisma.lead.findFirst({
+        where: {
+          id: data.leadId,
+          userId,
+          deletedAt: null,
+        },
+      });
+
+      if (!lead) {
+        throw new AppError('리드를 찾을 수 없습니다', 404, ErrorCodes.RESOURCE_NOT_FOUND);
       }
     }
 
@@ -121,6 +242,7 @@ export class DataService {
             modelId: data.modelId || null,
             modelCategory: data.modelCategory || null,
             indication: data.indication || null,
+            leadId: data.leadId || null,  // 리드 연결 추가
             items: data.items as unknown as Prisma.InputJsonValue,
             subtotalTest: data.subtotalTest ? new Prisma.Decimal(data.subtotalTest) : null,
             subtotalAnalysis: data.subtotalAnalysis ? new Prisma.Decimal(data.subtotalAnalysis) : null,
@@ -140,6 +262,14 @@ export class DataService {
                 id: true,
                 name: true,
                 company: true,
+              },
+            },
+            lead: {
+              select: {
+                id: true,
+                companyName: true,
+                contactName: true,
+                status: true,
               },
             },
           },
@@ -172,6 +302,11 @@ export class DataService {
 
   /**
    * Get quotations list with pagination and filters
+   * 
+   * IMMUTABILITY GUARANTEE (Requirements 5.5, 3.5):
+   * This method returns quotationNumbers exactly as stored in the database.
+   * When a user changes their User_Code, existing quotation numbers are NOT affected.
+   * Each quotation retains the number assigned at creation time.
    */
   async getQuotations(
     userId: string,
@@ -193,8 +328,12 @@ export class DataService {
           { projectName: { contains: search, mode: 'insensitive' } },
         ],
       }),
-      ...(startDate && { createdAt: { gte: startDate } }),
-      ...(endDate && { createdAt: { lte: endDate } }),
+      ...((startDate || endDate) && {
+        createdAt: {
+          ...(startDate && { gte: startDate }),
+          ...(endDate && { lte: endDate }),
+        },
+      }),
     };
 
     const [quotations, total] = await Promise.all([
@@ -209,6 +348,14 @@ export class DataService {
               id: true,
               name: true,
               company: true,
+            },
+          },
+          lead: {
+            select: {
+              id: true,
+              companyName: true,
+              contactName: true,
+              status: true,
             },
           },
         },
@@ -229,6 +376,11 @@ export class DataService {
 
   /**
    * Get quotation by ID with ownership verification
+   * 
+   * IMMUTABILITY GUARANTEE (Requirements 5.5, 3.5):
+   * This method returns the quotationNumber exactly as stored in the database.
+   * When a user changes their User_Code, existing quotation numbers are NOT affected.
+   * The stored quotationNumber is immutable and reflects the code at the time of creation.
    */
   async getQuotationById(userId: string, id: string): Promise<QuotationResponse> {
     const quotation = await this.prisma.quotation.findFirst({
@@ -242,6 +394,14 @@ export class DataService {
             id: true,
             name: true,
             company: true,
+          },
+        },
+        lead: {
+          select: {
+            id: true,
+            companyName: true,
+            contactName: true,
+            status: true,
           },
         },
       },
@@ -274,6 +434,14 @@ export class DataService {
             id: true,
             name: true,
             company: true,
+          },
+        },
+        lead: {
+          select: {
+            id: true,
+            companyName: true,
+            contactName: true,
+            status: true,
           },
         },
       },
@@ -327,6 +495,21 @@ export class DataService {
       }
     }
 
+    // If leadId is provided, verify lead exists and belongs to user
+    if (data.leadId) {
+      const lead = await this.prisma.lead.findFirst({
+        where: {
+          id: data.leadId,
+          userId,
+          deletedAt: null,
+        },
+      });
+
+      if (!lead) {
+        throw new AppError('리드를 찾을 수 없습니다', 404, ErrorCodes.RESOURCE_NOT_FOUND);
+      }
+    }
+
     const quotation = await this.prisma.quotation.update({
       where: { id },
       data: {
@@ -337,6 +520,7 @@ export class DataService {
         ...(data.modelId !== undefined && { modelId: data.modelId }),
         ...(data.modelCategory !== undefined && { modelCategory: data.modelCategory }),
         ...(data.indication !== undefined && { indication: data.indication }),
+        ...(data.leadId !== undefined && { leadId: data.leadId }),  // 리드 연결 추가
         ...(data.items && { items: data.items as unknown as Prisma.InputJsonValue }),
         ...(data.subtotalTest !== undefined && { 
           subtotalTest: data.subtotalTest ? new Prisma.Decimal(data.subtotalTest) : null 
@@ -372,6 +556,14 @@ export class DataService {
             company: true,
           },
         },
+        lead: {
+          select: {
+            id: true,
+            companyName: true,
+            contactName: true,
+            status: true,
+          },
+        },
       },
     });
 
@@ -405,10 +597,17 @@ export class DataService {
 
   /**
    * Convert Prisma Quotation to QuotationResponse
+   * 
+   * IMMUTABILITY GUARANTEE (Requirements 5.5):
+   * The quotationNumber is returned exactly as stored in the database.
+   * No regeneration or modification occurs - the number reflects the User_Code
+   * at the time of quotation creation, ensuring existing numbers remain unchanged
+   * even when the user's User_Code is modified.
    */
   private toQuotationResponse(
     quotation: Quotation & {
       customer?: { id: string; name: string; company: string | null } | null;
+      lead?: { id: string; companyName: string; contactName: string; status: string } | null;
     }
   ): QuotationResponse {
     return {
@@ -423,6 +622,7 @@ export class DataService {
       modelId: quotation.modelId,
       modelCategory: quotation.modelCategory,
       indication: quotation.indication,
+      leadId: quotation.leadId,  // 리드 ID 추가
       items: quotation.items as unknown[],
       subtotalTest: quotation.subtotalTest ? Number(quotation.subtotalTest) : null,
       subtotalAnalysis: quotation.subtotalAnalysis ? Number(quotation.subtotalAnalysis) : null,
@@ -439,6 +639,7 @@ export class DataService {
       updatedAt: quotation.updatedAt,
       deletedAt: quotation.deletedAt,
       customer: quotation.customer,
+      lead: quotation.lead,  // 리드 정보 추가
     };
   }
 
@@ -466,17 +667,19 @@ export class DataService {
 
   /**
    * Get customers list with pagination and filters
+   * Supports grade filtering and includes linked Lead information
    */
   async getCustomers(
     userId: string,
     filters: CustomerFilters
-  ): Promise<PaginatedResult<CustomerResponse & { quotationCount: number; totalAmount: number }>> {
-    const { page, limit, search } = filters;
+  ): Promise<PaginatedResult<CustomerWithLeadResponse & { quotationCount: number; totalAmount: number }>> {
+    const { page, limit, search, grade } = filters;
     const skip = (page - 1) * limit;
 
     const where: Prisma.CustomerWhereInput = {
       userId,
       deletedAt: null,
+      ...(grade && { grade }),  // grade 필터 추가
       ...(search && {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
@@ -500,17 +703,39 @@ export class DataService {
               totalAmount: true,
             },
           },
+          // 연결된 리드 정보 포함 (가장 최근 리드)
+          leads: {
+            select: {
+              id: true,
+              source: true,
+              status: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
         },
       }),
       this.prisma.customer.count({ where }),
     ]);
 
     return {
-      data: customers.map((c) => ({
-        ...this.toCustomerResponse(c),
-        quotationCount: c.quotations?.length || 0,
-        totalAmount: c.quotations?.reduce((sum, q) => sum + Number(q.totalAmount), 0) || 0,
-      })),
+      data: customers.map((c) => {
+        // 연결된 리드 정보 추출
+        const linkedLead: LinkedLeadInfo | undefined = c.leads && c.leads.length > 0
+          ? {
+              id: c.leads[0].id,
+              source: c.leads[0].source,
+              status: c.leads[0].status,
+            }
+          : undefined;
+
+        return {
+          ...this.toCustomerResponse(c),
+          linkedLead,
+          quotationCount: c.quotations?.length || 0,
+          totalAmount: c.quotations?.reduce((sum, q) => sum + Number(q.totalAmount), 0) || 0,
+        };
+      }),
       pagination: {
         page,
         limit,
@@ -574,10 +799,48 @@ export class DataService {
         ...(data.phone !== undefined && { phone: data.phone }),
         ...(data.address !== undefined && { address: data.address }),
         ...(data.notes !== undefined && { notes: data.notes }),
+        ...(data.grade !== undefined && { grade: data.grade }),
       },
     });
 
     return this.toCustomerResponse(customer);
+  }
+
+  /**
+   * 고객 등급 일괄 변경
+   */
+  async bulkUpdateCustomerGrade(
+    userId: string,
+    customerIds: string[],
+    grade: string
+  ): Promise<number> {
+    const result = await this.prisma.customer.updateMany({
+      where: {
+        id: { in: customerIds },
+        userId,
+        deletedAt: null,
+      },
+      data: { grade: grade as any },
+    });
+    return result.count;
+  }
+
+  /**
+   * 고객 일괄 삭제 (soft delete)
+   */
+  async bulkDeleteCustomers(
+    userId: string,
+    customerIds: string[]
+  ): Promise<number> {
+    const result = await this.prisma.customer.updateMany({
+      where: {
+        id: { in: customerIds },
+        userId,
+        deletedAt: null,
+      },
+      data: { deletedAt: new Date() },
+    });
+    return result.count;
   }
 
   /**
@@ -605,6 +868,8 @@ export class DataService {
     });
   }
 
+
+
   /**
    * Convert Prisma Customer to CustomerResponse
    */
@@ -618,6 +883,7 @@ export class DataService {
       phone: customer.phone,
       address: customer.address,
       notes: customer.notes,
+      grade: customer.grade,  // grade 필드 추가
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,
       deletedAt: customer.deletedAt,
