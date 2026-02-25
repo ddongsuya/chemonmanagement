@@ -14,77 +14,105 @@ const dataService = new DataService(prisma);
 /**
  * 고객 등급이 LEAD로 변경될 때 Lead 레코드 자동 생성
  * 이미 연결된 Lead가 있으면 상태를 NEW로 재활성화
+ * @returns 생성/재활성화된 Lead 정보 또는 에러 메시지
  */
-async function ensureLeadForCustomer(userId: string, customerId: string): Promise<void> {
-  // 이미 연결된 Lead가 있는지 확인
-  const existingLead = await prisma.lead.findFirst({
-    where: { customerId, deletedAt: null },
-  });
+async function ensureLeadForCustomer(userId: string, customerId: string): Promise<{ success: boolean; leadId?: string; error?: string }> {
+  try {
+    // 이미 연결된 Lead가 있는지 확인
+    const existingLead = await prisma.lead.findFirst({
+      where: { customerId, deletedAt: null },
+    });
 
-  if (existingLead) {
-    // 종료 상태인 Lead가 있으면 재활성화
-    if (['CONVERTED', 'LOST', 'DORMANT'].includes(existingLead.status)) {
-      await prisma.lead.update({
-        where: { id: existingLead.id },
+    if (existingLead) {
+      // 종료 상태인 Lead가 있으면 재활성화
+      if (['CONVERTED', 'LOST', 'DORMANT'].includes(existingLead.status)) {
+        await prisma.lead.update({
+          where: { id: existingLead.id },
+          data: {
+            status: LeadStatus.NEW,
+            convertedAt: null,
+            lostReason: null,
+            lostReasonDetail: null,
+            lostAt: null,
+          },
+        });
+        console.log(`[ensureLeadForCustomer] Reactivated lead ${existingLead.id} for customer ${customerId}`);
+      }
+      return { success: true, leadId: existingLead.id };
+    }
+
+    // 고객 정보 조회
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+    if (!customer) {
+      console.error(`[ensureLeadForCustomer] Customer not found: ${customerId}`);
+      return { success: false, error: '고객 정보를 찾을 수 없습니다' };
+    }
+
+    // 리드 번호 생성 (userCode 미설정 시 LD 접두사 사용)
+    let leadNumber: string;
+    try {
+      leadNumber = await leadNumberService.generateLeadNumber(userId);
+    } catch {
+      // fallback: timestamp 기반으로 unique 보장
+      const year = new Date().getFullYear();
+      const timestamp = Date.now().toString(36);
+      const lastLead = await prisma.lead.findFirst({
+        where: { leadNumber: { startsWith: `LD-${year}` } },
+        orderBy: { leadNumber: 'desc' },
+      });
+      const seq = lastLead ? parseInt(lastLead.leadNumber.split('-')[2]) + 1 : 1;
+      leadNumber = `LD-${year}-${seq.toString().padStart(4, '0')}-${timestamp}`;
+    }
+
+    // 기본 파이프라인 단계 조회 — 없으면 자동 생성
+    let defaultStage = await prisma.pipelineStage.findFirst({
+      where: { isDefault: true, isActive: true },
+    });
+    if (!defaultStage) {
+      defaultStage = await prisma.pipelineStage.findFirst({
+        where: { isActive: true },
+        orderBy: { order: 'asc' },
+      });
+    }
+    if (!defaultStage) {
+      // PipelineStage가 전혀 없으면 기본 단계 하나 생성
+      console.warn('[ensureLeadForCustomer] No pipeline stages found, creating default INQUIRY stage');
+      defaultStage = await prisma.pipelineStage.create({
         data: {
-          status: LeadStatus.NEW,
-          convertedAt: null,
-          lostReason: null,
-          lostReasonDetail: null,
-          lostAt: null,
+          name: '문의접수',
+          code: `INQUIRY_AUTO_${Date.now()}`,
+          order: 1,
+          color: '#6B7280',
+          isDefault: true,
+          isActive: true,
         },
       });
     }
-    return;
-  }
 
-  // 고객 정보 조회
-  const customer = await prisma.customer.findUnique({
-    where: { id: customerId },
-  });
-  if (!customer) return;
-
-  // 리드 번호 생성 (userCode 미설정 시 LD 접두사 사용)
-  let leadNumber: string;
-  try {
-    leadNumber = await leadNumberService.generateLeadNumber(userId);
-  } catch {
-    const year = new Date().getFullYear();
-    const lastLead = await prisma.lead.findFirst({
-      where: { leadNumber: { startsWith: `LD-${year}` } },
-      orderBy: { leadNumber: 'desc' },
+    // Lead 레코드 생성
+    const newLead = await prisma.lead.create({
+      data: {
+        leadNumber,
+        userId,
+        companyName: customer.company || customer.name,
+        contactName: customer.name,
+        contactEmail: customer.email,
+        contactPhone: customer.phone,
+        stageId: defaultStage.id,
+        status: LeadStatus.NEW,
+        customerId,
+        source: LeadSource.OTHER,
+      },
     });
-    const seq = lastLead ? parseInt(lastLead.leadNumber.split('-')[2]) + 1 : 1;
-    leadNumber = `LD-${year}-${seq.toString().padStart(4, '0')}`;
-  }
 
-  // 기본 파이프라인 단계 조회
-  let defaultStage = await prisma.pipelineStage.findFirst({
-    where: { isDefault: true, isActive: true },
-  });
-  if (!defaultStage) {
-    defaultStage = await prisma.pipelineStage.findFirst({
-      where: { isActive: true },
-      orderBy: { order: 'asc' },
-    });
+    console.log(`[ensureLeadForCustomer] Created lead ${newLead.id} (${leadNumber}) for customer ${customerId}`);
+    return { success: true, leadId: newLead.id };
+  } catch (err) {
+    console.error(`[ensureLeadForCustomer] Failed for customer ${customerId}:`, err);
+    return { success: false, error: err instanceof Error ? err.message : '리드 생성 실패' };
   }
-  if (!defaultStage) return;
-
-  // Lead 레코드 생성
-  await prisma.lead.create({
-    data: {
-      leadNumber,
-      userId,
-      companyName: customer.company || customer.name,
-      contactName: customer.name,
-      contactEmail: customer.email,
-      contactPhone: customer.phone,
-      stageId: defaultStage.id,
-      status: LeadStatus.NEW,
-      customerId,
-      source: LeadSource.OTHER,
-    },
-  });
 }
 
 // Valid customer grades for validation
@@ -110,13 +138,19 @@ router.patch(
       const count = await dataService.bulkUpdateCustomerGrade(req.user!.id, customerIds, upperGrade);
 
       // 등급이 LEAD로 변경되면 Lead 레코드 자동 생성
+      let leadResults: { success: boolean; leadId?: string; error?: string }[] = [];
       if (upperGrade === 'LEAD') {
-        await Promise.allSettled(
+        const results = await Promise.allSettled(
           customerIds.map(id => ensureLeadForCustomer(req.user!.id, id))
         );
+        leadResults = results.map(r => r.status === 'fulfilled' ? r.value : { success: false, error: 'unexpected error' });
+        const failedCount = leadResults.filter(r => !r.success).length;
+        if (failedCount > 0) {
+          console.warn(`[bulk/grade] ${failedCount}/${customerIds.length} lead creation(s) failed`);
+        }
       }
 
-      res.json({ success: true, data: { updatedCount: count } });
+      res.json({ success: true, data: { updatedCount: count, leadResults } });
     } catch (error) {
       next(error);
     }
@@ -243,11 +277,11 @@ router.put(
       const customer = await dataService.updateCustomer(req.user!.id, req.params.id, req.body);
       
       // 등급이 LEAD로 변경되면 Lead 레코드 자동 생성
+      let leadResult: { success: boolean; leadId?: string; error?: string } | undefined;
       if (req.body.grade === 'LEAD') {
-        try {
-          await ensureLeadForCustomer(req.user!.id, req.params.id);
-        } catch (err) {
-          console.error('Auto-create lead for customer failed:', err);
+        leadResult = await ensureLeadForCustomer(req.user!.id, req.params.id);
+        if (!leadResult.success) {
+          console.error('Auto-create lead for customer failed:', leadResult.error);
         }
       }
 
@@ -268,6 +302,7 @@ router.put(
       res.json({
         success: true,
         data: customer,
+        leadResult,
         message: '고객 정보가 수정되었습니다',
       });
     } catch (error) {

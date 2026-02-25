@@ -224,7 +224,17 @@ export default function CustomersPage() {
     try {
       const response = await updateCustomer(entity.id, { grade: gradeKey });
       if (response.success) {
-        toastRef.current({ title: '등급 변경 완료' });
+        // LEAD 등급 변경 시 리드 생성 결과 확인
+        const leadResult = (response as any).leadResult;
+        if (gradeKey === 'LEAD' && leadResult && !leadResult.success) {
+          toastRef.current({ 
+            title: '등급은 변경되었으나 리드 자동 생성 실패', 
+            description: leadResult.error || '리드 관리에서 수동으로 생성해주세요',
+            variant: 'destructive',
+          });
+        } else {
+          toastRef.current({ title: '등급 변경 완료' });
+        }
         // 통계 및 전체 데이터 갱신 (Lead 자동 생성 반영 포함)
         loadData();
       } else {

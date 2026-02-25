@@ -76,6 +76,8 @@ export default function LeadsPage() {
       ]);
       if (leadsRes.success && leadsRes.data?.leads) {
         setLeads(leadsRes.data.leads);
+      } else {
+        console.warn('[LeadsPage] Failed to load leads:', leadsRes);
       }
       if (stagesRes.success && stagesRes.data?.stages) {
         setStages(stagesRes.data.stages);
