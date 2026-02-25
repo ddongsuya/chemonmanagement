@@ -283,10 +283,24 @@ export default function CustomersPage() {
       return;
     }
 
+    console.log('[BulkGradeChange] selectedIds:', Array.from(selectedIds));
+    console.log('[BulkGradeChange] customerOnlyIds:', customerOnlyIds);
+    console.log('[BulkGradeChange] target grade:', bulkGrade);
+
     try {
       const response = await bulkUpdateCustomerGrade(customerOnlyIds, bulkGrade);
+      console.log('[BulkGradeChange] API response:', JSON.stringify(response));
       if (response.success) {
-        toastRef.current({ title: '일괄 등급 변경 완료', description: `${response.data?.updatedCount || customerOnlyIds.length}건 변경됨` });
+        const updatedCount = response.data?.updatedCount ?? 0;
+        if (updatedCount < customerOnlyIds.length) {
+          toastRef.current({ 
+            title: '일부 변경 완료', 
+            description: `요청 ${customerOnlyIds.length}건 중 ${updatedCount}건 변경됨`,
+            variant: 'destructive',
+          });
+        } else {
+          toastRef.current({ title: '일괄 등급 변경 완료', description: `${updatedCount}건 변경됨` });
+        }
         setSelectedIds(new Set());
         setSelectionMode(false);
         setBulkGradeDialogOpen(false);
@@ -294,7 +308,8 @@ export default function CustomersPage() {
       } else {
         toastRef.current({ title: '오류', description: response.error?.message || '일괄 변경 실패', variant: 'destructive' });
       }
-    } catch {
+    } catch (err) {
+      console.error('[BulkGradeChange] Error:', err);
       toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
     } finally {
       setBulkProcessing(false);

@@ -135,7 +135,9 @@ router.patch(
         return res.status(400).json({ success: false, error: { message: '유효한 등급이 필요합니다' } });
       }
       const upperGrade = grade.toUpperCase();
+      console.log(`[bulk/grade] Updating ${customerIds.length} customers to grade ${upperGrade}. IDs:`, customerIds);
       const count = await dataService.bulkUpdateCustomerGrade(req.user!.id, customerIds, upperGrade);
+      console.log(`[bulk/grade] Updated ${count} of ${customerIds.length} customers`);
 
       // 등급이 LEAD로 변경되면 Lead 레코드 자동 생성
       let leadResults: { success: boolean; leadId?: string; error?: string }[] = [];
