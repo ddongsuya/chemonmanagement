@@ -113,7 +113,7 @@ export default function UnifiedCustomerCard({
   className 
 }: UnifiedCustomerCardProps) {
   const handleClick = () => {
-    if (selectable && onSelectChange) {
+    if (selectable && onSelectChange && entity.entityType === 'CUSTOMER') {
       onSelectChange(entity, !selected);
       return;
     }
@@ -142,8 +142,8 @@ export default function UnifiedCustomerCard({
       aria-label={`${entity.companyName} - ${entity.entityType === 'LEAD' ? '리드' : '고객'}`}
     >
       <CardContent className="p-4">
-        {/* 선택 체크박스 */}
-        {selectable && (
+        {/* 선택 체크박스 - 고객 타입만 선택 가능 */}
+        {selectable && entity.entityType === 'CUSTOMER' && (
           <div className="flex items-center mb-2">
             <Checkbox
               checked={selected}

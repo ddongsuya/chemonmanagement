@@ -272,10 +272,21 @@ export default function CustomersPage() {
     if (selectedIds.size === 0) return;
     setBulkProcessing(true);
 
+    // CUSTOMER 타입 엔티티의 ID만 필터링 (LEAD 타입 ID는 Customer 테이블에 없음)
+    const customerOnlyIds = entities
+      .filter(e => e.entityType === 'CUSTOMER' && selectedIds.has(e.id))
+      .map(e => e.id);
+
+    if (customerOnlyIds.length === 0) {
+      toastRef.current({ title: '오류', description: '등급 변경 가능한 고객이 선택되지 않았습니다', variant: 'destructive' });
+      setBulkProcessing(false);
+      return;
+    }
+
     try {
-      const response = await bulkUpdateCustomerGrade(Array.from(selectedIds), bulkGrade);
+      const response = await bulkUpdateCustomerGrade(customerOnlyIds, bulkGrade);
       if (response.success) {
-        toastRef.current({ title: '일괄 등급 변경 완료', description: `${response.data?.updatedCount || selectedIds.size}건 변경됨` });
+        toastRef.current({ title: '일괄 등급 변경 완료', description: `${response.data?.updatedCount || customerOnlyIds.length}건 변경됨` });
         setSelectedIds(new Set());
         setSelectionMode(false);
         setBulkGradeDialogOpen(false);
@@ -288,7 +299,7 @@ export default function CustomersPage() {
     } finally {
       setBulkProcessing(false);
     }
-  }, [selectedIds, bulkGrade, loadData]);
+  }, [selectedIds, bulkGrade, entities, loadData]);
 
   /**
    * 일괄 삭제
@@ -296,14 +307,26 @@ export default function CustomersPage() {
   const handleBulkDelete = useCallback(async () => {
     if (selectedIds.size === 0) return;
     setBulkProcessing(true);
+
+    // CUSTOMER 타입 엔티티의 ID만 필터링
+    const customerOnlyIds = entities
+      .filter(e => e.entityType === 'CUSTOMER' && selectedIds.has(e.id))
+      .map(e => e.id);
+
+    if (customerOnlyIds.length === 0) {
+      toastRef.current({ title: '오류', description: '삭제 가능한 고객이 선택되지 않았습니다', variant: 'destructive' });
+      setBulkProcessing(false);
+      return;
+    }
+
     try {
-      const response = await bulkDeleteCustomers(Array.from(selectedIds));
+      const response = await bulkDeleteCustomers(customerOnlyIds);
       if (response.success) {
-        toastRef.current({ title: '일괄 삭제 완료', description: `${response.data?.deletedCount || selectedIds.size}건 삭제됨` });
+        toastRef.current({ title: '일괄 삭제 완료', description: `${response.data?.deletedCount || customerOnlyIds.length}건 삭제됨` });
         setSelectedIds(new Set());
         setSelectionMode(false);
         setBulkDeleteDialogOpen(false);
-        loadData();
+        await loadData();
       } else {
         toastRef.current({ title: '오류', description: response.error?.message || '일괄 삭제 실패', variant: 'destructive' });
       }
@@ -312,7 +335,7 @@ export default function CustomersPage() {
     } finally {
       setBulkProcessing(false);
     }
-  }, [selectedIds, loadData]);
+  }, [selectedIds, entities, loadData]);
 
   /**
    * 신규 고객 등록 성공 핸들러
