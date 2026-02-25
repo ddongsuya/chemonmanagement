@@ -26,7 +26,13 @@ async function ensureLeadForCustomer(userId: string, customerId: string): Promis
     if (['CONVERTED', 'LOST', 'DORMANT'].includes(existingLead.status)) {
       await prisma.lead.update({
         where: { id: existingLead.id },
-        data: { status: LeadStatus.NEW },
+        data: {
+          status: LeadStatus.NEW,
+          convertedAt: null,
+          lostReason: null,
+          lostReasonDetail: null,
+          lostAt: null,
+        },
       });
     }
     return;
