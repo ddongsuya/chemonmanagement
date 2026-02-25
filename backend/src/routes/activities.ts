@@ -148,6 +148,71 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
 
 /**
  * @swagger
+ * /api/activities/timeline/{entityType}/{entityId}:
+ *   get:
+ *     summary: 엔티티 타임라인 조회
+ *     tags: [Activities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: entityType
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: entityId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 타임라인 데이터
+ */
+router.get('/timeline/:entityType/:entityId', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { entityType, entityId } = req.params;
+    const timeline = await activityService.getTimeline(entityType, entityId);
+    res.json(timeline);
+  } catch (error: any) {
+    console.error('Get timeline error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/activities/upcoming:
+ *   get:
+ *     summary: 예정된 활동 조회
+ *     tags: [Activities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: days
+ *         schema:
+ *           type: integer
+ *           default: 7
+ *     responses:
+ *       200:
+ *         description: 예정된 활동 목록
+ */
+router.get('/upcoming', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const days = req.query.days ? parseInt(req.query.days as string) : 7;
+
+    const activities = await activityService.getUpcomingActivities(userId, days);
+    res.json(activities);
+  } catch (error: any) {
+    console.error('Get upcoming activities error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
  * /api/activities/{id}:
  *   get:
  *     summary: 활동 상세 조회
@@ -240,71 +305,6 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch (error: any) {
     console.error('Delete activity error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/activities/timeline/{entityType}/{entityId}:
- *   get:
- *     summary: 엔티티 타임라인 조회
- *     tags: [Activities]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: entityType
- *         required: true
- *         schema:
- *           type: string
- *       - in: path
- *         name: entityId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: 타임라인 데이터
- */
-router.get('/timeline/:entityType/:entityId', authenticate, async (req: Request, res: Response) => {
-  try {
-    const { entityType, entityId } = req.params;
-    const timeline = await activityService.getTimeline(entityType, entityId);
-    res.json(timeline);
-  } catch (error: any) {
-    console.error('Get timeline error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/activities/upcoming:
- *   get:
- *     summary: 예정된 활동 조회
- *     tags: [Activities]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: days
- *         schema:
- *           type: integer
- *           default: 7
- *     responses:
- *       200:
- *         description: 예정된 활동 목록
- */
-router.get('/upcoming', authenticate, async (req: Request, res: Response) => {
-  try {
-    const userId = (req as any).user.id;
-    const days = req.query.days ? parseInt(req.query.days as string) : 7;
-    
-    const activities = await activityService.getUpcomingActivities(userId, days);
-    res.json(activities);
-  } catch (error: any) {
-    console.error('Get upcoming activities error:', error);
     res.status(500).json({ error: error.message });
   }
 });

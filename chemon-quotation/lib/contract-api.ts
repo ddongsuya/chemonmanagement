@@ -129,7 +129,8 @@ export const contractApi = {
   async getById(id: string): Promise<SavedContract | null> {
     try {
       const response = await apiFetch<any>(`/api/contracts/${id}`);
-      return response.data ? mapContractFromApi(response.data) : null;
+      const contractData = response.data?.contract || response.data;
+      return contractData ? mapContractFromApi(contractData) : null;
     } catch {
       return null;
     }
@@ -154,7 +155,8 @@ export const contractApi = {
       method: 'PUT',
       body: JSON.stringify(mapContractToApi(data)),
     });
-    return mapContractFromApi(response.data);
+    const contractData = response.data?.contract || response.data;
+    return mapContractFromApi(contractData);
   },
 
   // 계약서 삭제
@@ -361,8 +363,8 @@ export async function getStudies(filters?: {
   if (filters?.contractId) params.append('contractId', filters.contractId);
   if (filters?.status) params.append('status', filters.status);
   
-  const response = await apiFetch<{ data: any[] }>(`/api/studies?${params.toString()}`);
-  return (response.data?.data || []).map(mapStudyFromApi);
+  const response = await apiFetch<any>(`/api/studies?${params.toString()}`);
+  return (response.data?.studies || response.data?.data || []).map(mapStudyFromApi);
 }
 
 // 시험 생성
@@ -371,7 +373,8 @@ export async function createStudy(data: Omit<Study, 'id' | 'study_number' | 'cre
     method: 'POST',
     body: JSON.stringify(mapStudyToApi(data)),
   });
-  return mapStudyFromApi(response.data);
+  const studyData = response.data?.study || response.data;
+  return mapStudyFromApi(studyData);
 }
 
 // 변경계약서 생성
@@ -388,7 +391,8 @@ export async function createAmendment(data: Omit<ContractAmendment, 'id' | 'amen
       signedDate: data.signed_date,
     }),
   });
-  return mapAmendmentFromApi(response.data);
+  const amendmentData = response.data?.amendment || response.data;
+  return mapAmendmentFromApi(amendmentData);
 }
 
 // 상담기록 목록 조회
@@ -400,8 +404,8 @@ export async function getConsultations(filters?: {
   if (filters?.customerId) params.append('customerId', filters.customerId);
   if (filters?.contractId) params.append('contractId', filters.contractId);
   
-  const response = await apiFetch<{ data: any[] }>(`/api/consultations?${params.toString()}`);
-  return (response.data?.data || []).map(mapConsultationFromApi);
+  const response = await apiFetch<any>(`/api/consultations?${params.toString()}`);
+  return (response.data?.records || response.data?.data || []).map(mapConsultationFromApi);
 }
 
 // ============ Mapping Functions ============

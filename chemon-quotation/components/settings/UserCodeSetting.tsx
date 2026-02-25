@@ -309,11 +309,12 @@ export default function UserCodeSetting({
             <p className="text-xs text-gray-500 mb-2">견적번호 미리보기</p>
             <p className="font-mono text-xl">
               {previewYear}-
+              {previewMonth}-
               <span className="text-primary font-bold">{state.inputCode}</span>-
-              {previewMonth}-{previewSeq}
+              {previewSeq}
             </p>
             <p className="text-xs text-gray-400 mt-2">
-              연도-사용자코드-월-일련번호
+              연도-월-사용자코드-일련번호
             </p>
           </CardContent>
         </Card>
@@ -325,7 +326,7 @@ export default function UserCodeSetting({
           <span className="font-medium">{currentSeq - 1}건</span>
         </p>
         <p className="text-xs mt-1">
-          다음 견적번호: {previewYear}-{state.inputCode || 'XX'}-{previewMonth}-{previewSeq}
+          다음 견적번호: {previewYear}-{previewMonth}-{state.inputCode || 'XX'}-{previewSeq}
         </p>
       </div>
     </div>
