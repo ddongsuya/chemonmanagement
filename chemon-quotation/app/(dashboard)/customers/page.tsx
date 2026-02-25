@@ -225,6 +225,8 @@ export default function CustomersPage() {
       const response = await updateCustomer(entity.id, { grade: gradeKey });
       if (response.success) {
         toastRef.current({ title: '등급 변경 완료' });
+        // 통계 및 전체 데이터 갱신 (Lead 자동 생성 반영 포함)
+        loadData();
       } else {
         // 실패 시 되돌림
         setEntities(prev => prev.map(e =>
@@ -243,7 +245,7 @@ export default function CustomersPage() {
       ));
       toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
     }
-  }, []);
+  }, [loadData]);
 
   /**
    * 다중 선택 토글
@@ -297,6 +299,7 @@ export default function CustomersPage() {
         setSelectedIds(new Set());
         setSelectionMode(false);
         setBulkGradeDialogOpen(false);
+        loadData();
       } else {
         setEntities(prevEntities); // 되돌림
         toastRef.current({ title: '오류', description: response.error?.message || '일괄 변경 실패', variant: 'destructive' });
@@ -307,7 +310,7 @@ export default function CustomersPage() {
     } finally {
       setBulkProcessing(false);
     }
-  }, [selectedIds, bulkGrade, entities]);
+  }, [selectedIds, bulkGrade, entities, loadData]);
 
   /**
    * 일괄 삭제
