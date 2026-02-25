@@ -683,7 +683,7 @@ export class DashboardService {
    * 특정 사용자의 통계
    */
   private async getStatsForUser(userId: string, startDate: Date, endDate: Date) {
-    const [quotations, contracts, leads] = await Promise.all([
+    const [quotations, contracts, leads, leadGradeCustomers] = await Promise.all([
       // 견적서 통계
       prisma.quotation.aggregate({
         where: {
@@ -704,12 +704,21 @@ export class DashboardService {
         _count: true,
         _sum: { totalAmount: true }
       }),
-      // 리드 통계
+      // 리드 통계 (Lead 테이블)
       prisma.lead.count({
         where: {
           userId,
           createdAt: { gte: startDate, lte: endDate },
           deletedAt: null
+        }
+      }),
+      // grade=LEAD 고객 수 (연결된 Lead가 없는 경우만 - 중복 방지)
+      prisma.customer.count({
+        where: {
+          userId,
+          grade: 'LEAD',
+          deletedAt: null,
+          leads: { none: { deletedAt: null } },
         }
       })
     ]);
@@ -750,7 +759,7 @@ export class DashboardService {
         amount: Number(contracts._sum.totalAmount || 0)
       },
       lead: {
-        count: leads
+        count: leads + leadGradeCustomers
       },
       kpi: {
         conversionRate: Math.round(conversionRate * 10) / 10,
@@ -764,7 +773,7 @@ export class DashboardService {
    * 전사 통계
    */
   private async getCompanyStats(startDate: Date, endDate: Date) {
-    const [quotations, contracts, leads] = await Promise.all([
+    const [quotations, contracts, leads, leadGradeCustomers] = await Promise.all([
       prisma.quotation.aggregate({
         where: {
           createdAt: { gte: startDate, lte: endDate },
@@ -785,6 +794,14 @@ export class DashboardService {
         where: {
           createdAt: { gte: startDate, lte: endDate },
           deletedAt: null
+        }
+      }),
+      // grade=LEAD 고객 수 (연결된 Lead가 없는 경우만)
+      prisma.customer.count({
+        where: {
+          grade: 'LEAD',
+          deletedAt: null,
+          leads: { none: { deletedAt: null } },
         }
       })
     ]);
@@ -824,7 +841,7 @@ export class DashboardService {
         amount: Number(contracts._sum.totalAmount || 0)
       },
       lead: {
-        count: leads
+        count: leads + leadGradeCustomers
       },
       kpi: {
         conversionRate: Math.round(conversionRate * 10) / 10,

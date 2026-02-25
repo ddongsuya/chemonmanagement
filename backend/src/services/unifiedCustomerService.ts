@@ -266,6 +266,13 @@ export class UnifiedCustomerService {
       where: {
         deletedAt: null,
         userId,
+        // grade=LEAD이면서 연결된 Lead가 있는 고객은 제외 (중복 표시 방지)
+        NOT: {
+          AND: [
+            { grade: 'LEAD' as CustomerGrade },
+            { leads: { some: { deletedAt: null } } },
+          ],
+        },
         ...searchConditions,
       },
       orderBy: {
@@ -324,8 +331,13 @@ export class UnifiedCustomerService {
    * @returns UnifiedCustomerStats - 통계 정보
    */
   private calculateStats(entities: UnifiedEntity[]): UnifiedCustomerStats {
-    const leadCount = entities.filter((e) => e.entityType === 'LEAD').length;
-    const customerCount = entities.filter((e) => e.entityType === 'CUSTOMER').length;
+    // Lead 엔티티 + grade=LEAD인 Customer 엔티티를 모두 리드로 카운트
+    const leadCount = entities.filter(
+      (e) => e.entityType === 'LEAD' || (e.entityType === 'CUSTOMER' && e.grade === 'LEAD')
+    ).length;
+    const customerCount = entities.filter(
+      (e) => e.entityType === 'CUSTOMER' && e.grade !== 'LEAD'
+    ).length;
 
     // 단계별 분포 계산 - Object.create(null)을 사용하여 prototype pollution 방지
     const stageDistribution: Record<string, number> = Object.create(null);
