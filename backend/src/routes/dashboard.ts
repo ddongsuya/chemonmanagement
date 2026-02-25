@@ -119,6 +119,28 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
 
 /**
  * @swagger
+ * /api/dashboard/widgets/templates:
+ *   get:
+ *     summary: 위젯 템플릿 목록 조회
+ *     tags: [Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 위젯 템플릿 목록
+ */
+router.get('/widgets/templates', authenticate, async (req: Request, res: Response) => {
+  try {
+    const result = await dashboardService.getWidgetTemplates();
+    res.json(result);
+  } catch (error: any) {
+    console.error('Get widget templates error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
  * /api/dashboard/{id}:
  *   get:
  *     summary: 대시보드 상세 조회
@@ -476,28 +498,6 @@ router.get('/:dashboardId/widgets/:widgetId/data', authenticate, async (req: Req
     res.json(data);
   } catch (error: any) {
     console.error('Get widget data error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/widgets/templates:
- *   get:
- *     summary: 위젯 템플릿 목록 조회
- *     tags: [Dashboard]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: 위젯 템플릿 목록
- */
-router.get('/widgets/templates', authenticate, async (req: Request, res: Response) => {
-  try {
-    const result = await dashboardService.getWidgetTemplates();
-    res.json(result);
-  } catch (error: any) {
-    console.error('Get widget templates error:', error);
     res.status(500).json({ error: error.message });
   }
 });

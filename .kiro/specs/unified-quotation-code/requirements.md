@@ -8,7 +8,7 @@
 
 - **Quotation_Code_System**: 견적서 번호 및 리드 번호 생성을 관리하는 통합 시스템
 - **User_Code**: 사용자별 고유 견적서 코드 (2글자 영문, 예: DL, PK, KS)
-- **Quotation_Number**: 견적서 번호 (형식: YY-UC-MM-NNNN, 예: 26-DL-01-0001)
+- **Quotation_Number**: 견적서 번호 (형식: YY-MM-UC-NNNN, 예: 26-01-DL-0001)
 - **Lead_Number**: 리드 번호 (형식: UC-YYYY-NNNN, 예: DL-2025-0001)
 - **Toxicity_Quotation**: 독성시험 견적서
 - **Efficacy_Quotation**: 효력시험 견적서
@@ -26,7 +26,7 @@
 #### 인수 조건
 
 1. WHEN 사용자가 독성시험 견적서를 생성하면 THEN THE Quotation_Code_System SHALL 사용자의 User_Code를 사용하여 Quotation_Number를 생성해야 합니다
-2. WHEN 사용자가 효력시험 견적서를 생성하면 THEN THE Quotation_Code_System SHALL 독성시험과 동일한 번호 체계(YY-UC-MM-NNNN)로 Quotation_Number를 생성해야 합니다
+2. WHEN 사용자가 효력시험 견적서를 생성하면 THEN THE Quotation_Code_System SHALL 독성시험과 동일한 번호 체계(YY-MM-UC-NNNN)로 Quotation_Number를 생성해야 합니다
 3. WHEN 사용자가 임상병리시험 견적서를 생성하면 THEN THE Quotation_Code_System SHALL 독성시험과 동일한 번호 체계로 Quotation_Number를 생성해야 합니다
 4. WHEN 동일 사용자가 같은 월에 여러 유형의 견적서를 생성하면 THEN THE Quotation_Code_System SHALL 시험 유형에 관계없이 일련번호를 순차적으로 증가시켜야 합니다
 5. WHEN 견적서 번호가 생성되면 THEN THE Quotation_Code_System SHALL 해당 사용자의 next_quotation_seq를 1 증가시켜야 합니다

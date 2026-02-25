@@ -123,7 +123,7 @@ export default function SystemSettings() {
               💡 견적번호는 <span className="font-semibold">프로필 설정</span>에서 개인 코드로 관리됩니다.
             </p>
             <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-              형식: 연도-사용자코드-월-일련번호 (예: 25-DL-12-0001)
+              형식: 연도-월-사용자코드-일련번호 (예: 25-12-DL-0001)
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

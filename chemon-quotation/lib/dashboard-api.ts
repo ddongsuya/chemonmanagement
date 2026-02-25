@@ -209,5 +209,5 @@ export async function getWidgetData(dashboardId: string, widgetId: string, param
 
 // 위젯 템플릿 목록
 export async function getWidgetTemplates(): Promise<{ templates: WidgetTemplate[]; categories: string[] }> {
-  return api.get('/widgets/templates');
+  return api.get('/dashboard/widgets/templates');
 }

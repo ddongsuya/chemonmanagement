@@ -43,7 +43,7 @@ import {
 } from '@/lib/unified-customer-api';
 import { updateCustomer, bulkUpdateCustomerGrade, bulkDeleteCustomers } from '@/lib/data-api';
 import type { CustomerGrade } from '@/lib/data-api';
-import { DEFAULT_UNIFIED_CUSTOMER_FILTERS } from '@/types/unified-customer';
+import { DEFAULT_UNIFIED_CUSTOMER_FILTERS, CUSTOMER_GRADE_STAGE_MAP } from '@/types/unified-customer';
 
 /**
  * 통합 고객사 관리 페이지
@@ -207,21 +207,43 @@ export default function CustomersPage() {
   }, [router]);
 
   /**
-   * 고객 등급 변경 핸들러
+   * 고객 등급 변경 핸들러 (낙관적 업데이트)
    */
   const handleGradeChange = useCallback(async (entity: UnifiedEntity, newGrade: string) => {
+    const prevGrade = entity.grade;
+    const gradeKey = newGrade as CustomerGrade;
+    const stageInfo = CUSTOMER_GRADE_STAGE_MAP[gradeKey];
+
+    // 낙관적 업데이트: UI를 즉시 반영
+    setEntities(prev => prev.map(e =>
+      e.id === entity.id && e.entityType === 'CUSTOMER'
+        ? { ...e, grade: gradeKey, displayStage: stageInfo?.name || e.displayStage, stageColor: stageInfo?.color || e.stageColor }
+        : e
+    ));
+
     try {
-      const response = await updateCustomer(entity.id, { grade: newGrade as CustomerGrade });
+      const response = await updateCustomer(entity.id, { grade: gradeKey });
       if (response.success) {
         toastRef.current({ title: '등급 변경 완료' });
-        loadData();
       } else {
+        // 실패 시 되돌림
+        setEntities(prev => prev.map(e =>
+          e.id === entity.id && e.entityType === 'CUSTOMER'
+            ? { ...e, grade: prevGrade, displayStage: CUSTOMER_GRADE_STAGE_MAP[prevGrade || 'PROSPECT']?.name || e.displayStage, stageColor: CUSTOMER_GRADE_STAGE_MAP[prevGrade || 'PROSPECT']?.color || e.stageColor }
+            : e
+        ));
         toastRef.current({ title: '오류', description: response.error?.message || '등급 변경 실패', variant: 'destructive' });
       }
     } catch {
+      // 에러 시 되돌림
+      setEntities(prev => prev.map(e =>
+        e.id === entity.id && e.entityType === 'CUSTOMER'
+          ? { ...e, grade: prevGrade, displayStage: CUSTOMER_GRADE_STAGE_MAP[prevGrade || 'PROSPECT']?.name || e.displayStage, stageColor: CUSTOMER_GRADE_STAGE_MAP[prevGrade || 'PROSPECT']?.color || e.stageColor }
+          : e
+      ));
       toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
     }
-  }, [loadData]);
+  }, []);
 
   /**
    * 다중 선택 토글
@@ -253,11 +275,21 @@ export default function CustomersPage() {
   }, []);
 
   /**
-   * 일괄 등급 변경
+   * 일괄 등급 변경 (낙관적 업데이트)
    */
   const handleBulkGradeChange = useCallback(async () => {
     if (selectedIds.size === 0) return;
     setBulkProcessing(true);
+    const prevEntities = entities;
+    const stageInfo = CUSTOMER_GRADE_STAGE_MAP[bulkGrade];
+
+    // 낙관적 업데이트
+    setEntities(prev => prev.map(e =>
+      selectedIds.has(e.id) && e.entityType === 'CUSTOMER'
+        ? { ...e, grade: bulkGrade, displayStage: stageInfo?.name || e.displayStage, stageColor: stageInfo?.color || e.stageColor }
+        : e
+    ));
+
     try {
       const response = await bulkUpdateCustomerGrade(Array.from(selectedIds), bulkGrade);
       if (response.success) {
@@ -265,16 +297,17 @@ export default function CustomersPage() {
         setSelectedIds(new Set());
         setSelectionMode(false);
         setBulkGradeDialogOpen(false);
-        loadData();
       } else {
+        setEntities(prevEntities); // 되돌림
         toastRef.current({ title: '오류', description: response.error?.message || '일괄 변경 실패', variant: 'destructive' });
       }
     } catch {
+      setEntities(prevEntities); // 되돌림
       toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
     } finally {
       setBulkProcessing(false);
     }
-  }, [selectedIds, bulkGrade, loadData]);
+  }, [selectedIds, bulkGrade, entities]);
 
   /**
    * 일괄 삭제

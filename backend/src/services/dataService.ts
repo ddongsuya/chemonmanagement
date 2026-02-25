@@ -1,4 +1,4 @@
-import { PrismaClient, Quotation, Customer, Prisma, QuotationType } from '@prisma/client';
+import { PrismaClient, Quotation, Customer, Prisma, QuotationType, CustomerGrade } from '@prisma/client';
 import { AppError, ErrorCodes } from '../types/error';
 import {
   CreateQuotationDTO,
@@ -816,7 +816,7 @@ export class DataService {
         userId,
         deletedAt: null,
       },
-      data: { grade: grade as any },
+      data: { grade: grade as CustomerGrade },
     });
     return result.count;
   }
