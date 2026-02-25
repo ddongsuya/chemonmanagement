@@ -55,15 +55,20 @@ async function ensureLeadForCustomer(userId: string, customerId: string): Promis
     try {
       leadNumber = await leadNumberService.generateLeadNumber(userId);
     } catch {
-      // fallback: timestamp 기반으로 unique 보장
+      // fallback: 순차 실행이므로 findFirst 후 +1로 unique 보장
       const year = new Date().getFullYear();
-      const timestamp = Date.now().toString(36);
       const lastLead = await prisma.lead.findFirst({
         where: { leadNumber: { startsWith: `LD-${year}` } },
         orderBy: { leadNumber: 'desc' },
       });
-      const seq = lastLead ? parseInt(lastLead.leadNumber.split('-')[2]) + 1 : 1;
-      leadNumber = `LD-${year}-${seq.toString().padStart(4, '0')}-${timestamp}`;
+      let seq = 1;
+      if (lastLead) {
+        // LD-2026-0001 또는 LD-2026-0001-xxx 형태 모두 처리
+        const parts = lastLead.leadNumber.split('-');
+        const parsed = parseInt(parts[2]);
+        if (!isNaN(parsed)) seq = parsed + 1;
+      }
+      leadNumber = `LD-${year}-${seq.toString().padStart(4, '0')}`;
     }
 
     // 기본 파이프라인 단계 조회 — 없으면 자동 생성
@@ -139,13 +144,13 @@ router.patch(
       const count = await dataService.bulkUpdateCustomerGrade(req.user!.id, customerIds, upperGrade);
       console.log(`[bulk/grade] Updated ${count} of ${customerIds.length} customers`);
 
-      // 등급이 LEAD로 변경되면 Lead 레코드 자동 생성
+      // 등급이 LEAD로 변경되면 Lead 레코드 자동 생성 (순차 실행 — leadNumber unique 보장)
       let leadResults: { success: boolean; leadId?: string; error?: string }[] = [];
       if (upperGrade === 'LEAD') {
-        const results = await Promise.allSettled(
-          customerIds.map(id => ensureLeadForCustomer(req.user!.id, id))
-        );
-        leadResults = results.map(r => r.status === 'fulfilled' ? r.value : { success: false, error: 'unexpected error' });
+        for (const id of customerIds) {
+          const result = await ensureLeadForCustomer(req.user!.id, id);
+          leadResults.push(result);
+        }
         const failedCount = leadResults.filter(r => !r.success).length;
         if (failedCount > 0) {
           console.warn(`[bulk/grade] ${failedCount}/${customerIds.length} lead creation(s) failed`);
