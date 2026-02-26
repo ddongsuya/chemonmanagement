@@ -19,6 +19,7 @@ export default function CalendarPage() {
   const [isEventDetailOpen, setIsEventDetailOpen] = useState(false);
   const [todayEvents, setTodayEvents] = useState<CalendarEvent[]>([]);
   const [weekEvents, setWeekEvents] = useState<CalendarEvent[]>([]);
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
 
   // 오늘 및 이번 주 이벤트 로드
   const loadSidebarEvents = async () => {
@@ -49,6 +50,7 @@ export default function CalendarPage() {
     setIsEventDetailOpen(false);
     setSelectedEvent(null);
     loadSidebarEvents();
+    setCalendarRefreshKey(prev => prev + 1);
   };
 
   return (
@@ -66,7 +68,7 @@ export default function CalendarPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* 메인 캘린더 */}
         <div className="lg:col-span-3">
-          <CalendarView onEventClick={handleEventClick} />
+          <CalendarView onEventClick={handleEventClick} onEventsChange={loadSidebarEvents} refreshKey={calendarRefreshKey} />
         </div>
 
         {/* 사이드바 */}

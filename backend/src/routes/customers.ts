@@ -14,6 +14,10 @@ const dataService = new DataService(prisma);
 /**
  * 고객 등급이 LEAD로 변경될 때 Lead 레코드 자동 생성
  * 이미 연결된 Lead가 있으면 상태를 NEW로 재활성화
+ * 
+ * leadNumber 생성은 UserSettings.nextLeadSeq 원자적 증가 방식 사용
+ * userCode 미설정 시 fallback으로 LD 접두사 + DB count 기반 시퀀스 사용
+ * 
  * @returns 생성/재활성화된 Lead 정보 또는 에러 메시지
  */
 async function ensureLeadForCustomer(userId: string, customerId: string): Promise<{ success: boolean; leadId?: string; error?: string }> {
@@ -50,25 +54,19 @@ async function ensureLeadForCustomer(userId: string, customerId: string): Promis
       return { success: false, error: '고객 정보를 찾을 수 없습니다' };
     }
 
-    // 리드 번호 생성 (userCode 미설정 시 LD 접두사 사용)
+    // 리드 번호 생성 — UserSettings.nextLeadSeq 원자적 증가 방식
     let leadNumber: string;
     try {
       leadNumber = await leadNumberService.generateLeadNumber(userId);
     } catch {
-      // fallback: 순차 실행이므로 findFirst 후 +1로 unique 보장
+      // fallback: userCode 미설정 시 LD 접두사 + count 기반 시퀀스
+      // count()는 string ordering 문제가 없으므로 안전
       const year = new Date().getFullYear();
-      const lastLead = await prisma.lead.findFirst({
-        where: { leadNumber: { startsWith: `LD-${year}` } },
-        orderBy: { leadNumber: 'desc' },
+      const prefix = `LD-${year}-`;
+      const count = await prisma.lead.count({
+        where: { leadNumber: { startsWith: prefix } },
       });
-      let seq = 1;
-      if (lastLead) {
-        // LD-2026-0001 또는 LD-2026-0001-xxx 형태 모두 처리
-        const parts = lastLead.leadNumber.split('-');
-        const parsed = parseInt(parts[2]);
-        if (!isNaN(parsed)) seq = parsed + 1;
-      }
-      leadNumber = `LD-${year}-${seq.toString().padStart(4, '0')}`;
+      leadNumber = `LD-${year}-${(count + 1).toString().padStart(4, '0')}`;
     }
 
     // 기본 파이프라인 단계 조회 — 없으면 자동 생성
@@ -82,7 +80,6 @@ async function ensureLeadForCustomer(userId: string, customerId: string): Promis
       });
     }
     if (!defaultStage) {
-      // PipelineStage가 전혀 없으면 기본 단계 하나 생성
       console.warn('[ensureLeadForCustomer] No pipeline stages found, creating default INQUIRY stage');
       defaultStage = await prisma.pipelineStage.create({
         data: {

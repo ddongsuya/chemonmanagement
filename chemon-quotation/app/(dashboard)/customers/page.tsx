@@ -31,7 +31,7 @@ import CustomerForm from '@/components/customer/CustomerForm';
 import UnifiedCustomerCard, { UnifiedCustomerCardSkeleton } from '@/components/customer/UnifiedCustomerCard';
 import UnifiedCustomerFilters, { UnifiedCustomerFiltersSkeleton } from '@/components/customer/UnifiedCustomerFilters';
 import UnifiedCustomerStats, { UnifiedCustomerStatsSkeleton } from '@/components/customer/UnifiedCustomerStats';
-import { Plus, RefreshCw, Users, CheckSquare, X, Trash2 } from 'lucide-react';
+import { Plus, RefreshCw, Users, CheckSquare, X, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ExcelImportExport from '@/components/excel/ExcelImportExport';
 import { 
@@ -546,8 +546,19 @@ export default function CustomersPage() {
         </>
       )}
 
+      {/* 일괄 처리 중 전체 화면 오버레이 */}
+      {bulkProcessing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center gap-4">
+            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            <p className="text-base font-medium text-gray-700">일괄 처리 중입니다...</p>
+            <p className="text-sm text-gray-500">선택한 {selectedIds.size}건을 처리하고 있습니다. 잠시만 기다려주세요.</p>
+          </div>
+        </div>
+      )}
+
       {/* 일괄 등급 변경 다이얼로그 */}
-      <AlertDialog open={bulkGradeDialogOpen} onOpenChange={setBulkGradeDialogOpen}>
+      <AlertDialog open={bulkGradeDialogOpen} onOpenChange={(open) => { if (!bulkProcessing) setBulkGradeDialogOpen(open); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>등급 일괄 변경</AlertDialogTitle>
@@ -555,7 +566,7 @@ export default function CustomersPage() {
               선택한 {selectedIds.size}건의 고객 등급을 변경합니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <Select value={bulkGrade} onValueChange={(v) => setBulkGrade(v as CustomerGrade)}>
+          <Select value={bulkGrade} onValueChange={(v) => setBulkGrade(v as CustomerGrade)} disabled={bulkProcessing}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -570,14 +581,19 @@ export default function CustomersPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={bulkProcessing}>취소</AlertDialogCancel>
             <AlertDialogAction onClick={handleBulkGradeChange} disabled={bulkProcessing}>
-              {bulkProcessing ? '처리 중...' : '변경'}
+              {bulkProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  처리 중...
+                </>
+              ) : '변경'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* 일괄 삭제 다이얼로그 */}
-      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={(open) => { if (!bulkProcessing) setBulkDeleteDialogOpen(open); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>일괄 삭제</AlertDialogTitle>
@@ -592,7 +608,12 @@ export default function CustomersPage() {
               disabled={bulkProcessing}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {bulkProcessing ? '처리 중...' : '삭제'}
+              {bulkProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  처리 중...
+                </>
+              ) : '삭제'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

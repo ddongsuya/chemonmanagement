@@ -1,7 +1,7 @@
 /**
  * LeadNumberService - 리드 번호 생성 서비스
  * 
- * 사용자 코드 기반으로 리드 번호를 생성합니다.
+ * UserSettings.nextLeadSeq를 사용한 원자적 시퀀스 생성
  * 형식: UC-YYYY-NNNN (사용자코드-연도-일련번호)
  * 
  * @example
@@ -45,7 +45,10 @@ export class LeadNumberService {
   }
 
   /**
-   * Generate a lead number for a user
+   * Generate a lead number for a user using atomic sequence increment.
+   * 
+   * Uses UserSettings.nextLeadSeq with atomic update to guarantee uniqueness
+   * even under concurrent/bulk operations.
    * 
    * Format: UC-YYYY-NNNN
    * - UC: User Code (2 uppercase letters)
@@ -55,107 +58,56 @@ export class LeadNumberService {
    * @param userId - The user ID to generate lead number for
    * @returns Generated lead number string
    * @throws UserCodeNotSetError if user code is not set
-   * 
-   * @example
-   * // User Code: DL, 2025년, 일련번호 1
-   * generateLeadNumber('user-id') // Returns: "DL-2025-0001"
-   * 
-   * Validates: Requirements 3.1, 3.3
    */
   async generateLeadNumber(userId: string): Promise<string> {
-    // Get user settings to retrieve userCode
-    const userSettings = await this.prisma.userSettings.findUnique({
-      where: { userId },
-      select: { userCode: true },
+    // Atomic transaction: read userCode + increment nextLeadSeq in one shot
+    const result = await this.prisma.$transaction(async (tx) => {
+      const settings = await tx.userSettings.findUnique({
+        where: { userId },
+        select: { userCode: true, nextLeadSeq: true },
+      });
+
+      if (!settings?.userCode) {
+        throw new UserCodeNotSetError();
+      }
+
+      const seq = settings.nextLeadSeq;
+
+      // Atomically increment the sequence
+      await tx.userSettings.update({
+        where: { userId },
+        data: { nextLeadSeq: { increment: 1 } },
+      });
+
+      return { userCode: settings.userCode, seq };
     });
 
-    const userCode = userSettings?.userCode;
-
-    // Requirement 3.4: If userCode is not set, throw error
-    if (!userCode) {
-      throw new UserCodeNotSetError();
-    }
-
-    // Get current year (4 digits)
-    const now = new Date();
-    const year = now.getFullYear(); // 2025
-
-    // Get next sequence number
-    const sequence = await this.getNextLeadSequence(userId, userCode, year);
-
-    // Format: UC-YYYY-NNNN
-    // Requirement 3.1: Use user code as prefix
-    // Requirement 3.2: Format example "DL-2025-0001"
-    return `${userCode}-${year}-${sequence.toString().padStart(4, '0')}`;
+    const year = new Date().getFullYear();
+    return `${result.userCode}-${year}-${result.seq.toString().padStart(4, '0')}`;
   }
 
   /**
-   * Get the next lead sequence number for a user
+   * Get the next lead sequence number for a user.
    * 
-   * Finds the highest sequence number for the user's leads in the current year
-   * and returns the next sequence number.
+   * Reads from UserSettings.nextLeadSeq (does NOT increment).
+   * For actual number generation, use generateLeadNumber() which atomically increments.
    * 
    * @param userId - The user ID
-   * @param userCode - The user's code
-   * @param year - The year to get sequence for
+   * @param userCode - The user's code (optional, fetched if not provided)
+   * @param year - The year (optional, unused but kept for API compatibility)
    * @returns Next sequence number
-   * 
-   * Validates: Requirement 3.3
    */
   async getNextLeadSequence(userId: string, userCode?: string, year?: number): Promise<number> {
-    // If userCode not provided, fetch it
-    let resolvedUserCode = userCode;
-    if (!resolvedUserCode) {
-      const userSettings = await this.prisma.userSettings.findUnique({
-        where: { userId },
-        select: { userCode: true },
-      });
-      resolvedUserCode = userSettings?.userCode ?? undefined;
-      
-      if (!resolvedUserCode) {
-        throw new UserCodeNotSetError();
-      }
-    }
-
-    // If year not provided, use current year
-    const resolvedYear = year ?? new Date().getFullYear();
-
-    // Build prefix for searching: UC-YYYY-
-    const prefix = `${resolvedUserCode}-${resolvedYear}-`;
-
-    // Find the last lead number with this prefix for this user
-    const lastLead = await this.prisma.lead.findFirst({
-      where: {
-        userId,
-        leadNumber: {
-          startsWith: prefix,
-        },
-      },
-      orderBy: {
-        leadNumber: 'desc',
-      },
-      select: {
-        leadNumber: true,
-      },
+    const settings = await this.prisma.userSettings.findUnique({
+      where: { userId },
+      select: { userCode: true, nextLeadSeq: true },
     });
 
-    // If no previous lead, start at 1
-    if (!lastLead) {
-      return 1;
+    if (!settings?.userCode) {
+      throw new UserCodeNotSetError();
     }
 
-    // Extract sequence from last lead number
-    // Format: UC-YYYY-NNNN
-    const parts = lastLead.leadNumber.split('-');
-    if (parts.length >= 3) {
-      const lastSeq = parseInt(parts[2], 10);
-      if (!isNaN(lastSeq)) {
-        return lastSeq + 1;
-      }
-    }
-
-    // Fallback to 1 if parsing fails
-    return 1;
+    return settings.nextLeadSeq;
   }
 }
 

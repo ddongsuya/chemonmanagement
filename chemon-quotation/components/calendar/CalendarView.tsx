@@ -31,9 +31,11 @@ export type ViewType = 'month' | 'week' | 'day';
 interface CalendarViewProps {
   customerId?: string;
   onEventClick?: (event: CalendarEvent) => void;
+  onEventsChange?: () => void;
+  refreshKey?: number;
 }
 
-export default function CalendarView({ customerId, onEventClick }: CalendarViewProps) {
+export default function CalendarView({ customerId, onEventClick, onEventsChange, refreshKey }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState<ViewType>('month');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -97,10 +99,19 @@ export default function CalendarView({ customerId, onEventClick }: CalendarViewP
           return eventStart <= endTime && eventEnd >= startTime;
         });
       } else {
-        // 날짜 범위로 전체 이벤트 조회
+        // 날짜 범위로 전체 이벤트 조회 (로컬 날짜 기준 ISO 문자열)
+        const formatLocal = (d: Date) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          const h = String(d.getHours()).padStart(2, '0');
+          const min = String(d.getMinutes()).padStart(2, '0');
+          const s = String(d.getSeconds()).padStart(2, '0');
+          return `${y}-${m}-${day}T${h}:${min}:${s}`;
+        };
         allEvents = await calendarEventApi.getByDateRange(
-          start.toISOString(),
-          end.toISOString()
+          formatLocal(start),
+          formatLocal(end)
         );
       }
       
@@ -113,7 +124,7 @@ export default function CalendarView({ customerId, onEventClick }: CalendarViewP
 
   useEffect(() => {
     loadEvents();
-  }, [loadEvents]);
+  }, [loadEvents, refreshKey]);
 
   // 네비게이션 함수들
   const goToPrevious = () => {
@@ -189,6 +200,7 @@ export default function CalendarView({ customerId, onEventClick }: CalendarViewP
     setIsEventFormOpen(false);
     setSelectedDate(null);
     loadEvents();
+    onEventsChange?.();
   };
 
   return (

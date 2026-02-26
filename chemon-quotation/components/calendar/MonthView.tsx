@@ -50,11 +50,24 @@ export default function MonthView({
 
   // 특정 날짜의 이벤트 가져오기
   const getEventsForDate = (date: Date): CalendarEvent[] => {
-    const dateStr = date.toISOString().split('T')[0];
+    // 로컬 날짜 기준으로 YYYY-MM-DD 문자열 생성
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
     return events.filter((event) => {
-      const eventStart = event.start_date.split('T')[0];
-      const eventEnd = event.end_date ? event.end_date.split('T')[0] : eventStart;
-      return dateStr >= eventStart && dateStr <= eventEnd;
+      // 이벤트 날짜도 로컬 기준으로 변환
+      const eventStartLocal = new Date(event.start_date);
+      const eventStartStr = `${eventStartLocal.getFullYear()}-${String(eventStartLocal.getMonth() + 1).padStart(2, '0')}-${String(eventStartLocal.getDate()).padStart(2, '0')}`;
+      
+      let eventEndStr = eventStartStr;
+      if (event.end_date) {
+        const eventEndLocal = new Date(event.end_date);
+        eventEndStr = `${eventEndLocal.getFullYear()}-${String(eventEndLocal.getMonth() + 1).padStart(2, '0')}-${String(eventEndLocal.getDate()).padStart(2, '0')}`;
+      }
+      
+      return dateStr >= eventStartStr && dateStr <= eventEndStr;
     });
   };
 

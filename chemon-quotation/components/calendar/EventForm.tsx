@@ -148,7 +148,10 @@ export default function EventForm({
     try {
       // 시작 날짜/시간 조합
       let startDateTime = formData.start_date;
-      if (!formData.all_day && formData.start_time) {
+      if (formData.all_day) {
+        // 종일 이벤트: 로컬 자정 기준으로 ISO 문자열 생성 (timezone 문제 방지)
+        startDateTime = `${formData.start_date}T00:00:00`;
+      } else if (formData.start_time) {
         startDateTime = `${formData.start_date}T${formData.start_time}:00`;
       }
 
@@ -156,7 +159,7 @@ export default function EventForm({
       let endDateTime: string | undefined;
       if (formData.end_date) {
         endDateTime = formData.all_day
-          ? formData.end_date
+          ? `${formData.end_date}T23:59:59`
           : `${formData.end_date}T23:59:59`;
       }
 
