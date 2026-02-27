@@ -2,49 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import PageHeader from '@/components/layout/PageHeader';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import Skeleton from '@/components/ui/Skeleton';
-import { 
-  ArrowLeft, 
-  Building2, 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin,
-  FileText,
-  Calendar,
-  Edit,
-} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { getCustomerById, updateCustomer, Customer } from '@/lib/data-api';
 import CustomerForm from '@/components/customer/CustomerForm';
+import CustomerSummaryHeader from '@/components/customer-detail/CustomerSummaryHeader';
+import OverviewTab from '@/components/customer-detail/OverviewTab';
+import MeetingRecordTab from '@/components/customer-detail/MeetingRecordTab';
+import TestReceptionTab from '@/components/customer-detail/TestReceptionTab';
+import InvoiceScheduleTab from '@/components/customer-detail/InvoiceScheduleTab';
+import RequesterTab from '@/components/customer-detail/RequesterTab';
+import CalendarView from '@/components/calendar/CalendarView';
 
-const GRADE_OPTIONS = [
-  { value: 'LEAD', label: '리드' },
-  { value: 'PROSPECT', label: '잠재고객' },
-  { value: 'CUSTOMER', label: '고객' },
-  { value: 'VIP', label: 'VIP' },
-  { value: 'INACTIVE', label: '비활성' },
-] as const;
+type TabType = 'overview' | 'calendar' | 'meetings' | 'tests' | 'invoices' | 'requesters';
 
 /**
- * 고객 상세 페이지
- * 
- * @requirements 8.2 - 고객 클릭 시 상세 페이지 표시
+ * 고객 상세 페이지 (탭 기반 UI)
  */
 export default function CustomerDetailPage() {
   const router = useRouter();
@@ -56,10 +35,10 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [gradeUpdating, setGradeUpdating] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   const loadCustomer = async () => {
     if (!customerId) return;
-    
     setLoading(true);
     try {
       const response = await getCustomerById(customerId);
@@ -73,21 +52,15 @@ export default function CustomerDetailPage() {
         });
         router.push('/customers');
       }
-    } catch (error) {
-      toast({
-        title: '오류',
-        description: '서버 연결에 실패했습니다',
-        variant: 'destructive',
-      });
+    } catch {
+      toast({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
       router.push('/customers');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadCustomer();
-  }, [customerId]);
+  useEffect(() => { loadCustomer(); }, [customerId]);
 
   const handleGradeChange = async (newGrade: string) => {
     if (!customer) return;
@@ -96,7 +69,8 @@ export default function CustomerDetailPage() {
       const response = await updateCustomer(customer.id, { grade: newGrade as any });
       if (response.success) {
         setCustomer(prev => prev ? { ...prev, grade: newGrade as any } : null);
-        toast({ title: '등급 변경 완료', description: `${getGradeLabel(newGrade)}(으)로 변경되었습니다.` });
+        const label = { LEAD: '리드', PROSPECT: '잠재고객', CUSTOMER: '고객', VIP: 'VIP', INACTIVE: '비활성' }[newGrade] || newGrade;
+        toast({ title: '등급 변경 완료', description: `${label}(으)로 변경되었습니다.` });
       } else {
         toast({ title: '오류', description: response.error?.message || '등급 변경에 실패했습니다.', variant: 'destructive' });
       }
@@ -112,194 +86,73 @@ export default function CustomerDetailPage() {
     loadCustomer();
   };
 
-  const handleBack = () => {
-    router.back();
-  };
-
-  // 등급별 배지 색상
-  const getGradeBadgeVariant = (grade: string) => {
-    switch (grade) {
-      case 'VIP':
-        return 'default';
-      case 'CUSTOMER':
-        return 'secondary';
-      case 'PROSPECT':
-        return 'outline';
-      case 'INACTIVE':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
-
-  const getGradeLabel = (grade: string) => {
-    switch (grade) {
-      case 'VIP':
-        return 'VIP';
-      case 'CUSTOMER':
-        return '고객';
-      case 'PROSPECT':
-        return '잠재고객';
-      case 'LEAD':
-        return '리드';
-      case 'INACTIVE':
-        return '비활성';
-      default:
-        return grade;
-    }
-  };
-
   if (loading) {
     return (
-      <div>
-        <PageHeader
-          title="고객 상세"
-          description="고객 정보를 확인합니다"
-        />
-        <Card>
-          <CardContent className="p-6">
-            <Skeleton className="h-48 w-full" />
-          </CardContent>
-        </Card>
+      <div className="space-y-4">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Card><CardContent className="p-6"><Skeleton className="h-48 w-full" /></CardContent></Card>
       </div>
     );
   }
 
-  if (!customer) {
-    return null;
-  }
+  if (!customer) return null;
 
   return (
     <div>
-      <PageHeader
-        title={customer.company || customer.name}
-        description="고객 상세 정보"
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleBack}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              뒤로가기
-            </Button>
-            <Button variant="outline" onClick={() => setEditOpen(true)}>
-              <Edit className="w-4 h-4 mr-2" />
-              수정
-            </Button>
-          </div>
-        }
+      <CustomerSummaryHeader
+        customer={{
+          id: customer.id,
+          company: customer.company,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          grade: customer.grade,
+        }}
+        onGradeChange={handleGradeChange}
+        gradeUpdating={gradeUpdating}
+        onEdit={() => setEditOpen(true)}
+        onBack={() => router.back()}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 기본 정보 */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="w-5 h-5" />
-              기본 정보
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Select
-                value={customer.grade || 'LEAD'}
-                onValueChange={handleGradeChange}
-                disabled={gradeUpdating}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {GRADE_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {gradeUpdating && <span className="text-xs text-muted-foreground">변경 중...</span>}
-            </div>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)}>
+        <TabsList className="w-full overflow-x-auto flex justify-start">
+          <TabsTrigger value="overview">개요</TabsTrigger>
+          <TabsTrigger value="calendar">캘린더</TabsTrigger>
+          <TabsTrigger value="meetings">미팅 기록</TabsTrigger>
+          <TabsTrigger value="tests">시험 접수</TabsTrigger>
+          <TabsTrigger value="invoices">세금계산서</TabsTrigger>
+          <TabsTrigger value="requesters">의뢰자</TabsTrigger>
+        </TabsList>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-start gap-3">
-                <User className="w-5 h-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm text-muted-foreground">담당자</p>
-                  <p className="font-medium">{customer.name}</p>
-                </div>
-              </div>
+        <TabsContent value="overview">
+          <OverviewTab
+            customer={customer}
+            customerId={customerId}
+            onTabChange={setActiveTab}
+          />
+        </TabsContent>
 
-              {customer.email && (
-                <div className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">이메일</p>
-                    <p className="font-medium">{customer.email}</p>
-                  </div>
-                </div>
-              )}
+        <TabsContent value="calendar">
+          <CalendarView customerId={customerId} />
+        </TabsContent>
 
-              {customer.phone && (
-                <div className="flex items-start gap-3">
-                  <Phone className="w-5 h-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">전화번호</p>
-                    <p className="font-medium">{customer.phone}</p>
-                  </div>
-                </div>
-              )}
+        <TabsContent value="meetings">
+          <MeetingRecordTab customerId={customerId} />
+        </TabsContent>
 
-              {customer.address && (
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">주소</p>
-                    <p className="font-medium">{customer.address}</p>
-                  </div>
-                </div>
-              )}
-            </div>
+        <TabsContent value="tests">
+          <TestReceptionTab customerId={customerId} />
+        </TabsContent>
 
-            {customer.notes && (
-              <div className="flex items-start gap-3 pt-4 border-t">
-                <FileText className="w-5 h-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm text-muted-foreground">메모</p>
-                  <p className="font-medium whitespace-pre-wrap">{customer.notes}</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <TabsContent value="invoices">
+          <InvoiceScheduleTab customerId={customerId} />
+        </TabsContent>
 
-        {/* 메타 정보 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              등록 정보
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm text-muted-foreground">등록일</p>
-              <p className="font-medium">
-                {new Date(customer.createdAt).toLocaleDateString('ko-KR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">최종 수정일</p>
-              <p className="font-medium">
-                {new Date(customer.updatedAt).toLocaleDateString('ko-KR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="requesters">
+          <RequesterTab customerId={customerId} />
+        </TabsContent>
+      </Tabs>
 
       {/* 수정 다이얼로그 */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
