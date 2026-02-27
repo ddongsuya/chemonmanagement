@@ -158,9 +158,12 @@ export default function EventForm({
       // 종료 날짜 처리
       let endDateTime: string | undefined;
       if (formData.end_date) {
-        endDateTime = formData.all_day
-          ? `${formData.end_date}T23:59:59`
-          : `${formData.end_date}T23:59:59`;
+        if (formData.all_day) {
+          // 종일 이벤트: 종료 날짜도 자정 기준 (다음 날로 넘어가지 않도록)
+          endDateTime = `${formData.end_date}T00:00:00`;
+        } else {
+          endDateTime = `${formData.end_date}T23:59:59`;
+        }
       }
 
       // color가 'default'면 undefined로 처리

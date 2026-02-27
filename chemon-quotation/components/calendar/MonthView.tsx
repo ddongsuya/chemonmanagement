@@ -64,6 +64,11 @@ export default function MonthView({
       let eventEndStr = eventStartStr;
       if (event.end_date) {
         const eventEndLocal = new Date(event.end_date);
+        // 종일 이벤트의 경우 endDate가 23:59:59 UTC로 저장되어 KST 변환 시 다음 날로 넘어갈 수 있음
+        // 시간이 자정~오전(0~11시)이고 종일 이벤트면 전날로 보정
+        if (event.all_day && eventEndLocal.getHours() > 0 && eventEndLocal.getHours() < 12) {
+          eventEndLocal.setDate(eventEndLocal.getDate() - 1);
+        }
         eventEndStr = `${eventEndLocal.getFullYear()}-${String(eventEndLocal.getMonth() + 1).padStart(2, '0')}-${String(eventEndLocal.getDate()).padStart(2, '0')}`;
       }
       
