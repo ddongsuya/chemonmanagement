@@ -11,6 +11,7 @@ import {
   CalendarEventService,
   ProgressStageService,
 } from '../services/customerDataService';
+import { CustomerCrmService } from '../services/customerCrmService';
 
 const router = Router();
 router.use(authenticate);
@@ -694,6 +695,68 @@ router.delete('/progress-stages/:id', async (req: Request, res: Response, next: 
   try {
     await ProgressStageService.delete(req.params.id);
     res.json({ success: true, message: '진행 단계가 삭제되었습니다.' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==================== CRM 통합 데이터 Routes ====================
+
+// 고객사 견적서 목록
+router.get('/customers/:customerId/quotations', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const quotations = await CustomerCrmService.getQuotationsByCustomerId(req.params.customerId);
+    res.json({ success: true, data: { quotations } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 고객사 계약 목록
+router.get('/customers/:customerId/contracts', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const contracts = await CustomerCrmService.getContractsByCustomerId(req.params.customerId);
+    res.json({ success: true, data: { contracts } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 고객사 리드 활동
+router.get('/customers/:customerId/lead-activities', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await CustomerCrmService.getLeadActivitiesByCustomerId(req.params.customerId);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 고객사 상담기록
+router.get('/customers/:customerId/consultations', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const consultations = await CustomerCrmService.getConsultationsByCustomerId(req.params.customerId);
+    res.json({ success: true, data: { consultations } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 고객사 통합 활동 타임라인
+router.get('/customers/:customerId/activity-timeline', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const timeline = await CustomerCrmService.getActivityTimeline(req.params.customerId);
+    res.json({ success: true, data: { timeline } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 고객사 리드 연결 여부
+router.get('/customers/:customerId/has-lead', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const hasLead = await CustomerCrmService.hasLinkedLead(req.params.customerId);
+    res.json({ success: true, data: { hasLead } });
   } catch (error) {
     next(error);
   }

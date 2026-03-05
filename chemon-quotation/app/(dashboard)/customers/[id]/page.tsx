@@ -11,6 +11,7 @@ import Skeleton from '@/components/ui/Skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { getCustomerById, updateCustomer, Customer } from '@/lib/data-api';
+import { customerLeadCheckApi } from '@/lib/customer-data-api';
 import CustomerForm from '@/components/customer/CustomerForm';
 import CustomerSummaryHeader from '@/components/customer-detail/CustomerSummaryHeader';
 import OverviewTab from '@/components/customer-detail/OverviewTab';
@@ -18,9 +19,14 @@ import MeetingRecordTab from '@/components/customer-detail/MeetingRecordTab';
 import TestReceptionTab from '@/components/customer-detail/TestReceptionTab';
 import InvoiceScheduleTab from '@/components/customer-detail/InvoiceScheduleTab';
 import RequesterTab from '@/components/customer-detail/RequesterTab';
+import QuotationTab from '@/components/customer-detail/QuotationTab';
+import ContractTab from '@/components/customer-detail/ContractTab';
+import LeadActivityTab from '@/components/customer-detail/LeadActivityTab';
+import ConsultationTab from '@/components/customer-detail/ConsultationTab';
 import CalendarView from '@/components/calendar/CalendarView';
 
-type TabType = 'overview' | 'calendar' | 'meetings' | 'tests' | 'invoices' | 'requesters';
+type TabType = 'overview' | 'calendar' | 'meetings' | 'tests' | 'invoices' | 'requesters'
+  | 'quotations' | 'contracts' | 'lead-activities' | 'consultations';
 
 /**
  * 고객 상세 페이지 (탭 기반 UI)
@@ -36,6 +42,7 @@ export default function CustomerDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [gradeUpdating, setGradeUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [hasLinkedLead, setHasLinkedLead] = useState(false);
 
   const loadCustomer = async () => {
     if (!customerId) return;
@@ -44,6 +51,8 @@ export default function CustomerDetailPage() {
       const response = await getCustomerById(customerId);
       if (response.success && response.data) {
         setCustomer(response.data);
+        // 리드 연결 여부 확인
+        customerLeadCheckApi.hasLinkedLead(customerId).then(setHasLinkedLead).catch(() => {});
       } else {
         toast({
           title: '오류',
@@ -120,8 +129,12 @@ export default function CustomerDetailPage() {
           <TabsTrigger value="overview">개요</TabsTrigger>
           <TabsTrigger value="calendar">캘린더</TabsTrigger>
           <TabsTrigger value="meetings">미팅 기록</TabsTrigger>
+          <TabsTrigger value="quotations">견적서</TabsTrigger>
+          <TabsTrigger value="contracts">계약</TabsTrigger>
           <TabsTrigger value="tests">시험 접수</TabsTrigger>
           <TabsTrigger value="invoices">세금계산서</TabsTrigger>
+          <TabsTrigger value="consultations">상담기록</TabsTrigger>
+          {hasLinkedLead && <TabsTrigger value="lead-activities">리드 활동</TabsTrigger>}
           <TabsTrigger value="requesters">의뢰자</TabsTrigger>
         </TabsList>
 
@@ -148,6 +161,24 @@ export default function CustomerDetailPage() {
         <TabsContent value="invoices">
           <InvoiceScheduleTab customerId={customerId} />
         </TabsContent>
+
+        <TabsContent value="quotations">
+          <QuotationTab customerId={customerId} />
+        </TabsContent>
+
+        <TabsContent value="contracts">
+          <ContractTab customerId={customerId} />
+        </TabsContent>
+
+        <TabsContent value="consultations">
+          <ConsultationTab customerId={customerId} />
+        </TabsContent>
+
+        {hasLinkedLead && (
+          <TabsContent value="lead-activities">
+            <LeadActivityTab customerId={customerId} />
+          </TabsContent>
+        )}
 
         <TabsContent value="requesters">
           <RequesterTab customerId={customerId} />

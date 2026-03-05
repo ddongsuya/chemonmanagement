@@ -9,10 +9,14 @@ import {
   MapPin, FileText, Calendar, Users, ClipboardList, ChevronRight,
   Phone as PhoneIcon, Mail as MailIcon, Video, MessageSquare,
 } from 'lucide-react';
-import { progressStageApi, meetingRecordApi, calendarEventApi } from '@/lib/customer-data-api';
+import { progressStageApi, meetingRecordApi, calendarEventApi, customerQuotationApi, customerContractApi, activityTimelineApi } from '@/lib/customer-data-api';
 import type { ProgressStage, MeetingRecord, CalendarEvent } from '@/types/customer';
+import type { CustomerQuotation, CustomerContract, TimelineItem } from '@/types/customer-crm';
+import ActivityTimeline from './ActivityTimeline';
+import { FileSignature } from 'lucide-react';
 
-type TabType = 'overview' | 'calendar' | 'meetings' | 'tests' | 'invoices' | 'requesters';
+type TabType = 'overview' | 'calendar' | 'meetings' | 'tests' | 'invoices' | 'requesters'
+  | 'quotations' | 'contracts' | 'lead-activities' | 'consultations';
 
 interface OverviewTabProps {
   customer: {
@@ -53,16 +57,22 @@ export default function OverviewTab({ customer, customerId, onTabChange }: Overv
   const [progressStage, setProgressStage] = useState<ProgressStage | null>(null);
   const [recentMeetings, setRecentMeetings] = useState<MeetingRecord[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<CalendarEvent[]>([]);
+  const [quotations, setQuotations] = useState<CustomerQuotation[]>([]);
+  const [contracts, setContracts] = useState<CustomerContract[]>([]);
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        const [stage, meetings, events] = await Promise.allSettled([
+        const [stage, meetings, events, quots, conts, tl] = await Promise.allSettled([
           progressStageApi.getByCustomerId(customerId),
           meetingRecordApi.getByCustomerId(customerId),
           calendarEventApi.getByCustomerId(customerId),
+          customerQuotationApi.getByCustomerId(customerId),
+          customerContractApi.getByCustomerId(customerId),
+          activityTimelineApi.getByCustomerId(customerId),
         ]);
         if (stage.status === 'fulfilled') setProgressStage(stage.value);
         if (meetings.status === 'fulfilled') {
@@ -79,6 +89,9 @@ export default function OverviewTab({ customer, customerId, onTabChange }: Overv
             .slice(0, 3);
           setUpcomingEvents(upcoming);
         }
+        if (quots.status === 'fulfilled') setQuotations(quots.value);
+        if (conts.status === 'fulfilled') setContracts(conts.value);
+        if (tl.status === 'fulfilled') setTimeline(tl.value);
       } catch (err) {
         console.error('Failed to load overview data:', err);
       } finally {
@@ -221,6 +234,67 @@ export default function OverviewTab({ customer, customerId, onTabChange }: Overv
           )}
         </CardContent>
       </Card>
+
+      {/* 견적서 요약 */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileText className="w-4 h-4" /> 견적서
+            </CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => onTabChange('quotations')} className="text-xs">
+              더보기 <ChevronRight className="w-3 h-3 ml-1" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-2xl font-semibold">{quotations.length}건</p>
+          {quotations.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              최근: {quotations[0].quotationNumber} ({new Date(quotations[0].createdAt).toLocaleDateString('ko-KR')})
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 계약 요약 */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileSignature className="w-4 h-4" /> 계약
+            </CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => onTabChange('contracts')} className="text-xs">
+              더보기 <ChevronRight className="w-3 h-3 ml-1" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-2xl font-semibold">{contracts.length}건</p>
+          {contracts.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              활성: {contracts.filter(c => c.status === 'ACTIVE').length}건
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 최근 활동 타임라인 */}
+      <ActivityTimeline
+        items={timeline}
+        onItemClick={(item) => {
+          const tabMap: Record<string, TabType> = {
+            quotation: 'quotations',
+            contract: 'contracts',
+            meeting: 'meetings',
+            calendar_event: 'calendar',
+            lead_activity: 'lead-activities',
+            consultation: 'consultations',
+          };
+          const tab = tabMap[item.type];
+          if (tab) onTabChange(tab);
+        }}
+      />
     </div>
   );
 }

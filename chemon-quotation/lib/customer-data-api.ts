@@ -614,3 +614,67 @@ function mapProgressStageFromApi(data: any): ProgressStage {
     updated_at: data.updatedAt,
   };
 }
+
+// ==================== CRM 통합 데이터 API ====================
+
+import type {
+  CustomerQuotation,
+  CustomerContract,
+  LeadActivityData,
+  CustomerConsultation,
+  TimelineItem,
+} from '@/types/customer-crm';
+
+export const customerQuotationApi = {
+  async getByCustomerId(customerId: string): Promise<CustomerQuotation[]> {
+    const response = await apiFetch<{ quotations: CustomerQuotation[] }>(
+      `/api/customer-data/customers/${customerId}/quotations`
+    );
+    return response.data?.quotations || [];
+  },
+};
+
+export const customerContractApi = {
+  async getByCustomerId(customerId: string): Promise<CustomerContract[]> {
+    const response = await apiFetch<{ contracts: CustomerContract[] }>(
+      `/api/customer-data/customers/${customerId}/contracts`
+    );
+    return response.data?.contracts || [];
+  },
+};
+
+export const leadActivityApi = {
+  async getByCustomerId(customerId: string): Promise<LeadActivityData> {
+    const response = await apiFetch<LeadActivityData>(
+      `/api/customer-data/customers/${customerId}/lead-activities`
+    );
+    return response.data || { lead: null, activities: [] };
+  },
+};
+
+export const customerConsultationApi = {
+  async getByCustomerId(customerId: string): Promise<CustomerConsultation[]> {
+    const response = await apiFetch<{ consultations: CustomerConsultation[] }>(
+      `/api/customer-data/customers/${customerId}/consultations`
+    );
+    return response.data?.consultations || [];
+  },
+};
+
+export const activityTimelineApi = {
+  async getByCustomerId(customerId: string): Promise<TimelineItem[]> {
+    const response = await apiFetch<{ timeline: TimelineItem[] }>(
+      `/api/customer-data/customers/${customerId}/activity-timeline`
+    );
+    return response.data?.timeline || [];
+  },
+};
+
+export const customerLeadCheckApi = {
+  async hasLinkedLead(customerId: string): Promise<boolean> {
+    const response = await apiFetch<{ hasLead: boolean }>(
+      `/api/customer-data/customers/${customerId}/has-lead`
+    );
+    return response.data?.hasLead || false;
+  },
+};
