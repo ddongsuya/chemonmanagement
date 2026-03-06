@@ -65,7 +65,7 @@ export function EnhancedCustomerCard({ entity, isSelected, onSelect, onClick }: 
   return (
     <div
       className={cn(
-        'group relative flex cursor-pointer rounded-lg border bg-card p-4 transition-all hover:shadow-md',
+        'group relative flex cursor-pointer rounded-lg border bg-card p-4 transition-colors duration-150 hover:border-foreground/15',
         isSelected && 'ring-2 ring-primary'
       )}
       onClick={() => onClick?.(entity)}

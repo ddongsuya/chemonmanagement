@@ -237,10 +237,10 @@ export default function CustomerSelector({
         key={customer.id}
         onClick={() => handleCustomerSelect(customer)}
         className={`
-          p-4 rounded-lg border cursor-pointer transition-all duration-200
+          p-4 rounded-lg border cursor-pointer transition-colors duration-150
           ${isSelected 
-            ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-200' 
-            : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50/50'
+            ? 'border-primary bg-primary/5 ring-2 ring-primary/20' 
+            : 'border-gray-200 hover:border-primary/30 hover:bg-muted/50'
           }
         `}
       >
@@ -252,7 +252,7 @@ export default function CustomerSelector({
                 {customer.company || customer.name}
               </span>
               {isSelected && (
-                <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                <Check className="w-4 h-4 text-primary flex-shrink-0" />
               )}
             </div>
             {customer.name && customer.company && (
@@ -286,10 +286,10 @@ export default function CustomerSelector({
         key={lead.id}
         onClick={() => handleLeadSelect(lead)}
         className={`
-          p-4 rounded-lg border cursor-pointer transition-all duration-200
+          p-4 rounded-lg border cursor-pointer transition-colors duration-150
           ${isSelected 
-            ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-200' 
-            : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50/50'
+            ? 'border-primary bg-primary/5 ring-2 ring-primary/20' 
+            : 'border-gray-200 hover:border-primary/30 hover:bg-muted/50'
           }
         `}
       >
@@ -301,7 +301,7 @@ export default function CustomerSelector({
                 {lead.companyName}
               </span>
               {isSelected && (
-                <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                <Check className="w-4 h-4 text-primary flex-shrink-0" />
               )}
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
@@ -354,7 +354,7 @@ export default function CustomerSelector({
   // 로딩 상태 렌더링
   const renderLoading = () => (
     <div className="flex items-center justify-center py-8">
-      <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+      <Loader2 className="w-6 h-6 animate-spin text-primary" />
       <span className="ml-2 text-sm text-gray-500">로딩 중...</span>
     </div>
   );

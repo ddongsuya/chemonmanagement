@@ -111,9 +111,12 @@ export function clearTokens(): void {
 
 
 // API request helper with authentication
+const DEFAULT_TIMEOUT = 30000; // 30초 타임아웃 (Render cold start 대응)
+
 async function authFetch<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  timeout: number = DEFAULT_TIMEOUT
 ): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${endpoint}`;
   const accessToken = getAccessToken();
@@ -127,12 +130,17 @@ async function authFetch<T>(
     (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
   try {
     const response = await fetch(url, {
       ...options,
       headers,
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
     const data = await response.json();
 
     if (!response.ok) {
@@ -152,12 +160,16 @@ async function authFetch<T>(
 
     return data;
   } catch (error) {
-    console.error(`[Auth API] Network error for ${endpoint}:`, error);
+    clearTimeout(timeoutId);
+    const isAbort = error instanceof DOMException && error.name === 'AbortError';
+    console.error(`[Auth API] ${isAbort ? 'Timeout' : 'Network error'} for ${endpoint}:`, error);
     return {
       success: false,
       error: {
-        code: 'NETWORK_ERROR',
-        message: `서버에 연결할 수 없습니다. (${API_BASE_URL}) 네트워크 연결을 확인해주세요.`,
+        code: isAbort ? 'TIMEOUT' : 'NETWORK_ERROR',
+        message: isAbort
+          ? '서버 응답이 너무 느립니다. 서버가 시작 중일 수 있으니 잠시 후 다시 시도해주세요.'
+          : `서버에 연결할 수 없습니다. (${API_BASE_URL}) 네트워크 연결을 확인해주세요.`,
       },
     };
   }

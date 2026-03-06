@@ -107,7 +107,7 @@ export default function MobileNav({ onNavigate }: MobileNavProps) {
     <div className="flex flex-col h-full bg-card">
       {/* 로고 */}
       <div className="h-14 flex items-center px-5 border-b border-border flex-shrink-0">
-        <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center">
+        <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
           <span className="text-white text-xs font-bold">C</span>
         </div>
         <span className="ml-2.5 font-semibold text-sm text-foreground">CHEMON</span>

@@ -28,22 +28,29 @@ export default function LoginPage() {
   // API 서버 연결 상태 확인
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    fetch(`${apiUrl}/health`, { method: 'GET' })
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    fetch(`${apiUrl}/health`, { method: 'GET', signal: controller.signal })
       .then((res) => {
+        clearTimeout(timeoutId);
         setApiStatus(res.ok ? 'ok' : 'error');
       })
       .catch(() => {
+        clearTimeout(timeoutId);
         setApiStatus('error');
       });
+    
+    return () => { clearTimeout(timeoutId); controller.abort(); };
   }, []);
 
   // 이미 로그인된 상태로 페이지 접근 시
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    if (isAuthenticated) {
       const redirectTo = returnUrl ? decodeURIComponent(returnUrl) : '/dashboard';
       router.push(redirectTo);
     }
-  }, [isAuthenticated, isLoading, router, returnUrl]);
+  }, [isAuthenticated, router, returnUrl]);
 
   useEffect(() => {
     clearError();
@@ -173,7 +180,7 @@ export default function LoginPage() {
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  로그인 중...
+                  {apiStatus === 'error' ? '서버 연결 대기 중...' : '로그인 중...'}
                 </>
               ) : (
                 '로그인'

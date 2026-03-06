@@ -64,8 +64,8 @@ export function QuotationCodeGuard({
     <div className="min-h-[400px] flex items-center justify-center p-6">
       <Card className="max-w-lg w-full">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-orange-100">
-            <AlertCircle className="h-7 w-7 text-orange-600" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
+            <AlertCircle className="h-7 w-7 text-amber-600" />
           </div>
           <CardTitle className="text-xl">견적서 코드 설정 필요</CardTitle>
           <CardDescription>
@@ -73,10 +73,10 @@ export function QuotationCodeGuard({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert className="border-orange-200 bg-orange-50">
-            <FileText className="h-4 w-4 text-orange-600" />
-            <AlertTitle className="text-orange-800">견적서 코드란?</AlertTitle>
-            <AlertDescription className="text-orange-700">
+          <Alert className="border-amber-200 bg-amber-50">
+            <FileText className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800">견적서 코드란?</AlertTitle>
+            <AlertDescription className="text-amber-700">
               견적서 코드는 견적번호 생성에 사용되는 2글자 영문 코드입니다.
               <br />
               예: <span className="font-mono font-semibold">25-01-DL-0001</span> (DL이 견적서 코드)

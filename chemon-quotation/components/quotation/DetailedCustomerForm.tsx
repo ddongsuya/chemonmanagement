@@ -167,7 +167,7 @@ export default function DetailedCustomerForm({
       <Card className="w-full">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Building2 className="w-5 h-5 text-orange-500" />
+            <Building2 className="w-5 h-5 text-primary" />
             신규 고객 등록
           </CardTitle>
           <CardDescription>
