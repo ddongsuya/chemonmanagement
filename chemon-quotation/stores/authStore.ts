@@ -98,25 +98,38 @@ export const useAuthStore = create<AuthState>()(
 
         set({ isLoading: true });
         
-        const response = await getCurrentUser();
-        
-        if (response.success && response.data) {
-          set({
-            user: response.data.user,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-        } else {
-          // Try to refresh token
-          const refreshed = await get().refreshToken();
-          if (!refreshed) {
-            clearTokens();
+        try {
+          const response = await getCurrentUser();
+          
+          if (response.success && response.data) {
             set({
-              user: null,
-              isAuthenticated: false,
+              user: response.data.user,
+              isAuthenticated: true,
               isLoading: false,
             });
+          } else {
+            // Try to refresh token
+            const refreshed = await get().refreshToken();
+            if (!refreshed) {
+              clearTokens();
+              set({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+              });
+            } else {
+              // refreshToken 성공 시에도 isLoading을 false로 설정
+              set({ isLoading: false });
+            }
           }
+        } catch {
+          // 네트워크 에러 등 예외 발생 시에도 로딩 해제
+          clearTokens();
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
         }
       },
 
