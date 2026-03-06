@@ -4,7 +4,7 @@
  * 고객 데이터 변경 이력 추적
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -27,7 +27,7 @@ export async function logChange(params: {
   fieldName?: string;
   oldValue?: string;
   newValue?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Prisma.InputJsonValue;
   changedBy: string;
 }) {
   return prisma.customerAuditLog.create({
