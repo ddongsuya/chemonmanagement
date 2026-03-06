@@ -135,7 +135,7 @@ export default function Sidebar() {
             <>
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">C</span>
+                  <span className="text-primary-foreground text-xs font-bold">C</span>
                 </div>
                 <span className="text-white/90 font-semibold text-sm tracking-tight">CHEMON</span>
               </div>
@@ -373,7 +373,7 @@ function NavItem({
       <Icon className="w-[18px] h-[18px] flex-shrink-0" />
       <span className="truncate">{title}</span>
       {isActive && (
-        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
+        <div className="ml-auto w-1 h-1 rounded-full bg-white/60" />
       )}
     </button>
   );

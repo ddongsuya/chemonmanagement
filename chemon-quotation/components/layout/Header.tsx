@@ -113,7 +113,7 @@ export default function Header({ title }: HeaderProps) {
   };
 
   return (
-    <header className="h-14 bg-card/80 backdrop-blur-md border-b border-border/60 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
+    <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
       {/* 좌측: 타이틀 */}
       <div className="flex items-center gap-4">
         {/* 페이지 타이틀 */}
@@ -124,8 +124,8 @@ export default function Header({ title }: HeaderProps) {
         )}
         {/* 모바일: 로고 */}
         <div className="flex items-center gap-2 md:hidden">
-          <div className="w-6 h-6 rounded-md bg-orange-500 flex items-center justify-center">
-            <span className="text-white text-[10px] font-bold">C</span>
+          <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground text-[10px] font-bold">C</span>
           </div>
           <span className="text-sm font-semibold text-foreground">CHEMON</span>
         </div>
@@ -149,7 +149,7 @@ export default function Header({ title }: HeaderProps) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               placeholder="견적번호, 고객사, 프로젝트 검색..."
-              className="w-72 pl-9 pr-8 bg-muted/50 border-border/50 focus:bg-card text-sm"
+              className="w-72 pl-9 pr-8 bg-muted/50 border-border focus:bg-card text-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setShowResults(true)}

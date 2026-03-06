@@ -27,10 +27,10 @@ function formatAmount(amount: number): string {
 }
 
 const statCards = [
-  { key: 'quotation', label: '내 견적 금액', icon: FileText, color: 'text-orange-600 dark:text-orange-400', iconBg: 'bg-orange-100 dark:bg-orange-900/30', href: '/quotations' },
-  { key: 'contract', label: '내 계약 금액', icon: WonSign, color: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', href: '/contracts' },
-  { key: 'kpi', label: '내 수주율', icon: TrendingUp, color: 'text-blue-600 dark:text-blue-400', iconBg: 'bg-blue-100 dark:bg-blue-900/30', href: '/reports' },
-  { key: 'lead', label: '내 리드', icon: Users, color: 'text-violet-600 dark:text-violet-400', iconBg: 'bg-violet-100 dark:bg-violet-900/30', href: '/leads' },
+  { key: 'quotation', label: '내 견적 금액', icon: FileText, href: '/quotations' },
+  { key: 'contract', label: '내 계약 금액', icon: WonSign, href: '/contracts' },
+  { key: 'kpi', label: '내 수주율', icon: TrendingUp, href: '/reports' },
+  { key: 'lead', label: '내 리드', icon: Users, href: '/leads' },
 ] as const;
 
 export default function PersonalDashboard({ stats, userName, period }: PersonalDashboardProps) {
@@ -66,20 +66,20 @@ export default function PersonalDashboard({ stats, userName, period }: PersonalD
 
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {statCards.map(({ key, label, icon: Icon, color, iconBg, href }) => (
+        {statCards.map(({ key, label, icon: Icon, href }) => (
           <Link key={key} href={href}>
-            <Card className="shadow-soft hover:shadow-soft-lg transition-shadow duration-200">
+            <Card className="transition-colors hover:bg-accent/50">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className={cn('p-1.5 rounded-md', iconBg)}>
-                    <Icon className={cn('w-3.5 h-3.5', color)} />
+                  <div className="p-1.5 rounded-md bg-muted">
+                    <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                   </div>
                   <span className="text-xs text-muted-foreground">{label}</span>
                 </div>
-                <div className={cn('text-xl font-semibold', color)}>
+                <div className="text-xl font-semibold text-foreground">
                   {getValue(key)}
                 </div>
-                <div className="text-[11px] text-muted-foreground/60 mt-0.5">
+                <div className="text-[11px] text-muted-foreground mt-0.5">
                   {getSub(key)}
                 </div>
               </CardContent>

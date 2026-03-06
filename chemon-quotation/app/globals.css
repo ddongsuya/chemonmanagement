@@ -4,98 +4,90 @@
 
 @layer base {
   :root {
-    /* 배경 - 깨끗한 뉴트럴 */
     --background: 0 0% 99%;
-    --foreground: 220 14% 10%;
-    
-    /* 카드 */
+    --foreground: 240 10% 10%;
+
     --card: 0 0% 100%;
-    --card-foreground: 220 14% 10%;
-    
-    /* 팝오버 */
+    --card-foreground: 240 10% 10%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 220 14% 10%;
-    
-    /* 프라이머리 - 절제된 슬레이트 블루 */
-    --primary: 220 60% 50%;
+    --popover-foreground: 240 10% 10%;
+
+    /* 프라이머리 - 차분한 오렌지 (채도를 약간 낮춤) */
+    --primary: 24 80% 52%;
     --primary-foreground: 0 0% 100%;
-    
-    /* 세컨더리 */
-    --secondary: 220 10% 96%;
-    --secondary-foreground: 220 14% 10%;
-    
-    /* 뮤트 */
-    --muted: 220 10% 95%;
-    --muted-foreground: 220 8% 46%;
-    
-    /* 액센트 */
-    --accent: 220 10% 96%;
-    --accent-foreground: 220 14% 10%;
-    
-    /* 경고/삭제 */
-    --destructive: 0 68% 50%;
+
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 6% 10%;
+
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    
-    /* 보더/인풋 */
-    --border: 220 10% 91%;
-    --input: 220 10% 91%;
-    --ring: 220 60% 50%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 24 80% 52%;
     --radius: 0.5rem;
-    
-    /* 차트 색상 - 절제된 팔레트 */
-    --chart-1: 220 60% 50%;
-    --chart-2: 160 45% 45%;
-    --chart-3: 262 40% 50%;
-    --chart-4: 32 70% 50%;
-    --chart-5: 340 50% 50%;
-    
-    /* 사이드바 - 딥 슬레이트 */
-    --sidebar: 220 20% 13%;
-    --sidebar-foreground: 220 10% 80%;
-    --sidebar-muted: 220 16% 18%;
-    --sidebar-accent: 220 60% 55%;
+
+    /* 차트 색상 - 조화로운 뮤트 톤 */
+    --chart-1: 24 80% 52%;
+    --chart-2: 173 45% 42%;
+    --chart-3: 220 55% 55%;
+    --chart-4: 38 70% 50%;
+    --chart-5: 262 40% 50%;
+
+    /* 사이드바 */
+    --sidebar: 220 26% 14%;
+    --sidebar-foreground: 220 10% 85%;
+    --sidebar-muted: 220 20% 20%;
+    --sidebar-accent: 24 80% 52%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 16% 18%;
-    --sidebar-primary: 220 60% 55%;
+    --sidebar-border: 220 20% 20%;
+    --sidebar-primary: 24 80% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
   }
 
   .dark {
-    --background: 220 16% 7%;
-    --foreground: 220 10% 90%;
-    
-    --card: 220 16% 10%;
-    --card-foreground: 220 10% 90%;
-    
-    --popover: 220 16% 10%;
-    --popover-foreground: 220 10% 90%;
-    
-    --primary: 220 55% 55%;
+    --background: 240 10% 6%;
+    --foreground: 0 0% 90%;
+
+    --card: 240 10% 9%;
+    --card-foreground: 0 0% 90%;
+
+    --popover: 240 10% 9%;
+    --popover-foreground: 0 0% 90%;
+
+    --primary: 24 80% 52%;
     --primary-foreground: 0 0% 100%;
-    
-    --secondary: 220 14% 14%;
-    --secondary-foreground: 220 10% 90%;
-    
-    --muted: 220 14% 14%;
-    --muted-foreground: 220 10% 55%;
-    
-    --accent: 220 14% 14%;
-    --accent-foreground: 220 10% 90%;
-    
-    --destructive: 0 60% 48%;
+
+    --secondary: 240 6% 14%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 240 6% 14%;
+    --muted-foreground: 240 5% 55%;
+
+    --accent: 240 6% 14%;
+    --accent-foreground: 0 0% 90%;
+
+    --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: 220 14% 16%;
-    --input: 220 14% 16%;
-    --ring: 220 55% 55%;
-    
-    --sidebar: 220 20% 7%;
-    --sidebar-foreground: 220 10% 80%;
-    --sidebar-muted: 220 16% 12%;
-    --sidebar-accent: 220 55% 55%;
+
+    --border: 240 6% 16%;
+    --input: 240 6% 16%;
+    --ring: 24 80% 52%;
+
+    --sidebar: 240 10% 7%;
+    --sidebar-foreground: 0 0% 80%;
+    --sidebar-muted: 240 8% 14%;
+    --sidebar-accent: 24 80% 52%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 16% 12%;
-    --sidebar-primary: 220 55% 55%;
+    --sidebar-border: 240 6% 14%;
+    --sidebar-primary: 24 80% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
   }
 }
@@ -109,28 +101,20 @@
   }
 }
 
-/* 유틸리티 클래스 */
+/* 유틸리티 - 최소한만 유지 */
 @layer utilities {
-  /* 부드러운 그림자 */
-  .shadow-soft {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  }
-  
-  .shadow-soft-lg {
-    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.06);
-  }
-  
-  /* 카드 호버 - 미묘한 border 변경만 */
-  .card-hover {
-    @apply transition-colors duration-150;
-  }
-  .card-hover:hover {
-    @apply border-foreground/15;
-  }
-
   /* 사이드바 배경 */
   .gradient-sidebar {
-    background: hsl(220 20% 13%);
+    background: hsl(var(--sidebar));
+  }
+
+  /* 미세 그림자 - 플로팅 요소용 */
+  .shadow-soft {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  }
+
+  .shadow-soft-lg {
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
   }
 }
 
@@ -141,43 +125,45 @@
 
 /* 스크롤바 */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: hsl(220 10% 78%);
+  background: hsl(240 5% 80%);
   border-radius: 100px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(220 10% 60%);
+  background: hsl(240 5% 64%);
 }
+
 .dark ::-webkit-scrollbar-thumb {
-  background: hsl(220 16% 22%);
+  background: hsl(240 6% 22%);
 }
+
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: hsl(220 16% 30%);
+  background: hsl(240 6% 30%);
 }
 
-/* 애니메이션 */
+/* 애니메이션 - 절제된 트랜지션만 */
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes scale-in {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
-}
-@keyframes slide-in {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.animate-slide-in { animation: slide-in 0.2s ease-out; }
-.animate-fade-in { animation: fade-in 0.2s ease-out; }
-.animate-scale-in { animation: scale-in 0.15s ease-out; }
+@keyframes slide-up {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
 
 /* 인쇄 */
 @media print {
@@ -189,17 +175,18 @@
   }
 }
 
-
-/* PWA & 모바일 최적화 */
+/* PWA & 모바일 */
 @layer utilities {
   .safe-area-top { padding-top: env(safe-area-inset-top); }
   .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
   .pt-safe { padding-top: max(1rem, env(safe-area-inset-top)); }
+
   .touch-manipulation {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
+
   .pb-mobile-nav { @apply pb-20 md:pb-0; }
   .snap-x-mobile { @apply md:snap-none snap-x snap-mandatory; }
   .swipe-card { @apply touch-manipulation select-none; }
@@ -212,49 +199,35 @@
     min-height: 44px;
     min-width: 44px;
   }
+
   table button, table a, table [role="button"],
   [data-compact] button, [data-compact] a {
     min-height: unset;
     min-width: unset;
   }
+
   input[type="text"], input[type="email"], input[type="tel"],
   input[type="number"], input[type="password"], textarea, select {
     font-size: 16px !important;
   }
+
   .scroll-container {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
-  .card-compact { padding: 0.75rem; }
 }
 
 /* PWA 설치 프롬프트 */
 .pwa-install-prompt {
-  @apply fixed bottom-20 left-4 right-4 z-50 p-4 rounded-lg bg-card shadow-md border;
-  animation: slide-up 0.2s ease-out;
-}
-@keyframes slide-up {
-  from { transform: translateY(100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  @apply fixed bottom-20 left-4 right-4 z-50 p-4 rounded-lg bg-card shadow-lg border;
+  animation: slide-up 0.3s ease-out;
 }
 
 /* 오프라인 인디케이터 */
 .offline-indicator {
-  @apply fixed top-0 left-0 right-0 z-50 py-2 px-4 bg-amber-500 text-amber-950 text-center text-sm font-medium;
+  @apply fixed top-0 left-0 right-0 z-50 py-2 px-4 bg-yellow-500 text-yellow-950 text-center text-sm font-medium;
 }
 
-/* 스플래시 스크린 */
-.splash-screen {
-  @apply fixed inset-0 z-[100] flex items-center justify-center bg-primary;
-}
-.splash-logo {
-  animation: pulse-scale 1.5s ease-in-out infinite;
-}
-@keyframes pulse-scale {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-}
-
-/* 스크롤바 숨기기 */
+/* Hide scrollbar */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

@@ -26,10 +26,10 @@ function formatAmount(amount: number): string {
 }
 
 const companyStatItems = [
-  { key: 'quotation', label: '전사 견적 금액', color: 'text-orange-600 dark:text-orange-400' },
-  { key: 'contract', label: '전사 계약 금액', color: 'text-emerald-600 dark:text-emerald-400' },
-  { key: 'kpi', label: '전사 수주율', color: 'text-blue-600 dark:text-blue-400' },
-  { key: 'lead', label: '전사 리드', color: 'text-violet-600 dark:text-violet-400' },
+  { key: 'quotation', label: '전사 견적 금액' },
+  { key: 'contract', label: '전사 계약 금액' },
+  { key: 'kpi', label: '전사 수주율' },
+  { key: 'lead', label: '전사 리드' },
 ] as const;
 
 export default function CompanyDashboard({ stats }: CompanyDashboardProps) {
@@ -41,14 +41,14 @@ export default function CompanyDashboard({ stats }: CompanyDashboardProps) {
     <div className="space-y-5">
       {/* 헤더 */}
       <div className="flex items-baseline gap-2">
-        <Building2 className="w-4 h-4 text-primary" />
+        <Building2 className="w-4 h-4 text-muted-foreground" />
         <h2 className="text-base font-semibold text-foreground">전사 현황</h2>
         <span className="text-xs text-muted-foreground">{stats.period.year}년 {stats.period.month}월</span>
       </div>
 
       {/* 전사 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {companyStatItems.map(({ key, label, color }) => {
+        {companyStatItems.map(({ key, label }) => {
           let value = '';
           let sub = '';
           switch (key) {
@@ -73,7 +73,7 @@ export default function CompanyDashboard({ stats }: CompanyDashboardProps) {
             <Card key={key} className="shadow-soft">
               <CardContent className="p-4">
                 <div className="text-xs text-muted-foreground mb-2">{label}</div>
-                <div className={cn('text-xl font-semibold', color)}>{value}</div>
+                <div className="text-xl font-semibold text-foreground">{value}</div>
                 <div className="text-[11px] text-muted-foreground/60 mt-0.5">{sub}</div>
               </CardContent>
             </Card>

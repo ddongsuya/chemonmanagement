@@ -46,13 +46,11 @@ export default function DashboardPage() {
   const [clinicalStats, setClinicalStats] = useState<ClinicalStatistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // 기간 필터
+
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
 
-  // 권한 레벨
   const accessLevel = getDashboardAccessLevel(user);
 
   useEffect(() => {
@@ -60,19 +58,18 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       try {
-        // 일반 대시보드 통계와 임상병리 통계를 병렬로 로드
         const [dashboardData, clinicalData] = await Promise.all([
           getDashboardStats({ year, month }),
-          clinicalPathologyApi.getStatistics().catch(() => null), // 임상병리 통계 실패해도 계속 진행
+          clinicalPathologyApi.getStatistics().catch(() => null),
         ]);
-        
+
         if (dashboardData && dashboardData.accessLevel) {
           setStats(dashboardData);
         } else {
           console.error('Invalid dashboard stats response:', dashboardData);
           setError('통계 데이터 형식이 올바르지 않습니다.');
         }
-        
+
         if (clinicalData) {
           setClinicalStats(clinicalData);
         }
@@ -90,11 +87,9 @@ export default function DashboardPage() {
     }
   }, [year, month, user]);
 
-  // 연도 옵션 (현재 연도 기준 ±2년)
   const yearOptions = Array.from({ length: 5 }, (_, i) => now.getFullYear() - 2 + i);
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
 
-  // 임상병리 금액 포맷
   const formatClinicalAmount = (amount: number): string => {
     if (amount >= 100000000) {
       return `${(amount / 100000000).toFixed(1)}억`;
@@ -109,8 +104,8 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* 상단: 환영 메시지 + 기간 필터 + 빠른 작성 버튼 */}
+    <div className="space-y-6">
+      {/* 상단: 환영 메시지 + 기간 필터 + 빠른 작성 */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
@@ -121,8 +116,7 @@ export default function DashboardPage() {
               {ACCESS_LEVEL_LABELS[accessLevel]}을 확인하세요
             </p>
           </div>
-          
-          {/* 기간 필터 */}
+
           <div className="flex items-center gap-2">
             <Select value={year.toString()} onValueChange={(v) => setYear(parseInt(v))}>
               <SelectTrigger className="w-[90px] h-8 text-sm">
@@ -146,7 +140,7 @@ export default function DashboardPage() {
             </Select>
           </div>
         </div>
-        
+
         {/* 빠른 작성 버튼 */}
         <div>
           <DropdownMenu>
@@ -158,31 +152,31 @@ export default function DashboardPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-52">
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => router.push('/quotations/new')}
                 className="cursor-pointer"
               >
-                <Beaker className="w-4 h-4 mr-2 text-orange-500" />
+                <Beaker className="w-4 h-4 mr-2 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">독성시험 견적</p>
                   <p className="text-[11px] text-muted-foreground">일반 독성시험 견적서</p>
                 </div>
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => router.push('/efficacy-quotations/new')}
                 className="cursor-pointer"
               >
-                <FlaskConical className="w-4 h-4 mr-2 text-amber-500" />
+                <FlaskConical className="w-4 h-4 mr-2 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">효력시험 견적</p>
                   <p className="text-[11px] text-muted-foreground">효력시험 견적서</p>
                 </div>
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => router.push('/clinical-pathology/quotations/new')}
                 className="cursor-pointer"
               >
-                <FileText className="w-4 h-4 mr-2 text-emerald-500" />
+                <FileText className="w-4 h-4 mr-2 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">임상병리 견적</p>
                   <p className="text-[11px] text-muted-foreground">임상병리 견적서</p>
@@ -193,7 +187,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 로딩 상태 */}
+      {/* 로딩 */}
       {loading && (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -201,7 +195,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 에러 상태 */}
+      {/* 에러 */}
       {error && !loading && (
         <div className="text-center py-16">
           <p className="text-sm text-destructive">{error}</p>
@@ -214,127 +208,111 @@ export default function DashboardPage() {
       {/* 통계 데이터 */}
       {stats && !loading && (
         <>
-          {/* 전사 대시보드 (FULL 권한만) */}
           {accessLevel === 'FULL' && stats.company && (
             <CompanyDashboard stats={stats} />
           )}
 
-          {/* 구분선 */}
           {accessLevel === 'FULL' && (
-            <div className="border-t border-border/60 my-2" />
+            <div className="border-t border-border my-2" />
           )}
 
-          {/* 개인 대시보드 */}
-          <PersonalDashboard 
-            stats={stats.personal} 
+          <PersonalDashboard
+            stats={stats.personal}
             userName={stats.user.name}
             period={stats.period}
           />
-          
-          {/* 임상병리 통계 위젯 */}
+
+          {/* 임상병리 통계 */}
           {clinicalStats && (
             <>
-              <div className="border-t border-border/60 my-2" />
+              <div className="border-t border-border my-2" />
               <div className="space-y-4">
                 <div className="flex items-baseline gap-2">
-                  <Microscope className="w-4 h-4 text-emerald-500" />
                   <h2 className="text-base font-semibold">임상병리 현황</h2>
                 </div>
-                
+
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   <Link href="/clinical-pathology/quotations">
-                    <Card className="shadow-soft hover:shadow-soft-lg transition-shadow duration-200">
+                    <Card className="transition-colors hover:bg-accent/50">
                       <CardContent className="p-4">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                          <FileText className="w-3.5 h-3.5" />
-                          견적서
-                        </div>
-                        <div className="text-xl font-semibold text-emerald-600 dark:text-emerald-400">
+                        <p className="text-xs text-muted-foreground mb-2">견적서</p>
+                        <p className="text-xl font-semibold text-foreground">
                           {clinicalStats.quotations.total}건
-                        </div>
-                        <div className="text-[11px] text-muted-foreground/60 mt-0.5">
+                        </p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
                           승인 {clinicalStats.quotations.accepted}건
-                        </div>
+                        </p>
                       </CardContent>
                     </Card>
                   </Link>
 
                   <Link href="/clinical-pathology/test-requests">
-                    <Card className="shadow-soft hover:shadow-soft-lg transition-shadow duration-200">
+                    <Card className="transition-colors hover:bg-accent/50">
                       <CardContent className="p-4">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                          <Microscope className="w-3.5 h-3.5" />
-                          시험의뢰
-                        </div>
-                        <div className="text-xl font-semibold text-cyan-600 dark:text-cyan-400">
+                        <p className="text-xs text-muted-foreground mb-2">시험의뢰</p>
+                        <p className="text-xl font-semibold text-foreground">
                           {clinicalStats.testRequests.total}건
-                        </div>
-                        <div className="text-[11px] text-muted-foreground/60 mt-0.5">
+                        </p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
                           진행중 {clinicalStats.testRequests.inProgress}건
-                        </div>
+                        </p>
                       </CardContent>
                     </Card>
                   </Link>
 
-                  <Card className="shadow-soft">
+                  <Card>
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                        <TrendingUp className="w-3.5 h-3.5" />
-                        이번달 건수
-                      </div>
-                      <div className="text-xl font-semibold text-blue-600 dark:text-blue-400">
+                      <p className="text-xs text-muted-foreground mb-2">이번달 건수</p>
+                      <p className="text-xl font-semibold text-foreground">
                         {clinicalStats.monthly.count}건
-                      </div>
-                      <div className="text-[11px] text-muted-foreground/60 mt-0.5">
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         월간 견적
-                      </div>
+                      </p>
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-soft">
+                  <Card>
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                        <TrendingUp className="w-3.5 h-3.5" />
-                        이번달 금액
-                      </div>
-                      <div className="text-xl font-semibold text-violet-600 dark:text-violet-400">
+                      <p className="text-xs text-muted-foreground mb-2">이번달 금액</p>
+                      <p className="text-xl font-semibold text-foreground">
                         {formatClinicalAmount(clinicalStats.monthly.amount)}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground/60 mt-0.5">
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         월간 견적 금액
-                      </div>
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 {/* 견적서 상태별 현황 */}
-                <Card className="shadow-soft">
+                <Card>
                   <CardContent className="p-4">
                     <h3 className="text-sm font-medium mb-3">임상병리 견적서 상태</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <div className="text-[11px] text-muted-foreground">작성중</div>
-                        <div className="text-lg font-semibold mt-0.5">
+                      <div className="p-3 bg-muted rounded-lg">
+                        <p className="text-[11px] text-muted-foreground">작성중</p>
+                        <p className="text-lg font-semibold mt-0.5">
                           {clinicalStats.quotations.draft}건
-                        </div>
+                        </p>
                       </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <div className="text-[11px] text-muted-foreground">발송완료</div>
-                        <div className="text-lg font-semibold text-blue-600 mt-0.5">
+                      <div className="p-3 bg-muted rounded-lg">
+                        <p className="text-[11px] text-muted-foreground">발송완료</p>
+                        <p className="text-lg font-semibold mt-0.5">
                           {clinicalStats.quotations.sent}건
-                        </div>
+                        </p>
                       </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <div className="text-[11px] text-muted-foreground">승인됨</div>
-                        <div className="text-lg font-semibold text-emerald-600 mt-0.5">
+                      <div className="p-3 bg-muted rounded-lg">
+                        <p className="text-[11px] text-muted-foreground">승인됨</p>
+                        <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
                           {clinicalStats.quotations.accepted}건
-                        </div>
+                        </p>
                       </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <div className="text-[11px] text-muted-foreground">완료</div>
-                        <div className="text-lg font-semibold text-emerald-600 mt-0.5">
+                      <div className="p-3 bg-muted rounded-lg">
+                        <p className="text-[11px] text-muted-foreground">완료</p>
+                        <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
                           {clinicalStats.testRequests.completed}건
-                        </div>
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -345,29 +323,29 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* 메인 캐러셀 영역 */}
+      {/* 캐러셀 */}
       <DashboardCarousel />
 
       {/* 빠른 링크 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
-          { href: '/quotations', icon: FileText, label: '독성시험 견적', sub: '견적 관리', color: 'text-orange-500' },
-          { href: '/efficacy-quotations', icon: FlaskConical, label: '효력시험 견적', sub: '견적 관리', color: 'text-amber-500' },
-          { href: '/clinical-pathology/quotations', icon: Microscope, label: '임상병리 견적', sub: '견적 관리', color: 'text-emerald-500' },
-          { href: '/customers', icon: Users, label: '고객사 관리', sub: '고객 정보', color: 'text-cyan-600' },
-          { href: '/reports', icon: TrendingUp, label: '리포트', sub: '통계 분석', color: 'text-violet-500' },
-        ].map(({ href, icon: Icon, label, sub, color }) => (
+          { href: '/quotations', icon: FileText, label: '독성시험 견적', sub: '견적 관리' },
+          { href: '/efficacy-quotations', icon: FlaskConical, label: '효력시험 견적', sub: '견적 관리' },
+          { href: '/clinical-pathology/quotations', icon: Microscope, label: '임상병리 견적', sub: '견적 관리' },
+          { href: '/customers', icon: Users, label: '고객사 관리', sub: '고객 정보' },
+          { href: '/reports', icon: TrendingUp, label: '리포트', sub: '통계 분석' },
+        ].map(({ href, icon: Icon, label, sub }) => (
           <Link key={href} href={href}>
-            <Card className="shadow-soft hover:shadow-soft-lg transition-shadow duration-200 group">
+            <Card className="transition-colors hover:bg-accent/50">
               <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-muted/80 flex items-center justify-center flex-shrink-0">
-                  <Icon className={`w-4 h-4 ${color}`} />
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-4 h-4 text-muted-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-xs sm:text-sm font-medium text-foreground truncate">{label}</h3>
                   <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate hidden sm:block">{sub}</p>
                 </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground/60 group-hover:translate-x-0.5 transition-all flex-shrink-0 hidden sm:block" />
+                <ArrowRight className="w-4 h-4 text-muted-foreground/40 flex-shrink-0 hidden sm:block" />
               </CardContent>
             </Card>
           </Link>
