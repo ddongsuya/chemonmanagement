@@ -1,6 +1,6 @@
 {
   "name": "chemon-quotation-backend",
-  "version": "1.0.0",
+  "version": "1.4.0-beta",
   "description": "CHEMON 견적관리시스템 백엔드 API 서버",
   "main": "dist/index.js",
   "scripts": {
