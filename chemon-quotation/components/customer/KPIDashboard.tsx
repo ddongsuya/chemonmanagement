@@ -20,11 +20,10 @@ interface KPIDashboardProps {
 }
 
 interface KPIData {
-  newCustomers: number;
-  newCustomersDelta: number;
+  newCustomers: { count: number; changeRate: number } | number;
   activeDeals: number;
   outstandingAmount: number;
-  gradeDistribution: { name: string; value: number; color: string }[];
+  gradeDistribution: { grade: string; count: number }[];
 }
 
 const GRADE_COLORS: Record<string, string> = {
@@ -68,7 +67,15 @@ export function KPIDashboard({ onFilterByGrade }: KPIDashboardProps) {
       const [kpiRes, funnelRes, churnRes, clvRes] = await Promise.all([
         getKPIData(), getFunnelData(), getChurnRateTrend(), getSegmentCLV(),
       ]);
-      if (kpiRes.success && kpiRes.data) setKpi(kpiRes.data as unknown as KPIData);
+      if (kpiRes.success && kpiRes.data) {
+        const raw = kpiRes.data as any;
+        setKpi({
+          newCustomers: raw.newCustomers,
+          activeDeals: raw.activeDeals,
+          outstandingAmount: raw.outstandingAmount,
+          gradeDistribution: raw.gradeDistribution || [],
+        });
+      }
       if (funnelRes.success && funnelRes.data) {
         const fd = funnelRes.data as unknown as { stage: string; count: number }[];
         setFunnel(fd.map((d, i) => ({ name: d.stage, value: d.count, fill: Object.values(GRADE_COLORS)[i] || '#888' })));
@@ -90,16 +97,26 @@ export function KPIDashboard({ onFilterByGrade }: KPIDashboardProps) {
     );
   }
 
-  const gradeData = kpi?.gradeDistribution || Object.entries(GRADE_LABELS).map(([k, v]) => ({
-    name: v, value: 0, color: GRADE_COLORS[k],
+  const gradeData = (kpi?.gradeDistribution || []).map((g: any) => ({
+    name: GRADE_LABELS[g.grade] || g.grade,
+    value: g.count,
+    color: GRADE_COLORS[g.grade] || '#888',
   }));
+
+  // newCustomers can be { count, changeRate } or number
+  const newCustomerCount = typeof kpi?.newCustomers === 'object' && kpi?.newCustomers !== null
+    ? (kpi.newCustomers as { count: number; changeRate: number }).count
+    : (kpi?.newCustomers as number) ?? 0;
+  const newCustomerDelta = typeof kpi?.newCustomers === 'object' && kpi?.newCustomers !== null
+    ? (kpi.newCustomers as { count: number; changeRate: number }).changeRate
+    : undefined;
 
   return (
     <div className="space-y-4 mb-6">
       {/* KPI 카드 */}
       <div className="flex gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-4 md:overflow-visible md:pb-0">
         <div className="min-w-[160px] flex-shrink-0 md:min-w-0">
-          <StatCard icon={Users} label="신규 등록" value={kpi?.newCustomers ?? 0} delta={kpi?.newCustomersDelta} />
+          <StatCard icon={Users} label="신규 등록" value={newCustomerCount} delta={newCustomerDelta} />
         </div>
         <div className="min-w-[160px] flex-shrink-0 md:min-w-0">
           <StatCard icon={TrendingUp} label="활성 거래" value={kpi?.activeDeals ?? 0} />

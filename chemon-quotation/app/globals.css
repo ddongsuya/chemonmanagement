@@ -13,8 +13,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 10%;
 
-    /* 프라이머리 - 차분한 오렌지 (채도를 약간 낮춤) */
-    --primary: 24 80% 52%;
+    /* 프라이머리 - 절제된 슬레이트 블루 */
+    --primary: 220 60% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 5% 96%;
@@ -31,11 +31,11 @@
 
     --border: 240 6% 90%;
     --input: 240 6% 90%;
-    --ring: 24 80% 52%;
+    --ring: 220 60% 50%;
     --radius: 0.5rem;
 
     /* 차트 색상 - 조화로운 뮤트 톤 */
-    --chart-1: 24 80% 52%;
+    --chart-1: 220 60% 50%;
     --chart-2: 173 45% 42%;
     --chart-3: 220 55% 55%;
     --chart-4: 38 70% 50%;
@@ -45,10 +45,10 @@
     --sidebar: 220 26% 14%;
     --sidebar-foreground: 220 10% 85%;
     --sidebar-muted: 220 20% 20%;
-    --sidebar-accent: 24 80% 52%;
+    --sidebar-accent: 220 60% 50%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 220 20% 20%;
-    --sidebar-primary: 24 80% 52%;
+    --sidebar-primary: 220 60% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
   }
 
@@ -62,7 +62,7 @@
     --popover: 240 10% 9%;
     --popover-foreground: 0 0% 90%;
 
-    --primary: 24 80% 52%;
+    --primary: 220 60% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 6% 14%;
@@ -79,15 +79,15 @@
 
     --border: 240 6% 16%;
     --input: 240 6% 16%;
-    --ring: 24 80% 52%;
+    --ring: 220 60% 50%;
 
     --sidebar: 240 10% 7%;
     --sidebar-foreground: 0 0% 80%;
     --sidebar-muted: 240 8% 14%;
-    --sidebar-accent: 24 80% 52%;
+    --sidebar-accent: 220 60% 50%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 240 6% 14%;
-    --sidebar-primary: 24 80% 52%;
+    --sidebar-primary: 220 60% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
   }
 }
