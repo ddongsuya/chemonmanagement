@@ -3,14 +3,14 @@
  * 커스텀 필드 정의 및 값 관리
  */
 
-import { PrismaClient, CustomFieldType } from '@prisma/client';
+import { PrismaClient, CustomFieldType, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export async function createField(params: {
   name: string;
   fieldType: CustomFieldType;
-  options?: unknown;
+  options?: Prisma.InputJsonValue;
   isRequired?: boolean;
   displayOrder?: number;
   createdBy: string;
@@ -28,7 +28,7 @@ export async function getFields() {
 export async function updateField(fieldId: string, data: {
   name?: string;
   fieldType?: CustomFieldType;
-  options?: unknown;
+  options?: Prisma.InputJsonValue;
   isRequired?: boolean;
   displayOrder?: number;
   isActive?: boolean;

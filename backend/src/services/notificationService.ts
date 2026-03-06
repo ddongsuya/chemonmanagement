@@ -291,7 +291,7 @@ export class NotificationService {
     const expiringContracts = await this.prisma.contract.findMany({
       where: {
         endDate: { lte: thirtyDaysLater, gte: new Date() },
-        status: 'ACTIVE',
+        status: 'IN_PROGRESS',
       },
       include: { customer: { select: { id: true, company: true, userId: true } } },
       take: 50,
@@ -327,7 +327,7 @@ export class NotificationService {
 
     const overdueSchedules = await this.prisma.paymentSchedule.findMany({
       where: {
-        dueDate: { lt: thirtyDaysAgo },
+        scheduledDate: { lt: thirtyDaysAgo },
         status: { in: ['PENDING', 'OVERDUE'] },
       },
       include: {

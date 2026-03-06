@@ -3,14 +3,14 @@
  * 필터 프리셋 CRUD
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export async function createPreset(params: {
   userId: string;
   name: string;
-  filters: Record<string, unknown>;
+  filters: Prisma.InputJsonValue;
   sortBy?: string;
   sortOrder?: string;
 }) {
@@ -26,7 +26,7 @@ export async function getPresets(userId: string) {
 
 export async function updatePreset(presetId: string, data: {
   name?: string;
-  filters?: Record<string, unknown>;
+  filters?: Prisma.InputJsonValue;
   sortBy?: string;
   sortOrder?: string;
   isDefault?: boolean;

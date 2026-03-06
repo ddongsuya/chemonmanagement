@@ -345,14 +345,14 @@ export async function generateWeeklySummary(): Promise<{
   const expiringContracts = await prisma.contract.count({
     where: {
       endDate: { lte: thirtyDaysLater, gte: now },
-      status: 'ACTIVE',
+      status: 'IN_PROGRESS',
     },
   });
 
   // 연체 미수금
   const overdueSchedules = await prisma.paymentSchedule.findMany({
     where: {
-      dueDate: { lt: now },
+      scheduledDate: { lt: now },
       status: { in: ['PENDING', 'OVERDUE'] },
     },
     select: { amount: true },
@@ -384,160 +384,6 @@ export async function generateWeeklySummary(): Promise<{
     : 0;
 
   // 전환율 (최근 6개월 리드→고객)
-  const rates = await getConversionRates();
-  const leadToCustomer = rates['LEAD->CUSTOMER'] || rates['PROSPECT->CUSTOMER'];
-  const conversionRate = leadToCustomer?.rate || 0;
-
-  return {
-    period: { from: weekAgo.toISOString(), to: now.toISOString() },
-    newCustomers,
-    churnRiskCount,
-    expiringContracts,
-    overduePayments,
-    stagnantCustomers: stagnant.length,
-    transitionSuggestions: suggestions.length,
-    topMetrics: {
-      totalActive,
-      averageHealthScore,
-      conversionRate,
-    },
-  };
-}
-
-
-
-/**
- * 자동 단계 전환 실행 (승인 후 호출)
- */
-export async function executeAutoTransition(
-  customerId: string,
-  toStage: CustomerGrade,
-  reason: string,
-  triggeredBy: string
-) {
-  const customer = await prisma.customer.findUnique({
-    where: { id: customerId },
-    select: { grade: true },
-  });
-  if (!customer) return null;
-
-  const fromStage = customer.grade;
-
-  await prisma.customer.update({
-    where: { id: customerId },
-    data: { grade: toStage },
-  });
-
-  const transition = await recordTransition({
-    customerId,
-    fromStage,
-    toStage,
-    reason,
-    isAutomatic: true,
-    triggeredBy,
-  });
-
-  return { fromStage, toStage, transition };
-}
-
-/**
- * 전체 고객 자동 전환 평가 및 제안 목록 반환
- */
-export async function evaluateAllAutoTransitions(): Promise<
-  { customerId: string; company: string | null; currentGrade: CustomerGrade; suggestedStage: CustomerGrade; reason: string }[]
-> {
-  const customers = await prisma.customer.findMany({
-    where: { deletedAt: null, grade: { in: ['PROSPECT', 'CUSTOMER'] } },
-    select: { id: true, company: true, grade: true },
-  });
-
-  const suggestions: { customerId: string; company: string | null; currentGrade: CustomerGrade; suggestedStage: CustomerGrade; reason: string }[] = [];
-
-  for (const cust of customers) {
-    const result = await evaluateAutoTransition(cust.id);
-    if (result?.shouldTransition && result.suggestedStage && result.reason) {
-      suggestions.push({
-        customerId: cust.id,
-        company: cust.company,
-        currentGrade: cust.grade,
-        suggestedStage: result.suggestedStage,
-        reason: result.reason,
-      });
-    }
-  }
-
-  return suggestions;
-}
-
-/**
- * 주간 요약 리포트 데이터 생성
- */
-export async function generateWeeklySummary(): Promise<{
-  period: { from: string; to: string };
-  newCustomers: number;
-  churnRiskCount: number;
-  expiringContracts: number;
-  overduePayments: { count: number; totalAmount: number };
-  stagnantCustomers: number;
-  transitionSuggestions: number;
-  topMetrics: {
-    totalActive: number;
-    averageHealthScore: number;
-    conversionRate: number;
-  };
-}> {
-  const now = new Date();
-  const weekAgo = new Date();
-  weekAgo.setDate(weekAgo.getDate() - 7);
-  const thirtyDaysLater = new Date();
-  thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
-
-  const newCustomers = await prisma.customer.count({
-    where: { createdAt: { gte: weekAgo }, deletedAt: null },
-  });
-
-  const churnRiskScores = await prisma.customerHealthScore.findMany({
-    where: { churnRiskScore: { gte: 70 } },
-    distinct: ['customerId'],
-    select: { customerId: true },
-  });
-  const churnRiskCount = churnRiskScores.length;
-
-  const expiringContracts = await prisma.contract.count({
-    where: {
-      endDate: { lte: thirtyDaysLater, gte: now },
-      status: 'ACTIVE',
-    },
-  });
-
-  const overdueSchedules = await prisma.paymentSchedule.findMany({
-    where: {
-      dueDate: { lt: now },
-      status: { in: ['PENDING', 'OVERDUE'] },
-    },
-    select: { amount: true },
-  });
-  const overduePayments = {
-    count: overdueSchedules.length,
-    totalAmount: overdueSchedules.reduce((sum, s) => sum + Number(s.amount || 0), 0),
-  };
-
-  const stagnant = await detectStagnantCustomers();
-  const suggestions = await evaluateAllAutoTransitions();
-
-  const totalActive = await prisma.customer.count({
-    where: { deletedAt: null, grade: { notIn: ['INACTIVE'] } },
-  });
-
-  const healthScores = await prisma.customerHealthScore.findMany({
-    orderBy: { calculatedAt: 'desc' },
-    distinct: ['customerId'],
-    select: { score: true },
-  });
-  const averageHealthScore = healthScores.length > 0
-    ? Math.round(healthScores.reduce((sum, h) => sum + h.score, 0) / healthScores.length)
-    : 0;
-
   const rates = await getConversionRates();
   const leadToCustomer = rates['LEAD->CUSTOMER'] || rates['PROSPECT->CUSTOMER'];
   const conversionRate = leadToCustomer?.rate || 0;

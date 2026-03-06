@@ -295,7 +295,7 @@ export class UnifiedCustomerService {
    */
   private sortEntities(
     entities: UnifiedEntity[],
-    sortBy: 'updatedAt' | 'createdAt' | 'companyName',
+    sortBy: string,
     sortOrder: 'asc' | 'desc'
   ): UnifiedEntity[] {
     return [...entities].sort((a, b) => {

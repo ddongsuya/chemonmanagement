@@ -35,7 +35,7 @@ export const CustomerCrmService = {
         select: {
           id: true,
           quotationNumber: true,
-          projectName: true,
+          customerName: true,
           status: true,
           totalAmount: true,
           createdAt: true,
@@ -59,7 +59,7 @@ export const CustomerCrmService = {
         id: q.id,
         quotationNumber: q.quotationNumber,
         quotationType: 'CLINICAL_PATHOLOGY' as const,
-        projectName: q.projectName || '',
+        projectName: q.customerName || '',
         status: q.status,
         totalAmount: Number(q.totalAmount),
         customerName: '',
