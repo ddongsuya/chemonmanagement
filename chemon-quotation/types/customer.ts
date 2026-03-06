@@ -1,6 +1,9 @@
 // 고객 등급 타입 (Requirements 4.1)
 export type CustomerGrade = 'LEAD' | 'PROSPECT' | 'CUSTOMER' | 'VIP' | 'INACTIVE';
 
+// 고객 세그먼트 타입 (산업군)
+export type SegmentType = 'PHARMACEUTICAL' | 'COSMETICS' | 'HEALTH_FOOD' | 'MEDICAL_DEVICE' | 'OTHER';
+
 // 리드 유입경로 타입
 export type LeadSource = 
   | 'WEBSITE'

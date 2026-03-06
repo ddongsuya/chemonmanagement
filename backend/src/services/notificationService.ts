@@ -202,6 +202,161 @@ export class NotificationService {
       createdAt: notification.createdAt,
     };
   }
+
+  // ==================== CRM 확장 알림 메서드 ====================
+
+  /**
+   * 관리자 사용자 ID 목록 조회 (알림 수신 대상)
+   */
+  private async getAdminUserIds(): Promise<string[]> {
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true },
+    });
+    return admins.map((a) => a.id);
+  }
+
+  /**
+   * 비활동 리마인더 알림 (14일 이상 비활동 고객)
+   */
+  async sendInactivityReminders(): Promise<number> {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 14);
+
+    const inactiveCustomers = await this.prisma.customer.findMany({
+      where: { updatedAt: { lt: cutoff }, grade: { notIn: ['INACTIVE'] } },
+      select: { id: true, company: true, userId: true },
+      take: 100,
+    });
+
+    const adminIds = await this.getAdminUserIds();
+    let count = 0;
+    for (const cust of inactiveCustomers) {
+      const targetIds = [...new Set([cust.userId, ...adminIds])];
+      for (const uid of targetIds) {
+        await this.prisma.notification.create({
+          data: {
+            userId: uid,
+            type: 'SYSTEM',
+            title: '비활동 고객 리마인더',
+            message: `${cust.company || '고객'}이(가) 14일 이상 비활동 상태입니다.`,
+            link: `/customers/${cust.id}`,
+          },
+        });
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * 이탈 위험 알림 (churnRiskScore >= 70)
+   */
+  async sendChurnRiskAlerts(): Promise<number> {
+    const highRisk = await this.prisma.customerHealthScore.findMany({
+      where: { churnRiskScore: { gte: 70 } },
+      include: { customer: { select: { id: true, company: true, userId: true } } },
+      orderBy: { calculatedAt: 'desc' },
+      distinct: ['customerId'],
+      take: 50,
+    });
+
+    const adminIds = await this.getAdminUserIds();
+    let count = 0;
+    for (const hs of highRisk) {
+      const targetIds = [...new Set([hs.customer?.userId, ...adminIds].filter(Boolean))] as string[];
+      for (const uid of targetIds) {
+        await this.prisma.notification.create({
+          data: {
+            userId: uid,
+            type: 'SYSTEM',
+            title: '이탈 위험 경고',
+            message: `${hs.customer?.company || '고객'}의 이탈 위험 점수가 ${hs.churnRiskScore}점입니다.`,
+            link: `/customers/${hs.customerId}`,
+          },
+        });
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * 계약 만료 알림 (30일 이내 만료 예정)
+   */
+  async sendContractExpiryAlerts(): Promise<number> {
+    const thirtyDaysLater = new Date();
+    thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+
+    const expiringContracts = await this.prisma.contract.findMany({
+      where: {
+        endDate: { lte: thirtyDaysLater, gte: new Date() },
+        status: 'ACTIVE',
+      },
+      include: { customer: { select: { id: true, company: true, userId: true } } },
+      take: 50,
+    });
+
+    const adminIds = await this.getAdminUserIds();
+    let count = 0;
+    for (const contract of expiringContracts) {
+      const targetIds = [...new Set([contract.customer?.userId, ...adminIds].filter(Boolean))] as string[];
+      const daysLeft = Math.ceil((new Date(contract.endDate!).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      for (const uid of targetIds) {
+        await this.prisma.notification.create({
+          data: {
+            userId: uid,
+            type: 'SYSTEM',
+            title: '계약 만료 예정',
+            message: `${contract.customer?.company || '고객'}의 계약이 ${daysLeft}일 후 만료됩니다.`,
+            link: `/customers/${contract.customerId}`,
+          },
+        });
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * 미수금 연체 에스컬레이션 알림 (30일 이상 연체)
+   */
+  async sendOverduePaymentAlerts(): Promise<number> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const overdueSchedules = await this.prisma.paymentSchedule.findMany({
+      where: {
+        dueDate: { lt: thirtyDaysAgo },
+        status: { in: ['PENDING', 'OVERDUE'] },
+      },
+      include: {
+        contract: {
+          include: { customer: { select: { id: true, company: true, userId: true } } },
+        },
+      },
+      take: 50,
+    });
+
+    const adminIds = await this.getAdminUserIds();
+    let count = 0;
+    for (const ps of overdueSchedules) {
+      const targetIds = [...new Set([ps.contract?.customer?.userId, ...adminIds].filter(Boolean))] as string[];
+      for (const uid of targetIds) {
+        await this.prisma.notification.create({
+          data: {
+            userId: uid,
+            type: 'SYSTEM',
+            title: '미수금 연체 경고',
+            message: `${ps.contract?.customer?.company || '고객'}의 미수금이 30일 이상 연체되었습니다.`,
+            link: `/customers/${ps.contract?.customerId}`,
+          },
+        });
+        count++;
+      }
+    }
+    return count;
+  }
 }
 
 export default NotificationService;

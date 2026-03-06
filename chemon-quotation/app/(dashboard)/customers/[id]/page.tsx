@@ -24,9 +24,18 @@ import ContractTab from '@/components/customer-detail/ContractTab';
 import LeadActivityTab from '@/components/customer-detail/LeadActivityTab';
 import ConsultationTab from '@/components/customer-detail/ConsultationTab';
 import CalendarView from '@/components/calendar/CalendarView';
+import NotesTab from '@/components/customer-detail/NotesTab';
+import DocumentsTab from '@/components/customer-detail/DocumentsTab';
+import AuditLogTab from '@/components/customer-detail/AuditLogTab';
+import CustomFieldsSection from '@/components/customer-detail/CustomFieldsSection';
+import ActivityTimelineTab from '@/components/customer-detail/ActivityTimelineTab';
+import InlineMeetingForm from '@/components/customer-detail/InlineMeetingForm';
+import InlineRequesterForm from '@/components/customer-detail/InlineRequesterForm';
+import InlineConsultationForm from '@/components/customer-detail/InlineConsultationForm';
 
 type TabType = 'overview' | 'calendar' | 'meetings' | 'tests' | 'invoices' | 'requesters'
-  | 'quotations' | 'contracts' | 'lead-activities' | 'consultations';
+  | 'quotations' | 'contracts' | 'lead-activities' | 'consultations'
+  | 'notes' | 'documents' | 'audit-log' | 'activity-timeline';
 
 /**
  * 고객 상세 페이지 (탭 기반 UI)
@@ -43,6 +52,9 @@ export default function CustomerDetailPage() {
   const [gradeUpdating, setGradeUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [hasLinkedLead, setHasLinkedLead] = useState(false);
+  const [tabReloadKey, setTabReloadKey] = useState(0);
+
+  const reloadTab = () => setTabReloadKey(k => k + 1);
 
   const loadCustomer = async () => {
     if (!customerId) return;
@@ -117,6 +129,7 @@ export default function CustomerDetailPage() {
           phone: customer.phone,
           email: customer.email,
           grade: customer.grade,
+          createdAt: customer.createdAt,
         }}
         onGradeChange={handleGradeChange}
         gradeUpdating={gradeUpdating}
@@ -125,25 +138,32 @@ export default function CustomerDetailPage() {
       />
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)}>
-        <TabsList className="w-full overflow-x-auto flex justify-start">
-          <TabsTrigger value="overview">개요</TabsTrigger>
-          <TabsTrigger value="calendar">캘린더</TabsTrigger>
-          <TabsTrigger value="meetings">미팅 기록</TabsTrigger>
-          <TabsTrigger value="quotations">견적서</TabsTrigger>
-          <TabsTrigger value="contracts">계약</TabsTrigger>
-          <TabsTrigger value="tests">시험 접수</TabsTrigger>
-          <TabsTrigger value="invoices">세금계산서</TabsTrigger>
-          <TabsTrigger value="consultations">상담기록</TabsTrigger>
-          {hasLinkedLead && <TabsTrigger value="lead-activities">리드 활동</TabsTrigger>}
-          <TabsTrigger value="requesters">의뢰자</TabsTrigger>
+        <TabsList className="w-full overflow-x-auto flex justify-start no-scrollbar">
+          <TabsTrigger value="overview" className="flex-shrink-0">개요</TabsTrigger>
+          <TabsTrigger value="calendar" className="flex-shrink-0">캘린더</TabsTrigger>
+          <TabsTrigger value="meetings" className="flex-shrink-0">미팅 기록</TabsTrigger>
+          <TabsTrigger value="quotations" className="flex-shrink-0">견적서</TabsTrigger>
+          <TabsTrigger value="contracts" className="flex-shrink-0">계약</TabsTrigger>
+          <TabsTrigger value="tests" className="flex-shrink-0">시험 접수</TabsTrigger>
+          <TabsTrigger value="invoices" className="flex-shrink-0">세금계산서</TabsTrigger>
+          <TabsTrigger value="consultations" className="flex-shrink-0">상담기록</TabsTrigger>
+          <TabsTrigger value="activity-timeline" className="flex-shrink-0">활동 타임라인</TabsTrigger>
+          <TabsTrigger value="notes" className="flex-shrink-0">메모</TabsTrigger>
+          <TabsTrigger value="documents" className="flex-shrink-0">문서</TabsTrigger>
+          <TabsTrigger value="audit-log" className="flex-shrink-0">변경이력</TabsTrigger>
+          {hasLinkedLead && <TabsTrigger value="lead-activities" className="flex-shrink-0">리드 활동</TabsTrigger>}
+          <TabsTrigger value="requesters" className="flex-shrink-0">의뢰자</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
-          <OverviewTab
-            customer={customer}
-            customerId={customerId}
-            onTabChange={setActiveTab}
-          />
+          <div className="space-y-4">
+            <OverviewTab
+              customer={customer}
+              customerId={customerId}
+              onTabChange={setActiveTab}
+            />
+            <CustomFieldsSection customerId={customerId} />
+          </div>
         </TabsContent>
 
         <TabsContent value="calendar">
@@ -151,7 +171,12 @@ export default function CustomerDetailPage() {
         </TabsContent>
 
         <TabsContent value="meetings">
-          <MeetingRecordTab customerId={customerId} />
+          <div className="space-y-3">
+            <div className="flex justify-end">
+              <InlineMeetingForm customerId={customerId} onSuccess={reloadTab} />
+            </div>
+            <MeetingRecordTab key={`meetings-${tabReloadKey}`} customerId={customerId} />
+          </div>
         </TabsContent>
 
         <TabsContent value="tests">
@@ -171,7 +196,28 @@ export default function CustomerDetailPage() {
         </TabsContent>
 
         <TabsContent value="consultations">
-          <ConsultationTab customerId={customerId} />
+          <div className="space-y-3">
+            <div className="flex justify-end">
+              <InlineConsultationForm customerId={customerId} onSuccess={reloadTab} />
+            </div>
+            <ConsultationTab key={`consultations-${tabReloadKey}`} customerId={customerId} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="activity-timeline">
+          <ActivityTimelineTab customerId={customerId} />
+        </TabsContent>
+
+        <TabsContent value="notes">
+          <NotesTab customerId={customerId} />
+        </TabsContent>
+
+        <TabsContent value="documents">
+          <DocumentsTab customerId={customerId} />
+        </TabsContent>
+
+        <TabsContent value="audit-log">
+          <AuditLogTab customerId={customerId} />
         </TabsContent>
 
         {hasLinkedLead && (
@@ -181,7 +227,12 @@ export default function CustomerDetailPage() {
         )}
 
         <TabsContent value="requesters">
-          <RequesterTab customerId={customerId} />
+          <div className="space-y-3">
+            <div className="flex justify-end">
+              <InlineRequesterForm customerId={customerId} onSuccess={reloadTab} />
+            </div>
+            <RequesterTab key={`requesters-${tabReloadKey}`} customerId={customerId} />
+          </div>
         </TabsContent>
       </Tabs>
 

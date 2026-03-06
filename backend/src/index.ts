@@ -26,6 +26,16 @@ import {
   paymentScheduleRoutes,
   pushRoutes,
   unifiedCustomerRoutes,
+  customerTagRoutes,
+  customerNoteRoutes,
+  customerDocumentRoutes,
+  customerHealthScoreRoutes,
+  customerAuditLogRoutes,
+  dataQualityRoutes,
+  filterPresetRoutes,
+  customFieldRoutes,
+  customerAnalyticsRoutes,
+  customerImportExportRoutes,
 } from './routes';
 import masterDataRoutes from './routes/masterData';
 import packageRoutes from './routes/package';
@@ -139,6 +149,20 @@ app.use('/api/push', pushRoutes);
 
 // Unified Customer routes
 app.use('/api/unified-customers', unifiedCustomerRoutes);
+
+// CRM Customer Management Extension routes
+app.use('/api/customer-tags', customerTagRoutes);
+app.use('/api/customer-notes', customerNoteRoutes);
+app.use('/api/customer-documents', customerDocumentRoutes);
+app.use('/api/customer-health', customerHealthScoreRoutes);
+app.use('/api/customer-audit', customerAuditLogRoutes);
+app.use('/api/data-quality', dataQualityRoutes);
+app.use('/api/filter-presets', filterPresetRoutes);
+app.use('/api/custom-fields', customFieldRoutes);
+app.use('/api/customer-analytics', customerAnalyticsRoutes);
+
+// Customer Import/Export routes
+app.use('/api/customer-import-export', customerImportExportRoutes);
 
 // Toxicity V2 routes
 app.use('/api/toxicity-v2', toxicityV2Routes);

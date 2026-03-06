@@ -29,14 +29,27 @@ import {
 } from '@/components/ui/alert-dialog';
 import CustomerForm from '@/components/customer/CustomerForm';
 import UnifiedCustomerCard, { UnifiedCustomerCardSkeleton } from '@/components/customer/UnifiedCustomerCard';
-import UnifiedCustomerFilters, { UnifiedCustomerFiltersSkeleton } from '@/components/customer/UnifiedCustomerFilters';
-import UnifiedCustomerStats, { UnifiedCustomerStatsSkeleton } from '@/components/customer/UnifiedCustomerStats';
-import { Plus, RefreshCw, Users, CheckSquare, X, Trash2, Loader2 } from 'lucide-react';
+import { EnhancedCustomerCard } from '@/components/customer/EnhancedCustomerCard';
+import { ViewModeToggle } from '@/components/customer/ViewModeToggle';
+import { TableView } from '@/components/customer/TableView';
+import { KanbanView } from '@/components/customer/KanbanView';
+import { AdvancedFilterPanel } from '@/components/customer/AdvancedFilterPanel';
+import { FilterPresetManager } from '@/components/customer/FilterPresetManager';
+import { SortControl } from '@/components/customer/SortControl';
+import { KPIDashboard } from '@/components/customer/KPIDashboard';
+import { BulkActionBar } from '@/components/customer/BulkActionBar';
+import { ImportExportPanel } from '@/components/customer/ImportExportPanel';
+import { CommandPalette } from '@/components/customer/CommandPalette';
+import { KeyboardShortcutsOverlay } from '@/components/customer/KeyboardShortcutsOverlay';
+import { useCustomerKeyboardShortcuts } from '@/hooks/useCustomerKeyboardShortcuts';
+import { useCustomerManagementStore } from '@/stores/customerManagementStore';
+import { VirtualizedCardGrid } from '@/components/customer/VirtualizedCardGrid';
+import { Plus, RefreshCw, Users, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import ExcelImportExport from '@/components/excel/ExcelImportExport';
-import { 
-  getUnifiedCustomers, 
+import {
+  getUnifiedCustomers,
   getPipelineStagesForFilter,
+  updateCustomerStage,
   type UnifiedEntity,
   type UnifiedCustomerFilters as FilterType,
   type PipelineStageInfo,
@@ -46,14 +59,7 @@ import type { CustomerGrade } from '@/lib/data-api';
 import { DEFAULT_UNIFIED_CUSTOMER_FILTERS } from '@/types/unified-customer';
 
 /**
- * 통합 고객사 관리 페이지
- * 
- * 리드(Lead)와 고객(Customer)을 통합하여 표시하는 페이지입니다.
- * 
- * @requirements 1.1 - 리드와 고객을 통합하여 표시
- * @requirements 3.4 - URL 쿼리 파라미터와 필터 상태 동기화
- * @requirements 3.5 - 뒤로가기 시 필터 상태 유지
- * @requirements 8.3 - 네비게이션 로직
+ * 통합 고객사 관리 페이지 (CRM 개선 버전)
  */
 export default function CustomersPage() {
   const router = useRouter();
@@ -62,13 +68,13 @@ export default function CustomersPage() {
   const toastRef = useRef(toast);
   toastRef.current = toast;
 
+  const { viewMode, selectedIds: storeSelectedIds, toggleSelection, selectAll, clearSelection } = useCustomerManagementStore();
+
   // 상태 관리
   const [entities, setEntities] = useState<UnifiedEntity[]>([]);
   const [stages, setStages] = useState<PipelineStageInfo[]>([]);
   const [stats, setStats] = useState({
-    totalCount: 0,
-    leadCount: 0,
-    customerCount: 0,
+    totalCount: 0, leadCount: 0, customerCount: 0,
     stageDistribution: {} as Record<string, number>,
   });
   const [loading, setLoading] = useState(true);
@@ -76,21 +82,21 @@ export default function CustomersPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 20, totalPages: 1 });
 
-  // 다중 선택 상태
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // 일괄 처리
   const [bulkGradeDialogOpen, setBulkGradeDialogOpen] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [bulkGrade, setBulkGrade] = useState<CustomerGrade>('CUSTOMER');
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
-  // URL 파라미터에서 필터 초기화 - Requirements 3.4
+  // 키보드 단축키
+  const { focusIndex, showHelp, setShowHelp } = useCustomerKeyboardShortcuts({ entities });
+
+  // URL 파라미터에서 필터 초기화
   const [filters, setFilters] = useState<FilterType>(() => {
     const type = searchParams.get('type') as 'all' | 'lead' | 'customer' | null;
     const stageId = searchParams.get('stageId');
     const search = searchParams.get('search');
     const page = searchParams.get('page');
-
     return {
       type: type || DEFAULT_UNIFIED_CUSTOMER_FILTERS.type,
       stageId: stageId || undefined,
@@ -130,103 +136,47 @@ export default function CustomersPage() {
         const responseData = response.data as any;
         const entityList = responseData.entities || responseData.data || [];
         setEntities(entityList);
-        if (responseData.stats) {
-          setStats(responseData.stats);
-        }
-        if (responseData.pagination) {
-          setPagination(responseData.pagination);
-        }
+        if (responseData.stats) setStats(responseData.stats);
+        if (responseData.pagination) setPagination(responseData.pagination);
       } else {
         setEntities([]);
         if (response.error?.code !== 'AUTH_TOKEN_EXPIRED') {
-          toastRef.current({
-            title: '오류',
-            description: response.error?.message || '데이터를 불러오는데 실패했습니다',
-            variant: 'destructive',
-          });
+          toastRef.current({ title: '오류', description: response.error?.message || '데이터를 불러오는데 실패했습니다', variant: 'destructive' });
         }
       }
-    } catch (error) {
+    } catch {
       setEntities([]);
-      toastRef.current({
-        title: '오류',
-        description: '서버 연결에 실패했습니다',
-        variant: 'destructive',
-      });
+      toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   }, [filters]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
-  // URL 파라미터 동기화 - Requirements 3.4, 3.5
+  // URL 파라미터 동기화
   useEffect(() => {
     const params = new URLSearchParams();
-    
-    if (filters.type && filters.type !== 'all') {
-      params.set('type', filters.type);
-    }
-    if (filters.stageId) {
-      params.set('stageId', filters.stageId);
-    }
-    if (filters.search) {
-      params.set('search', filters.search);
-    }
-    if (filters.page && filters.page > 1) {
-      params.set('page', filters.page.toString());
-    }
-
+    if (filters.type && filters.type !== 'all') params.set('type', filters.type);
+    if (filters.stageId) params.set('stageId', filters.stageId);
+    if (filters.search) params.set('search', filters.search);
+    if (filters.page && filters.page > 1) params.set('page', filters.page.toString());
     const queryString = params.toString();
-    const newUrl = queryString ? `?${queryString}` : '/customers';
-    
-    // URL 업데이트 (히스토리에 추가하지 않고 교체)
-    window.history.replaceState(null, '', newUrl);
+    window.history.replaceState(null, '', queryString ? `?${queryString}` : '/customers');
   }, [filters]);
 
-  /**
-   * 필터 변경 핸들러
-   */
-  const handleFilterChange = useCallback((newFilters: FilterType) => {
-    setFilters(newFilters);
-  }, []);
+  const handleFilterChange = useCallback((newFilters: FilterType) => { setFilters(newFilters); }, []);
 
-  /**
-   * 엔티티 클릭 핸들러
-   * @requirements 8.1 - 리드 클릭 시 /leads/{leadId} 페이지로 이동
-   * @requirements 8.2 - 고객 클릭 시 상세 모달 또는 페이지 표시
-   */
   const handleEntityClick = useCallback((entity: UnifiedEntity) => {
-    if (entity.entityType === 'LEAD') {
-      router.push(`/leads/${entity.id}`);
-    } else {
-      router.push(`/customers/${entity.id}`);
-    }
+    if (entity.entityType === 'LEAD') router.push(`/leads/${entity.id}`);
+    else router.push(`/customers/${entity.id}`);
   }, [router]);
 
-  /**
-   * 고객 등급 변경 핸들러
-   */
   const handleGradeChange = useCallback(async (entity: UnifiedEntity, newGrade: string) => {
-    const gradeKey = newGrade as CustomerGrade;
-
     try {
-      const response = await updateCustomer(entity.id, { grade: gradeKey });
+      const response = await updateCustomer(entity.id, { grade: newGrade as any });
       if (response.success) {
-        // LEAD 등급 변경 시 리드 생성 결과 확인
-        const leadResult = (response as any).leadResult;
-        if (gradeKey === 'LEAD' && leadResult && !leadResult.success) {
-          toastRef.current({ 
-            title: '등급은 변경되었으나 리드 자동 생성 실패', 
-            description: leadResult.error || '리드 관리에서 수동으로 생성해주세요',
-            variant: 'destructive',
-          });
-        } else {
-          toastRef.current({ title: '등급 변경 완료' });
-        }
-        // 통계 및 전체 데이터 갱신 (Lead 자동 생성 반영 포함)
+        toastRef.current({ title: '등급 변경 완료' });
         await loadData();
       } else {
         toastRef.current({ title: '오류', description: response.error?.message || '등급 변경 실패', variant: 'destructive' });
@@ -236,110 +186,66 @@ export default function CustomersPage() {
     }
   }, [loadData]);
 
-  /**
-   * 다중 선택 토글
-   */
-  const handleSelectChange = useCallback((entity: UnifiedEntity, selected: boolean) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (selected) next.add(entity.id);
-      else next.delete(entity.id);
-      return next;
-    });
+  const handleStageChange = useCallback(async (entityId: string, newStage: string) => {
+    try {
+      await updateCustomerStage(entityId, newStage);
+      toastRef.current({ title: '단계 변경 완료' });
+      await loadData();
+    } catch {
+      toastRef.current({ title: '오류', description: '단계 변경 실패', variant: 'destructive' });
+    }
+  }, [loadData]);
+
+  const handleFilterByGrade = useCallback((grade: string) => {
+    setFilters(prev => ({ ...prev, grade: grade as any, page: 1 }));
   }, []);
 
-  const handleSelectAll = useCallback(() => {
-    // 고객 타입만 선택 (리드는 bulk grade 변경 불가)
-    const customerIds = entities.filter(e => e.entityType === 'CUSTOMER').map(e => e.id);
-    setSelectedIds(new Set(customerIds));
-  }, [entities]);
-
-  const handleDeselectAll = useCallback(() => {
-    setSelectedIds(new Set());
-  }, []);
-
-  const toggleSelectionMode = useCallback(() => {
-    setSelectionMode(prev => {
-      if (prev) setSelectedIds(new Set());
-      return !prev;
-    });
-  }, []);
-
-  /**
-   * 일괄 등급 변경
-   */
+  // 일괄 등급 변경
   const handleBulkGradeChange = useCallback(async () => {
-    if (selectedIds.size === 0) return;
+    if (storeSelectedIds.length === 0) return;
     setBulkProcessing(true);
-
-    // CUSTOMER 타입 엔티티의 ID만 필터링 (LEAD 타입 ID는 Customer 테이블에 없음)
     const customerOnlyIds = entities
-      .filter(e => e.entityType === 'CUSTOMER' && selectedIds.has(e.id))
+      .filter(e => e.entityType === 'CUSTOMER' && storeSelectedIds.includes(e.id))
       .map(e => e.id);
-
     if (customerOnlyIds.length === 0) {
       toastRef.current({ title: '오류', description: '등급 변경 가능한 고객이 선택되지 않았습니다', variant: 'destructive' });
       setBulkProcessing(false);
       return;
     }
-
-    console.log('[BulkGradeChange] selectedIds:', Array.from(selectedIds));
-    console.log('[BulkGradeChange] customerOnlyIds:', customerOnlyIds);
-    console.log('[BulkGradeChange] target grade:', bulkGrade);
-
     try {
       const response = await bulkUpdateCustomerGrade(customerOnlyIds, bulkGrade);
-      console.log('[BulkGradeChange] API response:', JSON.stringify(response));
       if (response.success) {
-        const updatedCount = response.data?.updatedCount ?? 0;
-        if (updatedCount < customerOnlyIds.length) {
-          toastRef.current({ 
-            title: '일부 변경 완료', 
-            description: `요청 ${customerOnlyIds.length}건 중 ${updatedCount}건 변경됨`,
-            variant: 'destructive',
-          });
-        } else {
-          toastRef.current({ title: '일괄 등급 변경 완료', description: `${updatedCount}건 변경됨` });
-        }
-        setSelectedIds(new Set());
-        setSelectionMode(false);
+        toastRef.current({ title: '일괄 등급 변경 완료', description: `${response.data?.updatedCount ?? 0}건 변경됨` });
+        clearSelection();
         setBulkGradeDialogOpen(false);
         await loadData();
       } else {
         toastRef.current({ title: '오류', description: response.error?.message || '일괄 변경 실패', variant: 'destructive' });
       }
-    } catch (err) {
-      console.error('[BulkGradeChange] Error:', err);
+    } catch {
       toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
     } finally {
       setBulkProcessing(false);
     }
-  }, [selectedIds, bulkGrade, entities, loadData]);
+  }, [storeSelectedIds, bulkGrade, entities, loadData, clearSelection]);
 
-  /**
-   * 일괄 삭제
-   */
+  // 일괄 삭제
   const handleBulkDelete = useCallback(async () => {
-    if (selectedIds.size === 0) return;
+    if (storeSelectedIds.length === 0) return;
     setBulkProcessing(true);
-
-    // CUSTOMER 타입 엔티티의 ID만 필터링
     const customerOnlyIds = entities
-      .filter(e => e.entityType === 'CUSTOMER' && selectedIds.has(e.id))
+      .filter(e => e.entityType === 'CUSTOMER' && storeSelectedIds.includes(e.id))
       .map(e => e.id);
-
     if (customerOnlyIds.length === 0) {
       toastRef.current({ title: '오류', description: '삭제 가능한 고객이 선택되지 않았습니다', variant: 'destructive' });
       setBulkProcessing(false);
       return;
     }
-
     try {
       const response = await bulkDeleteCustomers(customerOnlyIds);
       if (response.success) {
         toastRef.current({ title: '일괄 삭제 완료', description: `${response.data?.deletedCount || customerOnlyIds.length}건 삭제됨` });
-        setSelectedIds(new Set());
-        setSelectionMode(false);
+        clearSelection();
         setBulkDeleteDialogOpen(false);
         await loadData();
       } else {
@@ -350,30 +256,23 @@ export default function CustomersPage() {
     } finally {
       setBulkProcessing(false);
     }
-  }, [selectedIds, entities, loadData]);
+  }, [storeSelectedIds, entities, loadData, clearSelection]);
 
-  /**
-   * 신규 고객 등록 성공 핸들러
-   */
   const handleAddSuccess = useCallback(() => {
     setShowAddDialog(false);
     loadData();
   }, [loadData]);
 
-  // 로딩 상태 렌더링
+  // 로딩 상태
   if (loading && entities.length === 0) {
     return (
       <div>
-        <PageHeader
-          title="고객사 관리"
-          description="리드와 고객을 통합하여 관리합니다"
-        />
-        <UnifiedCustomerStatsSkeleton className="mb-6" />
-        <UnifiedCustomerFiltersSkeleton />
+        <PageHeader title="고객사 관리" description="리드와 고객을 통합하여 관리합니다" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {[1, 2, 3, 4].map(i => <Card key={i}><CardContent className="p-4 h-20 animate-pulse bg-muted/50" /></Card>)}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <UnifiedCustomerCardSkeleton key={i} />
-          ))}
+          {[1, 2, 3, 4, 5, 6].map(i => <UnifiedCustomerCardSkeleton key={i} />)}
         </div>
       </div>
     );
@@ -385,25 +284,15 @@ export default function CustomersPage() {
         title="고객사 관리"
         description="리드와 고객을 통합하여 관리합니다"
         actions={
-          <div className="flex gap-2">
-            <Button
-              variant={selectionMode ? 'default' : 'outline'}
-              onClick={toggleSelectionMode}
-            >
-              <CheckSquare className="w-4 h-4 mr-2" />
-              {selectionMode ? '선택 해제' : '다중 선택'}
-            </Button>
-            <ExcelImportExport defaultType="customers" onImportSuccess={loadData} />
-            <Button variant="outline" onClick={loadData} disabled={loading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          <div className="flex items-center gap-2 flex-wrap">
+            <ImportExportPanel onImportSuccess={loadData} />
+            <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
+              <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
               새로고침
             </Button>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  신규 고객 등록
-                </Button>
+                <Button size="sm"><Plus className="w-4 h-4 mr-1" />신규 등록</Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <CustomerForm onSuccess={handleAddSuccess} />
@@ -413,17 +302,20 @@ export default function CustomersPage() {
         }
       />
 
-      {/* 통계 카드 - Requirements 7.1, 7.2 */}
-      <UnifiedCustomerStats 
-        stats={stats} 
-        loading={loading} 
-        className="mb-6" 
-      />
+      {/* KPI 대시보드 */}
+      <KPIDashboard onFilterByGrade={handleFilterByGrade} />
 
-      {/* 필터 - Requirements 3.1, 4.1, 5.1 */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <UnifiedCustomerFilters
+      {/* 필터 + 뷰 모드 + 정렬 */}
+      <Card className="mb-4">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <ViewModeToggle />
+            <div className="flex items-center gap-2">
+              <SortControl filters={filters} onFilterChange={handleFilterChange} />
+              <FilterPresetManager filters={filters} onApplyPreset={handleFilterChange} />
+            </div>
+          </div>
+          <AdvancedFilterPanel
             filters={filters}
             stages={stages}
             onFilterChange={handleFilterChange}
@@ -432,84 +324,64 @@ export default function CustomersPage() {
         </CardContent>
       </Card>
 
+      {/* 일괄 작업 바 */}
+      <BulkActionBar
+        selectedIds={storeSelectedIds}
+        onClearSelection={clearSelection}
+        onRefresh={loadData}
+      />
+
       {/* 엔티티 목록 */}
       {entities.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-gray-500">
             <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p>
-              {filters.search || filters.stageId || filters.type !== 'all'
-                ? '검색 결과가 없습니다. 필터를 조정해보세요.'
-                : '등록된 리드 또는 고객이 없습니다.'}
-            </p>
+            <p>{filters.search || filters.stageId || filters.type !== 'all'
+              ? '검색 결과가 없습니다. 필터를 조정해보세요.'
+              : '등록된 리드 또는 고객이 없습니다.'}</p>
           </CardContent>
         </Card>
       ) : (
         <>
-          {/* 다중 선택 액션 바 */}
-          {selectionMode && selectedIds.size > 0 && (
-            <Card className="mb-4 border-primary">
-              <CardContent className="p-3 flex items-center justify-between flex-wrap gap-2">
-                <span className="text-sm font-medium">{selectedIds.size}건 선택됨</span>
-                <div className="flex gap-2 flex-wrap">
-                  <Button variant="outline" size="sm" onClick={handleSelectAll}>전체 선택 (고객)</Button>
-                  <Button variant="outline" size="sm" onClick={handleDeselectAll}>선택 해제</Button>
-                  <Button variant="outline" size="sm" onClick={() => setBulkGradeDialogOpen(true)}>
-                    등급 일괄 변경
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => setBulkDeleteDialogOpen(true)}>
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    일괄 삭제
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          {viewMode === 'card' && (
+            <VirtualizedCardGrid
+              entities={entities}
+              selectedIds={storeSelectedIds}
+              onToggleSelection={toggleSelection}
+              onClick={handleEntityClick}
+            />
           )}
 
-          {selectionMode && selectedIds.size === 0 && (
-            <Card className="mb-4">
-              <CardContent className="p-3 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">카드를 클릭하여 선택하세요</span>
-                <Button variant="outline" size="sm" onClick={handleSelectAll}>전체 선택 (고객)</Button>
-              </CardContent>
-            </Card>
+          {viewMode === 'table' && (
+            <TableView
+              entities={entities}
+              selectedIds={storeSelectedIds}
+              onToggleSelection={toggleSelection}
+              onSelectAll={selectAll}
+              onClick={handleEntityClick}
+            />
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {entities.map((entity) => (
-              <UnifiedCustomerCard
-                key={`${entity.entityType}-${entity.id}`}
-                entity={entity}
-                onClick={handleEntityClick}
-                onGradeChange={handleGradeChange}
-                selectable={selectionMode}
-                selected={selectedIds.has(entity.id)}
-                onSelectChange={handleSelectChange}
-              />
-            ))}
-          </div>
+          {viewMode === 'kanban' && (
+            <KanbanView
+              entities={entities}
+              onStageChange={handleStageChange}
+              onClick={handleEntityClick}
+            />
+          )}
 
-          {/* 페이지네이션 */}
-          {pagination.totalPages > 1 && (
+          {/* 페이지네이션 (카드/테이블 뷰) */}
+          {viewMode !== 'kanban' && pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <p className="text-sm text-gray-500">
                 전체 {pagination.total}건 중 {(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)}건
               </p>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pagination.page <= 1 || loading}
-                  onClick={() => setFilters(prev => ({ ...prev, page: (prev.page || 1) - 1 }))}
-                >
-                  이전
-                </Button>
+                <Button variant="outline" size="sm" disabled={pagination.page <= 1 || loading}
+                  onClick={() => setFilters(prev => ({ ...prev, page: (prev.page || 1) - 1 }))}>이전</Button>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-                    .filter(p => {
-                      const current = pagination.page;
-                      return p === 1 || p === pagination.totalPages || Math.abs(p - current) <= 2;
-                    })
+                    .filter(p => p === 1 || p === pagination.totalPages || Math.abs(p - pagination.page) <= 2)
                     .reduce<(number | string)[]>((acc, p, idx, arr) => {
                       if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('...');
                       acc.push(p);
@@ -519,40 +391,31 @@ export default function CustomersPage() {
                       item === '...' ? (
                         <span key={`ellipsis-${idx}`} className="px-2 text-gray-400">…</span>
                       ) : (
-                        <Button
-                          key={item}
-                          variant={pagination.page === item ? 'default' : 'outline'}
-                          size="sm"
-                          className="min-w-[36px]"
-                          onClick={() => setFilters(prev => ({ ...prev, page: item as number }))}
-                          disabled={loading}
-                        >
-                          {item}
-                        </Button>
+                        <Button key={item} variant={pagination.page === item ? 'default' : 'outline'} size="sm" className="min-w-[36px]"
+                          onClick={() => setFilters(prev => ({ ...prev, page: item as number }))} disabled={loading}>{item}</Button>
                       )
                     )}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pagination.page >= pagination.totalPages || loading}
-                  onClick={() => setFilters(prev => ({ ...prev, page: (prev.page || 1) + 1 }))}
-                >
-                  다음
-                </Button>
+                <Button variant="outline" size="sm" disabled={pagination.page >= pagination.totalPages || loading}
+                  onClick={() => setFilters(prev => ({ ...prev, page: (prev.page || 1) + 1 }))}>다음</Button>
               </div>
             </div>
           )}
         </>
       )}
 
-      {/* 일괄 처리 중 전체 화면 오버레이 */}
+      {/* 커맨드 팔레트 */}
+      <CommandPalette />
+
+      {/* 키보드 단축키 도움말 */}
+      <KeyboardShortcutsOverlay open={showHelp} onOpenChange={setShowHelp} />
+
+      {/* 일괄 처리 중 오버레이 */}
       {bulkProcessing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center gap-4">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
             <p className="text-base font-medium text-gray-700">일괄 처리 중입니다...</p>
-            <p className="text-sm text-gray-500">선택한 {selectedIds.size}건을 처리하고 있습니다. 잠시만 기다려주세요.</p>
           </div>
         </div>
       )}
@@ -562,14 +425,10 @@ export default function CustomersPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>등급 일괄 변경</AlertDialogTitle>
-            <AlertDialogDescription>
-              선택한 {selectedIds.size}건의 고객 등급을 변경합니다.
-            </AlertDialogDescription>
+            <AlertDialogDescription>선택한 {storeSelectedIds.length}건의 고객 등급을 변경합니다.</AlertDialogDescription>
           </AlertDialogHeader>
           <Select value={bulkGrade} onValueChange={(v) => setBulkGrade(v as CustomerGrade)} disabled={bulkProcessing}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="LEAD">리드</SelectItem>
               <SelectItem value="PROSPECT">잠재고객</SelectItem>
@@ -581,12 +440,7 @@ export default function CustomersPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={bulkProcessing}>취소</AlertDialogCancel>
             <AlertDialogAction onClick={handleBulkGradeChange} disabled={bulkProcessing}>
-              {bulkProcessing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  처리 중...
-                </>
-              ) : '변경'}
+              {bulkProcessing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />처리 중...</> : '변경'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -597,23 +451,12 @@ export default function CustomersPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>일괄 삭제</AlertDialogTitle>
-            <AlertDialogDescription>
-              선택한 {selectedIds.size}건의 고객을 삭제합니다. 이 작업은 되돌릴 수 없습니다.
-            </AlertDialogDescription>
+            <AlertDialogDescription>선택한 {storeSelectedIds.length}건의 고객을 삭제합니다. 이 작업은 되돌릴 수 없습니다.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={bulkProcessing}>취소</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleBulkDelete}
-              disabled={bulkProcessing}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {bulkProcessing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  처리 중...
-                </>
-              ) : '삭제'}
+            <AlertDialogAction onClick={handleBulkDelete} disabled={bulkProcessing} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {bulkProcessing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />처리 중...</> : '삭제'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

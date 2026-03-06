@@ -7,10 +7,10 @@
  * @requirements 1.2, 6.6
  */
 
-import type { CustomerGrade, LeadSource, LeadStatus } from './customer';
+import type { CustomerGrade, LeadSource, LeadStatus, SegmentType } from './customer';
 
 // Re-export existing types for convenience
-export type { CustomerGrade, LeadSource, LeadStatus };
+export type { CustomerGrade, LeadSource, LeadStatus, SegmentType };
 
 /**
  * 통합 엔티티 유형
@@ -87,6 +87,37 @@ export interface UnifiedEntity {
   
   /** 수정일시 (ISO 8601 형식) */
   updatedAt: string;
+
+  // ========== CRM 확장 필드 ==========
+  /** 건강도 점수 (0~100) */
+  healthScore?: number;
+
+  /** 이탈 위험 점수 (0~100) */
+  churnRiskScore?: number;
+
+  /** 데이터 품질 점수 (0~100) */
+  dataQualityScore?: number;
+
+  /** 세그먼트 (산업군) */
+  segment?: SegmentType;
+
+  /** 태그 이름 배열 */
+  tags?: string[];
+
+  /** 최근 활동일 (ISO 8601) */
+  lastActivityAt?: string;
+
+  /** 진행 중 견적 건수 */
+  activeQuotationCount?: number;
+
+  /** 활성 계약 건수 */
+  activeContractCount?: number;
+
+  /** 미수금 합계 */
+  outstandingAmount?: number;
+
+  /** Customer Lifetime Value */
+  clv?: number;
 }
 
 /**
@@ -111,10 +142,41 @@ export interface UnifiedCustomerFilters {
   limit?: number;
   
   /** 정렬 기준 */
-  sortBy?: 'updatedAt' | 'createdAt' | 'companyName';
+  sortBy?: 'updatedAt' | 'createdAt' | 'companyName' | 'healthScore' | 'dataQualityScore' | 'quotationCount' | 'totalAmount' | 'lastActivityAt';
   
   /** 정렬 순서 */
   sortOrder?: 'asc' | 'desc';
+
+  // ========== CRM 확장 필터 ==========
+  /** 등급 필터 */
+  grade?: CustomerGrade;
+
+  /** 건강도 점수 최소 */
+  healthScoreMin?: number;
+
+  /** 건강도 점수 최대 */
+  healthScoreMax?: number;
+
+  /** 태그 필터 */
+  tags?: string[];
+
+  /** 세그먼트 필터 */
+  segment?: SegmentType;
+
+  /** 최근 활동일 기준 (일) */
+  lastActivityDays?: number;
+
+  /** 활동일 시작 */
+  lastActivityFrom?: string;
+
+  /** 활동일 종료 */
+  lastActivityTo?: string;
+
+  /** 데이터 품질 최소 */
+  dataQualityMin?: number;
+
+  /** 데이터 품질 최대 */
+  dataQualityMax?: number;
 }
 
 /**

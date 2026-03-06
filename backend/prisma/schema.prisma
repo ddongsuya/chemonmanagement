@@ -304,6 +304,24 @@ model LeadTaskCompletion {
 
 // ==================== Customer (확장) ====================
 
+// 신규 Enum - 고객 세그먼트 (산업군)
+enum SegmentType {
+  PHARMACEUTICAL // 제약
+  COSMETICS // 화장품
+  HEALTH_FOOD // 건강식품
+  MEDICAL_DEVICE // 의료기기
+  OTHER // 기타
+}
+
+// 신규 Enum - 커스텀 필드 유형
+enum CustomFieldType {
+  TEXT
+  NUMBER
+  DATE
+  DROPDOWN
+  CHECKBOX
+}
+
 model Customer {
   id        String        @id @default(uuid())
   userId    String
@@ -315,6 +333,7 @@ model Customer {
   address   String?
   notes     String?
   grade     CustomerGrade @default(PROSPECT) // 신규: 고객 등급
+  segment   SegmentType? // 신규: 세그먼트 (산업군)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   deletedAt DateTime?
@@ -336,11 +355,21 @@ model Customer {
   // Clinical Pathology 관계
   clinicalQuotations ClinicalQuotation[]
 
+  // CRM 고객 관리 확장 관계
+  customerTags         CustomerTag[]
+  customerNotes        CustomerNote[]
+  customerDocuments    CustomerDocument[]
+  customerAuditLogs    CustomerAuditLog[]
+  customerHealthScores CustomerHealthScore[]
+  lifecycleTransitions LifecycleTransition[]
+  customFieldValues    CustomerCustomFieldValue[]
+
   // 인덱스 최적화
   @@index([userId])
   @@index([grade])
   @@index([name])
   @@index([company])
+  @@index([segment])
 }
 
 // ==================== Requester (의뢰자) ====================
@@ -1709,4 +1738,155 @@ model ToxicityV2Metadata {
   value Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+
+// ==================== CRM Customer Management Extension ====================
+
+// 고객 태그
+model CustomerTag {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name       String
+  color      String?
+  createdBy  String
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, name])
+  @@index([customerId])
+  @@index([name])
+}
+
+// 고객 메모
+model CustomerNote {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  content    String
+  isPinned   Boolean  @default(false)
+  mentions   Json?
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([isPinned])
+}
+
+// 고객 문서
+model CustomerDocument {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  fileName   String
+  fileSize   Int
+  mimeType   String
+  filePath   String
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+// 감사 추적
+model CustomerAuditLog {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  action     String
+  fieldName  String?
+  oldValue   String?
+  newValue   String?
+  metadata   Json?
+  changedBy  String
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+  @@index([changedBy])
+  @@index([createdAt])
+  @@index([fieldName])
+}
+
+// 건강도 점수 이력
+model CustomerHealthScore {
+  id             String   @id @default(uuid())
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  score          Int
+  activityScore  Int
+  dealScore      Int
+  meetingScore   Int
+  paymentScore   Int
+  contractScore  Int
+  churnRiskScore Int
+  calculatedAt   DateTime @default(now())
+
+  @@index([customerId])
+  @@index([calculatedAt])
+}
+
+// 저장된 필터 프리셋
+model FilterPreset {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  filters   Json
+  sortBy    String?
+  sortOrder String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// 라이프사이클 전환 이력
+model LifecycleTransition {
+  id           String   @id @default(uuid())
+  customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  fromStage    String
+  toStage      String
+  reason       String?
+  isAutomatic  Boolean  @default(false)
+  triggeredBy  String
+  transitionAt DateTime @default(now())
+
+  @@index([customerId])
+  @@index([transitionAt])
+  @@index([fromStage, toStage])
+}
+
+// 커스텀 필드 정의
+model CustomerCustomField {
+  id           String          @id @default(uuid())
+  name         String
+  fieldType    CustomFieldType
+  options      Json?
+  isRequired   Boolean         @default(false)
+  displayOrder Int             @default(0)
+  isActive     Boolean         @default(true)
+  createdBy    String
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  values CustomerCustomFieldValue[]
+
+  @@unique([name])
+}
+
+// 커스텀 필드 값
+model CustomerCustomFieldValue {
+  id         String              @id @default(uuid())
+  customerId String
+  customer   Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  fieldId    String
+  field      CustomerCustomField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  value      String
+  updatedAt  DateTime            @updatedAt
+
+  @@unique([customerId, fieldId])
+  @@index([customerId])
+  @@index([fieldId])
 }

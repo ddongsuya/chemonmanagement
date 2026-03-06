@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Skeleton from '@/components/ui/Skeleton';
+import { cn } from '@/lib/utils';
 import {
   MapPin, FileText, Calendar, Users, ClipboardList, ChevronRight,
   Phone as PhoneIcon, Mail as MailIcon, Video, MessageSquare,
@@ -13,10 +14,15 @@ import { progressStageApi, meetingRecordApi, calendarEventApi, customerQuotation
 import type { ProgressStage, MeetingRecord, CalendarEvent } from '@/types/customer';
 import type { CustomerQuotation, CustomerContract, TimelineItem } from '@/types/customer-crm';
 import ActivityTimeline from './ActivityTimeline';
-import { FileSignature } from 'lucide-react';
+import { FileSignature, AlertTriangle, Heart, DollarSign, Pin } from 'lucide-react';
+import { getHealthScore, getNotes } from '@/lib/unified-customer-api';
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+} from 'recharts';
 
 type TabType = 'overview' | 'calendar' | 'meetings' | 'tests' | 'invoices' | 'requesters'
-  | 'quotations' | 'contracts' | 'lead-activities' | 'consultations';
+  | 'quotations' | 'contracts' | 'lead-activities' | 'consultations'
+  | 'notes' | 'documents' | 'audit-log';
 
 interface OverviewTabProps {
   customer: {
@@ -61,6 +67,8 @@ export default function OverviewTab({ customer, customerId, onTabChange }: Overv
   const [contracts, setContracts] = useState<CustomerContract[]>([]);
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [healthData, setHealthData] = useState<{ score: number; churnRiskScore: number } | null>(null);
+  const [pinnedNotes, setPinnedNotes] = useState<{ id: string; content: string; createdBy: string; createdAt: string }[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -92,6 +100,20 @@ export default function OverviewTab({ customer, customerId, onTabChange }: Overv
         if (quots.status === 'fulfilled') setQuotations(quots.value);
         if (conts.status === 'fulfilled') setContracts(conts.value);
         if (tl.status === 'fulfilled') setTimeline(tl.value);
+        // Load CRM extension data
+        const [hsRes, notesRes] = await Promise.allSettled([
+          getHealthScore(customerId),
+          getNotes(customerId, 1, 50),
+        ]);
+        if (hsRes.status === 'fulfilled' && (hsRes.value as any).success) {
+          const d = (hsRes.value as any).data;
+          if (d) setHealthData({ score: d.score, churnRiskScore: d.churnRiskScore });
+        }
+        if (notesRes.status === 'fulfilled' && (notesRes.value as any).success) {
+          const d = (notesRes.value as any).data;
+          const notes = d?.notes || d || [];
+          setPinnedNotes(notes.filter((n: any) => n.isPinned).slice(0, 3));
+        }
       } catch (err) {
         console.error('Failed to load overview data:', err);
       } finally {
@@ -278,6 +300,63 @@ export default function OverviewTab({ customer, customerId, onTabChange }: Overv
           )}
         </CardContent>
       </Card>
+
+      {/* 건강도 & 이탈 위험 */}
+      {healthData && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Heart className="w-4 h-4" /> 건강도 & 이탈 위험
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <p className={cn('text-2xl font-bold', healthData.score >= 70 ? 'text-green-600' : healthData.score >= 40 ? 'text-yellow-600' : 'text-red-600')}>
+                  {healthData.score}
+                </p>
+                <p className="text-xs text-muted-foreground">건강도</p>
+              </div>
+              <div className="text-center">
+                <p className={cn('text-2xl font-bold', healthData.churnRiskScore >= 70 ? 'text-red-600' : healthData.churnRiskScore >= 40 ? 'text-yellow-600' : 'text-green-600')}>
+                  {healthData.churnRiskScore}
+                </p>
+                <p className="text-xs text-muted-foreground">이탈 위험</p>
+              </div>
+            </div>
+            {healthData.churnRiskScore >= 70 && (
+              <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 dark:bg-red-900/10 p-2 text-xs text-red-700 dark:text-red-400">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                이탈 위험이 높습니다. 즉시 관리가 필요합니다.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 고정 메모 */}
+      {pinnedNotes.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Pin className="w-4 h-4" /> 고정 메모
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => onTabChange('notes' as TabType)} className="text-xs">
+                더보기 <ChevronRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {pinnedNotes.map(note => (
+              <div key={note.id} className="rounded-lg border border-yellow-200 bg-yellow-50/50 dark:bg-yellow-900/10 p-2">
+                <p className="text-sm line-clamp-2">{note.content}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">{note.createdBy} · {new Date(note.createdAt).toLocaleDateString('ko-KR')}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* 최근 활동 타임라인 */}
       <ActivityTimeline

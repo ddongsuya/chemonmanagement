@@ -16,3 +16,14 @@ export { default as userCodeRoutes } from './userCode';
 export { default as paymentScheduleRoutes } from './paymentSchedules';
 export { default as pushRoutes } from './push';
 export { default as unifiedCustomerRoutes } from './unifiedCustomers';
+export { default as customerTagRoutes } from './customerTags';
+export { default as customerNoteRoutes } from './customerNotes';
+export { default as customerDocumentRoutes } from './customerDocuments';
+export { default as customerHealthScoreRoutes } from './customerHealthScore';
+export { default as customerAuditLogRoutes } from './customerAuditLog';
+export { default as dataQualityRoutes } from './dataQuality';
+export { default as filterPresetRoutes } from './filterPresets';
+export { default as customFieldRoutes } from './customFields';
+export { default as customerAnalyticsRoutes } from './customerAnalytics';
+
+export { default as customerImportExportRoutes } from './customerImportExport';
