@@ -87,7 +87,7 @@ export default function UnifiedCustomerStats({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-muted-foreground">{card.label}</p>
-                  <p className={cn('text-2xl font-bold', card.color)}>
+                  <p className={cn('text-xl font-semibold', card.color)}>
                     {card.value.toLocaleString('ko-KR')}
                   </p>
                 </div>

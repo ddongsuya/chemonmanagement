@@ -41,7 +41,7 @@ export default function CompanyDashboard({ stats }: CompanyDashboardProps) {
     <div className="space-y-5">
       {/* 헤더 */}
       <div className="flex items-baseline gap-2">
-        <Building2 className="w-4 h-4 text-orange-500" />
+        <Building2 className="w-4 h-4 text-primary" />
         <h2 className="text-base font-semibold text-foreground">전사 현황</h2>
         <span className="text-xs text-muted-foreground">{stats.period.year}년 {stats.period.month}월</span>
       </div>

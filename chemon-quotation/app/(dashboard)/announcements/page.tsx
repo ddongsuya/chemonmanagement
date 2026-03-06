@@ -111,8 +111,8 @@ export default function AnnouncementsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Megaphone className="w-6 h-6 text-orange-500" />
+          <h1 className="text-xl font-semibold flex items-center gap-2">
+            <Megaphone className="w-6 h-6 text-primary" />
             공지사항
           </h1>
           <p className="text-gray-500 mt-1">
@@ -216,7 +216,7 @@ export default function AnnouncementsPage() {
                             {formatRelativeTime(announcement.createdAt)}
                           </span>
                         </div>
-                        <h3 className="font-semibold text-lg group-hover:text-orange-500 transition-colors truncate">
+                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors truncate">
                           {announcement.title}
                         </h3>
                         <p className="text-gray-500 text-sm mt-1 line-clamp-2">
@@ -238,7 +238,7 @@ export default function AnnouncementsPage() {
                       </div>
 
                       {/* Arrow */}
-                      <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-orange-500 transition-colors shrink-0" />
+                      <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary transition-colors shrink-0" />
                     </div>
                   </CardContent>
                 </Card>

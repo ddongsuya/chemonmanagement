@@ -130,8 +130,8 @@ export default function UnifiedCustomerCard({
   return (
     <Card 
       className={cn(
-        'cursor-pointer hover:shadow-md transition-all duration-200',
-        'focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2',
+        'cursor-pointer hover:border-foreground/15 transition-colors duration-150',
+        'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1',
         selectable && selected && 'ring-2 ring-primary bg-primary/5',
         className
       )}
