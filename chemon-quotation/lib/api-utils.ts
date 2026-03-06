@@ -70,6 +70,7 @@ function redirectToLogin(): void {
  * 공통 API fetch 함수
  * - 자동 토큰 첨부
  * - 401 에러 시 토큰 갱신 후 재시도
+ * - 네트워크 에러 시 1회 자동 재시도 (Render 콜드 스타트 대응)
  * - 토큰 갱신 실패 시 로그인 페이지로 리다이렉트
  */
 export async function apiFetch<T>(
@@ -91,11 +92,19 @@ export async function apiFetch<T>(
     (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
   }
 
+  // 네트워크 에러 시 1회 재시도 (Render 콜드 스타트 대응)
+  const fetchWithRetry = async (): Promise<Response> => {
+    try {
+      return await fetch(url, { ...options, headers });
+    } catch (firstError) {
+      // 네트워크 에러 → 3초 후 1회 재시도
+      await new Promise(r => setTimeout(r, 3000));
+      return fetch(url, { ...options, headers });
+    }
+  };
+
   try {
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    const response = await fetchWithRetry();
 
     // 401 에러 처리 - 토큰 갱신 시도
     if (response.status === 401 && accessToken) {

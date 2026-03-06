@@ -17,9 +17,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkAuth();
   }, [checkAuth]);
 
-  // Prevent hydration mismatch by not rendering until mounted
+  // Prevent hydration mismatch — show minimal loading until mounted
   if (!mounted) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-7 w-7 border-2 border-muted border-t-primary" />
+      </div>
+    );
   }
 
   return <>{children}</>;

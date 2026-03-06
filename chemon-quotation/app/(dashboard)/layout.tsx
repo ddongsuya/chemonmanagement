@@ -14,9 +14,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // 마스터데이터 프리로드
+  // 마스터데이터 프리로드 (실패해도 앱 동작에 영향 없음)
   useEffect(() => {
-    preloadMasterData();
+    preloadMasterData().catch(() => {});
   }, []);
 
   // 30분 비활동 시 자동 로그아웃
