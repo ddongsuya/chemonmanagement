@@ -8,7 +8,7 @@ import { useState, useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
-  closestCorner,
+  closestCorners,
   PointerSensor,
   useSensor,
   useSensors,
@@ -152,7 +152,7 @@ export function KanbanView({ entities, onStageChange, onClick }: KanbanViewProps
   const activeEntity = activeId ? entities.find(e => e.id === activeId) : null;
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCorner} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex gap-3 overflow-x-auto pb-4">
         {KANBAN_STAGES.map(stage => (
           <KanbanColumn key={stage.key} stage={stage} entities={grouped[stage.key] || []} onClick={onClick} />
