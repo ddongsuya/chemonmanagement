@@ -92,15 +92,18 @@ export async function apiFetch<T>(
     (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  // 네트워크 에러 시 1회 재시도 (Render 콜드 스타트 대응)
+  // 네트워크 에러 시 재시도 (Render 콜드 스타트 대응 — 5초 간격 2회)
   const fetchWithRetry = async (): Promise<Response> => {
-    try {
-      return await fetch(url, { ...options, headers });
-    } catch (firstError) {
-      // 네트워크 에러 → 3초 후 1회 재시도
-      await new Promise(r => setTimeout(r, 3000));
-      return fetch(url, { ...options, headers });
+    const maxRetries = 2;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await fetch(url, { ...options, headers });
+      } catch (err) {
+        if (attempt === maxRetries) throw err;
+        await new Promise(r => setTimeout(r, 5000));
+      }
     }
+    throw new Error('Unreachable');
   };
 
   try {

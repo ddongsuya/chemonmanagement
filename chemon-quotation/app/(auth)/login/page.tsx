@@ -23,25 +23,40 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [apiStatus, setApiStatus] = useState<'checking' | 'ok' | 'error'>('checking');
+  const [apiStatus, setApiStatus] = useState<'checking' | 'ok' | 'error' | 'waking'>('checking');
 
-  // API 서버 연결 상태 확인
+  // API 서버 연결 상태 확인 (콜드 스타트 대응 — 최대 3회 재시도)
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    
-    fetch(`${apiUrl}/health`, { method: 'GET', signal: controller.signal })
-      .then((res) => {
-        clearTimeout(timeoutId);
-        setApiStatus(res.ok ? 'ok' : 'error');
-      })
-      .catch(() => {
-        clearTimeout(timeoutId);
-        setApiStatus('error');
-      });
-    
-    return () => { clearTimeout(timeoutId); controller.abort(); };
+    let cancelled = false;
+    let retryCount = 0;
+    const maxRetries = 3;
+
+    const checkHealth = async () => {
+      while (retryCount < maxRetries && !cancelled) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000);
+          const res = await fetch(`${apiUrl}/health`, { method: 'GET', signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (!cancelled) {
+            setApiStatus(res.ok ? 'ok' : 'error');
+          }
+          return;
+        } catch {
+          retryCount++;
+          if (!cancelled) {
+            setApiStatus(retryCount < maxRetries ? 'waking' : 'error');
+          }
+          if (retryCount < maxRetries && !cancelled) {
+            await new Promise(r => setTimeout(r, 5000));
+          }
+        }
+      }
+    };
+
+    checkHealth();
+    return () => { cancelled = true; };
   }, []);
 
   // 이미 로그인된 상태로 페이지 접근 시
@@ -125,6 +140,24 @@ export default function LoginPage() {
               </Alert>
             )}
 
+            {apiStatus === 'waking' && (
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-700">
+                  서버가 시작 중입니다. 잠시만 기다려주세요... (최대 1분)
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {apiStatus === 'checking' && (
+              <Alert className="border-blue-200 bg-blue-50">
+                <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+                <AlertDescription className="text-blue-700">
+                  서버 연결 확인 중...
+                </AlertDescription>
+              </Alert>
+            )}
+
             {apiStatus === 'error' && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -176,11 +209,16 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button type="submit" className="w-full" disabled={submitting || apiStatus === 'checking' || apiStatus === 'waking'}>
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {apiStatus === 'error' ? '서버 연결 대기 중...' : '로그인 중...'}
+                  로그인 중...
+                </>
+              ) : apiStatus === 'checking' || apiStatus === 'waking' ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  서버 연결 대기 중...
                 </>
               ) : (
                 '로그인'

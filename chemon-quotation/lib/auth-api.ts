@@ -111,7 +111,7 @@ export function clearTokens(): void {
 
 
 // API request helper with authentication
-const DEFAULT_TIMEOUT = 30000; // 30초 타임아웃 (Render cold start 대응)
+const DEFAULT_TIMEOUT = 60000; // 60초 타임아웃 (Render cold start 대응 — free plan은 깨어나는 데 30~90초 소요)
 
 async function authFetch<T>(
   endpoint: string,
