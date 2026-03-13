@@ -33,6 +33,7 @@ interface OverviewTabProps {
   };
   customerId: string;
   onTabChange: (tab: TabType) => void;
+  requesterId?: string | null;
 }
 
 const STAGE_LABELS: Record<string, string> = {
@@ -59,7 +60,7 @@ const MEETING_TYPE_LABELS: Record<string, string> = {
   visit: '방문',
 };
 
-export default function OverviewTab({ customer, customerId, onTabChange }: OverviewTabProps) {
+export default function OverviewTab({ customer, customerId, onTabChange, requesterId }: OverviewTabProps) {
   const [progressStage, setProgressStage] = useState<ProgressStage | null>(null);
   const [recentMeetings, setRecentMeetings] = useState<MeetingRecord[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<CalendarEvent[]>([]);
@@ -84,7 +85,12 @@ export default function OverviewTab({ customer, customerId, onTabChange }: Overv
         ]);
         if (stage.status === 'fulfilled') setProgressStage(stage.value);
         if (meetings.status === 'fulfilled') {
-          const sorted = meetings.value.sort((a, b) =>
+          let meetingList = meetings.value;
+          // 담당자 필터링
+          if (requesterId) {
+            meetingList = meetingList.filter((m: any) => m.requester_id === requesterId || m.requesterId === requesterId);
+          }
+          const sorted = meetingList.sort((a, b) =>
             new Date(b.date).getTime() - new Date(a.date).getTime()
           );
           setRecentMeetings(sorted.slice(0, 3));
@@ -121,7 +127,7 @@ export default function OverviewTab({ customer, customerId, onTabChange }: Overv
       }
     };
     load();
-  }, [customerId]);
+  }, [customerId, requesterId]);
 
   if (loading) {
     return (

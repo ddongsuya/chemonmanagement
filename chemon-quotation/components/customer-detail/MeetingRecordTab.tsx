@@ -13,6 +13,7 @@ import type { MeetingRecord } from '@/types/customer';
 
 interface MeetingRecordTabProps {
   customerId: string;
+  requesterId?: string | null;
 }
 
 const TYPE_CONFIG: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
@@ -22,7 +23,7 @@ const TYPE_CONFIG: Record<string, { icon: React.ReactNode; label: string; color:
   visit: { icon: <MessageSquare className="w-4 h-4" />, label: '방문', color: 'bg-orange-100 text-orange-800' },
 };
 
-export default function MeetingRecordTab({ customerId }: MeetingRecordTabProps) {
+export default function MeetingRecordTab({ customerId, requesterId }: MeetingRecordTabProps) {
   const [records, setRecords] = useState<MeetingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -33,7 +34,12 @@ export default function MeetingRecordTab({ customerId }: MeetingRecordTabProps) 
     setError(false);
     try {
       const data = await meetingRecordApi.getByCustomerId(customerId);
-      setRecords(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      let filtered = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      // 담당자 필터링
+      if (requesterId) {
+        filtered = filtered.filter(r => (r as any).requester_id === requesterId || (r as any).requesterId === requesterId);
+      }
+      setRecords(filtered);
     } catch {
       setError(true);
     } finally {
@@ -41,7 +47,7 @@ export default function MeetingRecordTab({ customerId }: MeetingRecordTabProps) 
     }
   };
 
-  useEffect(() => { load(); }, [customerId]);
+  useEffect(() => { load(); }, [customerId, requesterId]);
 
   if (loading) {
     return <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>;

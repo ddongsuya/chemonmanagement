@@ -16,8 +16,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { getCustomerById, updateCustomer, Customer } from '@/lib/data-api';
-import { customerLeadCheckApi } from '@/lib/customer-data-api';
+import { customerLeadCheckApi, requesterApi } from '@/lib/customer-data-api';
 import { getHealthScore, getDataQuality } from '@/lib/unified-customer-api';
+import type { Requester } from '@/types/customer';
+import RequesterSelector from '@/components/customer-detail/RequesterSelector';
 import CustomerForm from '@/components/customer/CustomerForm';
 import OverviewTab from '@/components/customer-detail/OverviewTab';
 import MeetingRecordTab from '@/components/customer-detail/MeetingRecordTab';
@@ -125,6 +127,10 @@ export default function CustomerDetailPage() {
   const [hasLinkedLead, setHasLinkedLead] = useState(false);
   const [tabReloadKey, setTabReloadKey] = useState(0);
 
+  // 담당자 선택
+  const [selectedRequesterId, setSelectedRequesterId] = useState<string | null>(null);
+  const [selectedRequester, setSelectedRequester] = useState<Requester | null>(null);
+
   // CRM 점수
   const [healthScore, setHealthScore] = useState<number | null>(null);
   const [churnRisk, setChurnRisk] = useState<number | null>(null);
@@ -164,6 +170,15 @@ export default function CustomerDetailPage() {
   };
 
   useEffect(() => { loadCustomer(); }, [customerId]);
+
+  // 선택된 담당자 정보 로드
+  useEffect(() => {
+    if (!selectedRequesterId) {
+      setSelectedRequester(null);
+      return;
+    }
+    requesterApi.getById(selectedRequesterId).then(r => setSelectedRequester(r));
+  }, [selectedRequesterId]);
 
   const handleGradeChange = async (newGrade: string) => {
     if (!customer) return;
@@ -297,6 +312,17 @@ export default function CustomerDetailPage() {
         </div>
       </div>
 
+      {/* ─── 담당자 선택 바 ─── */}
+      <div className="bg-white border-b sticky top-[auto] z-[9]">
+        <div className="max-w-7xl mx-auto">
+          <RequesterSelector
+            customerId={customerId}
+            selectedRequesterId={selectedRequesterId}
+            onSelect={setSelectedRequesterId}
+          />
+        </div>
+      </div>
+
       {/* ─── 본문: 3컬럼 레이아웃 ─── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -335,20 +361,37 @@ export default function CustomerDetailPage() {
               </div>
             </div>
 
-            {/* 연락처 */}
+            {/* 연락처 — 선택된 담당자 기준 */}
             <div className="bg-white rounded-xl border">
               <div className="px-4 py-3 border-b">
                 <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                  <Phone className="w-4 h-4" /> 연락처
+                  <Phone className="w-4 h-4" />
+                  {selectedRequester ? `${selectedRequester.name} 연락처` : '연락처'}
                 </h3>
               </div>
               <div className="px-4 py-1 divide-y divide-slate-100">
-                <InfoRow icon={Phone} label="전화" value={customer.phone} action={
-                  customer.phone ? <a href={`tel:${customer.phone}`} className="text-xs text-blue-600 hover:underline">통화</a> : null
-                } />
-                <InfoRow icon={Mail} label="이메일" value={customer.email} action={
-                  customer.email ? <a href={`mailto:${customer.email}`} className="text-xs text-blue-600 hover:underline">발송</a> : null
-                } />
+                {selectedRequester ? (
+                  <>
+                    <InfoRow icon={User} label="담당자" value={selectedRequester.name} />
+                    {selectedRequester.position && <InfoRow label="직책" value={selectedRequester.position} />}
+                    {selectedRequester.department && <InfoRow label="부서" value={selectedRequester.department} />}
+                    <InfoRow icon={Phone} label="전화" value={selectedRequester.phone} action={
+                      selectedRequester.phone ? <a href={`tel:${selectedRequester.phone}`} className="text-xs text-blue-600 hover:underline">통화</a> : null
+                    } />
+                    <InfoRow icon={Mail} label="이메일" value={selectedRequester.email} action={
+                      selectedRequester.email ? <a href={`mailto:${selectedRequester.email}`} className="text-xs text-blue-600 hover:underline">발송</a> : null
+                    } />
+                  </>
+                ) : (
+                  <>
+                    <InfoRow icon={Phone} label="전화" value={customer.phone} action={
+                      customer.phone ? <a href={`tel:${customer.phone}`} className="text-xs text-blue-600 hover:underline">통화</a> : null
+                    } />
+                    <InfoRow icon={Mail} label="이메일" value={customer.email} action={
+                      customer.email ? <a href={`mailto:${customer.email}`} className="text-xs text-blue-600 hover:underline">발송</a> : null
+                    } />
+                  </>
+                )}
               </div>
             </div>
 
@@ -415,7 +458,7 @@ export default function CustomerDetailPage() {
 
                 {/* 탭 콘텐츠 */}
                 <TabsContent value="overview" className="p-5 mt-0">
-                  <OverviewTab customer={customer} customerId={customerId} onTabChange={setActiveTab} />
+                  <OverviewTab customer={customer} customerId={customerId} onTabChange={setActiveTab} requesterId={selectedRequesterId} />
                 </TabsContent>
 
                 <TabsContent value="calendar" className="p-5 mt-0">
@@ -427,12 +470,12 @@ export default function CustomerDetailPage() {
                     <div className="flex justify-end">
                       <InlineMeetingForm customerId={customerId} onSuccess={reloadTab} />
                     </div>
-                    <MeetingRecordTab key={`meetings-${tabReloadKey}`} customerId={customerId} />
+                    <MeetingRecordTab key={`meetings-${tabReloadKey}-${selectedRequesterId}`} customerId={customerId} requesterId={selectedRequesterId} />
                   </div>
                 </TabsContent>
 
                 <TabsContent value="tests" className="p-5 mt-0">
-                  <TestReceptionTab customerId={customerId} />
+                  <TestReceptionTab key={`tests-${selectedRequesterId}`} customerId={customerId} requesterId={selectedRequesterId} />
                 </TabsContent>
 
                 <TabsContent value="invoices" className="p-5 mt-0">

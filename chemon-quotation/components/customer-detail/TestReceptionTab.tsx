@@ -11,6 +11,7 @@ import type { TestReception } from '@/types/customer';
 
 interface TestReceptionTabProps {
   customerId: string;
+  requesterId?: string | null;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
@@ -24,7 +25,7 @@ function formatAmount(n: number) {
   return n.toLocaleString('ko-KR') + '원';
 }
 
-export default function TestReceptionTab({ customerId }: TestReceptionTabProps) {
+export default function TestReceptionTab({ customerId, requesterId }: TestReceptionTabProps) {
   const [receptions, setReceptions] = useState<TestReception[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -34,7 +35,12 @@ export default function TestReceptionTab({ customerId }: TestReceptionTabProps) 
     setError(false);
     try {
       const data = await testReceptionApi.getByCustomerId(customerId);
-      setReceptions(data);
+      let filtered = data;
+      // 담당자 필터링
+      if (requesterId) {
+        filtered = data.filter(r => (r as any).requester_id === requesterId || (r as any).requesterId === requesterId);
+      }
+      setReceptions(filtered);
     } catch {
       setError(true);
     } finally {
@@ -42,7 +48,7 @@ export default function TestReceptionTab({ customerId }: TestReceptionTabProps) 
     }
   };
 
-  useEffect(() => { load(); }, [customerId]);
+  useEffect(() => { load(); }, [customerId, requesterId]);
 
   if (loading) {
     return <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>;
