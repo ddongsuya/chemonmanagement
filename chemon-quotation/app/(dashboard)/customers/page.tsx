@@ -2,41 +2,26 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import PageHeader from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
+  Dialog, DialogContent, DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import CustomerForm from '@/components/customer/CustomerForm';
-import UnifiedCustomerCard, { UnifiedCustomerCardSkeleton } from '@/components/customer/UnifiedCustomerCard';
-import { EnhancedCustomerCard } from '@/components/customer/EnhancedCustomerCard';
 import { ViewModeToggle } from '@/components/customer/ViewModeToggle';
 import { TableView } from '@/components/customer/TableView';
 import { KanbanView } from '@/components/customer/KanbanView';
 import { AdvancedFilterPanel } from '@/components/customer/AdvancedFilterPanel';
 import { FilterPresetManager } from '@/components/customer/FilterPresetManager';
 import { SortControl } from '@/components/customer/SortControl';
-import { KPIDashboard } from '@/components/customer/KPIDashboard';
+import { CustomerSummaryBar } from '@/components/customer/CustomerSummaryBar';
 import { BulkActionBar } from '@/components/customer/BulkActionBar';
 import { ImportExportPanel } from '@/components/customer/ImportExportPanel';
 import { CommandPalette } from '@/components/customer/CommandPalette';
@@ -47,19 +32,15 @@ import { VirtualizedCardGrid } from '@/components/customer/VirtualizedCardGrid';
 import { Plus, RefreshCw, Users, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
-  getUnifiedCustomers,
-  getPipelineStagesForFilter,
-  updateCustomerStage,
-  type UnifiedEntity,
-  type UnifiedCustomerFilters as FilterType,
-  type PipelineStageInfo,
+  getUnifiedCustomers, getPipelineStagesForFilter, updateCustomerStage,
+  type UnifiedEntity, type UnifiedCustomerFilters as FilterType, type PipelineStageInfo,
 } from '@/lib/unified-customer-api';
 import { updateCustomer, bulkUpdateCustomerGrade, bulkDeleteCustomers } from '@/lib/data-api';
 import type { CustomerGrade } from '@/lib/data-api';
 import { DEFAULT_UNIFIED_CUSTOMER_FILTERS } from '@/types/unified-customer';
 
 /**
- * 통합 고객사 관리 페이지 (CRM 개선 버전)
+ * 통합 고객사 관리 페이지 — Monday Sales CRM 스타일 리디자인
  */
 export default function CustomersPage() {
   const router = useRouter();
@@ -70,28 +51,20 @@ export default function CustomersPage() {
 
   const { viewMode, selectedIds: storeSelectedIds, toggleSelection, selectAll, clearSelection } = useCustomerManagementStore();
 
-  // 상태 관리
   const [entities, setEntities] = useState<UnifiedEntity[]>([]);
   const [stages, setStages] = useState<PipelineStageInfo[]>([]);
-  const [stats, setStats] = useState({
-    totalCount: 0, leadCount: 0, customerCount: 0,
-    stageDistribution: {} as Record<string, number>,
-  });
   const [loading, setLoading] = useState(true);
   const [stagesLoading, setStagesLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 20, totalPages: 1 });
 
-  // 일괄 처리
   const [bulkGradeDialogOpen, setBulkGradeDialogOpen] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [bulkGrade, setBulkGrade] = useState<CustomerGrade>('CUSTOMER');
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
-  // 키보드 단축키
-  const { focusIndex, showHelp, setShowHelp } = useCustomerKeyboardShortcuts({ entities });
+  const { showHelp, setShowHelp } = useCustomerKeyboardShortcuts({ entities });
 
-  // URL 파라미터에서 필터 초기화
   const [filters, setFilters] = useState<FilterType>(() => {
     const type = searchParams.get('type') as 'all' | 'lead' | 'customer' | null;
     const stageId = searchParams.get('stageId');
@@ -108,7 +81,6 @@ export default function CustomersPage() {
     };
   });
 
-  // 파이프라인 단계 로드
   useEffect(() => {
     async function loadStages() {
       setStagesLoading(true);
@@ -127,16 +99,13 @@ export default function CustomersPage() {
     loadStages();
   }, []);
 
-  // 통합 고객 데이터 로드
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await getUnifiedCustomers(filters);
       if (response.success && response.data) {
         const responseData = response.data as any;
-        const entityList = responseData.entities || responseData.data || [];
-        setEntities(entityList);
-        if (responseData.stats) setStats(responseData.stats);
+        setEntities(responseData.entities || responseData.data || []);
         if (responseData.pagination) setPagination(responseData.pagination);
       } else {
         setEntities([]);
@@ -154,7 +123,6 @@ export default function CustomersPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // URL 파라미터 동기화
   useEffect(() => {
     const params = new URLSearchParams();
     if (filters.type && filters.type !== 'all') params.set('type', filters.type);
@@ -200,7 +168,6 @@ export default function CustomersPage() {
     setFilters(prev => ({ ...prev, grade: grade as any, page: 1 }));
   }, []);
 
-  // 일괄 등급 변경
   const handleBulkGradeChange = useCallback(async () => {
     if (storeSelectedIds.length === 0) return;
     setBulkProcessing(true);
@@ -216,20 +183,15 @@ export default function CustomersPage() {
       const response = await bulkUpdateCustomerGrade(customerOnlyIds, bulkGrade);
       if (response.success) {
         toastRef.current({ title: '일괄 등급 변경 완료', description: `${response.data?.updatedCount ?? 0}건 변경됨` });
-        clearSelection();
-        setBulkGradeDialogOpen(false);
-        await loadData();
+        clearSelection(); setBulkGradeDialogOpen(false); await loadData();
       } else {
         toastRef.current({ title: '오류', description: response.error?.message || '일괄 변경 실패', variant: 'destructive' });
       }
     } catch {
       toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
-    } finally {
-      setBulkProcessing(false);
-    }
+    } finally { setBulkProcessing(false); }
   }, [storeSelectedIds, bulkGrade, entities, loadData, clearSelection]);
 
-  // 일괄 삭제
   const handleBulkDelete = useCallback(async () => {
     if (storeSelectedIds.length === 0) return;
     setBulkProcessing(true);
@@ -245,17 +207,13 @@ export default function CustomersPage() {
       const response = await bulkDeleteCustomers(customerOnlyIds);
       if (response.success) {
         toastRef.current({ title: '일괄 삭제 완료', description: `${response.data?.deletedCount || customerOnlyIds.length}건 삭제됨` });
-        clearSelection();
-        setBulkDeleteDialogOpen(false);
-        await loadData();
+        clearSelection(); setBulkDeleteDialogOpen(false); await loadData();
       } else {
         toastRef.current({ title: '오류', description: response.error?.message || '일괄 삭제 실패', variant: 'destructive' });
       }
     } catch {
       toastRef.current({ title: '오류', description: '서버 연결에 실패했습니다', variant: 'destructive' });
-    } finally {
-      setBulkProcessing(false);
-    }
+    } finally { setBulkProcessing(false); }
   }, [storeSelectedIds, entities, loadData, clearSelection]);
 
   const handleAddSuccess = useCallback(() => {
@@ -263,66 +221,77 @@ export default function CustomersPage() {
     loadData();
   }, [loadData]);
 
-  // 로딩 상태
+  // 로딩 스켈레톤
   if (loading && entities.length === 0) {
     return (
-      <div>
-        <PageHeader title="고객사 관리" description="리드와 고객을 통합하여 관리합니다" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          {[1, 2, 3, 4].map(i => <Card key={i}><CardContent className="p-4 h-20 animate-pulse bg-muted/50" /></Card>)}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold">고객사 관리</h1>
+            <p className="text-xs text-muted-foreground">리드와 고객을 통합하여 관리합니다</p>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-          {[1, 2, 3, 4, 5, 6].map(i => <UnifiedCustomerCardSkeleton key={i} />)}
+    
+        <div className="rounded-lg border bg-card px-4 py-3 animate-pulse">
+          <div className="h-5 w-64 bg-muted rounded" />
+        </div>
+        <div className="rounded-lg border bg-card p-4 animate-pulse space-y-3">
+          <div className="h-8 w-full bg-muted rounded" />
+          <div className="h-8 w-full bg-muted rounded" />
+          <div className="h-8 w-full bg-muted rounded" />
+          <div className="h-8 w-full bg-muted rounded" />
+          <div className="h-8 w-full bg-muted rounded" />
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <PageHeader
-        title="고객사 관리"
-        description="리드와 고객을 통합하여 관리합니다"
-        actions={
-          <div className="flex items-center gap-2 flex-wrap">
-            <ImportExportPanel onImportSuccess={loadData} />
-            <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
-              <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-              새로고침
-            </Button>
-            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-              <DialogTrigger asChild>
-                <Button size="sm"><Plus className="w-4 h-4 mr-1" />신규 등록</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <CustomerForm onSuccess={handleAddSuccess} />
-              </DialogContent>
-            </Dialog>
-          </div>
-        }
-      />
+    <div className="space-y-3">
+      {/* 페이지 헤더 */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h1 className="text-lg font-semibold">고객사 관리</h1>
+          <p className="text-xs text-muted-foreground">리드와 고객을 통합하여 관리합니다</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <ImportExportPanel onImportSuccess={loadData} />
+          <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            새로고침
+          </Button>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button size="sm"><Plus className="w-4 h-4 mr-1" />신규 등록</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <CustomerForm onSuccess={handleAddSuccess} />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
 
-      {/* KPI 대시보드 */}
-      <KPIDashboard onFilterByGrade={handleFilterByGrade} />
+      {/* KPI 요약 바 */}
+      <CustomerSummaryBar onFilterByGrade={handleFilterByGrade} />
 
-      {/* 필터 + 뷰 모드 + 정렬 */}
-      <Card className="mb-4">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <ViewModeToggle />
-            <div className="flex items-center gap-2">
-              <SortControl filters={filters} onFilterChange={handleFilterChange} />
-              <FilterPresetManager filters={filters} onApplyPreset={handleFilterChange} />
-            </div>
+      {/* 뷰 탭 + 필터 통합 카드 */}
+      <div className="rounded-lg border bg-card">
+        <div className="flex items-center justify-between border-b px-3 py-2">
+          <ViewModeToggle />
+          <div className="flex items-center gap-2">
+            <SortControl filters={filters} onFilterChange={handleFilterChange} />
+            <FilterPresetManager filters={filters} onApplyPreset={handleFilterChange} />
           </div>
+        </div>
+        <div className="px-3 py-2">
           <AdvancedFilterPanel
             filters={filters}
             stages={stages}
             onFilterChange={handleFilterChange}
             loading={loading || stagesLoading}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* 일괄 작업 바 */}
       <BulkActionBar
@@ -359,6 +328,7 @@ export default function CustomersPage() {
               onToggleSelection={toggleSelection}
               onSelectAll={selectAll}
               onClick={handleEntityClick}
+              onGradeChange={handleGradeChange}
             />
           )}
 
@@ -370,10 +340,10 @@ export default function CustomersPage() {
             />
           )}
 
-          {/* 페이지네이션 (카드/테이블 뷰) */}
+          {/* 페이지네이션 */}
           {viewMode !== 'kanban' && pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6">
-              <p className="text-sm text-gray-500">
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-muted-foreground">
                 전체 {pagination.total}건 중 {(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)}건
               </p>
               <div className="flex gap-2">
@@ -406,8 +376,6 @@ export default function CustomersPage() {
 
       {/* 커맨드 팔레트 */}
       <CommandPalette />
-
-      {/* 키보드 단축키 도움말 */}
       <KeyboardShortcutsOverlay open={showHelp} onOpenChange={setShowHelp} />
 
       {/* 일괄 처리 중 오버레이 */}

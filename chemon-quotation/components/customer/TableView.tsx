@@ -1,20 +1,24 @@
 'use client';
 
 /**
- * TableView - @tanstack/react-table 기반 고객 테이블 뷰
+ * TableView - Monday Sales CRM 스프레드시트 스타일 테이블
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  flexRender,
-  type ColumnDef,
-  type SortingState,
+  useReactTable, getCoreRowModel, getSortedRowModel, flexRender,
+  type ColumnDef, type SortingState,
 } from '@tanstack/react-table';
-import { useState } from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown, FileText, Briefcase } from 'lucide-react';
+import {
+  ArrowUpDown, ArrowUp, ArrowDown, FileText, Briefcase,
+  Phone, Mail, MoreHorizontal,
+} from 'lucide-react';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { UnifiedEntity } from '@/types/unified-customer';
 import { ENTITY_TYPE_BADGE_CONFIG } from '@/types/unified-customer';
@@ -25,12 +29,23 @@ interface TableViewProps {
   onToggleSelection?: (id: string) => void;
   onSelectAll?: (ids: string[]) => void;
   onClick?: (entity: UnifiedEntity) => void;
+  onGradeChange?: (entity: UnifiedEntity, grade: string) => void;
 }
 
+const GRADE_CONFIG: Record<string, { label: string; color: string }> = {
+  LEAD: { label: '리드', color: '#6B7280' },
+  PROSPECT: { label: '잠재고객', color: '#3B82F6' },
+  CUSTOMER: { label: '고객', color: '#10B981' },
+  VIP: { label: 'VIP', color: '#8B5CF6' },
+  INACTIVE: { label: '비활성', color: '#EF4444' },
+};
+
 function HealthBadge({ score }: { score?: number }) {
-  if (score == null) return <span className="text-muted-foreground">-</span>;
-  const color = score >= 70 ? 'bg-green-100 text-green-700' : score >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700';
-  return <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', color)}>{score}</span>;
+  if (score == null) return <span className="text-muted-foreground text-xs">-</span>;
+  const color = score >= 70 ? 'bg-green-50 text-green-700 border-green-200'
+    : score >= 40 ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+    : 'bg-red-50 text-red-700 border-red-200';
+  return <span className={cn('rounded px-1.5 py-0.5 text-xs font-medium border', color)}>{score}</span>;
 }
 
 function formatDaysAgo(dateStr?: string): string {
@@ -44,10 +59,34 @@ function formatDaysAgo(dateStr?: string): string {
 function SortIcon({ isSorted }: { isSorted: false | 'asc' | 'desc' }) {
   if (isSorted === 'asc') return <ArrowUp className="ml-1 h-3 w-3" />;
   if (isSorted === 'desc') return <ArrowDown className="ml-1 h-3 w-3" />;
-  return <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />;
+  return <ArrowUpDown className="ml-1 h-3 w-3 opacity-40" />;
 }
 
-export function TableView({ entities, selectedIds, onToggleSelection, onSelectAll, onClick }: TableViewProps) {
+function InlineGradeCell({ value, onChange }: { value?: string; onChange?: (v: string) => void }) {
+  const config = GRADE_CONFIG[value || 'CUSTOMER'] || GRADE_CONFIG.CUSTOMER;
+  if (!onChange) return <span className="text-xs" style={{ color: config.color }}>{config.label}</span>;
+
+  return (
+    <Select value={value || 'CUSTOMER'} onValueChange={onChange}>
+      <SelectTrigger
+        className="h-6 w-[80px] border-0 bg-transparent text-xs font-medium px-1.5 focus:ring-0"
+        style={{ color: config.color }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {Object.entries(GRADE_CONFIG).map(([k, v]) => (
+          <SelectItem key={k} value={k}>
+            <span style={{ color: v.color }}>{v.label}</span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+export function TableView({ entities, selectedIds, onToggleSelection, onSelectAll, onClick, onGradeChange }: TableViewProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const columns = useMemo<ColumnDef<UnifiedEntity>[]>(() => [
@@ -74,7 +113,7 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
           aria-label={`${row.original.companyName} 선택`}
         />
       ),
-      size: 40,
+      size: 36,
       enableSorting: false,
     },
     {
@@ -84,8 +123,8 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
         const badge = ENTITY_TYPE_BADGE_CONFIG[row.original.entityType];
         return (
           <div className="flex items-center gap-2">
-            <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-medium', badge.className)}>{badge.label}</span>
-            <span className="font-medium">{row.original.companyName}</span>
+            <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-medium', badge.className)}>{badge.label}</span>
+            <span className="font-medium text-sm">{row.original.companyName}</span>
           </div>
         );
       },
@@ -93,13 +132,13 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
     {
       accessorKey: 'contactName',
       header: '담당자',
-      cell: ({ row }) => row.original.contactName,
+      cell: ({ row }) => <span className="text-sm">{row.original.contactName}</span>,
     },
     {
       id: 'contact',
       header: '연락처',
       cell: ({ row }) => (
-        <span className="text-xs">{row.original.contactPhone || row.original.contactEmail || '-'}</span>
+        <span className="text-xs text-muted-foreground">{row.original.contactPhone || row.original.contactEmail || '-'}</span>
       ),
       enableSorting: false,
     },
@@ -107,7 +146,14 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
       accessorKey: 'displayStage',
       header: '단계',
       cell: ({ row }) => (
-        <span className="rounded-full px-2 py-0.5 text-xs" style={{ backgroundColor: row.original.stageColor + '20', color: row.original.stageColor }}>
+        <span
+          className="inline-block rounded px-2 py-0.5 text-xs font-medium"
+          style={{
+            backgroundColor: row.original.stageColor + '15',
+            color: row.original.stageColor,
+            borderLeft: `3px solid ${row.original.stageColor}`,
+          }}
+        >
           {row.original.displayStage}
         </span>
       ),
@@ -115,7 +161,14 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
     {
       accessorKey: 'grade',
       header: '등급',
-      cell: ({ row }) => row.original.grade || '-',
+      cell: ({ row }) => (
+        <InlineGradeCell
+          value={row.original.grade}
+          onChange={row.original.entityType === 'CUSTOMER'
+            ? (v) => onGradeChange?.(row.original, v)
+            : undefined}
+        />
+      ),
     },
     {
       accessorKey: 'healthScore',
@@ -126,7 +179,7 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
       id: 'quotations',
       header: '견적',
       cell: ({ row }) => (
-        <span className="flex items-center gap-1 text-xs">
+        <span className="flex items-center gap-1 text-xs text-muted-foreground">
           <FileText className="h-3 w-3" />{row.original.activeQuotationCount ?? row.original.quotationCount ?? 0}
         </span>
       ),
@@ -135,7 +188,7 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
       id: 'contracts',
       header: '계약',
       cell: ({ row }) => (
-        <span className="flex items-center gap-1 text-xs">
+        <span className="flex items-center gap-1 text-xs text-muted-foreground">
           <Briefcase className="h-3 w-3" />{row.original.activeContractCount ?? 0}
         </span>
       ),
@@ -145,15 +198,35 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
       header: '총금액',
       cell: ({ row }) => {
         const amt = row.original.totalAmount;
-        return amt != null ? `₩${amt.toLocaleString()}` : '-';
+        return <span className="text-sm">{amt != null ? `₩${amt.toLocaleString()}` : '-'}</span>;
       },
     },
     {
       accessorKey: 'lastActivityAt',
       header: '최근활동',
-      cell: ({ row }) => <span className="text-xs">{formatDaysAgo(row.original.lastActivityAt)}</span>,
+      cell: ({ row }) => <span className="text-xs text-muted-foreground">{formatDaysAgo(row.original.lastActivityAt)}</span>,
     },
-  ], [entities, selectedIds, onToggleSelection, onSelectAll]);
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 transition-opacity">
+          {row.original.contactPhone && (
+            <a href={`tel:${row.original.contactPhone}`} className="p-1 rounded hover:bg-muted" onClick={(e) => e.stopPropagation()} aria-label="전화">
+              <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+            </a>
+          )}
+          {row.original.contactEmail && (
+            <a href={`mailto:${row.original.contactEmail}`} className="p-1 rounded hover:bg-muted" onClick={(e) => e.stopPropagation()} aria-label="이메일">
+              <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+            </a>
+          )}
+        </div>
+      ),
+      size: 60,
+      enableSorting: false,
+    },
+  ], [entities, selectedIds, onToggleSelection, onSelectAll, onGradeChange]);
 
   const table = useReactTable({
     data: entities,
@@ -165,15 +238,18 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
   });
 
   return (
-    <div className="overflow-x-auto rounded-lg border">
+    <div className="overflow-x-auto rounded-lg border bg-card">
       <table className="w-full text-sm" role="grid">
-        <thead className="bg-muted/50">
+        <thead>
           {table.getHeaderGroups().map(hg => (
-            <tr key={hg.id}>
+            <tr key={hg.id} className="border-b bg-muted/30">
               {hg.headers.map(header => (
                 <th
                   key={header.id}
-                  className={cn('px-3 py-2 text-left font-medium text-muted-foreground', header.column.getCanSort() && 'cursor-pointer select-none')}
+                  className={cn(
+                    'px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider',
+                    header.column.getCanSort() && 'cursor-pointer select-none hover:text-foreground'
+                  )}
                   onClick={header.column.getToggleSortingHandler()}
                   style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
                 >
@@ -186,15 +262,18 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
             </tr>
           ))}
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-border">
           {table.getRowModel().rows.map(row => (
             <tr
               key={row.id}
-              className={cn('border-t hover:bg-muted/30 cursor-pointer transition-colors', selectedIds.includes(row.original.id) && 'bg-primary/5')}
+              className={cn(
+                'group/row hover:bg-muted/20 cursor-pointer transition-colors',
+                selectedIds.includes(row.original.id) && 'bg-primary/5'
+              )}
               onClick={() => onClick?.(row.original)}
             >
               {row.getVisibleCells().map(cell => (
-                <td key={cell.id} className="px-3 py-2.5">
+                <td key={cell.id} className="px-3 py-2">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
