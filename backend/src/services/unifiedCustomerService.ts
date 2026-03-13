@@ -150,8 +150,29 @@ export class UnifiedCustomerService {
     const leadEntities = leads.map(mapLeadToUnifiedEntity);
     const customerEntities = customers.map(mapCustomerToUnifiedEntity);
 
+    // 중복 제거: 같은 회사명+연락처를 가진 Lead가 Customer에도 있으면 Lead 제외
+    // (customerId가 설정되지 않은 CONVERTED 이전 상태의 리드도 처리)
+    const customerCompanyKeys = new Set(
+      customerEntities.map(c => `${c.companyName}||${c.contactPhone || ''}||${c.contactEmail || ''}`)
+    );
+    const dedupedLeadEntities = leadEntities.filter(lead => {
+      const key = `${lead.companyName}||${lead.contactPhone || ''}||${lead.contactEmail || ''}`;
+      return !customerCompanyKeys.has(key);
+    });
+
+    // Customer 간 중복 제거: 같은 회사명+연락처 → 최신 updatedAt 유지
+    const customerDedup = new Map<string, UnifiedEntity>();
+    for (const c of customerEntities) {
+      const key = `${c.companyName}||${c.contactPhone || ''}||${c.contactEmail || ''}`;
+      const existing = customerDedup.get(key);
+      if (!existing || new Date(c.updatedAt) > new Date(existing.updatedAt)) {
+        customerDedup.set(key, c);
+      }
+    }
+    const dedupedCustomerEntities = Array.from(customerDedup.values());
+
     // 통합 및 정렬
-    let allEntities: UnifiedEntity[] = [...leadEntities, ...customerEntities];
+    let allEntities: UnifiedEntity[] = [...dedupedLeadEntities, ...dedupedCustomerEntities];
 
     // Requirements 1.5: 최신 업데이트 순으로 정렬 (기본값)
     allEntities = this.sortEntities(allEntities, sortBy, sortOrder);
@@ -218,6 +239,8 @@ export class UnifiedCustomerService {
       where: {
         deletedAt: null,
         userId,
+        // CONVERTED 상태인 리드는 이미 Customer로 표시되므로 제외 (중복 방지)
+        status: { not: LeadStatus.CONVERTED },
         ...stageCondition,
         ...searchConditions,
       },
