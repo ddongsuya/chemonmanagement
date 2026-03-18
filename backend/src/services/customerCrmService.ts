@@ -13,31 +13,62 @@ export interface TimelineItem {
 }
 
 // 동일 회사의 모든 Customer ID를 찾는 헬퍼 (크로스 모듈 데이터 연동)
+// 1) company/name 직접 매칭
+// 2) Lead.companyName을 통한 간접 매칭
 async function findRelatedCustomerIds(customerId: string): Promise<string[]> {
   const customer = await prisma.customer.findUnique({
     where: { id: customerId },
-    select: { id: true, company: true, name: true, userId: true },
+    select: {
+      id: true, company: true, name: true, userId: true,
+      leads: {
+        where: { deletedAt: null },
+        select: { companyName: true },
+        take: 1,
+      },
+    },
   });
   if (!customer) return [customerId];
 
-  const companyName = customer.company || customer.name;
-  if (!companyName) return [customerId];
+  // 회사명 후보 수집 (company, name, lead.companyName)
+  const nameSet = new Set<string>();
+  if (customer.company) nameSet.add(customer.company);
+  if (customer.name) nameSet.add(customer.name);
+  if (customer.leads[0]?.companyName) nameSet.add(customer.leads[0].companyName);
 
-  const related = await prisma.customer.findMany({
+  if (nameSet.size === 0) return [customerId];
+
+  const names = Array.from(nameSet);
+
+  // 직접 매칭: company 또는 name이 후보 중 하나와 일치
+  const directMatch = await prisma.customer.findMany({
     where: {
       userId: customer.userId,
       deletedAt: null,
       OR: [
-        { company: companyName },
-        { name: companyName },
+        { company: { in: names } },
+        { name: { in: names } },
       ],
     },
     select: { id: true },
   });
 
-  const ids = related.map(c => c.id);
-  if (!ids.includes(customerId)) ids.push(customerId);
-  return ids;
+  // 간접 매칭: Lead.companyName이 후보 중 하나와 일치하는 Customer
+  const leadMatch = await prisma.lead.findMany({
+    where: {
+      deletedAt: null,
+      companyName: { in: names },
+      customer: { userId: customer.userId, deletedAt: null },
+    },
+    select: { customerId: true },
+  });
+
+  const idSet = new Set<string>([customerId]);
+  for (const c of directMatch) idSet.add(c.id);
+  for (const l of leadMatch) {
+    if (l.customerId) idSet.add(l.customerId);
+  }
+
+  return Array.from(idSet);
 }
 
 export const CustomerCrmService = {

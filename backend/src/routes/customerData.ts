@@ -762,4 +762,80 @@ router.get('/customers/:customerId/has-lead', async (req: Request, res: Response
   }
 });
 
+// 디버그: 고객사 데이터 연동 상태 확인
+router.get('/customers/:customerId/debug-sync', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { customerId } = req.params;
+    const prismaClient = (await import('../lib/prisma')).default;
+
+    // 현재 고객 정보
+    const customer = await prismaClient.customer.findUnique({
+      where: { id: customerId },
+      select: { id: true, company: true, name: true, email: true, phone: true, userId: true },
+    });
+
+    if (!customer) {
+      return res.json({ success: false, message: 'Customer not found' });
+    }
+
+    // 연결된 리드
+    const leads = await prismaClient.lead.findMany({
+      where: { customerId, deletedAt: null },
+      select: { id: true, companyName: true, contactName: true, status: true },
+    });
+
+    // 직접 연결된 계약
+    const directContracts = await prismaClient.contract.findMany({
+      where: { customerId, deletedAt: null },
+      select: { id: true, contractNumber: true, title: true, customerId: true },
+    });
+
+    // 직접 연결된 견적서
+    const directQuotations = await prismaClient.quotation.findMany({
+      where: { customerId, deletedAt: null },
+      select: { id: true, quotationNumber: true, customerId: true },
+    });
+
+    // 동일 회사명의 다른 Customer 레코드
+    const companyName = customer.company || customer.name;
+    const relatedCustomers = await prismaClient.customer.findMany({
+      where: {
+        userId: customer.userId,
+        deletedAt: null,
+        id: { not: customerId },
+        OR: [
+          { company: companyName },
+          { name: companyName },
+        ],
+      },
+      select: {
+        id: true, company: true, name: true,
+        contracts: { where: { deletedAt: null }, select: { id: true, contractNumber: true } },
+        quotations: { where: { deletedAt: null }, select: { id: true, quotationNumber: true } },
+      },
+    });
+
+    // CRM 서비스를 통한 통합 조회 결과
+    const crmContracts = await CustomerCrmService.getContractsByCustomerId(customerId);
+    const crmQuotations = await CustomerCrmService.getQuotationsByCustomerId(customerId);
+
+    res.json({
+      success: true,
+      data: {
+        customer,
+        leads,
+        directContracts,
+        directQuotations,
+        relatedCustomers,
+        crmIntegrated: {
+          contracts: crmContracts,
+          quotations: crmQuotations,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
