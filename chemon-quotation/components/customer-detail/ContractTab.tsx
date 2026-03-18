@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Skeleton from '@/components/ui/Skeleton';
-import { FileSignature, RefreshCw } from 'lucide-react';
+import { FileSignature, RefreshCw, Plus } from 'lucide-react';
 import { customerContractApi } from '@/lib/customer-data-api';
 import type { CustomerContract } from '@/types/customer-crm';
 
@@ -33,7 +33,7 @@ const TYPE_LABELS: Record<string, string> = {
   EFFICACY: '효력',
 };
 
-export default function ContractTab({ customerId }: { customerId: string }) {
+export default function ContractTab({ customerId, customerName }: { customerId: string; customerName?: string }) {
   const router = useRouter();
   const [data, setData] = useState<CustomerContract[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,19 +77,31 @@ export default function ContractTab({ customerId }: { customerId: string }) {
     );
   }
 
+  const nameParam = customerName ? `&customerName=${encodeURIComponent(customerName)}` : '';
+
+  const NewContractButton = () => (
+    <Button size="sm" onClick={() => router.push(`/contract/new?customerId=${customerId}${nameParam}`)}>
+      <Plus className="w-4 h-4 mr-1" />새 계약
+    </Button>
+  );
+
   if (data.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <FileSignature className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">등록된 계약이 없습니다</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        <div className="flex justify-end"><NewContractButton /></div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <FileSignature className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">등록된 계약이 없습니다</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-2">
+      <div className="flex justify-end mb-1"><NewContractButton /></div>
       {data.map(c => (
         <Card
           key={c.id}

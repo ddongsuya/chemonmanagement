@@ -6,7 +6,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Skeleton from '@/components/ui/Skeleton';
-import { FileText, RefreshCw } from 'lucide-react';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { FileText, RefreshCw, Plus, ChevronDown } from 'lucide-react';
 import { customerQuotationApi } from '@/lib/customer-data-api';
 import type { CustomerQuotation } from '@/types/customer-crm';
 
@@ -40,7 +43,7 @@ function getQuotationDetailUrl(q: CustomerQuotation): string {
   }
 }
 
-export default function QuotationTab({ customerId }: { customerId: string }) {
+export default function QuotationTab({ customerId, customerName }: { customerId: string; customerName?: string }) {
   const router = useRouter();
   const [data, setData] = useState<CustomerQuotation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,19 +87,44 @@ export default function QuotationTab({ customerId }: { customerId: string }) {
     );
   }
 
+  const nameParam = customerName ? `&customerName=${encodeURIComponent(customerName)}` : '';
+
+  const NewQuotationButton = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm"><Plus className="w-4 h-4 mr-1" />새 견적서<ChevronDown className="w-3 h-3 ml-1" /></Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => router.push(`/quotations/new?customerId=${customerId}${nameParam}`)}>
+          독성시험 견적서
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push(`/efficacy-quotations/new?customerId=${customerId}${nameParam}`)}>
+          효력시험 견적서
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push(`/clinical-pathology/quotations/new?customerId=${customerId}${nameParam}`)}>
+          임상병리 견적서
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   if (data.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">등록된 견적서가 없습니다</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        <div className="flex justify-end"><NewQuotationButton /></div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">등록된 견적서가 없습니다</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-2">
+      <div className="flex justify-end mb-1"><NewQuotationButton /></div>
       {data.map(q => (
         <Card
           key={q.id}

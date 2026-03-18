@@ -40,6 +40,7 @@ import ProjectManagementTab from '@/components/customer-detail/ProjectManagement
 import InlineMeetingForm from '@/components/customer-detail/InlineMeetingForm';
 import InlineRequesterForm from '@/components/customer-detail/InlineRequesterForm';
 import InlineConsultationForm from '@/components/customer-detail/InlineConsultationForm';
+import InlineTestReceptionForm from '@/components/customer-detail/InlineTestReceptionForm';
 import {
   ChevronRight, Edit, MoreHorizontal, Building2, User, Phone, Mail,
   Heart, TrendingDown, BarChart3, FileText, Briefcase, DollarSign,
@@ -146,7 +147,11 @@ export default function CustomerDetailPage() {
     try {
       const response = await getCustomerById(customerId);
       if (response.success && response.data) {
-        setCustomer(response.data);
+        // email/phone이 object인 경우 방어 처리
+        const data = response.data;
+        if (data.email && typeof data.email !== 'string') data.email = '';
+        if (data.phone && typeof data.phone !== 'string') data.phone = '';
+        setCustomer(data);
         customerLeadCheckApi.hasLinkedLead(customerId).then(setHasLinkedLead).catch(() => {});
         // CRM 점수 로드
         const [hsRes, dqRes] = await Promise.allSettled([
@@ -477,7 +482,12 @@ export default function CustomerDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="tests" className="p-5 mt-0">
-                  <TestReceptionTab key={`tests-${selectedRequesterId}`} customerId={customerId} requesterId={selectedRequesterId} />
+                  <div className="space-y-3">
+                    <div className="flex justify-end">
+                      <InlineTestReceptionForm customerId={customerId} requesterId={selectedRequesterId} onSuccess={reloadTab} />
+                    </div>
+                    <TestReceptionTab key={`tests-${tabReloadKey}-${selectedRequesterId}`} customerId={customerId} requesterId={selectedRequesterId} />
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="invoices" className="p-5 mt-0">
@@ -485,11 +495,11 @@ export default function CustomerDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="quotations" className="p-5 mt-0">
-                  <QuotationTab customerId={customerId} />
+                  <QuotationTab customerId={customerId} customerName={customer?.company || customer?.name} />
                 </TabsContent>
 
                 <TabsContent value="contracts" className="p-5 mt-0">
-                  <ContractTab customerId={customerId} />
+                  <ContractTab customerId={customerId} customerName={customer?.company || customer?.name} />
                 </TabsContent>
 
                 <TabsContent value="projects" className="p-5 mt-0">
