@@ -36,6 +36,7 @@ import DocumentsTab from '@/components/customer-detail/DocumentsTab';
 import AuditLogTab from '@/components/customer-detail/AuditLogTab';
 import CustomFieldsSection from '@/components/customer-detail/CustomFieldsSection';
 import ActivityTimelineTab from '@/components/customer-detail/ActivityTimelineTab';
+import ProjectManagementTab from '@/components/customer-detail/ProjectManagementTab';
 import InlineMeetingForm from '@/components/customer-detail/InlineMeetingForm';
 import InlineRequesterForm from '@/components/customer-detail/InlineRequesterForm';
 import InlineConsultationForm from '@/components/customer-detail/InlineConsultationForm';
@@ -57,13 +58,14 @@ const GRADE_OPTIONS = [
 
 type TabType = 'overview' | 'calendar' | 'meetings' | 'tests' | 'invoices' | 'requesters'
   | 'quotations' | 'contracts' | 'lead-activities' | 'consultations'
-  | 'notes' | 'documents' | 'audit-log' | 'activity-timeline';
+  | 'notes' | 'documents' | 'audit-log' | 'activity-timeline' | 'projects';
 
 const PRIMARY_TABS: { value: TabType; label: string }[] = [
   { value: 'overview', label: '개요' },
   { value: 'meetings', label: '미팅' },
   { value: 'quotations', label: '견적서' },
   { value: 'contracts', label: '계약' },
+  { value: 'projects', label: '프로젝트 관리' },
   { value: 'tests', label: '시험접수' },
   { value: 'consultations', label: '상담' },
   { value: 'activity-timeline', label: '커뮤니케이션' },
@@ -488,6 +490,10 @@ export default function CustomerDetailPage() {
 
                 <TabsContent value="contracts" className="p-5 mt-0">
                   <ContractTab customerId={customerId} />
+                </TabsContent>
+
+                <TabsContent value="projects" className="p-5 mt-0">
+                  <ProjectManagementTab customerId={customerId} />
                 </TabsContent>
 
                 <TabsContent value="consultations" className="p-5 mt-0">

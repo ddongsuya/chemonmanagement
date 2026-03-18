@@ -101,6 +101,11 @@ export interface TestReception {
   expected_completion_date: string;
   actual_completion_date?: string;
 
+  // 프로젝트 진행 단계
+  projectStage?: string;
+  projectStageHistory?: { stage: string; date: string; note: string; updatedBy: string }[];
+  projectAttachments?: { id: string; name: string; url: string; type: string; size: number; uploadedAt: string }[];
+
   created_at: string;
   updated_at: string;
 }

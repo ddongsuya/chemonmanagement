@@ -381,6 +381,111 @@ router.delete('/test-receptions/:id', async (req: Request, res: Response, next: 
   }
 });
 
+// ==================== 프로젝트 진행 단계 관리 ====================
+
+const VALID_PROJECT_STAGES = ['PLAN_DELIVERY', 'DRAFT_REPORT', 'FINAL_REPORT', 'INVOICE_ISSUED'];
+
+// 프로젝트 단계 업데이트
+router.patch('/test-receptions/:id/project-stage', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { stage, note } = req.body;
+    const userId = (req as any).user?.id || 'system';
+
+    if (!stage || !VALID_PROJECT_STAGES.includes(stage)) {
+      return res.status(400).json({ success: false, message: '유효하지 않은 단계입니다.' });
+    }
+
+    const existing = await TestReceptionService.getById(id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: '시험 접수를 찾을 수 없습니다.' });
+    }
+
+    const currentHistory = (existing as any).projectStageHistory || [];
+    const newHistory = [
+      ...currentHistory,
+      { stage, date: new Date().toISOString(), note: note || '', updatedBy: userId },
+    ];
+
+    const prismaClient = (await import('../lib/prisma')).default;
+    const updated = await prismaClient.testReception.update({
+      where: { id },
+      data: {
+        projectStage: stage,
+        projectStageHistory: newHistory,
+      },
+    });
+
+    res.json({ success: true, data: { testReception: updated } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 프로젝트 첨부파일 추가
+router.post('/test-receptions/:id/project-attachments', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { name, url, type, size } = req.body;
+
+    if (!name || !url) {
+      return res.status(400).json({ success: false, message: '파일명과 URL이 필요합니다.' });
+    }
+
+    const existing = await TestReceptionService.getById(id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: '시험 접수를 찾을 수 없습니다.' });
+    }
+
+    const currentAttachments = (existing as any).projectAttachments || [];
+    const newAttachment = {
+      id: crypto.randomUUID(),
+      name,
+      url,
+      type: type || 'file',
+      size: size || 0,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    const prismaClient = (await import('../lib/prisma')).default;
+    const updated = await prismaClient.testReception.update({
+      where: { id },
+      data: {
+        projectAttachments: [...currentAttachments, newAttachment],
+      },
+    });
+
+    res.json({ success: true, data: { testReception: updated, attachment: newAttachment } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 프로젝트 첨부파일 삭제
+router.delete('/test-receptions/:id/project-attachments/:attachmentId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id, attachmentId } = req.params;
+
+    const existing = await TestReceptionService.getById(id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: '시험 접수를 찾을 수 없습니다.' });
+    }
+
+    const currentAttachments = (existing as any).projectAttachments || [];
+    const filtered = currentAttachments.filter((a: any) => a.id !== attachmentId);
+
+    const prismaClient = (await import('../lib/prisma')).default;
+    const updated = await prismaClient.testReception.update({
+      where: { id },
+      data: { projectAttachments: filtered },
+    });
+
+    res.json({ success: true, data: { testReception: updated } });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ==================== InvoiceSchedule Routes ====================
 
 // 고객사별 세금계산서 일정 목록

@@ -503,6 +503,9 @@ function mapTestReceptionFromApi(data: any): TestReception {
     reception_date: data.receptionDate,
     expected_completion_date: data.expectedCompletionDate,
     actual_completion_date: data.actualCompletionDate,
+    projectStage: data.projectStage,
+    projectStageHistory: data.projectStageHistory,
+    projectAttachments: data.projectAttachments,
     created_at: data.createdAt,
     updated_at: data.updatedAt,
   };
@@ -676,5 +679,41 @@ export const customerLeadCheckApi = {
       `/api/customer-data/customers/${customerId}/has-lead`
     );
     return response.data?.hasLead || false;
+  },
+};
+
+// ==================== 프로젝트 진행 단계 API ====================
+
+export const projectStageApi = {
+  // 프로젝트 단계 업데이트
+  async updateStage(testReceptionId: string, stage: string, note?: string): Promise<any> {
+    const response = await apiFetch<{ testReception: any }>(
+      `/api/customer-data/test-receptions/${testReceptionId}/project-stage`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ stage, note }),
+      }
+    );
+    return response.data?.testReception;
+  },
+
+  // 첨부파일 추가
+  async addAttachment(testReceptionId: string, data: { name: string; url: string; type?: string; size?: number }): Promise<any> {
+    const response = await apiFetch<{ testReception: any; attachment: any }>(
+      `/api/customer-data/test-receptions/${testReceptionId}/project-attachments`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+    return response.data;
+  },
+
+  // 첨부파일 삭제
+  async removeAttachment(testReceptionId: string, attachmentId: string): Promise<void> {
+    await apiFetch(
+      `/api/customer-data/test-receptions/${testReceptionId}/project-attachments/${attachmentId}`,
+      { method: 'DELETE' }
+    );
   },
 };

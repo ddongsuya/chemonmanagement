@@ -465,6 +465,11 @@ model TestReception {
   expectedCompletionDate DateTime?
   actualCompletionDate   DateTime?
 
+  // 프로젝트 진행 단계 추적
+  projectStage        String @default("PLAN_DELIVERY") // PLAN_DELIVERY, DRAFT_REPORT, FINAL_REPORT, INVOICE_ISSUED
+  projectStageHistory Json   @default("[]") // [{stage, date, note, updatedBy}]
+  projectAttachments  Json   @default("[]") // [{name, url, type, size, uploadedAt}]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
