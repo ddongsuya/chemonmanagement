@@ -51,7 +51,15 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.contract.findMany({
         where,
         include: {
-          customer: true,
+          customer: {
+            include: {
+              leads: {
+                where: { deletedAt: null },
+                select: { companyName: true },
+                take: 1,
+              },
+            },
+          },
           quotations: { select: { id: true, quotationNumber: true } },
           _count: { select: { studies: true, amendments: true } },
         },
@@ -139,23 +147,34 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     // customerId가 없으면 고객 정보로 고객 찾기 또는 생성
     let finalCustomerId = customerId;
     if (!finalCustomerId && customerName) {
-      // 기존 고객 찾기
+      // 기존 고객 찾기 — company 또는 name으로 검색
       const existingCustomer = await prisma.customer.findFirst({
         where: {
           userId,
-          name: customerName,
           deletedAt: null,
+          OR: [
+            { company: customerName },
+            { name: customerName },
+          ],
         },
       });
 
       if (existingCustomer) {
         finalCustomerId = existingCustomer.id;
+        // company 필드가 비어있으면 채워주기
+        if (!existingCustomer.company) {
+          await prisma.customer.update({
+            where: { id: existingCustomer.id },
+            data: { company: customerName },
+          });
+        }
       } else {
-        // 새 고객 생성
+        // 새 고객 생성 — company 필드에 회사명 설정
         const newCustomer = await prisma.customer.create({
           data: {
             userId,
             name: customerName,
+            company: customerName,
             address: customerAddress || '',
             grade: 'CUSTOMER',
           },

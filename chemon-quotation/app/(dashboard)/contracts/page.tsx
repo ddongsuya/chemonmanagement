@@ -236,7 +236,7 @@ export default function ContractsPage() {
                         <div className="font-medium text-sm mb-1 truncate">{title}</div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                           <Building2 className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{contract.customer?.company || contract.customer?.name || contract.customer_name || '-'}</span>
+                          <span className="truncate">{contract.customer?.company || (contract.customer as any)?.leads?.[0]?.companyName || contract.customer_name || contract.customer?.name || '-'}</span>
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex-shrink-0">
                             {contractType === 'TOXICITY' ? '독성' : contractType === 'EFFICACY' ? '효력' : '임상병리'}
                           </Badge>
@@ -285,7 +285,7 @@ export default function ContractsPage() {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Building2 className="w-4 h-4 text-muted-foreground" />
-                              {contract.customer?.company || contract.customer?.name || contract.customer_name || '-'}
+                              {contract.customer?.company || (contract.customer as any)?.leads?.[0]?.companyName || contract.customer_name || contract.customer?.name || '-'}
                             </div>
                           </TableCell>
                           <TableCell>

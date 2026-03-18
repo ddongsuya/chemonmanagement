@@ -245,6 +245,7 @@ export interface Contract extends SavedContract {
     company?: string;
     phone?: string;
     email?: string;
+    leads?: Array<{ companyName: string }>;
   };
   studies?: Array<{
     id: string;
