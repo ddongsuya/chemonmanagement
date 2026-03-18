@@ -51,7 +51,7 @@ function mapContractFromApi(data: any): SavedContract {
     quotation_id: data.quotations?.[0]?.id || undefined,
     quotation_number: data.quotations?.[0]?.quotationNumber || '',
     customer_id: data.customerId || '',
-    customer_name: data.customer?.name || '',
+    customer_name: data.customer?.company || data.customer?.leads?.[0]?.companyName || data.customer?.name || '',
     customer_address: data.customer?.address || '',
     customer_ceo: '',
     project_name: data.title || '',
