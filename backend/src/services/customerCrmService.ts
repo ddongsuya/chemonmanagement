@@ -12,12 +12,42 @@ export interface TimelineItem {
   metadata?: Record<string, any>;
 }
 
+// 동일 회사의 모든 Customer ID를 찾는 헬퍼 (크로스 모듈 데이터 연동)
+async function findRelatedCustomerIds(customerId: string): Promise<string[]> {
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: { id: true, company: true, name: true, userId: true },
+  });
+  if (!customer) return [customerId];
+
+  const companyName = customer.company || customer.name;
+  if (!companyName) return [customerId];
+
+  const related = await prisma.customer.findMany({
+    where: {
+      userId: customer.userId,
+      deletedAt: null,
+      OR: [
+        { company: companyName },
+        { name: companyName },
+      ],
+    },
+    select: { id: true },
+  });
+
+  const ids = related.map(c => c.id);
+  if (!ids.includes(customerId)) ids.push(customerId);
+  return ids;
+}
+
 export const CustomerCrmService = {
   // 고객사 견적서 조회 (Quotation + ClinicalQuotation 통합)
+  // 동일 회사명의 모든 Customer 레코드에서 견적서를 조회
   async getQuotationsByCustomerId(customerId: string) {
+    const relatedIds = await findRelatedCustomerIds(customerId);
     const [quotations, clinicalQuotations] = await Promise.all([
       prisma.quotation.findMany({
-        where: { customerId, deletedAt: null },
+        where: { customerId: { in: relatedIds }, deletedAt: null },
         select: {
           id: true,
           quotationNumber: true,
@@ -31,7 +61,7 @@ export const CustomerCrmService = {
         orderBy: { createdAt: 'desc' },
       }),
       prisma.clinicalQuotation.findMany({
-        where: { customerId },
+        where: { customerId: { in: relatedIds } },
         select: {
           id: true,
           quotationNumber: true,
@@ -71,9 +101,11 @@ export const CustomerCrmService = {
   },
 
   // 고객사 계약 조회
+  // 동일 회사명의 모든 Customer 레코드에서 계약을 조회
   async getContractsByCustomerId(customerId: string) {
+    const relatedIds = await findRelatedCustomerIds(customerId);
     const contracts = await prisma.contract.findMany({
-      where: { customerId, deletedAt: null },
+      where: { customerId: { in: relatedIds }, deletedAt: null },
       select: {
         id: true,
         contractNumber: true,
@@ -105,8 +137,9 @@ export const CustomerCrmService = {
 
   // 고객사 리드 활동 조회
   async getLeadActivitiesByCustomerId(customerId: string) {
+    const relatedIds = await findRelatedCustomerIds(customerId);
     const leads = await prisma.lead.findMany({
-      where: { customerId, deletedAt: null },
+      where: { customerId: { in: relatedIds }, deletedAt: null },
       include: {
         stage: true,
         activities: {
@@ -149,8 +182,9 @@ export const CustomerCrmService = {
 
   // 고객사 상담기록 조회
   async getConsultationsByCustomerId(customerId: string) {
+    const relatedIds = await findRelatedCustomerIds(customerId);
     const records = await prisma.consultationRecord.findMany({
-      where: { customerId, deletedAt: null },
+      where: { customerId: { in: relatedIds }, deletedAt: null },
       include: {
         contract: { select: { contractNumber: true } },
       },
@@ -169,40 +203,42 @@ export const CustomerCrmService = {
   },
 
   // 통합 활동 타임라인 (최근 10건)
+  // 동일 회사명의 모든 Customer 레코드에서 활동을 조회
   async getActivityTimeline(customerId: string): Promise<TimelineItem[]> {
+    const relatedIds = await findRelatedCustomerIds(customerId);
     const [quotations, contracts, meetings, events, consultations, leadData] = await Promise.all([
       prisma.quotation.findMany({
-        where: { customerId, deletedAt: null },
+        where: { customerId: { in: relatedIds }, deletedAt: null },
         select: { id: true, quotationNumber: true, projectName: true, status: true, quotationType: true, createdAt: true },
         orderBy: { createdAt: 'desc' },
         take: 10,
       }),
       prisma.contract.findMany({
-        where: { customerId, deletedAt: null },
+        where: { customerId: { in: relatedIds }, deletedAt: null },
         select: { id: true, contractNumber: true, title: true, status: true, createdAt: true },
         orderBy: { createdAt: 'desc' },
         take: 10,
       }),
       prisma.meetingRecord.findMany({
-        where: { customerId },
+        where: { customerId: { in: relatedIds } },
         select: { id: true, title: true, type: true, date: true },
         orderBy: { date: 'desc' },
         take: 10,
       }),
       prisma.calendarEvent.findMany({
-        where: { customerId },
+        where: { customerId: { in: relatedIds } },
         select: { id: true, title: true, type: true, startDate: true },
         orderBy: { startDate: 'desc' },
         take: 10,
       }),
       prisma.consultationRecord.findMany({
-        where: { customerId, deletedAt: null },
+        where: { customerId: { in: relatedIds }, deletedAt: null },
         select: { id: true, recordNumber: true, substanceName: true, consultDate: true },
         orderBy: { consultDate: 'desc' },
         take: 10,
       }),
       prisma.lead.findMany({
-        where: { customerId, deletedAt: null },
+        where: { customerId: { in: relatedIds }, deletedAt: null },
         select: {
           activities: {
             select: { id: true, subject: true, type: true, contactedAt: true },
@@ -287,8 +323,9 @@ export const CustomerCrmService = {
 
   // 고객사에 연결된 리드 존재 여부 확인
   async hasLinkedLead(customerId: string): Promise<boolean> {
+    const relatedIds = await findRelatedCustomerIds(customerId);
     const count = await prisma.lead.count({
-      where: { customerId, deletedAt: null },
+      where: { customerId: { in: relatedIds }, deletedAt: null },
     });
     return count > 0;
   },

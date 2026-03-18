@@ -266,10 +266,10 @@ export default function CustomerDetailPage() {
                   <span>{daysSinceCreated}일 거래</span>
                   {customer.phone && (
                     <a href={`tel:${customer.phone}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                      <Phone className="w-3.5 h-3.5" />{customer.phone}
+                      <Phone className="w-3.5 h-3.5" />{typeof customer.phone === 'string' ? customer.phone : ''}
                     </a>
                   )}
-                  {customer.email && (
+                  {customer.email && typeof customer.email === 'string' && (
                     <a href={`mailto:${customer.email}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
                       <Mail className="w-3.5 h-3.5" />{customer.email}
                     </a>
@@ -384,11 +384,11 @@ export default function CustomerDetailPage() {
                   </>
                 ) : (
                   <>
-                    <InfoRow icon={Phone} label="전화" value={customer.phone} action={
-                      customer.phone ? <a href={`tel:${customer.phone}`} className="text-xs text-blue-600 hover:underline">통화</a> : null
+                    <InfoRow icon={Phone} label="전화" value={typeof customer.phone === 'string' ? customer.phone : ''} action={
+                      customer.phone && typeof customer.phone === 'string' ? <a href={`tel:${customer.phone}`} className="text-xs text-blue-600 hover:underline">통화</a> : null
                     } />
-                    <InfoRow icon={Mail} label="이메일" value={customer.email} action={
-                      customer.email ? <a href={`mailto:${customer.email}`} className="text-xs text-blue-600 hover:underline">발송</a> : null
+                    <InfoRow icon={Mail} label="이메일" value={typeof customer.email === 'string' ? customer.email : ''} action={
+                      customer.email && typeof customer.email === 'string' ? <a href={`mailto:${customer.email}`} className="text-xs text-blue-600 hover:underline">발송</a> : null
                     } />
                   </>
                 )}
