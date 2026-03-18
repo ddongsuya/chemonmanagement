@@ -66,7 +66,7 @@ const PRIMARY_TABS: { value: TabType; label: string }[] = [
   { value: 'contracts', label: '계약' },
   { value: 'tests', label: '시험접수' },
   { value: 'consultations', label: '상담' },
-  { value: 'activity-timeline', label: '활동' },
+  { value: 'activity-timeline', label: '커뮤니케이션' },
 ];
 
 const SECONDARY_TABS: { value: TabType; label: string }[] = [
@@ -468,7 +468,7 @@ export default function CustomerDetailPage() {
                 <TabsContent value="meetings" className="p-5 mt-0">
                   <div className="space-y-3">
                     <div className="flex justify-end">
-                      <InlineMeetingForm customerId={customerId} onSuccess={reloadTab} />
+                      <InlineMeetingForm customerId={customerId} requesterId={selectedRequesterId} onSuccess={reloadTab} />
                     </div>
                     <MeetingRecordTab key={`meetings-${tabReloadKey}-${selectedRequesterId}`} customerId={customerId} requesterId={selectedRequesterId} />
                   </div>
@@ -500,7 +500,7 @@ export default function CustomerDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="activity-timeline" className="p-5 mt-0">
-                  <ActivityTimelineTab customerId={customerId} />
+                  <ActivityTimelineTab customerId={customerId} requesterId={selectedRequesterId} />
                 </TabsContent>
 
                 <TabsContent value="notes" className="p-5 mt-0">

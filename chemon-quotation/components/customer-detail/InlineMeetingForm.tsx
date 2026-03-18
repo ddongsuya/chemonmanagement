@@ -25,10 +25,11 @@ import { useToast } from '@/hooks/use-toast';
 
 interface InlineMeetingFormProps {
   customerId: string;
+  requesterId?: string | null;
   onSuccess?: () => void;
 }
 
-export default function InlineMeetingForm({ customerId, onSuccess }: InlineMeetingFormProps) {
+export default function InlineMeetingForm({ customerId, requesterId, onSuccess }: InlineMeetingFormProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -60,6 +61,7 @@ export default function InlineMeetingForm({ customerId, onSuccess }: InlineMeeti
         content: form.content || undefined,
         attendees: form.attendees ? form.attendees.split(',').map(a => a.trim()) : [],
         follow_up_actions: form.follow_up_actions || undefined,
+        ...(requesterId ? { requesterId } : {}),
       } as any);
       toast({ title: '미팅 기록 추가 완료' });
       setOpen(false);
