@@ -23,6 +23,7 @@ interface InlineTestReceptionFormProps {
 interface TestEntry {
   test_number: string;
   test_title: string;
+  test_director: string;
   total_amount: string;
 }
 
@@ -37,7 +38,6 @@ export default function InlineTestReceptionForm({ customerId, requesterId, onSuc
     project_code: '',
     substance_name: '',
     institution_name: '',
-    test_director: '',
     reception_date: new Date().toISOString().split('T')[0],
     expected_completion_date: '',
     status: 'received',
@@ -45,11 +45,11 @@ export default function InlineTestReceptionForm({ customerId, requesterId, onSuc
 
   // 개별 시험 항목 (시험번호 + 시험제목 + 금액)
   const [entries, setEntries] = useState<TestEntry[]>([
-    { test_number: '', test_title: '', total_amount: '' },
+    { test_number: '', test_title: '', test_director: '', total_amount: '' },
   ]);
 
   const addEntry = () => {
-    setEntries(prev => [...prev, { test_number: '', test_title: '', total_amount: '' }]);
+    setEntries(prev => [...prev, { test_number: '', test_title: '', test_director: '', total_amount: '' }]);
   };
 
   const removeEntry = (index: number) => {
@@ -64,11 +64,11 @@ export default function InlineTestReceptionForm({ customerId, requesterId, onSuc
   const resetForm = () => {
     setCommon({
       substance_code: '', project_code: '', substance_name: '',
-      institution_name: '', test_director: '',
+      institution_name: '',
       reception_date: new Date().toISOString().split('T')[0],
       expected_completion_date: '', status: 'received',
     });
-    setEntries([{ test_number: '', test_title: '', total_amount: '' }]);
+    setEntries([{ test_number: '', test_title: '', test_director: '', total_amount: '' }]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,7 +95,7 @@ export default function InlineTestReceptionForm({ customerId, requesterId, onSuc
           substance_code: common.substance_code || undefined,
           project_code: common.project_code || undefined,
           institution_name: common.institution_name || undefined,
-          test_director: common.test_director || undefined,
+          test_director: entry.test_director || undefined,
           total_amount: amt,
           paid_amount: 0,
           remaining_amount: amt,
@@ -122,7 +122,7 @@ export default function InlineTestReceptionForm({ customerId, requesterId, onSuc
       <DialogTrigger asChild>
         <Button size="sm"><Plus className="w-4 h-4 mr-1" />시험접수 추가</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>시험 접수 추가</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* 공통 정보 섹션 */}
@@ -146,10 +146,6 @@ export default function InlineTestReceptionForm({ customerId, requesterId, onSuc
               <div>
                 <Label className="text-xs">의뢰기관</Label>
                 <Input value={common.institution_name} onChange={e => setCommon(p => ({ ...p, institution_name: e.target.value }))} />
-              </div>
-              <div>
-                <Label className="text-xs">시험책임자</Label>
-                <Input value={common.test_director} onChange={e => setCommon(p => ({ ...p, test_director: e.target.value }))} />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -188,7 +184,7 @@ export default function InlineTestReceptionForm({ customerId, requesterId, onSuc
             </div>
             {entries.map((entry, idx) => (
               <div key={idx} className="flex items-start gap-2 p-3 rounded-lg border bg-slate-50/50">
-                <div className="flex-1 grid grid-cols-3 gap-2">
+                <div className="flex-1 grid grid-cols-4 gap-2">
                   <div>
                     <Label className="text-xs">시험번호</Label>
                     <Input value={entry.test_number} onChange={e => updateEntry(idx, 'test_number', e.target.value)} placeholder={`TEST-${String(idx + 1).padStart(3, '0')}`} className="h-8 text-sm" />
@@ -196,6 +192,10 @@ export default function InlineTestReceptionForm({ customerId, requesterId, onSuc
                   <div>
                     <Label className="text-xs">시험제목 *</Label>
                     <Input value={entry.test_title} onChange={e => updateEntry(idx, 'test_title', e.target.value)} placeholder="시험 제목" className="h-8 text-sm" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">시험책임자</Label>
+                    <Input value={entry.test_director} onChange={e => updateEntry(idx, 'test_director', e.target.value)} placeholder="책임자명" className="h-8 text-sm" />
                   </div>
                   <div>
                     <Label className="text-xs">금액 (원)</Label>
