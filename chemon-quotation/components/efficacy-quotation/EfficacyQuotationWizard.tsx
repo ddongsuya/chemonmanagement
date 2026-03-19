@@ -49,7 +49,7 @@ export default function EfficacyQuotationWizard({
                   onClick={() => isClickable && onStepClick?.(step.id)}
                   disabled={!isClickable}
                   className={cn(
-                    'relative flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors',
+                    'relative flex h-7 w-7 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 transition-colors flex-shrink-0',
                     isCompleted
                       ? 'border-primary bg-primary text-white cursor-pointer hover:bg-primary/90'
                       : isCurrent
@@ -59,9 +59,9 @@ export default function EfficacyQuotationWizard({
                   )}
                 >
                   {isCompleted ? (
-                    <Check className="h-5 w-5" />
+                    <Check className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
                   ) : (
-                    <span className="text-sm font-medium">{step.id}</span>
+                    <span className="text-[10px] sm:text-sm font-medium">{step.id}</span>
                   )}
                 </button>
 
@@ -79,15 +79,16 @@ export default function EfficacyQuotationWizard({
                   {step.name}
                 </span>
 
-                {/* Step name - mobile */}
+                {/* Step name - mobile (only show current step name) */}
                 <span
                   className={cn(
-                    'ml-2 text-xs font-medium sm:hidden',
+                    'ml-1 text-[10px] font-medium sm:hidden',
                     isCurrent
                       ? 'text-primary'
                       : isCompleted
                       ? 'text-gray-900'
-                      : 'text-gray-500'
+                      : 'text-gray-500',
+                    !isCurrent && 'hidden'
                   )}
                 >
                   {step.shortName}
@@ -97,7 +98,7 @@ export default function EfficacyQuotationWizard({
                 {stepIdx !== steps.length - 1 && (
                   <div
                     className={cn(
-                      'ml-4 h-0.5 flex-1 min-w-[20px] sm:min-w-[40px]',
+                      'ml-1 sm:ml-4 h-0.5 flex-1 min-w-[8px] sm:min-w-[40px]',
                       isCompleted ? 'bg-primary' : 'bg-gray-300'
                     )}
                   />

@@ -189,27 +189,27 @@ export default function UnifiedQuotationPreview({
   return (
     <div
       id="unified-quotation-preview"
-      className="bg-white dark:bg-gray-900 p-8 shadow-lg max-w-4xl mx-auto print:shadow-none print:p-0"
+      className="bg-white dark:bg-gray-900 p-4 sm:p-8 shadow-lg max-w-4xl mx-auto print:shadow-none print:p-0"
     >
       {/* Header - Requirement 2.1: Display quotation number in header area */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-6 sm:mb-8">
         {/* Company Logo */}
         {companyInfo.logo ? (
           <img
             src={companyInfo.logo}
             alt={companyInfo.name}
-            className="h-12 mx-auto mb-2 print:h-10"
+            className="h-10 sm:h-12 mx-auto mb-2 print:h-10"
           />
         ) : (
-          <h1 className="text-3xl font-bold text-primary mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
             {companyInfo.nameEn || 'CHEMON'}
           </h1>
         )}
-        <h2 className="text-2xl font-semibold">{displayTitle}</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold">{displayTitle}</h2>
       </div>
 
       {/* Quotation Info - Requirement 2.1: Display quotation number */}
-      <div className="flex justify-between mb-6 text-sm">
+      <div className="flex justify-between mb-4 sm:mb-6 text-sm">
         <div className="space-y-1">
           <p>
             <span className="text-gray-500">견적번호:</span>{' '}
@@ -227,7 +227,7 @@ export default function UnifiedQuotationPreview({
       </div>
 
       {/* Recipient / Sender - Requirement 2.2: Display company info */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
         {/* Recipient (Customer Info) */}
         <div className="border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -285,7 +285,7 @@ export default function UnifiedQuotationPreview({
       )}
 
       {/* Items Section - Requirement 2.3: Same layout structure */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <FileText className="w-4 h-4" />
           견적 항목
@@ -305,81 +305,84 @@ export default function UnifiedQuotationPreview({
                 </div>
 
                 {/* Items Table */}
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b text-xs text-gray-500">
-                      <th className="text-left py-2 px-3 w-[40%]">항목명</th>
-                      <th className="text-right py-2 px-3 w-[15%]">단가</th>
-                      <th className="text-center py-2 px-3 w-[10%]">수량</th>
-                      <th className="text-center py-2 px-3 w-[10%]">횟수</th>
-                      <th className="text-right py-2 px-3 w-[25%]">금액</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {itemsByCategory.grouped[category].map((item) => (
-                      <tr
-                        key={item.id}
-                        className="border-b border-gray-100 dark:border-gray-800"
-                      >
-                        <td className="py-2 px-3">
-                          <span className="text-sm">{item.name}</span>
-                          {item.isDefault && (
-                            <Badge
-                              variant="outline"
-                              className="ml-2 text-xs bg-green-50 text-green-700 border-green-200 print:bg-transparent"
-                            >
-                              기본
-                            </Badge>
-                          )}
-                        </td>
-                        <td className="text-right py-2 px-3 text-sm">
-                          {formatKRW(item.unitPrice).replace('원', '')}
-                        </td>
-                        <td className="text-center py-2 px-3 text-sm">
-                          {item.quantity}
-                        </td>
-                        <td className="text-center py-2 px-3 text-sm">
-                          {item.multiplier || 1}
-                        </td>
-                        <td className="text-right py-2 px-3 text-sm font-medium">
-                          {formatKRW(item.amount)}
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse min-w-[400px]">
+                    <thead>
+                      <tr className="border-b text-xs text-gray-500">
+                        <th className="text-left py-2 px-2 sm:px-3 w-[40%]">항목명</th>
+                        <th className="text-right py-2 px-2 sm:px-3 w-[15%]">단가</th>
+                        <th className="text-center py-2 px-1.5 sm:px-3 w-[10%]">수량</th>
+                        <th className="text-center py-2 px-1.5 sm:px-3 w-[10%]">횟수</th>
+                        <th className="text-right py-2 px-2 sm:px-3 w-[25%]">금액</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {itemsByCategory.grouped[category].map((item) => (
+                        <tr
+                          key={item.id}
+                          className="border-b border-gray-100 dark:border-gray-800"
+                        >
+                          <td className="py-2 px-2 sm:px-3">
+                            <span className="text-xs sm:text-sm">{item.name}</span>
+                            {item.isDefault && (
+                              <Badge
+                                variant="outline"
+                                className="ml-1 sm:ml-2 text-[10px] sm:text-xs bg-green-50 text-green-700 border-green-200 print:bg-transparent"
+                              >
+                                기본
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="text-right py-2 px-2 sm:px-3 text-xs sm:text-sm">
+                            {formatKRW(item.unitPrice).replace('원', '')}
+                          </td>
+                          <td className="text-center py-2 px-1.5 sm:px-3 text-xs sm:text-sm">
+                            {item.quantity}
+                          </td>
+                          <td className="text-center py-2 px-1.5 sm:px-3 text-xs sm:text-sm">
+                            {item.multiplier || 1}
+                          </td>
+                          <td className="text-right py-2 px-2 sm:px-3 text-xs sm:text-sm font-medium">
+                            {formatKRW(item.amount)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ))}
           </ScrollArea>
         ) : (
           /* Standard Table View */
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100 dark:bg-gray-800">
-                <th className="border p-2 text-left w-12">No</th>
-                <th className="border p-2 text-left">시험항목</th>
-                <th className="border p-2 text-center w-20">규격</th>
-                <th className="border p-2 text-right w-32">금액(원)</th>
-              </tr>
-            </thead>
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <table className="w-full border-collapse min-w-[400px]">
+              <thead>
+                <tr className="bg-gray-100 dark:bg-gray-800">
+                  <th className="border p-1.5 sm:p-2 text-left w-10 sm:w-12 text-xs sm:text-sm">No</th>
+                  <th className="border p-1.5 sm:p-2 text-left text-xs sm:text-sm">시험항목</th>
+                  <th className="border p-1.5 sm:p-2 text-center w-16 sm:w-20 text-xs sm:text-sm">규격</th>
+                  <th className="border p-1.5 sm:p-2 text-right w-24 sm:w-32 text-xs sm:text-sm">금액(원)</th>
+                </tr>
+              </thead>
             <tbody>
               {items.map((item) => (
                 <tr key={item.id}>
-                  <td className="border p-2">
+                  <td className="border p-1.5 sm:p-2 text-xs sm:text-sm">
                     {item.isOption
                       ? ''
                       : mainItems.findIndex((m) => m.id === item.id) + 1}
                   </td>
-                  <td className="border p-2 text-sm">
+                  <td className="border p-1.5 sm:p-2 text-xs sm:text-sm">
                     {item.isOption && (
                       <span className="text-gray-400 mr-1">└</span>
                     )}
                     {item.name}
                   </td>
-                  <td className="border p-2 text-center text-sm">
+                  <td className="border p-1.5 sm:p-2 text-center text-xs sm:text-sm">
                     {item.glpStatus || '-'}
                   </td>
-                  <td className="border p-2 text-right">
+                  <td className="border p-1.5 sm:p-2 text-right text-xs sm:text-sm">
                     {formatKRW(item.amount).replace('원', '')}
                   </td>
                 </tr>
@@ -387,10 +390,10 @@ export default function UnifiedQuotationPreview({
 
               {/* Subtotal */}
               <tr className="bg-gray-50 dark:bg-gray-800 font-semibold">
-                <td colSpan={3} className="border p-2 text-right">
+                <td colSpan={3} className="border p-1.5 sm:p-2 text-right text-xs sm:text-sm">
                   소계
                 </td>
-                <td className="border p-2 text-right">
+                <td className="border p-1.5 sm:p-2 text-right text-xs sm:text-sm">
                   {formatKRW(amounts.subtotal).replace('원', '')}
                 </td>
               </tr>
@@ -398,10 +401,10 @@ export default function UnifiedQuotationPreview({
               {/* Discount */}
               {amounts.discountRate && amounts.discountRate > 0 && (
                 <tr className="text-red-600">
-                  <td colSpan={3} className="border p-2 text-right">
+                  <td colSpan={3} className="border p-1.5 sm:p-2 text-right text-xs sm:text-sm">
                     할인 ({amounts.discountRate}%)
                   </td>
-                  <td className="border p-2 text-right">
+                  <td className="border p-1.5 sm:p-2 text-right text-xs sm:text-sm">
                     -{formatKRW(amounts.discountAmount || 0).replace('원', '')}
                   </td>
                 </tr>
@@ -409,11 +412,11 @@ export default function UnifiedQuotationPreview({
 
               {/* VAT */}
               {showVat && amounts.vat !== undefined && (
-                <tr className="text-sm text-gray-600 dark:text-gray-400">
-                  <td colSpan={3} className="border p-2 text-right">
+                <tr className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  <td colSpan={3} className="border p-1.5 sm:p-2 text-right">
                     부가가치세 (10%)
                   </td>
-                  <td className="border p-2 text-right">
+                  <td className="border p-1.5 sm:p-2 text-right">
                     {formatKRW(amounts.vat).replace('원', '')}
                   </td>
                 </tr>
@@ -421,15 +424,16 @@ export default function UnifiedQuotationPreview({
 
               {/* Total */}
               <tr className="bg-primary/10 font-bold">
-                <td colSpan={3} className="border p-2 text-right">
+                <td colSpan={3} className="border p-1.5 sm:p-2 text-right text-xs sm:text-sm">
                   합계
                 </td>
-                <td className="border p-2 text-right text-primary">
+                <td className="border p-1.5 sm:p-2 text-right text-primary text-xs sm:text-sm">
                   {formatKRW(amounts.total).replace('원', '')}
                 </td>
               </tr>
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

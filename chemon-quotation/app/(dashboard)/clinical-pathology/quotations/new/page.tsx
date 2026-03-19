@@ -616,7 +616,8 @@ export default function NewClinicalQuotationPage() {
         <CardContent>
           {calculation ? (
             <div className="space-y-4">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-6 px-6">
+                <table className="w-full text-sm min-w-[400px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-2">항목</th>
@@ -662,6 +663,7 @@ export default function NewClinicalQuotationPage() {
                   </tr>
                 </tfoot>
               </table>
+              </div>
             </div>
           ) : (
             <p className="text-gray-500 text-center py-8">금액을 계산 중입니다...</p>
@@ -674,7 +676,7 @@ export default function NewClinicalQuotationPage() {
           <CardTitle>할인 설정</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3 sm:gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
@@ -683,7 +685,7 @@ export default function NewClinicalQuotationPage() {
                 onChange={() => setFormData(prev => ({ ...prev, discountType: 'RATE' }))}
                 className="w-4 h-4"
               />
-              <span>할인율 (%)</span>
+              <span className="text-sm sm:text-base">할인율 (%)</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -693,7 +695,7 @@ export default function NewClinicalQuotationPage() {
                 onChange={() => setFormData(prev => ({ ...prev, discountType: 'AMOUNT' }))}
                 className="w-4 h-4"
               />
-              <span>할인금액 (원)</span>
+              <span className="text-sm sm:text-base">할인금액 (원)</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -703,7 +705,7 @@ export default function NewClinicalQuotationPage() {
                 onChange={() => setFormData(prev => ({ ...prev, discountType: null, discountValue: 0 }))}
                 className="w-4 h-4"
               />
-              <span>할인 없음</span>
+              <span className="text-sm sm:text-base">할인 없음</span>
             </label>
           </div>
           {formData.discountType && (
@@ -767,25 +769,25 @@ export default function NewClinicalQuotationPage() {
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => router.push('/quotations/new')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              유형 선택
+              <ArrowLeft className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">유형 선택</span>
             </Button>
             <Button variant="outline" size="sm" onClick={handleReset}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              초기화
+              <RotateCcw className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">초기화</span>
             </Button>
           </div>
         }
       />
 
       {/* 스텝 인디케이터 */}
-      <div className="flex items-center justify-between mb-8 mt-6">
+      <div className="flex items-center justify-between mb-6 sm:mb-8 mt-4 sm:mt-6">
         {STEPS.map((step, index) => (
           <div key={step.id} className="flex items-center flex-1">
             <div className="flex flex-col items-center">
               <div
                 className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors',
+                  'w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold transition-colors text-sm sm:text-base',
                   currentStep === step.id
                     ? 'bg-purple-600 text-white'
                     : currentStep > step.id
@@ -793,21 +795,21 @@ export default function NewClinicalQuotationPage() {
                     : 'bg-gray-100 text-gray-400'
                 )}
               >
-                {currentStep > step.id ? <Check className="w-5 h-5" /> : step.id}
+                {currentStep > step.id ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : step.id}
               </div>
-              <div className="mt-2 text-center">
+              <div className="mt-1 sm:mt-2 text-center">
                 <div className={cn(
-                  'text-sm font-medium',
+                  'text-xs sm:text-sm font-medium',
                   currentStep === step.id ? 'text-purple-600' : 'text-gray-500'
                 )}>
                   {step.title}
                 </div>
-                <div className="text-xs text-gray-400">{step.description}</div>
+                <div className="text-[10px] sm:text-xs text-gray-400 hidden sm:block">{step.description}</div>
               </div>
             </div>
             {index < STEPS.length - 1 && (
               <div className={cn(
-                'flex-1 h-0.5 mx-4',
+                'flex-1 h-0.5 mx-2 sm:mx-4',
                 currentStep > step.id ? 'bg-purple-300' : 'bg-gray-200'
               )} />
             )}

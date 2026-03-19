@@ -135,25 +135,25 @@ export default function StepPreview() {
     if (!selectedModel) return null;
     
     return (
-      <div className="border rounded-lg p-4 mb-6 bg-blue-50 dark:bg-blue-900/20">
+      <div className="border rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 bg-blue-50 dark:bg-blue-900/20">
         <div className="flex items-center gap-2 mb-3">
           <FlaskConical className="w-4 h-4 text-blue-600" />
           <h3 className="font-semibold text-blue-800 dark:text-blue-300">
             효력시험 모델
           </h3>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <p className="text-sm text-gray-500">모델명</p>
-            <p className="font-medium">{selectedModel.model_name}</p>
+            <p className="text-xs sm:text-sm text-gray-500">모델명</p>
+            <p className="font-medium text-sm sm:text-base">{selectedModel.model_name}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">카테고리</p>
-            <p className="font-medium">{selectedModel.category}</p>
+            <p className="text-xs sm:text-sm text-gray-500">카테고리</p>
+            <p className="font-medium text-sm sm:text-base">{selectedModel.category}</p>
           </div>
-          <div className="col-span-2">
-            <p className="text-sm text-gray-500">적응증</p>
-            <p className="font-medium">{selectedModel.indication}</p>
+          <div className="col-span-1 sm:col-span-2">
+            <p className="text-xs sm:text-sm text-gray-500">적응증</p>
+            <p className="font-medium text-sm sm:text-base">{selectedModel.indication}</p>
           </div>
         </div>
       </div>
@@ -261,20 +261,20 @@ export default function StepPreview() {
       {/* Action Bar */}
       <Card className="print:hidden">
         <CardContent className="py-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="min-w-0">
               {/* Requirement 2.1: Display quotation number in header area */}
-              <h2 className="text-lg font-semibold">
+              <h2 className="text-base sm:text-lg font-semibold truncate">
                 견적번호: {displayQuotationNumber}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 truncate">
                 {customerName} | {projectName}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 shrink-0">
               <Button variant="outline" size="sm" onClick={handlePrint}>
-                <Printer className="w-4 h-4 mr-2" />
-                인쇄
+                <Printer className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">인쇄</span>
               </Button>
               {typeof window !== 'undefined' && EfficacyQuotationPDF && (
                 <PDFDownloadLink
@@ -309,11 +309,11 @@ export default function StepPreview() {
               )}
               <Button size="sm" onClick={handleSave} disabled={saving}>
                 {saving ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
                 ) : (
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="w-4 h-4 sm:mr-2" />
                 )}
-                저장
+                <span className="hidden sm:inline">저장</span>
               </Button>
             </div>
           </div>

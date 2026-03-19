@@ -166,12 +166,12 @@ export default function StepPreviewV2() {
       {/* 액션 버튼 */}
       <Card>
         <CardContent className="py-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-semibold">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-semibold truncate">
                 견적번호: {displayQuotationNumber}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 truncate">
                 {quotationStore.customerName || v2Store.info.org || '-'} |{' '}
                 {quotationStore.projectName || v2Store.info.substance || '-'}
               </p>
@@ -179,23 +179,23 @@ export default function StepPreviewV2() {
                 {v2Store.mode ? MODE_LABELS[v2Store.mode] : '-'} | 시험 {v2Store.selectedTests.length}건 | 합계 {formatKRW(v2Store.totalAmount)}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 shrink-0">
               <Button variant="outline" size="sm" onClick={handlePrint}>
-                <Printer className="w-4 h-4 mr-2" />
-                인쇄
+                <Printer className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">인쇄</span>
               </Button>
               <Button size="sm" onClick={handleSave} disabled={saving}>
                 {saving ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
                 ) : (
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="w-4 h-4 sm:mr-2" />
                 )}
-                저장
+                <span className="hidden sm:inline">저장</span>
               </Button>
               <Button size="sm" variant="secondary" asChild>
                 <Link href="/contract/new">
-                  <FileSignature className="w-4 h-4 mr-2" />
-                  계약서 생성
+                  <FileSignature className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">계약서 생성</span>
                 </Link>
               </Button>
             </div>
@@ -205,11 +205,11 @@ export default function StepPreviewV2() {
 
       {/* 미리보기 탭 (4탭: 표지/견적서/상세내역/전체) */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="cover">표지</TabsTrigger>
-          <TabsTrigger value="quote">견적서</TabsTrigger>
-          <TabsTrigger value="detail">상세내역</TabsTrigger>
-          <TabsTrigger value="all">전체</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+          <TabsTrigger value="cover" className="text-xs sm:text-sm">표지</TabsTrigger>
+          <TabsTrigger value="quote" className="text-xs sm:text-sm">견적서</TabsTrigger>
+          <TabsTrigger value="detail" className="text-xs sm:text-sm">상세내역</TabsTrigger>
+          <TabsTrigger value="all" className="text-xs sm:text-sm">전체</TabsTrigger>
         </TabsList>
 
         <TabsContent value="cover" className="mt-4">

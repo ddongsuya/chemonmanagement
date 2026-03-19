@@ -67,8 +67,8 @@ export default function PreviewDetail() {
   const data = getDataForMode(mode);
 
   return (
-    <div className="w-full max-w-[210mm] mx-auto bg-white border border-gray-200 shadow-sm p-8 print:border-none print:shadow-none">
-      <h2 className="text-xl font-bold text-center mb-6">상 세 내 역</h2>
+    <div className="w-full max-w-[210mm] mx-auto bg-white border border-gray-200 shadow-sm p-4 sm:p-8 print:border-none print:shadow-none">
+      <h2 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-6">상 세 내 역</h2>
 
       {selectedTests.length === 0 ? (
         <p className="text-center text-gray-400 py-8">선택된 시험 항목이 없습니다</p>

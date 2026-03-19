@@ -58,13 +58,13 @@ export default function PreviewCover() {
   const purposeText = getPurposeText(mode, comboType);
 
   return (
-    <div className="w-full max-w-[210mm] mx-auto bg-white border border-gray-200 shadow-sm aspect-[210/297] flex flex-col justify-between p-12 print:border-none print:shadow-none">
+    <div className="w-full max-w-[210mm] mx-auto bg-white border border-gray-200 shadow-sm sm:aspect-[210/297] flex flex-col justify-between p-6 sm:p-12 print:border-none print:shadow-none print:aspect-[210/297]">
       {/* 상단: 회사 로고 + 제목 */}
-      <div className="text-center pt-16">
-        <div className="text-2xl font-bold tracking-widest text-gray-700 mb-8">
+      <div className="text-center pt-8 sm:pt-16">
+        <div className="text-xl sm:text-2xl font-bold tracking-widest text-gray-700 mb-4 sm:mb-8">
           코아스템켐온
         </div>
-        <div className="text-4xl font-bold tracking-wider mt-12">
+        <div className="text-3xl sm:text-4xl font-bold tracking-wider mt-6 sm:mt-12">
           견 적 서
         </div>
       </div>
@@ -85,7 +85,7 @@ export default function PreviewCover() {
       </div>
 
       {/* 하단: 날짜 + 견적번호 */}
-      <div className="text-center pb-12 space-y-2">
+      <div className="text-center pb-6 sm:pb-12 space-y-2">
         <div className="text-sm text-gray-600">{formatDate()}</div>
         {info.quotationNumber && (
           <div className="text-sm text-gray-500">
