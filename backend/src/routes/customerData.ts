@@ -636,9 +636,22 @@ router.get('/calendar-events', async (req: Request, res: Response, next: NextFun
     
     let events;
     if (startDate && endDate) {
+      // 날짜 문자열 파싱: YYYY-MM-DD 형식이면 해당 날짜의 시작/끝을 UTC 기준으로 설정
+      const parseStart = (s: string) => {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+          return new Date(s + 'T00:00:00.000Z');
+        }
+        return new Date(s);
+      };
+      const parseEnd = (s: string) => {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+          return new Date(s + 'T23:59:59.999Z');
+        }
+        return new Date(s);
+      };
       events = await CalendarEventService.getByDateRange(
-        new Date(startDate as string),
-        new Date(endDate as string)
+        parseStart(startDate as string),
+        parseEnd(endDate as string)
       );
     } else if (type) {
       events = await CalendarEventService.getByType(type as string);

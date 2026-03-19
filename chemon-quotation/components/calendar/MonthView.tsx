@@ -50,29 +50,15 @@ export default function MonthView({
 
   // 특정 날짜의 이벤트 가져오기
   const getEventsForDate = (date: Date): CalendarEvent[] => {
-    // 로컬 날짜 기준으로 YYYY-MM-DD 문자열 생성
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
+    // 비교 대상 날짜의 시작/끝 타임스탬프 (로컬 기준)
+    const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0).getTime();
+    const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999).getTime();
 
     return events.filter((event) => {
-      // 이벤트 날짜도 로컬 기준으로 변환
-      const eventStartLocal = new Date(event.start_date);
-      const eventStartStr = `${eventStartLocal.getFullYear()}-${String(eventStartLocal.getMonth() + 1).padStart(2, '0')}-${String(eventStartLocal.getDate()).padStart(2, '0')}`;
-      
-      let eventEndStr = eventStartStr;
-      if (event.end_date) {
-        const eventEndLocal = new Date(event.end_date);
-        // 종일 이벤트의 경우 endDate가 23:59:59 UTC로 저장되어 KST 변환 시 다음 날로 넘어갈 수 있음
-        // 시간이 자정~오전(0~11시)이고 종일 이벤트면 전날로 보정
-        if (event.all_day && eventEndLocal.getHours() > 0 && eventEndLocal.getHours() < 12) {
-          eventEndLocal.setDate(eventEndLocal.getDate() - 1);
-        }
-        eventEndStr = `${eventEndLocal.getFullYear()}-${String(eventEndLocal.getMonth() + 1).padStart(2, '0')}-${String(eventEndLocal.getDate()).padStart(2, '0')}`;
-      }
-      
-      return dateStr >= eventStartStr && dateStr <= eventEndStr;
+      const eventStart = new Date(event.start_date).getTime();
+      const eventEnd = event.end_date ? new Date(event.end_date).getTime() : eventStart;
+      // 이벤트 범위와 해당 날짜 범위가 겹치면 표시
+      return eventStart <= dayEnd && eventEnd >= dayStart;
     });
   };
 

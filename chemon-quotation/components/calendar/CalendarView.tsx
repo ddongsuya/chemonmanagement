@@ -99,19 +99,10 @@ export default function CalendarView({ customerId, onEventClick, onEventsChange,
           return eventStart <= endTime && eventEnd >= startTime;
         });
       } else {
-        // 날짜 범위로 전체 이벤트 조회 (로컬 날짜 기준 ISO 문자열)
-        const formatLocal = (d: Date) => {
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          const h = String(d.getHours()).padStart(2, '0');
-          const min = String(d.getMinutes()).padStart(2, '0');
-          const s = String(d.getSeconds()).padStart(2, '0');
-          return `${y}-${m}-${day}T${h}:${min}:${s}`;
-        };
+        // UTC ISO 문자열로 전달하여 백엔드와 일관된 날짜 처리
         allEvents = await calendarEventApi.getByDateRange(
-          formatLocal(start),
-          formatLocal(end)
+          start.toISOString(),
+          end.toISOString()
         );
       }
       

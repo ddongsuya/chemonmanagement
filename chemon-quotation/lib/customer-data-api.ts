@@ -339,23 +339,24 @@ export const calendarEventApi = {
   // 오늘 이벤트 조회
   async getTodayEvents(): Promise<CalendarEvent[]> {
     const today = new Date();
-    const startDate = today.toISOString().split('T')[0];
-    const endDate = startDate;
-    return this.getByDateRange(startDate, endDate);
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    const dateStr = `${y}-${m}-${d}`;
+    return this.getByDateRange(dateStr, dateStr);
   },
 
   // 이번 주 이벤트 조회
   async getThisWeekEvents(): Promise<CalendarEvent[]> {
     const today = new Date();
     const dayOfWeek = today.getDay();
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - dayOfWeek);
-    const endOfWeek = new Date(today);
-    endOfWeek.setDate(today.getDate() + (6 - dayOfWeek));
+    const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - dayOfWeek);
+    const endOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (6 - dayOfWeek));
     
-    const startDate = startOfWeek.toISOString().split('T')[0];
-    const endDate = endOfWeek.toISOString().split('T')[0];
-    return this.getByDateRange(startDate, endDate);
+    const fmt = (d: Date) => {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+    return this.getByDateRange(fmt(startOfWeek), fmt(endOfWeek));
   },
 };
 
