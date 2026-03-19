@@ -59,7 +59,12 @@ function getDashboardAccessLevel(permissions: UserPermissions): DashboardAccessL
     return 'FULL';
   }
 
-  // 6. 일반 사용자 → 본인만
+  // 6. 부서 소속 일반 사용자 → 개인 + 소속 부서
+  if (permissions.department) {
+    return 'TEAM';
+  }
+
+  // 7. 부서 미지정 → 본인만
   return 'PERSONAL';
 }
 
@@ -981,6 +986,265 @@ export class DashboardService {
       SUPPORT: '사업지원팀'
     };
     return names[dept] || dept;
+  }
+
+  // ==================== 업무 대시보드 ====================
+
+  /**
+   * 업무 대시보드 항목 조회 (개인 업무 도우미)
+   */
+  async getWorkItems(userId: string) {
+    const now = new Date();
+    const sevenDaysLater = new Date(now);
+    sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const [upcomingMeetings, pendingQuotations, upcomingInvoices, upcomingTests, pendingFollowUps] = await Promise.all([
+      // 1. 다가오는 미팅 (향후 7일)
+      prisma.meetingRecord.findMany({
+        where: {
+          date: { gte: now, lte: sevenDaysLater },
+          customer: { userId }
+        },
+        select: {
+          id: true, title: true, date: true, time: true, type: true,
+          customer: { select: { id: true, name: true, company: true } }
+        },
+        orderBy: { date: 'asc' },
+        take: 10
+      }),
+
+      // 2. 견적서 후속 조치 (SENT 후 7일 이상 미응답)
+      prisma.quotation.findMany({
+        where: {
+          userId,
+          status: 'SENT',
+          createdAt: { lte: sevenDaysAgo },
+          deletedAt: null
+        },
+        select: {
+          id: true, quotationNumber: true, customerName: true,
+          totalAmount: true, createdAt: true, quotationType: true
+        },
+        orderBy: { createdAt: 'asc' },
+        take: 10
+      }),
+
+      // 3. 세금계산서 임박 (7일 이내 발행 예정)
+      prisma.invoiceSchedule.findMany({
+        where: {
+          scheduledDate: { gte: now, lte: sevenDaysLater },
+          status: 'pending',
+          customer: { userId }
+        },
+        select: {
+          id: true, amount: true, scheduledDate: true, invoiceNumber: true,
+          customer: { select: { id: true, name: true, company: true } },
+          testReception: { select: { id: true, testNumber: true, testTitle: true } }
+        },
+        orderBy: { scheduledDate: 'asc' },
+        take: 10
+      }),
+
+      // 4. 시험 완료 예정 (7일 이내)
+      prisma.testReception.findMany({
+        where: {
+          expectedCompletionDate: { gte: now, lte: sevenDaysLater },
+          status: { in: ['received', 'in_progress'] },
+          customer: { userId }
+        },
+        select: {
+          id: true, testNumber: true, testTitle: true,
+          expectedCompletionDate: true, status: true,
+          customer: { select: { id: true, name: true, company: true } }
+        },
+        orderBy: { expectedCompletionDate: 'asc' },
+        take: 10
+      }),
+
+      // 5. 후속 조치 필요 (미완료 요청사항)
+      prisma.meetingRecord.findMany({
+        where: {
+          customer: { userId },
+          isRequest: true,
+          requestStatus: { in: ['pending', 'in_progress'] }
+        },
+        select: {
+          id: true, title: true, date: true, followUpActions: true,
+          requestStatus: true,
+          customer: { select: { id: true, name: true, company: true } }
+        },
+        orderBy: { date: 'desc' },
+        take: 10
+      })
+    ]);
+
+    // 응답 데이터 변환 (company || name → companyName)
+    const mapCustomer = (c: { id: string; name: string; company: string | null }) => ({
+      id: c.id, companyName: c.company || c.name
+    });
+
+    return {
+      upcomingMeetings: upcomingMeetings.map(m => ({ ...m, customer: mapCustomer(m.customer) })),
+      pendingQuotations,
+      upcomingInvoices: upcomingInvoices.map(m => ({ ...m, customer: mapCustomer(m.customer) })),
+      upcomingTests: upcomingTests.map(m => ({ ...m, customer: mapCustomer(m.customer) })),
+      pendingFollowUps: pendingFollowUps.map(m => ({ ...m, customer: mapCustomer(m.customer) })),
+      summary: {
+        meetings: upcomingMeetings.length,
+        quotations: pendingQuotations.length,
+        invoices: upcomingInvoices.length,
+        tests: upcomingTests.length,
+        followUps: pendingFollowUps.length,
+        total: upcomingMeetings.length + pendingQuotations.length + upcomingInvoices.length + upcomingTests.length + pendingFollowUps.length
+      }
+    };
+  }
+
+  // ==================== 매출 대시보드 ====================
+
+  /**
+   * 매출 대시보드 통계 조회 (권한별 데이터 범위)
+   */
+  async getSalesStats(userId: string, params?: { year?: number; scope?: string; department?: string }) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true, name: true, department: true, position: true, title: true,
+        canViewAllData: true, canViewAllSales: true, role: true
+      }
+    });
+
+    if (!user) throw new Error('User not found');
+
+    const permissions: UserPermissions = {
+      userId: user.id, department: user.department, position: user.position,
+      title: user.title, canViewAllData: user.canViewAllData,
+      canViewAllSales: user.canViewAllSales, isAdmin: user.role === 'ADMIN'
+    };
+
+    const accessLevel = getDashboardAccessLevel(permissions);
+    const year = params?.year || new Date().getFullYear();
+    const scope = params?.scope || 'personal';
+    const requestedDept = params?.department as Department | undefined;
+
+    // 스코프별 사용자 ID 목록 결정
+    let targetUserIds: string[] = [userId];
+
+    if (scope === 'department') {
+      const dept = requestedDept || user.department;
+      if (dept && (accessLevel === 'FULL' || user.department === dept)) {
+        const deptUsers = await prisma.user.findMany({
+          where: { department: dept },
+          select: { id: true }
+        });
+        targetUserIds = deptUsers.map(u => u.id);
+      }
+    } else if (scope === 'company' && accessLevel === 'FULL') {
+      targetUserIds = []; // 빈 배열 = 전체
+    }
+
+    const yearStart = new Date(year, 0, 1);
+    const yearEnd = new Date(year, 11, 31, 23, 59, 59);
+
+    const userFilter = targetUserIds.length > 0 ? { userId: { in: targetUserIds } } : {};
+
+    // 월별 견적/계약 데이터
+    const [quotations, contracts] = await Promise.all([
+      prisma.quotation.findMany({
+        where: { ...userFilter, createdAt: { gte: yearStart, lte: yearEnd }, deletedAt: null },
+        select: { id: true, totalAmount: true, status: true, createdAt: true, modality: true, quotationType: true }
+      }),
+      prisma.contract.findMany({
+        where: { ...userFilter, createdAt: { gte: yearStart, lte: yearEnd }, deletedAt: null },
+        select: { id: true, totalAmount: true, status: true, createdAt: true, signedDate: true, contractType: true }
+      })
+    ]);
+
+    // 월별 집계
+    const monthly: Record<number, { quotationAmount: number; quotationCount: number; contractAmount: number; contractCount: number; won: number; lost: number }> = {};
+    for (let m = 1; m <= 12; m++) {
+      monthly[m] = { quotationAmount: 0, quotationCount: 0, contractAmount: 0, contractCount: 0, won: 0, lost: 0 };
+    }
+
+    let totalQuotationAmount = 0, totalContractAmount = 0, totalWon = 0, totalLost = 0;
+    const modalityMap: Record<string, number> = {};
+
+    quotations.forEach(q => {
+      const m = q.createdAt.getMonth() + 1;
+      const amt = Number(q.totalAmount);
+      monthly[m].quotationAmount += amt;
+      monthly[m].quotationCount++;
+      totalQuotationAmount += amt;
+      if (q.status === 'ACCEPTED') { monthly[m].won++; totalWon++; }
+      if (q.status === 'REJECTED') { monthly[m].lost++; totalLost++; }
+      const mod = q.modality || q.quotationType || 'OTHER';
+      modalityMap[mod] = (modalityMap[mod] || 0) + amt;
+    });
+
+    contracts.forEach(c => {
+      const m = c.createdAt.getMonth() + 1;
+      const amt = Number(c.totalAmount);
+      monthly[m].contractAmount += amt;
+      monthly[m].contractCount++;
+      totalContractAmount += amt;
+    });
+
+    const totalDecided = totalWon + totalLost;
+    const conversionRate = totalDecided > 0 ? Math.round((totalWon / totalDecided) * 1000) / 10 : 0;
+
+    // 분기별 집계
+    const quarterly: Record<number, { quotationAmount: number; contractAmount: number; conversionRate: number }> = {};
+    for (let q = 1; q <= 4; q++) {
+      const months = [q * 3 - 2, q * 3 - 1, q * 3];
+      let qAmt = 0, cAmt = 0, qWon = 0, qLost = 0;
+      months.forEach(m => {
+        qAmt += monthly[m].quotationAmount;
+        cAmt += monthly[m].contractAmount;
+        qWon += monthly[m].won;
+        qLost += monthly[m].lost;
+      });
+      const qDecided = qWon + qLost;
+      quarterly[q] = {
+        quotationAmount: qAmt,
+        contractAmount: cAmt,
+        conversionRate: qDecided > 0 ? Math.round((qWon / qDecided) * 1000) / 10 : 0
+      };
+    }
+
+    // 담당자별 순위 (전사 스코프만)
+    let userRanking = null;
+    if (scope === 'company' && accessLevel === 'FULL') {
+      userRanking = await this.getUserRanking(yearStart, yearEnd);
+    }
+
+    // 부서별 현황 (전사 스코프만)
+    let departmentStats = null;
+    if (scope === 'company' && accessLevel === 'FULL') {
+      departmentStats = await this.getDepartmentStats(yearStart, yearEnd);
+    }
+
+    return {
+      accessLevel,
+      user: { id: user.id, name: user.name, department: user.department },
+      year,
+      scope,
+      totals: {
+        quotationAmount: totalQuotationAmount,
+        quotationCount: quotations.length,
+        contractAmount: totalContractAmount,
+        contractCount: contracts.length,
+        conversionRate,
+        won: totalWon,
+        lost: totalLost
+      },
+      monthly: Object.entries(monthly).map(([m, data]) => ({ month: parseInt(m), ...data })),
+      quarterly: Object.entries(quarterly).map(([q, data]) => ({ quarter: parseInt(q), ...data })),
+      modality: Object.entries(modalityMap).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount),
+      userRanking,
+      departmentStats
+    };
   }
 }
 

@@ -211,3 +211,124 @@ export async function getWidgetData(dashboardId: string, widgetId: string, param
 export async function getWidgetTemplates(): Promise<{ templates: WidgetTemplate[]; categories: string[] }> {
   return api.get('/dashboard/widgets/templates');
 }
+
+// ==================== 업무 대시보드 ====================
+
+export interface WorkItemMeeting {
+  id: string;
+  title: string;
+  date: string;
+  time: string | null;
+  type: string;
+  customer: { id: string; companyName: string };
+}
+
+export interface WorkItemQuotation {
+  id: string;
+  quotationNumber: string;
+  customerName: string;
+  totalAmount: number;
+  createdAt: string;
+  quotationType: string;
+}
+
+export interface WorkItemInvoice {
+  id: string;
+  amount: number;
+  scheduledDate: string;
+  invoiceNumber: string | null;
+  customer: { id: string; companyName: string };
+  testReception: { id: string; testNumber: string | null; testTitle: string | null } | null;
+}
+
+export interface WorkItemTest {
+  id: string;
+  testNumber: string | null;
+  testTitle: string | null;
+  expectedCompletionDate: string;
+  status: string;
+  customer: { id: string; companyName: string };
+}
+
+export interface WorkItemFollowUp {
+  id: string;
+  title: string;
+  date: string;
+  followUpActions: string | null;
+  requestStatus: string | null;
+  customer: { id: string; companyName: string };
+}
+
+export interface WorkItemsResponse {
+  upcomingMeetings: WorkItemMeeting[];
+  pendingQuotations: WorkItemQuotation[];
+  upcomingInvoices: WorkItemInvoice[];
+  upcomingTests: WorkItemTest[];
+  pendingFollowUps: WorkItemFollowUp[];
+  summary: {
+    meetings: number;
+    quotations: number;
+    invoices: number;
+    tests: number;
+    followUps: number;
+    total: number;
+  };
+}
+
+export async function getWorkItems(): Promise<WorkItemsResponse> {
+  return api.get('/dashboard/work-items');
+}
+
+// ==================== 매출 대시보드 ====================
+
+export interface SalesMonthlyData {
+  month: number;
+  quotationAmount: number;
+  quotationCount: number;
+  contractAmount: number;
+  contractCount: number;
+  won: number;
+  lost: number;
+}
+
+export interface SalesQuarterlyData {
+  quarter: number;
+  quotationAmount: number;
+  contractAmount: number;
+  conversionRate: number;
+}
+
+export interface SalesModalityData {
+  name: string;
+  amount: number;
+}
+
+export interface SalesStatsResponse {
+  accessLevel: DashboardAccessLevel;
+  user: { id: string; name: string; department: string | null };
+  year: number;
+  scope: string;
+  totals: {
+    quotationAmount: number;
+    quotationCount: number;
+    contractAmount: number;
+    contractCount: number;
+    conversionRate: number;
+    won: number;
+    lost: number;
+  };
+  monthly: SalesMonthlyData[];
+  quarterly: SalesQuarterlyData[];
+  modality: SalesModalityData[];
+  userRanking: UserRankingItem[] | null;
+  departmentStats: DepartmentStats[] | null;
+}
+
+export async function getSalesStats(params?: { year?: number; scope?: string; department?: string }): Promise<SalesStatsResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.year) queryParams.append('year', params.year.toString());
+  if (params?.scope) queryParams.append('scope', params.scope);
+  if (params?.department) queryParams.append('department', params.department);
+  const qs = queryParams.toString();
+  return api.get(`/dashboard/sales-stats${qs ? `?${qs}` : ''}`);
+}

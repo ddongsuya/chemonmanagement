@@ -49,6 +49,33 @@ router.get('/stats', authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// 업무 대시보드 항목 조회
+router.get('/work-items', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const data = await dashboardService.getWorkItems(userId);
+    res.json({ success: true, data });
+  } catch (error: any) {
+    console.error('Get work items error:', error);
+    res.status(500).json({ success: false, error: { message: error.message } });
+  }
+});
+
+// 매출 대시보드 통계 조회
+router.get('/sales-stats', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+    const scope = req.query.scope as string | undefined;
+    const department = req.query.department as string | undefined;
+    const data = await dashboardService.getSalesStats(userId, { year, scope, department });
+    res.json({ success: true, data });
+  } catch (error: any) {
+    console.error('Get sales stats error:', error);
+    res.status(500).json({ success: false, error: { message: error.message } });
+  }
+});
+
 /**
  * @swagger
  * /api/dashboard:

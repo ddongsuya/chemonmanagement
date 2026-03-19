@@ -41,7 +41,12 @@ export function getDashboardAccessLevel(user: AuthUser | null): DashboardAccessL
     return 'FULL';
   }
 
-  // 6. 일반 사용자 → 본인만
+  // 6. 부서 소속 일반 사용자 → 개인 + 소속 부서
+  if (user.department) {
+    return 'TEAM';
+  }
+
+  // 7. 부서 미지정 → 본인만
   return 'PERSONAL';
 }
 
