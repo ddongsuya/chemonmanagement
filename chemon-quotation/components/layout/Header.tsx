@@ -238,7 +238,7 @@ export default function Header({ title }: HeaderProps) {
               <X className="w-5 h-5" />
             </Button>
           </div>
-          <div className="overflow-y-auto max-h-[calc(100vh-3.5rem)]">
+          <div className="overflow-y-auto max-h-[calc(100dvh-3.5rem)]">
             {searchResults.length > 0 ? (
               <ul className="py-2">
                 {searchResults.map((result) => (

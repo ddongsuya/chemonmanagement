@@ -105,7 +105,7 @@ export default function Sidebar() {
     <div className="hidden md:block">
       <aside
         className={cn(
-          'flex flex-col h-screen transition-[width] duration-200 ease-out',
+          'flex flex-col h-dvh transition-[width] duration-200 ease-out',
           'gradient-sidebar border-r border-white/[0.06]',
           isExpanded ? 'w-60' : 'w-[68px]'
         )}

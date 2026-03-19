@@ -44,7 +44,7 @@ import InlineTestReceptionForm from '@/components/customer-detail/InlineTestRece
 import {
   ChevronRight, Edit, MoreHorizontal, Building2, User, Phone, Mail,
   Heart, TrendingDown, BarChart3, FileText, Briefcase, DollarSign,
-  ChevronDown,
+  ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -138,6 +138,7 @@ export default function CustomerDetailPage() {
   const [healthScore, setHealthScore] = useState<number | null>(null);
   const [churnRisk, setChurnRisk] = useState<number | null>(null);
   const [dataQuality, setDataQuality] = useState<number | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const reloadTab = () => setTabReloadKey(k => k + 1);
 
@@ -336,6 +337,25 @@ export default function CustomerDetailPage() {
 
           {/* ─── 좌측 사이드바 ─── */}
           <div className="lg:col-span-1 space-y-4">
+            {/* 모바일: 접기/펼치기 토글 */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden w-full flex items-center justify-between bg-white rounded-xl border px-4 py-3 touch-manipulation"
+            >
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <Building2 className="w-4 h-4" />
+                고객 정보
+                {healthScore != null && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-normal">
+                    건강도 {healthScore}
+                  </span>
+                )}
+              </div>
+              {sidebarOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+            </button>
+
+            {/* 사이드바 콘텐츠 — 데스크톱 항상 표시, 모바일 토글 */}
+            <div className={cn('space-y-4', !sidebarOpen && 'hidden lg:block')}>
             {/* 모바일: 점수 게이지 */}
             <div className="flex sm:hidden items-center gap-3 justify-center bg-white rounded-xl border p-3">
               {healthScore != null && (
@@ -416,6 +436,7 @@ export default function CustomerDetailPage() {
 
             {/* 커스텀 필드 */}
             <CustomFieldsSection customerId={customerId} />
+            </div>
           </div>
 
           {/* ─── 우측 메인 콘텐츠 ─── */}

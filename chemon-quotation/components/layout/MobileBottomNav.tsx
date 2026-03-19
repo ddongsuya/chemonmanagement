@@ -41,62 +41,57 @@ export default function MobileBottomNav() {
   };
 
   return (
-    <>
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border pb-safe">
-        <div className="flex items-center justify-around h-14">
-          {tabs.map((tab) => {
-            const active = isActive(tab.href);
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border pb-safe">
+      <div className="flex items-center justify-around h-14">
+        {tabs.map((tab) => {
+          const active = isActive(tab.href);
 
-            if (tab.id === 'more') {
-              return (
-                <Sheet key={tab.id} open={sheetOpen} onOpenChange={setSheetOpen}>
-                  <SheetTrigger asChild>
-                    <button
-                      className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation"
-                    >
-                      <tab.icon className={cn(
-                        'w-5 h-5 transition-colors',
-                        'text-muted-foreground'
-                      )} />
-                      <span className={cn(
-                        'text-[10px] transition-colors',
-                        'text-muted-foreground'
-                      )}>
-                        {tab.label}
-                      </span>
-                    </button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="p-0 w-72">
-                    <MobileNav onNavigate={() => setSheetOpen(false)} />
-                  </SheetContent>
-                </Sheet>
-              );
-            }
-
+          if (tab.id === 'more') {
             return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabClick(tab)}
-                className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation"
-              >
-                <tab.icon className={cn(
-                  'w-5 h-5 transition-colors',
-                  active ? 'text-primary' : 'text-muted-foreground'
-                )} />
-                <span className={cn(
-                  'text-[10px] transition-colors',
-                  active ? 'text-primary font-semibold' : 'text-muted-foreground'
-                )}>
-                  {tab.label}
-                </span>
-              </button>
+              <Sheet key={tab.id} open={sheetOpen} onOpenChange={setSheetOpen}>
+                <SheetTrigger asChild>
+                  <button
+                    className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation"
+                  >
+                    <tab.icon className={cn(
+                      'w-5 h-5 transition-colors',
+                      'text-muted-foreground'
+                    )} />
+                    <span className={cn(
+                      'text-[10px] transition-colors',
+                      'text-muted-foreground'
+                    )}>
+                      {tab.label}
+                    </span>
+                  </button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-72">
+                  <MobileNav onNavigate={() => setSheetOpen(false)} />
+                </SheetContent>
+              </Sheet>
             );
-          })}
-        </div>
-      </nav>
+          }
 
-      {/* 하단 네비 높이만큼 콘텐츠 패딩 */}
-      <div className="md:hidden h-14 pb-safe" />
-    </>
+          return (
+            <button
+              key={tab.id}
+              onClick={() => handleTabClick(tab)}
+              className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation"
+            >
+              <tab.icon className={cn(
+                'w-5 h-5 transition-colors',
+                active ? 'text-primary' : 'text-muted-foreground'
+              )} />
+              <span className={cn(
+                'text-[10px] transition-colors',
+                active ? 'text-primary font-semibold' : 'text-muted-foreground'
+              )}>
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 }

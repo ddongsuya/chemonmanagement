@@ -24,7 +24,7 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen bg-background">
+      <div className="flex h-dvh bg-background">
         {/* 사이드바 */}
         <Sidebar />
 
@@ -37,7 +37,7 @@ export default function DashboardLayout({
           <Header />
 
           {/* 페이지 콘텐츠 */}
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-20 md:pb-8">
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-20 md:pb-8 overscroll-contain">
             {children}
           </main>
         </div>
