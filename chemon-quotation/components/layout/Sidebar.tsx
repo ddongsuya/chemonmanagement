@@ -11,8 +11,6 @@ import {
   BarChart3,
   Settings,
   ChevronDown,
-  FileSignature,
-  ClipboardList,
   LogOut,
   FolderOpen,
   Calendar,
@@ -20,8 +18,6 @@ import {
   Shield,
   UserPlus,
   Kanban,
-  FlaskConical,
-  MessageSquare,
   LucideIcon,
   X,
   Megaphone,
@@ -67,16 +63,6 @@ const menuGroups: MenuGroup[] = [
       { title: '패키지 템플릿', href: '/packages', icon: Package },
     ],
   },
-  {
-    title: '계약/시험',
-    icon: FileSignature,
-    items: [
-      { title: '계약 관리', href: '/contracts', icon: FileSignature },
-      { title: '시험 관리', href: '/studies', icon: FlaskConical },
-      { title: '시험의뢰서', href: '/clinical-pathology/test-requests', icon: ClipboardList },
-      { title: '상담기록', href: '/consultations', icon: MessageSquare },
-    ],
-  },
 ];
 
 const standaloneItems: MenuItem[] = [
@@ -92,7 +78,7 @@ export default function Sidebar() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const [isExpanded, setIsExpanded] = useState(true);
-  const [openGroups, setOpenGroups] = useState<string[]>(['영업관리', '견적관리', '계약/시험']);
+  const [openGroups, setOpenGroups] = useState<string[]>(['영업관리', '견적관리']);
 
   const handleLogout = async () => {
     await logout();

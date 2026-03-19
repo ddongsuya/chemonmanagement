@@ -12,15 +12,11 @@ import {
   Settings,
   Calendar,
   ChevronDown,
-  FileSignature,
-  ClipboardList,
   FolderOpen,
   Calculator,
   Shield,
   UserPlus,
   Kanban,
-  FlaskConical,
-  MessageSquare,
   LucideIcon,
   LogOut,
   Megaphone,
@@ -50,15 +46,6 @@ const menuGroups: MenuGroup[] = [
       { title: '패키지 템플릿', href: '/packages', icon: Package },
     ],
   },
-  {
-    title: '계약/시험',
-    items: [
-      { title: '계약 관리', href: '/contracts', icon: FileSignature },
-      { title: '시험 관리', href: '/studies', icon: FlaskConical },
-      { title: '시험의뢰서', href: '/clinical-pathology/test-requests', icon: ClipboardList },
-      { title: '상담기록', href: '/consultations', icon: MessageSquare },
-    ],
-  },
 ];
 
 const standaloneItems = [
@@ -78,7 +65,7 @@ export default function MobileNav({ onNavigate }: MobileNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuthStore();
-  const [openGroups, setOpenGroups] = useState<string[]>(['영업관리', '견적관리', '계약/시험']);
+  const [openGroups, setOpenGroups] = useState<string[]>(['영업관리', '견적관리']);
 
   const isActive = (href: string) => {
     return pathname === href || (href !== '/' && href !== '/quotations/new' && pathname.startsWith(href));
