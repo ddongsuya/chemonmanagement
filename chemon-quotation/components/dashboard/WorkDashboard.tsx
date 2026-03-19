@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Calendar, FileText, Receipt, FlaskConical, AlertCircle, Loader2, Inbox
+  Calendar, FileText, Receipt, FlaskConical, AlertCircle, Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
 import { getWorkItems, WorkItemsResponse } from '@/lib/dashboard-api';
@@ -53,158 +54,193 @@ export default function WorkDashboard() {
     );
   }
 
-  if (!data || data.summary.total === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <Inbox className="w-10 h-10 mb-3 opacity-40" />
-        <p className="text-sm">처리할 업무 항목이 없습니다</p>
-        <p className="text-xs mt-1">모든 업무가 정리되어 있어요</p>
-      </div>
-    );
-  }
+  const summary = data?.summary || { meetings: 0, quotations: 0, invoices: 0, tests: 0, followUps: 0, total: 0 };
 
+  // 섹션 정의 (항상 모두 표시)
   const sections = [
     {
       id: 'meetings',
       title: '다가오는 미팅',
+      description: '향후 7일 내 미팅 일정',
       icon: Calendar,
-      count: data.summary.meetings,
-      items: data.upcomingMeetings,
-      render: (item: typeof data.upcomingMeetings[0]) => (
-        <Link key={item.id} href={`/customers/${item.customer.id}`}>
-          <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{item.title}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {item.customer.companyName} · {MEETING_TYPE_LABELS[item.type] || item.type}
-              </p>
-            </div>
-            <div className="text-right flex-shrink-0 ml-3">
-              <p className="text-xs font-medium">{formatDate(item.date)}</p>
-              {item.time && <p className="text-[11px] text-muted-foreground">{item.time}</p>}
-            </div>
-          </div>
-        </Link>
-      )
+      count: summary.meetings,
+      emptyText: '예정된 미팅이 없습니다',
+      color: 'text-blue-500',
+      bgColor: 'bg-blue-50 dark:bg-blue-950/30',
     },
     {
       id: 'quotations',
       title: '견적서 후속 조치',
+      description: '발송 후 7일 이상 미응답',
       icon: FileText,
-      count: data.summary.quotations,
-      items: data.pendingQuotations,
-      render: (item: typeof data.pendingQuotations[0]) => (
-        <Link key={item.id} href={item.quotationType === 'EFFICACY' ? `/efficacy-quotations/${item.id}` : `/quotations/${item.id}`}>
-          <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{item.quotationNumber}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {item.customerName} · {formatAmount(Number(item.totalAmount))}
-              </p>
-            </div>
-            <Badge variant="outline" className="flex-shrink-0 ml-3 text-amber-600 border-amber-300">
-              {daysAgo(item.createdAt)}일 경과
-            </Badge>
-          </div>
-        </Link>
-      )
+      count: summary.quotations,
+      emptyText: '미응답 견적서가 없습니다',
+      color: 'text-amber-500',
+      bgColor: 'bg-amber-50 dark:bg-amber-950/30',
     },
     {
       id: 'invoices',
       title: '세금계산서 임박',
+      description: '7일 이내 발행 예정',
       icon: Receipt,
-      count: data.summary.invoices,
-      items: data.upcomingInvoices,
-      render: (item: typeof data.upcomingInvoices[0]) => (
-        <Link key={item.id} href={`/customers/${item.customer.id}`}>
-          <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{item.customer.companyName}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {item.testReception?.testNumber || '미지정'} · {formatAmount(Number(item.amount))}
-              </p>
-            </div>
-            <p className="text-xs font-medium flex-shrink-0 ml-3">{formatDate(item.scheduledDate)}</p>
-          </div>
-        </Link>
-      )
+      count: summary.invoices,
+      emptyText: '임박한 세금계산서가 없습니다',
+      color: 'text-green-500',
+      bgColor: 'bg-green-50 dark:bg-green-950/30',
     },
     {
       id: 'tests',
       title: '시험 완료 예정',
+      description: '7일 이내 완료 예정 시험',
       icon: FlaskConical,
-      count: data.summary.tests,
-      items: data.upcomingTests,
-      render: (item: typeof data.upcomingTests[0]) => (
-        <Link key={item.id} href={`/customers/${item.customer.id}`}>
-          <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{item.testNumber || item.testTitle || '미지정'}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{item.customer.companyName}</p>
-            </div>
-            <p className="text-xs font-medium flex-shrink-0 ml-3">{formatDate(item.expectedCompletionDate)}</p>
-          </div>
-        </Link>
-      )
+      count: summary.tests,
+      emptyText: '완료 예정 시험이 없습니다',
+      color: 'text-purple-500',
+      bgColor: 'bg-purple-50 dark:bg-purple-950/30',
     },
     {
       id: 'followUps',
       title: '후속 조치 필요',
+      description: '미완료 요청사항',
       icon: AlertCircle,
-      count: data.summary.followUps,
-      items: data.pendingFollowUps,
-      render: (item: typeof data.pendingFollowUps[0]) => (
-        <Link key={item.id} href={`/customers/${item.customer.id}`}>
-          <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{item.title}</p>
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                {item.customer.companyName}
-                {item.followUpActions && ` · ${item.followUpActions.slice(0, 30)}`}
-              </p>
-            </div>
-            <Badge variant="outline" className={cn(
-              'flex-shrink-0 ml-3',
-              item.requestStatus === 'pending' ? 'text-red-500 border-red-300' : 'text-amber-600 border-amber-300'
-            )}>
-              {item.requestStatus === 'pending' ? '대기' : '진행중'}
-            </Badge>
-          </div>
-        </Link>
-      )
-    }
+      count: summary.followUps,
+      emptyText: '미완료 후속 조치가 없습니다',
+      color: 'text-red-500',
+      bgColor: 'bg-red-50 dark:bg-red-950/30',
+    },
   ];
 
   return (
     <div className="space-y-4">
-      {/* 요약 배지 */}
-      <div className="flex flex-wrap gap-2">
-        {sections.filter(s => s.count > 0).map(s => {
+      {/* 요약 카드 그리드 */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {sections.map(s => {
           const Icon = s.icon;
+          const hasItems = s.count > 0;
           return (
-            <div key={s.id} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted text-xs">
-              <Icon className="w-3 h-3 text-muted-foreground" />
-              <span>{s.title}</span>
-              <span className="font-semibold">{s.count}</span>
-            </div>
+            <Card key={s.id} className={cn(hasItems && 'ring-1 ring-border')}>
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={cn('p-1.5 rounded-md', s.bgColor)}>
+                    <Icon className={cn('w-3.5 h-3.5', s.color)} />
+                  </div>
+                </div>
+                <p className="text-xl font-semibold">{s.count}건</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{s.title}</p>
+              </CardContent>
+            </Card>
           );
         })}
       </div>
 
-      {/* 섹션별 카드 */}
-      {sections.filter(s => s.count > 0).map(section => {
+      {/* 섹션별 상세 카드 (항상 모두 표시) */}
+      {sections.map(section => {
         const Icon = section.icon;
+        const hasItems = section.count > 0;
+
         return (
           <Card key={section.id}>
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Icon className="w-4 h-4 text-muted-foreground" />
-                <h3 className="text-sm font-medium">{section.title}</h3>
-                <span className="text-xs text-muted-foreground">({section.count})</span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className={cn('p-1 rounded', section.bgColor)}>
+                    <Icon className={cn('w-3.5 h-3.5', section.color)} />
+                  </div>
+                  <h3 className="text-sm font-medium">{section.title}</h3>
+                  {hasItems && (
+                    <span className="text-xs text-muted-foreground">({section.count})</span>
+                  )}
+                </div>
+                <span className="text-[11px] text-muted-foreground">{section.description}</span>
               </div>
-              <div className="divide-y divide-border/50">
-                {section.items.map((item: any) => section.render(item))}
-              </div>
+
+              {!hasItems ? (
+                <div className="flex items-center gap-2 py-3 px-2 text-muted-foreground">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs">{section.emptyText}</span>
+                </div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {section.id === 'meetings' && data?.upcomingMeetings.map(item => (
+                    <Link key={item.id} href={`/customers/${item.customer.id}`}>
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{item.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {item.customer.companyName} · {MEETING_TYPE_LABELS[item.type] || item.type}
+                          </p>
+                        </div>
+                        <div className="text-right flex-shrink-0 ml-3">
+                          <p className="text-xs font-medium">{formatDate(item.date)}</p>
+                          {item.time && <p className="text-[11px] text-muted-foreground">{item.time}</p>}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+
+                  {section.id === 'quotations' && data?.pendingQuotations.map(item => (
+                    <Link key={item.id} href={item.quotationType === 'EFFICACY' ? `/efficacy-quotations/${item.id}` : `/quotations/${item.id}`}>
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{item.quotationNumber}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {item.customerName} · {formatAmount(Number(item.totalAmount))}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="flex-shrink-0 ml-3 text-amber-600 border-amber-300">
+                          {daysAgo(item.createdAt)}일 경과
+                        </Badge>
+                      </div>
+                    </Link>
+                  ))}
+
+                  {section.id === 'invoices' && data?.upcomingInvoices.map(item => (
+                    <Link key={item.id} href={`/customers/${item.customer.id}`}>
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{item.customer.companyName}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {item.testReception?.testNumber || '미지정'} · {formatAmount(Number(item.amount))}
+                          </p>
+                        </div>
+                        <p className="text-xs font-medium flex-shrink-0 ml-3">{formatDate(item.scheduledDate)}</p>
+                      </div>
+                    </Link>
+                  ))}
+
+                  {section.id === 'tests' && data?.upcomingTests.map(item => (
+                    <Link key={item.id} href={`/customers/${item.customer.id}`}>
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{item.testNumber || item.testTitle || '미지정'}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{item.customer.companyName}</p>
+                        </div>
+                        <p className="text-xs font-medium flex-shrink-0 ml-3">{formatDate(item.expectedCompletionDate)}</p>
+                      </div>
+                    </Link>
+                  ))}
+
+                  {section.id === 'followUps' && data?.pendingFollowUps.map(item => (
+                    <Link key={item.id} href={`/customers/${item.customer.id}`}>
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{item.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                            {item.customer.companyName}
+                            {item.followUpActions && ` · ${item.followUpActions.slice(0, 30)}`}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className={cn(
+                          'flex-shrink-0 ml-3',
+                          item.requestStatus === 'pending' ? 'text-red-500 border-red-300' : 'text-amber-600 border-amber-300'
+                        )}>
+                          {item.requestStatus === 'pending' ? '대기' : '진행중'}
+                        </Badge>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         );

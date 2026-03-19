@@ -23,7 +23,6 @@ import {
   FlaskConical,
   MessageSquare,
   LucideIcon,
-  TrendingUp,
   X,
   Megaphone,
   Search,
@@ -57,7 +56,6 @@ const menuGroups: MenuGroup[] = [
     items: [
       { title: '파이프라인', href: '/pipeline', icon: Kanban },
       { title: '고객사 관리', href: '/customers', icon: Users },
-      { title: '매출 대시보드', href: '/sales', icon: TrendingUp },
     ],
   },
   {
