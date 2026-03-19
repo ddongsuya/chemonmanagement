@@ -10,7 +10,7 @@ const router = Router();
 
 router.use(authenticate);
 
-// 시험 목록 조회
+// 시험 목록 조회 (Study + 미연결 TestReception 통합)
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { status, contractId, testReceptionId, search, page = '1', limit = '20' } = req.query;
@@ -30,7 +30,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
     const take = parseInt(limit as string);
 
-    const [studies, total] = await Promise.all([
+    // 1. Study 레코드 조회
+    const [studies, studyTotal] = await Promise.all([
       prisma.study.findMany({
         where,
         include: {
@@ -46,10 +47,91 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.study.count({ where }),
     ]);
 
+    // 2. Study에 연결되지 않은 TestReception 조회 (통합 표시)
+    const trWhere: any = { study: { is: null } }; // Study 미연결
+    if (status) {
+      // Study 상태를 TestReception 상태로 매핑
+      const statusMap: Record<string, string[]> = {
+        'REGISTERED': ['received'],
+        'IN_PROGRESS': ['in_progress'],
+        'COMPLETED': ['completed'],
+        'SUSPENDED': ['cancelled'],
+      };
+      const mappedStatuses = statusMap[status as string];
+      if (mappedStatuses) trWhere.status = { in: mappedStatuses };
+    }
+    if (search) {
+      trWhere.OR = [
+        { testNumber: { contains: search as string, mode: 'insensitive' } },
+        { testTitle: { contains: search as string, mode: 'insensitive' } },
+        { substanceName: { contains: search as string, mode: 'insensitive' } },
+      ];
+    }
+
+    const [unlinkedReceptions, trTotal] = await Promise.all([
+      prisma.testReception.findMany({
+        where: trWhere,
+        include: {
+          customer: true,
+          requester: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.testReception.count({ where: trWhere }),
+    ]);
+
+    // 3. TestReception을 Study 형태로 변환하여 통합
+    const receptionAsStudies = unlinkedReceptions.map(tr => ({
+      id: `tr-${tr.id}`, // 구분을 위한 prefix
+      _isTestReception: true,
+      _testReceptionId: tr.id,
+      studyNumber: tr.testNumber || '-',
+      contractId: tr.contractId || null,
+      testReceptionId: tr.id,
+      studyType: 'TOXICITY',
+      testName: tr.testTitle || tr.substanceName || '미지정',
+      testItemId: null,
+      status: tr.status === 'received' ? 'REGISTERED' : 
+              tr.status === 'in_progress' ? 'IN_PROGRESS' : 
+              tr.status === 'completed' ? 'COMPLETED' : 'SUSPENDED',
+      receivedDate: tr.receptionDate,
+      startDate: null,
+      expectedEndDate: tr.expectedCompletionDate,
+      actualEndDate: tr.actualCompletionDate,
+      reportDraftDate: null,
+      reportFinalDate: null,
+      notes: null,
+      createdAt: tr.createdAt,
+      updatedAt: tr.updatedAt,
+      contract: null,
+      testReception: {
+        id: tr.id,
+        testNumber: tr.testNumber,
+        testTitle: tr.testTitle,
+        testDirector: tr.testDirector,
+        substanceCode: tr.substanceCode,
+        projectCode: tr.projectCode,
+        substanceName: tr.substanceName,
+        institutionName: tr.institutionName,
+        totalAmount: tr.totalAmount,
+        status: tr.status,
+        customer: tr.customer,
+        requester: tr.requester,
+      },
+    }));
+
+    // 4. 통합 결과 (Study 먼저, 미연결 TestReception 뒤에)
+    const allItems = [...studies, ...receptionAsStudies];
+    const total = studyTotal + trTotal;
+
+    // 페이지네이션 적용 (이미 studies는 skip/take 적용됨, receptions는 전체 가져옴)
+    // 간단하게: 첫 페이지에서 studies + receptions 합쳐서 보여줌
+    const paginatedItems = allItems.slice(0, take);
+
     res.json({
       success: true,
       data: {
-        studies,
+        studies: paginatedItems,
         pagination: {
           page: parseInt(page as string),
           limit: parseInt(limit as string),

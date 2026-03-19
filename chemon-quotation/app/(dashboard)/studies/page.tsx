@@ -34,6 +34,7 @@ import {
   TrendingUp,
   Clock,
   RefreshCw,
+  ClipboardList,
 } from 'lucide-react';
 import { getStudies, Study, StudyListResponse } from '@/lib/study-api';
 import {
@@ -75,6 +76,20 @@ function getStatusBadgeClass(status: StudyStatus): string {
 function formatDate(dateStr?: string | null): string {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('ko-KR');
+}
+
+function getStudyCustomerName(study: Study): string {
+  if (study.contract?.customer?.company) return study.contract.customer.company;
+  if (study.contract?.customer?.name) return study.contract.customer.name;
+  if (study.testReception?.customer?.company) return study.testReception.customer.company;
+  if (study.testReception?.customer?.name) return study.testReception.customer.name;
+  return '-';
+}
+
+function getStudyCustomerId(study: Study): string | null {
+  if (study.contract?.customer?.id) return study.contract.customer.id;
+  if (study.testReception?.customer?.id) return study.testReception.customer.id;
+  return null;
 }
 
 export default function StudiesPage() {
@@ -247,11 +262,12 @@ function StudyListView({
   const total = pagination?.total || 0;
   const inProgress = studies.filter(s => s.status === 'IN_PROGRESS').length;
   const completed = studies.filter(s => s.status === 'COMPLETED').length;
+  const testReceptionCount = studies.filter(s => (s as any)._isTestReception).length;
 
   return (
     <>
       {/* 통계 카드 */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <Card className="border shadow-sm">
           <CardContent className="pt-5 pb-4">
             <div className="flex items-center justify-between">
@@ -282,6 +298,17 @@ function StudyListView({
                 <p className="text-2xl font-semibold text-blue-600">{completed}</p>
               </div>
               <CheckCircle2 className="w-7 h-7 text-blue-500/50" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border shadow-sm">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">시험접수</p>
+                <p className="text-2xl font-semibold text-amber-600">{testReceptionCount}</p>
+              </div>
+              <ClipboardList className="w-7 h-7 text-amber-500/50" />
             </div>
           </CardContent>
         </Card>
@@ -340,33 +367,49 @@ function StudyListView({
             <>
               {/* 모바일: 카드 */}
               <div className="md:hidden space-y-3">
-                {studies.map((study) => (
-                  <Card
-                    key={study.id}
-                    className="border cursor-pointer active:bg-muted/50 transition-colors"
-                    onClick={() => router.push(`/studies/${study.id}`)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <span className="text-xs font-mono text-muted-foreground">{study.studyNumber}</span>
-                        <Badge variant="outline" className={getStatusBadgeClass(study.status)}>
-                          {STUDY_STATUS_LABELS[study.status]}
-                        </Badge>
-                      </div>
-                      <div className="font-medium text-sm mb-1 truncate">{study.testName}</div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                        <Building2 className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">
-                          {study.contract?.customer?.company || study.contract?.customer?.name || '-'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{formatDate(study.startDate || study.receivedDate)}</span>
-                        <span className="font-mono">{study.contract?.contractNumber || '-'}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {studies.map((study) => {
+                  const isTR = !!(study as any)._isTestReception;
+                  const customerId = getStudyCustomerId(study);
+                  const handleClick = () => {
+                    if (isTR && customerId) {
+                      router.push(`/customers/${customerId}`);
+                    } else if (!isTR) {
+                      router.push(`/studies/${study.id}`);
+                    }
+                  };
+                  return (
+                    <Card
+                      key={study.id}
+                      className="border cursor-pointer active:bg-muted/50 transition-colors"
+                      onClick={handleClick}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-muted-foreground">{study.studyNumber}</span>
+                            {isTR && (
+                              <Badge variant="outline" className="border-amber-300 text-amber-600 text-[10px] px-1.5 py-0">
+                                시험접수
+                              </Badge>
+                            )}
+                          </div>
+                          <Badge variant="outline" className={getStatusBadgeClass(study.status)}>
+                            {STUDY_STATUS_LABELS[study.status]}
+                          </Badge>
+                        </div>
+                        <div className="font-medium text-sm mb-1 truncate">{study.testName}</div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                          <Building2 className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{getStudyCustomerName(study)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{formatDate(study.startDate || study.receivedDate)}</span>
+                          <span className="font-mono">{study.contract?.contractNumber || '-'}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               {/* 데스크톱: 테이블 */}
@@ -374,6 +417,7 @@ function StudyListView({
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>구분</TableHead>
                       <TableHead>시험번호</TableHead>
                       <TableHead>시험명</TableHead>
                       <TableHead>고객사</TableHead>
@@ -384,38 +428,60 @@ function StudyListView({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {studies.map((study) => (
-                      <TableRow
-                        key={study.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => router.push(`/studies/${study.id}`)}
-                      >
-                        <TableCell className="font-mono text-sm">{study.studyNumber}</TableCell>
-                        <TableCell className="font-medium">{study.testName}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1.5">
-                            <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
-                            <span className="truncate max-w-[150px]">
-                              {study.contract?.customer?.company || study.contract?.customer?.name || '-'}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          {study.contract?.contractNumber || '-'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={getStatusBadgeClass(study.status)}>
-                            {STUDY_STATUS_LABELS[study.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(study.startDate)}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(study.expectedEndDate)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {studies.map((study) => {
+                      const isTR = !!(study as any)._isTestReception;
+                      const customerId = getStudyCustomerId(study);
+                      const handleClick = () => {
+                        if (isTR && customerId) {
+                          router.push(`/customers/${customerId}`);
+                        } else if (!isTR) {
+                          router.push(`/studies/${study.id}`);
+                        }
+                      };
+                      return (
+                        <TableRow
+                          key={study.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={handleClick}
+                        >
+                          <TableCell>
+                            {isTR ? (
+                              <Badge variant="outline" className="border-amber-300 text-amber-600 text-[10px]">
+                                시험접수
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="border-slate-300 text-slate-600 text-[10px]">
+                                시험
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">{study.studyNumber}</TableCell>
+                          <TableCell className="font-medium">{study.testName}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+                              <span className="truncate max-w-[150px]">
+                                {getStudyCustomerName(study)}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">
+                            {study.contract?.contractNumber || '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={getStatusBadgeClass(study.status)}>
+                              {STUDY_STATUS_LABELS[study.status]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(study.startDate || study.receivedDate)}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(study.expectedEndDate)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

@@ -20,6 +20,9 @@ export interface Study {
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
+  // 미연결 TestReception 통합 표시용 플래그
+  _isTestReception?: boolean;
+  _testReceptionId?: string;
   contract?: {
     id: string;
     contractNumber: string;
@@ -30,10 +33,18 @@ export interface Study {
       name: string;
       company: string;
     };
-  };
+  } | null;
   testReception?: {
     id: string;
-    receptionNumber: string;
+    testNumber?: string;
+    testTitle?: string;
+    testDirector?: string;
+    substanceCode?: string;
+    projectCode?: string;
+    substanceName?: string;
+    institutionName?: string;
+    totalAmount?: number;
+    receptionNumber?: string;
     status: string;
     customer?: { id: string; name: string; company: string };
     requester?: { id: string; name: string };
