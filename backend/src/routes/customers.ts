@@ -257,6 +257,9 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const customer = await dataService.getCustomerById(req.user!.id, req.params.id);
+      // email/phone이 object로 저장된 경우 방어 처리
+      if (customer && typeof customer.email !== 'string') (customer as any).email = customer.email ? String(customer.email) : null;
+      if (customer && typeof customer.phone !== 'string') (customer as any).phone = customer.phone ? String(customer.phone) : null;
       res.json({
         success: true,
         data: customer,
