@@ -55,7 +55,7 @@ startCleanup();
  */
 export const rateLimiter = (
   windowMs: number = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'),
-  maxRequests: number = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100')
+  maxRequests: number = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '300')
 ) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
