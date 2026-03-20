@@ -303,32 +303,37 @@ export interface SalesModalityData {
   amount: number;
 }
 
+export interface SalesTotals {
+  quotationAmount: number;
+  quotationCount: number;
+  contractAmount: number;
+  contractCount: number;
+  conversionRate: number;
+  won: number;
+  lost: number;
+}
+
+export interface SalesScopeData {
+  totals: SalesTotals;
+  monthly: SalesMonthlyData[];
+  quarterly: SalesQuarterlyData[];
+  modality: SalesModalityData[];
+}
+
 export interface SalesStatsResponse {
   accessLevel: DashboardAccessLevel;
   user: { id: string; name: string; department: string | null };
   year: number;
-  scope: string;
-  totals: {
-    quotationAmount: number;
-    quotationCount: number;
-    contractAmount: number;
-    contractCount: number;
-    conversionRate: number;
-    won: number;
-    lost: number;
-  };
-  monthly: SalesMonthlyData[];
-  quarterly: SalesQuarterlyData[];
-  modality: SalesModalityData[];
-  userRanking: UserRankingItem[] | null;
+  personal: SalesScopeData;
+  department: SalesScopeData | null;
+  company: SalesScopeData | null;
   departmentStats: DepartmentStats[] | null;
+  userRanking: UserRankingItem[] | null;
 }
 
-export async function getSalesStats(params?: { year?: number; scope?: string; department?: string }): Promise<SalesStatsResponse> {
+export async function getSalesStats(params?: { year?: number }): Promise<SalesStatsResponse> {
   const queryParams = new URLSearchParams();
   if (params?.year) queryParams.append('year', params.year.toString());
-  if (params?.scope) queryParams.append('scope', params.scope);
-  if (params?.department) queryParams.append('department', params.department);
   const qs = queryParams.toString();
   return api.get(`/dashboard/sales-stats${qs ? `?${qs}` : ''}`);
 }

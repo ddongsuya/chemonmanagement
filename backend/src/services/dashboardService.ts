@@ -1105,7 +1105,10 @@ export class DashboardService {
   // ==================== 매출 대시보드 ====================
 
   /**
-   * 매출 대시보드 통계 조회 (권한별 데이터 범위)
+   * 매출 대시보드 통계 조회 (권한별 자동 데이터 범위)
+   * - PERSONAL: 개인 데이터만
+   * - TEAM: 개인 + 소속 센터 종합
+   * - FULL: 개인 + 전사 (센터별 + 사용자별)
    */
   async getSalesStats(userId: string, params?: { year?: number; scope?: string; department?: string }) {
     const user = await prisma.user.findUnique({
@@ -1126,31 +1129,53 @@ export class DashboardService {
 
     const accessLevel = getDashboardAccessLevel(permissions);
     const year = params?.year || new Date().getFullYear();
-    const scope = params?.scope || 'personal';
-    const requestedDept = params?.department as Department | undefined;
-
-    // 스코프별 사용자 ID 목록 결정
-    let targetUserIds: string[] = [userId];
-
-    if (scope === 'department') {
-      const dept = requestedDept || user.department;
-      if (dept && (accessLevel === 'FULL' || user.department === dept)) {
-        const deptUsers = await prisma.user.findMany({
-          where: { department: dept },
-          select: { id: true }
-        });
-        targetUserIds = deptUsers.map(u => u.id);
-      }
-    } else if (scope === 'company' && accessLevel === 'FULL') {
-      targetUserIds = []; // 빈 배열 = 전체
-    }
 
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year, 11, 31, 23, 59, 59);
 
-    const userFilter = targetUserIds.length > 0 ? { userId: { in: targetUserIds } } : {};
+    // 1. 개인 데이터 (항상)
+    const personal = await this.buildSalesData([userId], yearStart, yearEnd);
 
-    // 월별 견적/계약 데이터
+    // 2. 소속 센터 데이터 (TEAM/FULL + 부서 있을 때)
+    let department = null;
+    if ((accessLevel === 'TEAM' || accessLevel === 'FULL') && user.department) {
+      const deptUsers = await prisma.user.findMany({
+        where: { department: user.department },
+        select: { id: true }
+      });
+      department = await this.buildSalesData(deptUsers.map(u => u.id), yearStart, yearEnd);
+    }
+
+    // 3. 전사 데이터 (FULL만)
+    let companyTotals = null;
+    let departmentStats = null;
+    let userRanking = null;
+
+    if (accessLevel === 'FULL') {
+      companyTotals = await this.buildSalesData([], yearStart, yearEnd); // 빈 배열 = 전체
+      departmentStats = await this.getDepartmentStats(yearStart, yearEnd);
+      userRanking = await this.getUserRanking(yearStart, yearEnd);
+    }
+
+    return {
+      accessLevel,
+      user: { id: user.id, name: user.name, department: user.department },
+      year,
+      personal,
+      department,
+      company: companyTotals,
+      departmentStats,
+      userRanking
+    };
+  }
+
+  /**
+   * 특정 사용자 그룹의 매출 데이터 빌드
+   * @param userIds 빈 배열이면 전체 사용자
+   */
+  private async buildSalesData(userIds: string[], yearStart: Date, yearEnd: Date) {
+    const userFilter = userIds.length > 0 ? { userId: { in: userIds } } : {};
+
     const [quotations, contracts] = await Promise.all([
       prisma.quotation.findMany({
         where: { ...userFilter, createdAt: { gte: yearStart, lte: yearEnd }, deletedAt: null },
@@ -1195,8 +1220,7 @@ export class DashboardService {
     const conversionRate = totalDecided > 0 ? Math.round((totalWon / totalDecided) * 1000) / 10 : 0;
 
     // 분기별 집계
-    const quarterly: Record<number, { quotationAmount: number; contractAmount: number; conversionRate: number }> = {};
-    for (let q = 1; q <= 4; q++) {
+    const quarterly = [1, 2, 3, 4].map(q => {
       const months = [q * 3 - 2, q * 3 - 1, q * 3];
       let qAmt = 0, cAmt = 0, qWon = 0, qLost = 0;
       months.forEach(m => {
@@ -1206,30 +1230,15 @@ export class DashboardService {
         qLost += monthly[m].lost;
       });
       const qDecided = qWon + qLost;
-      quarterly[q] = {
+      return {
+        quarter: q,
         quotationAmount: qAmt,
         contractAmount: cAmt,
         conversionRate: qDecided > 0 ? Math.round((qWon / qDecided) * 1000) / 10 : 0
       };
-    }
-
-    // 담당자별 순위 (전사 스코프만)
-    let userRanking = null;
-    if (scope === 'company' && accessLevel === 'FULL') {
-      userRanking = await this.getUserRanking(yearStart, yearEnd);
-    }
-
-    // 부서별 현황 (전사 스코프만)
-    let departmentStats = null;
-    if (scope === 'company' && accessLevel === 'FULL') {
-      departmentStats = await this.getDepartmentStats(yearStart, yearEnd);
-    }
+    });
 
     return {
-      accessLevel,
-      user: { id: user.id, name: user.name, department: user.department },
-      year,
-      scope,
       totals: {
         quotationAmount: totalQuotationAmount,
         quotationCount: quotations.length,
@@ -1240,10 +1249,8 @@ export class DashboardService {
         lost: totalLost
       },
       monthly: Object.entries(monthly).map(([m, data]) => ({ month: parseInt(m), ...data })),
-      quarterly: Object.entries(quarterly).map(([q, data]) => ({ quarter: parseInt(q), ...data })),
-      modality: Object.entries(modalityMap).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount),
-      userRanking,
-      departmentStats
+      quarterly,
+      modality: Object.entries(modalityMap).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount)
     };
   }
 }
