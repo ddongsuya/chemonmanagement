@@ -235,13 +235,15 @@ export async function globalSearch(params: GlobalSearchParams): Promise<GlobalSe
 
   // 6. 상담기록 검색
   if (shouldSearch('consultation')) {
-    const consultations = await prisma.consultation.findMany({
+    const consultations = await prisma.consultationRecord.findMany({
       where: {
         userId,
         deletedAt: null,
         OR: [
           { recordNumber: { contains: q, mode: 'insensitive' } },
-          { content: { contains: q, mode: 'insensitive' } },
+          { clientRequests: { contains: q, mode: 'insensitive' } },
+          { internalNotes: { contains: q, mode: 'insensitive' } },
+          { substanceName: { contains: q, mode: 'insensitive' } },
           { customer: { company: { contains: q, mode: 'insensitive' } } },
           { customer: { name: { contains: q, mode: 'insensitive' } } },
         ],
@@ -256,8 +258,7 @@ export async function globalSearch(params: GlobalSearchParams): Promise<GlobalSe
         id: cs.id,
         category: 'consultation',
         title: cs.recordNumber,
-        subtitle: `${cs.customer?.company || cs.customer?.name || ''} · ${(cs.content || '').slice(0, 50)}`,
-        status: cs.consultationType || undefined,
+        subtitle: `${cs.customer?.company || cs.customer?.name || ''} · ${(cs.clientRequests || '').slice(0, 50)}`,
         date: cs.updatedAt.toISOString(),
         href: `/customers/${cs.customerId}`,
       });
