@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   FileText, TrendingUp, Trophy, Users, Loader2, Building2
 } from 'lucide-react';
@@ -365,47 +366,62 @@ export default function SalesDashboard() {
         </>
       )}
 
-      {/* ─── TEAM: 개인 + 소속 센터 ─── */}
+      {/* ─── TEAM: 개인 + 소속 센터 (탭) ─── */}
       {accessLevel === 'TEAM' && (
-        <>
-          <SectionHeader title="내 매출" />
-          <KPICards data={personal} />
-          <MonthlyChart data={personal} />
-
-          {department && (
-            <>
-              <SectionHeader title={`${deptLabel} 종합`} />
-              <KPICards data={department} />
-              <MonthlyChart data={department} />
-              <QuarterlyAndModality data={department} />
-            </>
-          )}
-        </>
+        <Tabs defaultValue="personal" className="w-full">
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger value="personal">내 매출</TabsTrigger>
+            <TabsTrigger value="department">{deptLabel} 종합</TabsTrigger>
+          </TabsList>
+          <TabsContent value="personal" className="space-y-4 mt-4">
+            <KPICards data={personal} />
+            <MonthlyChart data={personal} />
+            <QuarterlyAndModality data={personal} />
+          </TabsContent>
+          <TabsContent value="department" className="space-y-4 mt-4">
+            {department ? (
+              <>
+                <KPICards data={department} />
+                <MonthlyChart data={department} />
+                <QuarterlyAndModality data={department} />
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-8">소속 센터 데이터 없음</p>
+            )}
+          </TabsContent>
+        </Tabs>
       )}
 
-      {/* ─── FULL: 개인 + 전사 ─── */}
+      {/* ─── FULL: 개인 + 전사 (탭) ─── */}
       {accessLevel === 'FULL' && (
-        <>
-          <SectionHeader title="내 매출" />
-          <KPICards data={personal} compact />
+        <Tabs defaultValue="company" className="w-full">
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger value="personal">내 매출</TabsTrigger>
+            <TabsTrigger value="company">전사 현황</TabsTrigger>
+          </TabsList>
+          <TabsContent value="personal" className="space-y-4 mt-4">
+            <KPICards data={personal} />
+            <MonthlyChart data={personal} />
+            <QuarterlyAndModality data={personal} />
+          </TabsContent>
+          <TabsContent value="company" className="space-y-4 mt-4">
+            {company && (
+              <>
+                <KPICards data={company} />
+                <MonthlyChart data={company} />
+                <QuarterlyAndModality data={company} />
+              </>
+            )}
 
-          {company && (
-            <>
-              <SectionHeader title="전사 현황" />
-              <KPICards data={company} />
-              <MonthlyChart data={company} />
-              <QuarterlyAndModality data={company} />
-            </>
-          )}
+            {departmentStats && departmentStats.length > 0 && (
+              <DepartmentComparisonTable stats={departmentStats} />
+            )}
 
-          {departmentStats && departmentStats.length > 0 && (
-            <DepartmentComparisonTable stats={departmentStats} />
-          )}
-
-          {userRanking && userRanking.length > 0 && (
-            <UserRankingTable ranking={userRanking} />
-          )}
-        </>
+            {userRanking && userRanking.length > 0 && (
+              <UserRankingTable ranking={userRanking} />
+            )}
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
