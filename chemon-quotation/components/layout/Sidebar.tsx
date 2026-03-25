@@ -87,9 +87,7 @@ export default function Sidebar() {
 
   const toggleGroup = (title: string) => {
     setOpenGroups(prev =>
-      prev.includes(title)
-        ? prev.filter(t => t !== title)
-        : [...prev, title]
+      prev.includes(title) ? prev.filter(t => t !== title) : [...prev, title]
     );
   };
 
@@ -106,35 +104,32 @@ export default function Sidebar() {
       <aside
         className={cn(
           'flex flex-col h-dvh transition-[width] duration-200 ease-out',
-          'gradient-sidebar border-r border-white/[0.06]',
+          'bg-slate-50 border-r border-slate-200',
           isExpanded ? 'w-60' : 'w-[68px]'
         )}
       >
         {/* 헤더 */}
         <div className={cn(
-          'h-14 flex items-center border-b border-white/[0.06] flex-shrink-0',
+          'h-14 flex items-center border-b border-slate-200 flex-shrink-0',
           isExpanded ? 'px-5 justify-between' : 'justify-center'
         )}>
           {isExpanded ? (
             <>
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground text-xs font-bold">C</span>
+                <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm">
+                  <span className="text-white text-xs font-bold">C</span>
                 </div>
-                <span className="text-white/90 font-semibold text-sm tracking-tight">CHEMON</span>
+                <div>
+                  <span className="text-blue-700 font-black text-sm tracking-tight block leading-none">Chemon</span>
+                  <span className="text-[9px] uppercase tracking-widest text-slate-400 font-bold">Management</span>
+                </div>
               </div>
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="text-white/40 hover:text-white/70 transition-colors"
-              >
+              <button onClick={() => setIsExpanded(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <PanelLeftClose className="w-4 h-4" />
               </button>
             </>
           ) : (
-            <button
-              onClick={() => setIsExpanded(true)}
-              className="text-white/40 hover:text-white/70 transition-colors"
-            >
+            <button onClick={() => setIsExpanded(true)} className="text-slate-400 hover:text-slate-600 transition-colors">
               <PanelLeft className="w-4 h-4" />
             </button>
           )}
@@ -143,69 +138,28 @@ export default function Sidebar() {
         {/* 네비게이션 */}
         <nav className="flex-1 overflow-y-auto py-3 px-2.5">
           <div className="space-y-0.5">
-            {/* 공지사항 */}
-            <NavItem
-              icon={Megaphone}
-              title="공지사항"
-              href="/announcements"
-              isActive={isActive('/announcements')}
-              isExpanded={isExpanded}
-              onClick={() => router.push('/announcements')}
-            />
+            <NavItem icon={Megaphone} title="공지사항" href="/announcements" isActive={isActive('/announcements')} isExpanded={isExpanded} onClick={() => router.push('/announcements')} />
+            <NavItem icon={LayoutDashboard} title="대시보드" href="/dashboard" isActive={isActive('/dashboard')} isExpanded={isExpanded} onClick={() => router.push('/dashboard')} />
 
-            {/* 대시보드 */}
-            <NavItem
-              icon={LayoutDashboard}
-              title="대시보드"
-              href="/dashboard"
-              isActive={isActive('/dashboard')}
-              isExpanded={isExpanded}
-              onClick={() => router.push('/dashboard')}
-            />
+            <div className="py-2"><div className="border-t border-slate-200" /></div>
 
-            {/* 구분선 */}
-            <div className="py-2">
-              <div className="border-t border-white/[0.06]" />
-            </div>
-
-            {/* 그룹 메뉴 */}
             {menuGroups.map((group) => (
               <div key={group.title}>
                 {isExpanded ? (
-                  <Collapsible
-                    open={openGroups.includes(group.title)}
-                    onOpenChange={() => toggleGroup(group.title)}
-                  >
+                  <Collapsible open={openGroups.includes(group.title)} onOpenChange={() => toggleGroup(group.title)}>
                     <CollapsibleTrigger asChild>
-                      <button
-                        className={cn(
-                          'w-full flex items-center justify-between px-2.5 py-1.5 rounded-md',
-                          'transition-colors duration-150 text-[11px] font-medium uppercase tracking-wider',
-                          isGroupActive(group)
-                            ? 'text-white/70'
-                            : 'text-white/35 hover:text-white/50'
-                        )}
-                      >
+                      <button className={cn(
+                        'w-full flex items-center justify-between px-2.5 py-1.5 rounded-md',
+                        'transition-colors duration-150 text-[11px] font-medium uppercase tracking-wider',
+                        isGroupActive(group) ? 'text-slate-700' : 'text-slate-400 hover:text-slate-600'
+                      )}>
                         <span>{group.title}</span>
-                        <ChevronDown
-                          className={cn(
-                            'w-3 h-3 transition-transform duration-150',
-                            openGroups.includes(group.title) && 'rotate-180'
-                          )}
-                        />
+                        <ChevronDown className={cn('w-3 h-3 transition-transform duration-150', openGroups.includes(group.title) && 'rotate-180')} />
                       </button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-0.5">
                       {group.items.map((item) => (
-                        <NavItem
-                          key={item.href}
-                          icon={item.icon}
-                          title={item.title}
-                          href={item.href}
-                          isActive={isActive(item.href)}
-                          isExpanded={isExpanded}
-                          onClick={() => router.push(item.href)}
-                        />
+                        <NavItem key={item.href} icon={item.icon} title={item.title} href={item.href} isActive={isActive(item.href)} isExpanded={isExpanded} onClick={() => router.push(item.href)} />
                       ))}
                     </CollapsibleContent>
                   </Collapsible>
@@ -214,10 +168,8 @@ export default function Sidebar() {
                     <button
                       onClick={() => router.push(group.items[0].href)}
                       className={cn(
-                        'w-full h-9 flex items-center justify-center rounded-md transition-colors duration-150',
-                        isGroupActive(group)
-                          ? 'bg-white/10 text-white'
-                          : 'text-white/40 hover:bg-white/[0.06] hover:text-white/70'
+                        'w-full h-9 flex items-center justify-center rounded-xl transition-all duration-200',
+                        isGroupActive(group) ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-700'
                       )}
                     >
                       <group.icon className="w-[18px] h-[18px]" />
@@ -228,68 +180,30 @@ export default function Sidebar() {
               </div>
             ))}
 
-            {/* 구분선 */}
-            <div className="py-2">
-              <div className="border-t border-white/[0.06]" />
-            </div>
+            <div className="py-2"><div className="border-t border-slate-200" /></div>
 
-            {/* 기타 메뉴 */}
             {standaloneItems.map((item) => (
-              <NavItem
-                key={item.href}
-                icon={item.icon}
-                title={item.title}
-                href={item.href}
-                isActive={isActive(item.href)}
-                isExpanded={isExpanded}
-                onClick={() => router.push(item.href)}
-              />
+              <NavItem key={item.href} icon={item.icon} title={item.title} href={item.href} isActive={isActive(item.href)} isExpanded={isExpanded} onClick={() => router.push(item.href)} />
             ))}
           </div>
         </nav>
 
-        {/* 하단 영역 */}
-        <div className="border-t border-white/[0.06] p-2.5 flex-shrink-0">
-          {/* 관리자 패널 */}
+        {/* 하단 */}
+        <div className="border-t border-slate-200 p-2.5 flex-shrink-0">
           {user?.role === 'ADMIN' && (
-            <NavItem
-              icon={Shield}
-              title="관리자 패널"
-              href="/admin"
-              isActive={isActive('/admin')}
-              isExpanded={isExpanded}
-              onClick={() => router.push('/admin')}
-              variant="admin"
-            />
+            <NavItem icon={Shield} title="관리자 패널" href="/admin" isActive={isActive('/admin')} isExpanded={isExpanded} onClick={() => router.push('/admin')} variant="admin" />
           )}
-
-          {/* 유저 프로필 */}
-          <div className={cn(
-            'flex items-center gap-2.5 mt-1.5 px-2 py-2 rounded-md',
-            isExpanded ? '' : 'justify-center'
-          )}>
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-              <span className="text-white/80 text-xs font-medium">
-                {user?.name?.slice(0, 1) || 'U'}
-              </span>
+          <div className={cn('flex items-center gap-2.5 mt-1.5 px-2 py-2 rounded-md', isExpanded ? '' : 'justify-center')}>
+            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+              <span className="text-slate-600 text-xs font-medium">{user?.name?.slice(0, 1) || 'U'}</span>
             </div>
-            
             {isExpanded && (
               <>
                 <div className="flex-1 min-w-0">
-                  <div className="text-white/80 text-sm font-medium truncate">
-                    {user?.name || '사용자'}
-                  </div>
-                  <div className="text-white/35 text-[11px]">
-                    {user?.role === 'ADMIN' ? '관리자' : '사용자'}
-                  </div>
+                  <div className="text-slate-800 text-sm font-medium truncate">{user?.name || '사용자'}</div>
+                  <div className="text-slate-400 text-[11px]">{user?.role === 'ADMIN' ? '관리자' : '사용자'}</div>
                 </div>
-                
-                <button
-                  onClick={handleLogout}
-                  className="text-white/30 hover:text-red-400 transition-colors"
-                  title="로그아웃"
-                >
+                <button onClick={handleLogout} className="text-slate-400 hover:text-red-500 transition-colors" title="로그아웃">
                   <LogOut className="w-4 h-4" />
                 </button>
               </>
@@ -301,74 +215,37 @@ export default function Sidebar() {
   );
 }
 
-/* 네비게이션 아이템 */
-function NavItem({
-  icon: Icon,
-  title,
-  href,
-  isActive,
-  isExpanded,
-  onClick,
-  variant,
-}: {
-  icon: LucideIcon;
-  title: string;
-  href: string;
-  isActive: boolean;
-  isExpanded: boolean;
-  onClick: () => void;
-  variant?: 'admin';
+function NavItem({ icon: Icon, title, href, isActive, isExpanded, onClick, variant }: {
+  icon: LucideIcon; title: string; href: string; isActive: boolean; isExpanded: boolean; onClick: () => void; variant?: 'admin';
 }) {
   const isAdmin = variant === 'admin';
-
   if (!isExpanded) {
     return (
       <div className="relative group">
-        <button
-          onClick={onClick}
-          className={cn(
-            'w-full h-9 flex items-center justify-center rounded-md transition-colors duration-150',
-            isAdmin
-              ? 'text-red-400/60 hover:bg-red-500/10 hover:text-red-400'
-              : isActive
-                ? 'bg-white/10 text-white'
-                : 'text-white/40 hover:bg-white/[0.06] hover:text-white/70'
-          )}
-        >
+        <button onClick={onClick} className={cn(
+          'w-full h-9 flex items-center justify-center rounded-xl transition-all duration-200',
+          isAdmin ? 'text-red-400 hover:bg-red-50' : isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-700'
+        )}>
           <Icon className="w-[18px] h-[18px]" />
         </button>
         <Tooltip label={title} />
       </div>
     );
   }
-
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-colors duration-150',
-        isAdmin
-          ? 'text-red-400/70 hover:bg-red-500/10 hover:text-red-400'
-          : isActive
-            ? 'bg-white/10 text-white font-medium'
-            : 'text-white/50 hover:bg-white/[0.06] hover:text-white/80'
-      )}
-    >
+    <button onClick={onClick} className={cn(
+      'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] transition-all duration-200',
+      isAdmin ? 'text-red-400 hover:bg-red-50' : isActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-200/50 hover:text-slate-800'
+    )}>
       <Icon className="w-[18px] h-[18px] flex-shrink-0" />
       <span className="truncate">{title}</span>
-      {isActive && (
-        <div className="ml-auto w-1 h-1 rounded-full bg-white/60" />
-      )}
     </button>
   );
 }
 
-/* 툴팁 */
 function Tooltip({ label }: { label: string }) {
   return (
-    <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-foreground text-background 
-                   text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-150 
-                   pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-slate-800 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50">
       {label}
     </div>
   );

@@ -41,14 +41,14 @@
     --chart-4: 38 70% 50%;
     --chart-5: 262 40% 50%;
 
-    /* 사이드바 */
-    --sidebar: 220 26% 14%;
-    --sidebar-foreground: 220 10% 85%;
-    --sidebar-muted: 220 20% 20%;
-    --sidebar-accent: 220 60% 50%;
+    /* 사이드바 — 라이트 테마 (Stitch) */
+    --sidebar: 210 20% 97%;
+    --sidebar-foreground: 220 10% 20%;
+    --sidebar-muted: 210 15% 93%;
+    --sidebar-accent: 217 91% 37%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 20% 20%;
-    --sidebar-primary: 220 60% 50%;
+    --sidebar-border: 220 10% 92%;
+    --sidebar-primary: 217 91% 37%;
     --sidebar-primary-foreground: 0 0% 100%;
   }
 
@@ -115,6 +115,10 @@
 
   .shadow-soft-lg {
     box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  }
+
+  .shadow-ambient {
+    box-shadow: 0 24px 40px -10px rgba(25, 28, 29, 0.06);
   }
 }
 
