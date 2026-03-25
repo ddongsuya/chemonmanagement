@@ -64,6 +64,7 @@ function getStatusBadgeClass(status: StudyStatus): string {
     REGISTERED: 'border-gray-300 text-gray-600',
     PREPARING: 'border-blue-300 text-blue-600',
     IN_PROGRESS: 'border-green-300 text-green-600',
+    ON_HOLD: 'border-amber-300 text-amber-600',
     ANALYSIS: 'border-purple-300 text-purple-600',
     REPORT_DRAFT: 'border-amber-300 text-amber-600',
     REPORT_REVIEW: 'border-pink-300 text-pink-600',
