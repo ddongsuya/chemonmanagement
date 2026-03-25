@@ -53,6 +53,7 @@ import {
   STUDY_STATUS_COLORS,
 } from '@/lib/study-dashboard-api';
 import { useToast } from '@/hooks/use-toast';
+import StudyDocumentTimeline from '@/components/study/StudyDocumentTimeline';
 
 // Status flow order for the stepper
 const STATUS_FLOW: StudyStatus[] = [
@@ -65,6 +66,7 @@ function getStatusBadgeClass(status: StudyStatus): string {
     REGISTERED: 'border-gray-300 text-gray-600',
     PREPARING: 'border-blue-300 text-blue-600',
     IN_PROGRESS: 'border-green-300 text-green-600',
+    ON_HOLD: 'border-amber-300 text-amber-600',
     ANALYSIS: 'border-purple-300 text-purple-600',
     REPORT_DRAFT: 'border-amber-300 text-amber-600',
     REPORT_REVIEW: 'border-pink-300 text-pink-600',
@@ -469,6 +471,13 @@ export default function StudyDetailPage() {
                 <TimelineItem label="보고서 최종" date={study.reportFinalDate} />
                 <TimelineItem label="최종 수정" date={study.updatedAt} />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* 문서 송부 이력 */}
+          <Card className="border shadow-sm">
+            <CardContent className="pt-5 pb-4">
+              <StudyDocumentTimeline studyId={study.id} studyCode={study.studyNumber} />
             </CardContent>
           </Card>
 

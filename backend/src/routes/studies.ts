@@ -162,6 +162,11 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
             requester: true,
           },
         },
+        documents: {
+          include: { creator: { select: { id: true, name: true } } },
+          orderBy: [{ sentYear: 'desc' }, { sentMonth: 'desc' }, { createdAt: 'desc' }],
+        },
+        user: { select: { id: true, name: true, department: true } },
       },
     });
 

@@ -87,11 +87,32 @@ enum StudyStatus {
   REGISTERED // 접수
   PREPARING // 준비중
   IN_PROGRESS // 진행중
+  ON_HOLD // 홀딩
   ANALYSIS // 분석중
   REPORT_DRAFT // 보고서 작성중
   REPORT_REVIEW // 보고서 검토중
   COMPLETED // 완료
   SUSPENDED // 중단
+}
+
+// 문서 유형 (시험에서 발생하는 모든 문서 카테고리)
+enum StudyDocumentType {
+  DISCUSSION // 논의 (미팅, 전화, 이메일 등)
+  PROTOCOL // 시험계획서
+  AMENDMENT // 변경기록지
+  SUSPENSION_RECORD // 시험중단기록지
+  SUSPENSION_REPORT // 시험중단보고서
+  FINAL_REPORT // 최종보고서
+}
+
+// 문서 버전/단계
+enum DocumentVersion {
+  FIRST_DRAFT // 1차
+  SECOND_DRAFT // 2차
+  THIRD_DRAFT // 3차
+  DRAFT_FINAL // 안 (최종보고서 안)
+  FINAL // 최종본
+  N_A // 해당없음
 }
 
 // 신규 Enum - 고객 등급
@@ -161,6 +182,10 @@ model User {
 
   // CRM Extension 관계
   activities Activity[]
+
+  // Study 관계
+  studies        Study[]
+  studyDocuments StudyDocument[]
 
   // Clinical Pathology 관계
   clinicalQuotations             ClinicalQuotation[]
@@ -720,10 +745,21 @@ model Study {
   testReceptionId String?        @unique
   testReception   TestReception? @relation(fields: [testReceptionId], references: [id])
 
+  // 담당자
+  userId String?
+  user   User?  @relation(fields: [userId], references: [id])
+
   // 시험 정보
   studyType  QuotationType
   testName   String // 시험명
   testItemId String? // ToxicityTest 또는 EfficacyModel ID
+
+  // 시험 접수 안내 정보 (TestReception 미연결 시 직접 입력)
+  substanceCode String? // 물질코드 (예: C-6849)
+  projectCode   String? // 프로젝트코드 (예: CP25-083)
+  testSubstance String? // 시험물질 (예: Pearl-101)
+  sponsor       String? // 의뢰기관 (예: Pearlsinmires Co., Ltd.)
+  studyDirector String? // 시험책임자 (예: 김지현B)
 
   // 일정
   receivedDate    DateTime? // 시험접수일
@@ -742,6 +778,45 @@ model Study {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // 문서 송부 이력
+  documents StudyDocument[]
+
+  @@index([contractId])
+  @@index([userId])
+  @@index([studyNumber])
+}
+
+// ==================== StudyDocument (문서 송부 이력) ====================
+
+model StudyDocument {
+  id String @id @default(uuid())
+
+  // 시험 연결
+  studyId String
+  study   Study  @relation(fields: [studyId], references: [id], onDelete: Cascade)
+
+  // 문서 정보
+  documentType StudyDocumentType
+  version      DocumentVersion
+
+  // 송부 시점
+  sentYear  Int // 송부 연도
+  sentMonth Int // 송부 월
+  sentDate  DateTime? // 정확한 일자 (선택)
+
+  // 코멘트
+  comment String?
+
+  // 기록자
+  createdBy String
+  creator   User   @relation(fields: [createdBy], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studyId, sentYear, sentMonth])
+  @@index([studyId, documentType])
 }
 
 // ==================== Consultation Record (신규) ====================

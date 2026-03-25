@@ -48,6 +48,7 @@ import reportsRoutes from './routes/reports';
 import studyDashboardRoutes from './routes/studyDashboard';
 import searchRoutes from './routes/search';
 import toxicityV2Routes from './routes/toxicityV2';
+import studyDocumentRoutes from './routes/studyDocuments';
 import { pipelineInitializationService } from './services/pipelineInitializationService';
 import { syncReleaseNotes } from './services/releaseNoteService';
 
@@ -166,6 +167,9 @@ app.use('/api/customer-import-export', customerImportExportRoutes);
 
 // Toxicity V2 routes
 app.use('/api/toxicity-v2', toxicityV2Routes);
+
+// Study Document routes
+app.use('/api', studyDocumentRoutes);
 
 // Static file serving for exports (인증 필요)
 app.use('/exports', authenticate, requireAdmin, express.static(path.join(process.cwd(), 'exports')));

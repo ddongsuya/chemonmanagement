@@ -85,6 +85,7 @@ export type StudyStatus =
   | 'REGISTERED'
   | 'PREPARING'
   | 'IN_PROGRESS'
+  | 'ON_HOLD'
   | 'ANALYSIS'
   | 'REPORT_DRAFT'
   | 'REPORT_REVIEW'
@@ -120,6 +121,7 @@ export const STUDY_STATUS_LABELS: Record<StudyStatus, string> = {
   REGISTERED: '접수',
   PREPARING: '준비중',
   IN_PROGRESS: '진행중',
+  ON_HOLD: '홀딩',
   ANALYSIS: '분석중',
   REPORT_DRAFT: '보고서 작성중',
   REPORT_REVIEW: '보고서 검토중',
@@ -132,6 +134,7 @@ export const STUDY_STATUS_COLORS: Record<StudyStatus, string> = {
   REGISTERED: '#6B7280',    // gray
   PREPARING: '#3B82F6',     // blue
   IN_PROGRESS: '#10B981',   // green
+  ON_HOLD: '#F59E0B',       // amber
   ANALYSIS: '#8B5CF6',      // purple
   REPORT_DRAFT: '#F59E0B',  // amber
   REPORT_REVIEW: '#EC4899', // pink
