@@ -39,7 +39,7 @@ export default function DashboardPage() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="sm" className="gap-1.5 h-9 bg-gradient-to-r from-primary to-[hsl(220,60%,55%)] rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
+            <Button size="sm" className="gap-1.5 h-9 bg-gradient-to-r from-primary to-orange-400 rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
               <Plus className="w-3.5 h-3.5" />
               새 견적서
               <ChevronDown className="w-3 h-3 opacity-60" />

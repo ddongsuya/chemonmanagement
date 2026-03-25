@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#ffddb8",
+              "on-error": "#ffffff",
+              "surface-variant": "#e9e1d8",
+              "surface-container": "#f5ede3",
+              "outline": "#8c7164",
+              "outline-variant": "#e0c0b1",
+              "on-tertiary-fixed": "#2a1700",
+              "surface-tint": "#9d4300",
+              "tertiary-container": "#d78900",
+              "secondary-fixed": "#d3e4fe",
+              "error-container": "#ffdad6",
+              "secondary-fixed-dim": "#b7c8e1",
+              "on-primary-fixed-variant": "#783200",
+              "inverse-surface": "#33302a",
+              "surface-container-highest": "#e9e1d8",
+              "on-tertiary-fixed-variant": "#653e00",
+              "tertiary": "#855300",
+              "primary-fixed-dim": "#ffb690",
+              "tertiary-fixed-dim": "#ffb95f",
+              "primary-fixed": "#ffdbca",
+              "surface": "#fff8f1",
+              "on-secondary": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "on-secondary-container": "#54647a",
+              "on-tertiary-container": "#492c00",
+              "background": "#fff8f1",
+              "on-background": "#1e1b15",
+              "surface-bright": "#fff8f1",
+              "inverse-primary": "#ffb690",
+              "primary-container": "#f97316",
+              "surface-container-lowest": "#ffffff",
+              "surface-dim": "#e0d9cf",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#0b1c30",
+              "on-surface": "#1e1b15",
+              "on-surface-variant": "#584237",
+              "on-primary-fixed": "#341100",
+              "on-error-container": "#93000a",
+              "inverse-on-surface": "#f7f0e6",
+              "surface-container-low": "#faf2e9",
+              "on-primary-container": "#582200",
+              "surface-container-high": "#efe7dd",
+              "secondary-container": "#d0e1fb",
+              "secondary": "#505f76",
+              "on-primary": "#ffffff",
+              "primary": "#9d4300",
+              "on-secondary-fixed-variant": "#38485d"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-background min-h-screen flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-[280px] z-50 bg-[#FAF2E9] flex flex-col p-6 gap-8">
+<div class="flex flex-col gap-1">
+<span class="text-2xl font-black text-orange-600 tracking-tighter">Chemon</span>
+<span class="font-inter text-[13px] font-semibold tracking-wide uppercase text-orange-600 opacity-70">Management Portal</span>
+</div>
+<nav class="flex flex-col gap-2 flex-grow">
+<a class="flex items-center gap-3 text-slate-500 hover:bg-[#F5EDE3] hover:text-orange-500 transition-all duration-300 px-4 py-3 rounded-xl font-inter text-[13px] font-semibold tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 bg-[#FFF8F1] text-orange-600 rounded-xl px-4 py-3 shadow-sm font-inter text-[13px] font-semibold tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="request_quote">request_quote</span>
+                Quotes
+            </a>
+<a class="flex items-center gap-3 text-slate-500 hover:bg-[#F5EDE3] hover:text-orange-500 transition-all duration-300 px-4 py-3 rounded-xl font-inter text-[13px] font-semibold tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Clients
+            </a>
+<a class="flex items-center gap-3 text-slate-500 hover:bg-[#F5EDE3] hover:text-orange-500 transition-all duration-300 px-4 py-3 rounded-xl font-inter text-[13px] font-semibold tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-3 text-slate-500 hover:bg-[#F5EDE3] hover:text-orange-500 transition-all duration-300 px-4 py-3 rounded-xl font-inter text-[13px] font-semibold tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+                Team
+            </a>
+</nav>
+<div class="flex flex-col gap-2 pt-6 border-t border-orange-200/30">
+<a class="flex items-center gap-3 text-slate-500 hover:text-orange-500 transition-colors duration-200 px-4 py-2 font-inter text-[13px] font-semibold tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 text-slate-500 hover:text-orange-500 transition-colors duration-200 px-4 py-2 font-inter text-[13px] font-semibold tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Logout
+            </a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-[280px] w-full flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-280px)] z-40 bg-[#FFF8F1]/80 backdrop-blur-xl flex justify-between items-center px-8 py-4 shadow-sm shadow-orange-900/5">
+<div class="flex items-center gap-4">
+<h1 class="text-xl font-bold tracking-tight text-slate-900">Create New Quote</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container rounded-full text-slate-500">
+<span class="material-symbols-outlined text-[18px]" data-icon="notifications">notifications</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container rounded-full text-slate-500">
+<span class="material-symbols-outlined text-[18px]" data-icon="settings">settings</span>
+</div>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full border border-orange-200" data-alt="professional male portrait with soft outdoor lighting and clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPfyvcGOEvskNhVA66Ijt2fywxSasnel3xyizE1uVe0SfeKIlPKVpe0at1K7uX6iJkinunBQPVpHQLyHfwZ84BTWVYAffkS7tAxXfQIjnf4WL8Kccd0MKrtyfHzvdfMzvCdb6WkwFFU3rxe7kt300MhzmgZfPnI86v09jniVYR3x9tNTOPQqvr01uMOItHMzMfZ0vR-l_d7Na7-k6T8qtFixqSnWrVD-kaVMQf1esnXaBmXn5epNOpaaBv8_rCUoOgpFpI88slHJ-7"/>
+</div>
+<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-b from-[#FAF2E9] to-transparent h-px"></div>
+</header>
+<!-- Content Area -->
+<div class="mt-20 p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Form (2/3) -->
+<div class="lg:col-span-2 flex flex-col gap-8">
+<!-- Client Selection -->
+<section class="bg-surface-container-low rounded-xl p-8 transition-all">
+<h2 class="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+                        Client Information
+                    </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Select Client</label>
+<div class="relative group">
+<select class="w-full bg-surface-container-lowest border-none rounded-xl px-4 py-3 appearance-none focus:ring-2 focus:ring-primary/40 text-on-surface">
+<option>Nexa Global Tech Solutions</option>
+<option>Lumina Creative Agency</option>
+<option>Acme Dynamics</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Project Name</label>
+<input class="w-full bg-surface-container-lowest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/40 text-on-surface" placeholder="e.g. Q4 Infrastructure Audit" type="text"/>
+</div>
+</div>
+</section>
+<!-- Line Items Form -->
+<section class="bg-surface-container-low rounded-xl p-8">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="list_alt">list_alt</span>
+                            Service Line Items
+                        </h2>
+<button class="text-primary text-sm font-bold flex items-center gap-1 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-sm" data-icon="add_circle">add_circle</span>
+                            Add Item
+                        </button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Item Row -->
+<div class="bg-surface-container-lowest p-6 rounded-xl flex flex-col md:flex-row gap-6 items-end group transition-all hover:translate-x-1">
+<div class="flex-grow flex flex-col gap-2">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Description</label>
+<input class="w-full bg-surface-container border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary/40" type="text" value="Architecture Design &amp; Consultation"/>
+</div>
+<div class="w-24 flex flex-col gap-2">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Qty</label>
+<input class="w-full bg-surface-container border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary/40" type="number" value="1"/>
+</div>
+<div class="w-32 flex flex-col gap-2">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Rate</label>
+<input class="w-full bg-surface-container border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary/40 text-right" type="text" value="$2,400.00"/>
+</div>
+<div class="w-10 h-10 flex items-center justify-center text-error opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</div>
+</div>
+<!-- Item Row -->
+<div class="bg-surface-container-lowest p-6 rounded-xl flex flex-col md:flex-row gap-6 items-end group transition-all hover:translate-x-1">
+<div class="flex-grow flex flex-col gap-2">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Description</label>
+<input class="w-full bg-surface-container border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary/40" type="text" value="Server Integration &amp; Security Patching"/>
+</div>
+<div class="w-24 flex flex-col gap-2">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Qty</label>
+<input class="w-full bg-surface-container border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary/40" type="number" value="12"/>
+</div>
+<div class="w-32 flex flex-col gap-2">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Rate</label>
+<input class="w-full bg-surface-container border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary/40 text-right" type="text" value="$185.00"/>
+</div>
+<div class="w-10 h-10 flex items-center justify-center text-error opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Additional Notes -->
+<section class="bg-surface-container-low rounded-xl p-8">
+<h2 class="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="notes">notes</span>
+                        Terms &amp; Conditions
+                    </h2>
+<textarea class="w-full h-32 bg-surface-container-lowest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/40 text-on-surface resize-none" placeholder="Add specific payment terms, project timelines, or scope exclusions..."></textarea>
+</section>
+</div>
+<!-- Right Column: Sticky Summary (1/3) -->
+<div class="lg:col-span-1">
+<div class="sticky top-24 flex flex-col gap-6">
+<!-- Quote Summary Card -->
+<div class="bg-surface-container-highest rounded-2xl p-8 shadow-2xl shadow-orange-900/10 overflow-hidden relative">
+<!-- Decorative Brand Accent -->
+<div class="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
+<h3 class="text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant mb-8">Quote Summary</h3>
+<div class="flex flex-col gap-4 mb-8">
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Subtotal</span>
+<span class="text-on-surface font-bold">$4,620.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Tax (8%)</span>
+<span class="text-on-surface font-bold">$369.60</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Discount (0%)</span>
+<span class="text-on-surface text-secondary">-$0.00</span>
+</div>
+<div class="mt-4 pt-6 border-t border-on-surface/10 flex justify-between items-end">
+<span class="text-on-surface-variant font-black uppercase tracking-tighter text-lg">Total</span>
+<span class="text-3xl font-black text-primary leading-none tracking-tighter">$4,989.60</span>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform active:scale-[0.98]">
+                                Send Quote
+                            </button>
+<button class="w-full bg-white text-on-surface py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-surface-container transition-colors">
+                                Save as Draft
+                            </button>
+</div>
+</div>
+<!-- Visual Context / Aesthetic Helper -->
+<div class="bg-surface-container-low rounded-2xl overflow-hidden relative aspect-video group">
+<img alt="Workspace visual" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="minimalist modern workspace with natural wood textures, warm desk lighting and high-end design tools" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBe-vRY3z4wAKv2wWILDEeSjhfSPLWpC6RDhuNkP76DdZ1VBjJHVFXRRrtPjgHDflxvAApWyi1bMrDhqz4Ht-0x0QMwmpMukZwGKXPItLKDSMCSIVQvXsMNvt1i2lXcls1NYlIVs4hEw2nNvO3fIoS5plaQ1w2RpDU6SrCFxYPt5wMQUu2pyAG7slCEmC7P8XaZUHBiGWsjH4oKKfuwRAFy2UEjFCOOFPBksxDlYSpreJR2yY2-P3EHB1o744EHM4uS24CIZrg9zjup"/>
+<div class="absolute inset-0 bg-gradient-to-t from-orange-950/80 to-transparent flex items-end p-6">
+<p class="text-white text-sm font-medium leading-tight">
+                                Delivering precision and expertise through every engagement.
+                            </p>
+</div>
+</div>
+<!-- Status Indicator -->
+<div class="bg-surface-container-low p-6 rounded-2xl flex items-center gap-4">
+<div class="w-3 h-3 bg-primary rounded-full animate-pulse shadow-sm shadow-primary"></div>
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Quote Status</p>
+<p class="text-sm font-bold text-on-surface">Live Draft • Syncing</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

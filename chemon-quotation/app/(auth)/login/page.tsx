@@ -90,7 +90,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
       {/* 좌측 비주얼 패널 */}
-      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-[hsl(220,60%,50%)] to-[hsl(220,60%,40%)] relative overflow-hidden items-center justify-center p-12">
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-orange-600 to-orange-500 relative overflow-hidden items-center justify-center p-12">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-white rounded-full blur-3xl" />
           <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-white rounded-full blur-3xl" />
@@ -98,7 +98,7 @@ export default function LoginPage() {
         <div className="relative z-10 text-center">
           <div className="inline-flex items-center gap-3 mb-8">
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-xl">
-              <BarChart3 className="w-7 h-7 text-[hsl(220,60%,50%)]" />
+              <BarChart3 className="w-7 h-7 text-orange-600" />
             </div>
             <h1 className="text-4xl font-black tracking-tighter text-white">Chemon</h1>
           </div>
@@ -116,7 +116,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* 모바일 로고 */}
           <div className="flex md:hidden items-center gap-2 mb-12 justify-center">
-            <div className="w-8 h-8 bg-[hsl(220,60%,50%)] rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
               <BarChart3 className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-xl font-black tracking-tighter">Chemon</h1>

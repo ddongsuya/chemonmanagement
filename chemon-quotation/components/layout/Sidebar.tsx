@@ -120,7 +120,7 @@ export default function Sidebar() {
                   <span className="text-white text-xs font-bold">C</span>
                 </div>
                 <div>
-                  <span className="text-blue-700 font-black text-sm tracking-tight block leading-none">Chemon</span>
+                  <span className="text-orange-700 font-black text-sm tracking-tight block leading-none">Chemon</span>
                   <span className="text-[9px] uppercase tracking-widest text-slate-400 font-bold">Management</span>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function Sidebar() {
                       onClick={() => router.push(group.items[0].href)}
                       className={cn(
                         'w-full h-9 flex items-center justify-center rounded-xl transition-all duration-200',
-                        isGroupActive(group) ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-700'
+                        isGroupActive(group) ? 'bg-orange-50 text-orange-700' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-700'
                       )}
                     >
                       <group.icon className="w-[18px] h-[18px]" />
@@ -224,7 +224,7 @@ function NavItem({ icon: Icon, title, href, isActive, isExpanded, onClick, varia
       <div className="relative group">
         <button onClick={onClick} className={cn(
           'w-full h-9 flex items-center justify-center rounded-xl transition-all duration-200',
-          isAdmin ? 'text-red-400 hover:bg-red-50' : isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-700'
+          isAdmin ? 'text-red-400 hover:bg-red-50' : isActive ? 'bg-orange-50 text-orange-700' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-700'
         )}>
           <Icon className="w-[18px] h-[18px]" />
         </button>
@@ -235,7 +235,7 @@ function NavItem({ icon: Icon, title, href, isActive, isExpanded, onClick, varia
   return (
     <button onClick={onClick} className={cn(
       'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] transition-all duration-200',
-      isAdmin ? 'text-red-400 hover:bg-red-50' : isActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-200/50 hover:text-slate-800'
+      isAdmin ? 'text-red-400 hover:bg-red-50' : isActive ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-200/50 hover:text-slate-800'
     )}>
       <Icon className="w-[18px] h-[18px] flex-shrink-0" />
       <span className="truncate">{title}</span>

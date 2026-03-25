@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login | Chemon Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#ffddb8",
+              "on-error": "#ffffff",
+              "surface-variant": "#e9e1d8",
+              "surface-container": "#f5ede3",
+              "outline": "#8c7164",
+              "outline-variant": "#e0c0b1",
+              "on-tertiary-fixed": "#2a1700",
+              "surface-tint": "#9d4300",
+              "tertiary-container": "#d78900",
+              "secondary-fixed": "#d3e4fe",
+              "error-container": "#ffdad6",
+              "secondary-fixed-dim": "#b7c8e1",
+              "on-primary-fixed-variant": "#783200",
+              "inverse-surface": "#33302a",
+              "surface-container-highest": "#e9e1d8",
+              "on-tertiary-fixed-variant": "#653e00",
+              "tertiary": "#855300",
+              "primary-fixed-dim": "#ffb690",
+              "tertiary-fixed-dim": "#ffb95f",
+              "primary-fixed": "#ffdbca",
+              "surface": "#fff8f1",
+              "on-secondary": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "on-secondary-container": "#54647a",
+              "on-tertiary-container": "#492c00",
+              "background": "#fff8f1",
+              "on-background": "#1e1b15",
+              "surface-bright": "#fff8f1",
+              "inverse-primary": "#ffb690",
+              "primary-container": "#f97316",
+              "surface-container-lowest": "#ffffff",
+              "surface-dim": "#e0d9cf",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#0b1c30",
+              "on-surface": "#1e1b15",
+              "on-surface-variant": "#584237",
+              "on-primary-fixed": "#341100",
+              "on-error-container": "#93000a",
+              "inverse-on-surface": "#f7f0e6",
+              "surface-container-low": "#faf2e9",
+              "on-primary-container": "#582200",
+              "surface-container-high": "#efe7dd",
+              "secondary-container": "#d0e1fb",
+              "secondary": "#505f76",
+              "on-primary": "#ffffff",
+              "primary": "#9d4300",
+              "on-secondary-fixed-variant": "#38485d"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen">
+<main class="flex min-h-screen overflow-hidden">
+<!-- Left Side: Editorial Brand Showcase -->
+<section class="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-16 bg-primary-container overflow-hidden">
+<!-- Decorative Elements -->
+<div class="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+<div class="absolute bottom-0 left-0 -ml-24 -mb-24 w-96 h-96 bg-on-primary-container/20 rounded-full blur-3xl"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-primary-container text-2xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dataset</span>
+</div>
+<span class="text-2xl font-black text-white tracking-tighter">Chemon</span>
+</div>
+</div>
+<div class="relative z-10 max-w-lg">
+<h1 class="text-display-md font-bold text-white leading-tight tracking-tight mb-6">
+                    Curate your <br/>business with <br/>distinction.
+                </h1>
+<p class="text-white/90 text-body-lg leading-relaxed max-w-md font-medium">
+                    The Editorial Curator for modern enterprises. Manage your quotes, clients, and team within a workspace designed for high-end professional efficiency.
+                </p>
+</div>
+<div class="relative z-10">
+<div class="inline-flex items-center gap-6 p-6 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20">
+<div class="flex -space-x-3">
+<img class="w-12 h-12 rounded-full border-2 border-primary-container object-cover" data-alt="portrait of a confident business woman in professional attire" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-QrvpWzD5fyrE3b3Trzjew49a9eCLnonX3bMg2GXM9viHgQaKauWwF5plmbuT8lw_AkCvPHT6hKt37Bl74g0aGq-n8xf1JRCk8cHwM5SbAqR5AcqX1rcjzL8up6VWdBomtQxhEKclijnhyqkrmKh6abBk091GFyD_cnucmvRpGh9E07QN35SS4F5o8q16Eu_5aEJwxBPxkJeoqMOSxF3qs2Qk2Oy4D3HvuqrHvj0m70NXzeAzBuwKTKlFQQJ3LfPCkrY5fl1p-oOt"/>
+<img class="w-12 h-12 rounded-full border-2 border-primary-container object-cover" data-alt="professional portrait of a man in a modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzIPW8Jqj_wQAtwbquzx_bM-uufqaHfBBi-VcGTrvAytFu_WCAQIHIGg-J6uARwEZ6I7uG2UKc9yL1sNZv4Lw5oyAsRoyweEyc77EoD-nPbVMbsej9-_RzDwvUGdrpBQOIR5pltjOx7txZadPkqY0cShCq1KZfInTrPqyQJJ38WwY78Qcazmiis2-K_1SykLMzS_A0E6KVl9mXQ5KHqZrNytOn4WVrDF8dYly3ktPVfgodYKJBwNF1ehpriargKV8qNi4mjlYFxXC6"/>
+<img class="w-12 h-12 rounded-full border-2 border-primary-container object-cover" data-alt="smiling female executive with a sleek minimalist aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbTn6zJSKzrG8aa-7cTVRF5rcBLvEV-OIbNSRY1cHN4hXsy1LW1bZjzKGRGd-7rH0bA_UEQkZn_2Yq9DippWDn_396FICM8ZdDo1bS5f4_AVUZwNsSlnTCtXdUxtX8JrhRutiFT9jpaHRprjXlS6qcaMe2bNqV_FOzFsTo0qmqWv7dPnOQ_v937wJwrzp-tFCx9cVIAHLb3-HKFAnN5hvFL62ci1y6ON4SeXsrJqsrkexhfalmh_eliDJpD6Ktca9PNBYWNsR7qKo5"/>
+</div>
+<div>
+<p class="text-white font-bold text-sm tracking-wide">TRUSTED BY 500+ TEAMS</p>
+<p class="text-white/70 text-xs">Join the leading network of managers</p>
+</div>
+</div>
+</div>
+<!-- Background Image Overlay with Blend Mode -->
+<div class="absolute inset-0 z-0 opacity-20 pointer-events-none">
+<img class="w-full h-full object-cover" data-alt="modern minimalist glass office interior with warm golden sunlight filtering through windows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzfkTEfzdBpPEvb4KPW0dlILnTMfHADbxtLbC4tsMJbhmD6KY-m0rDUAIUYWn8jlDSCus_JK1Jk4JELLouZdTQzpaP9g5jnYvB-cIKC4IgR_N05srgLAo81TnnmQTnrBE1cMA70rhhtfKf51MI_1UWIqofv8s9oRNqWHYNOfx45IbuDInvCElnxQrEWUX7AW5A_FOozBFw-ovkqlRh_4FnBppdnISI5Xs4F6WTjZabCTF-WLPSX_q6T2b_vDDuPghVhHM8eibHa92W"/>
+</div>
+</section>
+<!-- Right Side: Clean Login Form -->
+<section class="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-24 bg-surface">
+<div class="w-full max-w-md">
+<!-- Mobile Logo (Visible only on small screens) -->
+<div class="lg:hidden flex items-center gap-3 mb-12">
+<div class="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-white text-2xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dataset</span>
+</div>
+<span class="text-2xl font-black text-on-surface tracking-tighter">Chemon</span>
+</div>
+<div class="mb-10">
+<h2 class="text-headline-lg font-extrabold text-on-surface tracking-tight mb-2">Welcome Back</h2>
+<p class="text-on-surface-variant body-md font-medium">Enter your credentials to access your dashboard.</p>
+</div>
+<form class="space-y-6">
+<div class="space-y-2">
+<label class="text-label-md font-bold text-on-surface-variant uppercase tracking-widest" for="email">Email Address</label>
+<div class="relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline group-focus-within:text-primary transition-colors">mail</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/40 text-on-surface font-medium placeholder:text-outline/60 transition-all" id="email" placeholder="alex@chemon.com" type="email"/>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="text-label-md font-bold text-on-surface-variant uppercase tracking-widest" for="password">Password</label>
+<a class="text-label-sm font-bold text-primary hover:text-on-primary-container transition-colors tracking-wide uppercase" href="#">Forgot?</a>
+</div>
+<div class="relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline group-focus-within:text-primary transition-colors">lock</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/40 text-on-surface font-medium placeholder:text-outline/60 transition-all" id="password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/40 bg-surface-container-low" id="remember" type="checkbox"/>
+<label class="text-body-md font-semibold text-on-surface-variant" for="remember">Keep me logged in for 30 days</label>
+</div>
+<div class="pt-4">
+<button class="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-xl shadow-primary-container/20 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 text-lg" type="submit">
+                            Log In
+                        </button>
+</div>
+</form>
+<div class="mt-10 relative">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-surface-container-high"></div>
+</div>
+<div class="relative flex justify-center text-label-md uppercase tracking-tighter">
+<span class="bg-surface px-4 text-on-surface-variant font-bold">Or continue with</span>
+</div>
+</div>
+<div class="mt-8 grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 py-3 bg-surface-container hover:bg-surface-container-high transition-colors rounded-xl font-bold text-on-surface-variant">
+<img alt="Google" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMs9AXpfn7HE7XamX8G-Q7JkONvMqaXbJnzjCb1H2MGoL0Wk4g_sxvSyT7kc-jIxQ6_VC_jtWaENXB1_kw_W5Pu0luXRgcilz8-gClvI-FOMs2c3vJzaMU0aw8PrKNNygFd69sVPl1Tk_LRL8QbmJCMTjNtudy4x9yn35_RE1mbWdoBXpp82salXtTPj2k1jxuBXLEOGX8EYi2ou6cvJNY1QLL_WWKrTTS4i4VMZAD_Uthu5c-jjNDglFiaGWBD4Hgl_28oryGG5AI"/>
+                        Google
+                    </button>
+<button class="flex items-center justify-center gap-2 py-3 bg-surface-container hover:bg-surface-container-high transition-colors rounded-xl font-bold text-on-surface-variant">
+<span class="material-symbols-outlined text-xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">ios</span>
+                        Apple
+                    </button>
+</div>
+<p class="mt-12 text-center text-body-md font-medium text-on-surface-variant">
+                    Don't have an account? 
+                    <a class="text-primary font-bold hover:underline underline-offset-4 decoration-2" href="#">Sign Up</a>
+</p>
+</div>
+</section>
+</main>
+<!-- Aesthetic Floating Navigation Elements (Hidden on Login but following System logic for subtle presence) -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-white/60 backdrop-blur-xl rounded-full shadow-2xl shadow-on-surface/5 border border-white/40 flex items-center gap-6 z-50">
+<a class="text-label-sm font-bold text-on-surface-variant hover:text-primary transition-colors tracking-widest uppercase" href="#">Privacy</a>
+<div class="w-1 h-1 bg-outline-variant rounded-full"></div>
+<a class="text-label-sm font-bold text-on-surface-variant hover:text-primary transition-colors tracking-widest uppercase" href="#">Terms</a>
+<div class="w-1 h-1 bg-outline-variant rounded-full"></div>
+<a class="text-label-sm font-bold text-on-surface-variant hover:text-primary transition-colors tracking-widest uppercase" href="#">Support</a>
+</div>
+</body></html>

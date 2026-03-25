@@ -4,51 +4,51 @@
 
 @layer base {
   :root {
-    --background: 0 0% 99%;
-    --foreground: 240 10% 10%;
+    --background: 33 100% 97%;
+    --foreground: 30 14% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 10%;
+    --card-foreground: 30 14% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 10%;
+    --popover-foreground: 30 14% 10%;
 
-    /* 프라이머리 - 절제된 슬레이트 블루 */
-    --primary: 220 60% 50%;
+    /* 프라이머리 - 오렌지 (Stitch Amber Curator) */
+    --primary: 24 94% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
+    --secondary: 214 14% 40%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
+    --muted: 30 20% 95%;
+    --muted-foreground: 30 8% 40%;
 
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 6% 10%;
+    --accent: 30 20% 95%;
+    --accent-foreground: 30 14% 10%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 220 60% 50%;
-    --radius: 0.5rem;
+    --border: 30 15% 88%;
+    --input: 30 15% 88%;
+    --ring: 24 94% 53%;
+    --radius: 0.75rem;
 
-    /* 차트 색상 - 조화로운 뮤트 톤 */
-    --chart-1: 220 60% 50%;
-    --chart-2: 173 45% 42%;
-    --chart-3: 220 55% 55%;
-    --chart-4: 38 70% 50%;
+    /* 차트 색상 - 웜 톤 */
+    --chart-1: 24 94% 53%;
+    --chart-2: 38 92% 50%;
+    --chart-3: 26 100% 31%;
+    --chart-4: 173 45% 42%;
     --chart-5: 262 40% 50%;
 
-    /* 사이드바 — 라이트 테마 (Stitch) */
-    --sidebar: 210 20% 97%;
-    --sidebar-foreground: 220 10% 20%;
-    --sidebar-muted: 210 15% 93%;
-    --sidebar-accent: 217 91% 37%;
+    /* 사이드바 — 라이트 웜 테마 (Stitch Amber) */
+    --sidebar: 30 25% 97%;
+    --sidebar-foreground: 30 14% 15%;
+    --sidebar-muted: 30 20% 93%;
+    --sidebar-accent: 24 94% 53%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 10% 92%;
-    --sidebar-primary: 217 91% 37%;
+    --sidebar-border: 30 15% 90%;
+    --sidebar-primary: 24 94% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
   }
 
@@ -62,7 +62,7 @@
     --popover: 240 10% 9%;
     --popover-foreground: 0 0% 90%;
 
-    --primary: 220 60% 50%;
+    --primary: 24 94% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 6% 14%;
@@ -79,7 +79,7 @@
 
     --border: 240 6% 16%;
     --input: 240 6% 16%;
-    --ring: 220 60% 50%;
+    --ring: 24 94% 53%;
 
     --sidebar: 240 10% 7%;
     --sidebar-foreground: 0 0% 80%;
