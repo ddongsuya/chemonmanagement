@@ -43,31 +43,33 @@ export default function StatsCard({
 }: StatsCardProps) {
   const content = (
     <Card className={cn(
-      "h-[130px]",
-      href && "transition-colors hover:bg-accent/50 cursor-pointer"
+      "bg-white rounded-xl transition-all duration-200",
+      href && "hover:translate-y-[-2px] cursor-pointer"
     )}>
-      <CardContent className="p-5 h-full flex flex-col justify-between">
-        <div className="flex items-start justify-between">
-          <div className="p-2 rounded-lg bg-muted">
-            <Icon className="w-4 h-4 text-muted-foreground" />
+      <CardContent className="p-6 h-full flex flex-col justify-between">
+        <div className="flex items-start justify-between mb-4">
+          <div className="p-3 rounded-xl bg-primary/5">
+            <Icon className="w-4 h-4 text-primary" />
           </div>
 
           {(change || trend) && (
-            <div className={cn(
-              'flex items-center gap-1 text-xs font-medium',
-              getTrendColor(trend)
+            <span className={cn(
+              'text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1',
+              trend === 'up' ? 'bg-emerald-50 text-emerald-600' :
+              trend === 'down' ? 'bg-red-50 text-red-600' :
+              'bg-slate-100 text-slate-500'
             )}>
               {trend && getTrendIcon(trend)}
               {change && <span>{change}</span>}
-            </div>
+            </span>
           )}
         </div>
 
         <div>
-          <p className="text-xs text-muted-foreground mb-1">{title}</p>
-          <p className="text-xl font-semibold text-foreground">{value}</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{title}</p>
+          <p className="text-2xl font-black tracking-tighter text-foreground">{value}</p>
           {subtitle && (
-            <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>
+            <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
           )}
         </div>
       </CardContent>

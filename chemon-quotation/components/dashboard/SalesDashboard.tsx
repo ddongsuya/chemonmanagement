@@ -30,49 +30,49 @@ const DEPT_LABELS: Record<string, string> = {
 // ─── KPI 카드 4개 ───
 function KPICards({ data, compact }: { data: SalesScopeData; compact?: boolean }) {
   const { totals } = data;
-  const cardClass = compact ? 'p-3' : 'p-4';
-  const textClass = compact ? 'text-lg' : 'text-xl';
+  const cardPad = compact ? 'p-4' : 'p-6';
+  const numSize = compact ? 'text-xl' : 'text-2xl';
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <Card>
-        <CardContent className={cardClass}>
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="p-1.5 rounded-md bg-muted"><FileText className="w-3.5 h-3.5 text-muted-foreground" /></div>
-            <span className="text-xs text-muted-foreground">견적금액</span>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <Card className="bg-white rounded-xl">
+        <CardContent className={cardPad}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-2 rounded-xl bg-primary/5"><FileText className="w-4 h-4 text-primary" /></div>
           </div>
-          <p className={cn(textClass, 'font-semibold')}>{formatAmount(totals.quotationAmount)}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">{totals.quotationCount}건</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">견적금액</p>
+          <p className={cn(numSize, 'font-black tracking-tighter')}>{formatAmount(totals.quotationAmount)}</p>
+          <p className="text-xs text-slate-500 mt-1">{totals.quotationCount}건</p>
         </CardContent>
       </Card>
-      <Card>
-        <CardContent className={cardClass}>
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="p-1.5 rounded-md bg-muted"><WonSign className="w-3.5 h-3.5 text-muted-foreground" /></div>
-            <span className="text-xs text-muted-foreground">계약금액</span>
+      <Card className="bg-white rounded-xl">
+        <CardContent className={cardPad}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-2 rounded-xl bg-primary/5"><WonSign className="w-4 h-4 text-primary" /></div>
           </div>
-          <p className={cn(textClass, 'font-semibold')}>{formatAmount(totals.contractAmount)}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">{totals.contractCount}건</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">계약금액</p>
+          <p className={cn(numSize, 'font-black tracking-tighter')}>{formatAmount(totals.contractAmount)}</p>
+          <p className="text-xs text-slate-500 mt-1">{totals.contractCount}건</p>
         </CardContent>
       </Card>
-      <Card>
-        <CardContent className={cardClass}>
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="p-1.5 rounded-md bg-muted"><TrendingUp className="w-3.5 h-3.5 text-muted-foreground" /></div>
-            <span className="text-xs text-muted-foreground">수주율</span>
+      <Card className="bg-white rounded-xl">
+        <CardContent className={cardPad}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-2 rounded-xl bg-primary/5"><TrendingUp className="w-4 h-4 text-primary" /></div>
           </div>
-          <p className={cn(textClass, 'font-semibold')}>{totals.conversionRate}%</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">수주 {totals.won} / 실주 {totals.lost}</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">수주율</p>
+          <p className={cn(numSize, 'font-black tracking-tighter')}>{totals.conversionRate}%</p>
+          <p className="text-xs text-slate-500 mt-1">수주 {totals.won} / 실주 {totals.lost}</p>
         </CardContent>
       </Card>
-      <Card>
-        <CardContent className={cardClass}>
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="p-1.5 rounded-md bg-muted"><Users className="w-3.5 h-3.5 text-muted-foreground" /></div>
-            <span className="text-xs text-muted-foreground">총 건수</span>
+      <Card className="bg-white rounded-xl">
+        <CardContent className={cardPad}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-2 rounded-xl bg-primary/5"><Users className="w-4 h-4 text-primary" /></div>
           </div>
-          <p className={cn(textClass, 'font-semibold')}>{totals.quotationCount + totals.contractCount}건</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">견적 + 계약</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">총 건수</p>
+          <p className={cn(numSize, 'font-black tracking-tighter')}>{totals.quotationCount + totals.contractCount}건</p>
+          <p className="text-xs text-slate-500 mt-1">견적 + 계약</p>
         </CardContent>
       </Card>
     </div>
