@@ -32,7 +32,7 @@ const StitchTableHeader = React.forwardRef<
   HTMLTableSectionElement,
   StitchTableHeaderProps
 >(({ className, children, ...props }, ref) => (
-  <thead ref={ref} className={cn(className)} {...props}>
+  <thead ref={ref} className={cn('border-b border-[#EFE7DD]', className)} {...props}>
     {children}
   </thead>
 ));
@@ -70,7 +70,7 @@ const StitchTableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'group hover:bg-[#FFF8F1] transition-colors',
+      'group hover:bg-[#FFF8F1] transition-all duration-150 even:bg-[#FFF8F1]/50',
       className,
     )}
     {...props}
@@ -92,7 +92,7 @@ const StitchTableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      'pb-6 text-[11px] font-bold uppercase tracking-widest text-slate-400',
+      'pb-6 text-[11px] font-bold uppercase tracking-widest text-slate-400 font-[inherit]',
       className,
     )}
     {...props}
@@ -113,13 +113,33 @@ const StitchTableCell = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn('py-5', className)}
+    className={cn('py-5 text-sm text-slate-700', className)}
+    style={{ fontVariantNumeric: 'tabular-nums' }}
     {...props}
   >
     {children}
   </td>
 ));
 StitchTableCell.displayName = 'StitchTableCell';
+
+/* ─── Footer (tfoot) ─── */
+
+export interface StitchTableFooterProps
+  extends React.HTMLAttributes<HTMLTableSectionElement> {}
+
+const StitchTableFooter = React.forwardRef<
+  HTMLTableSectionElement,
+  StitchTableFooterProps
+>(({ className, children, ...props }, ref) => (
+  <tfoot
+    ref={ref}
+    className={cn('bg-[#F5EDE3] font-bold', className)}
+    {...props}
+  >
+    {children}
+  </tfoot>
+));
+StitchTableFooter.displayName = 'StitchTableFooter';
 
 export {
   StitchTable,
@@ -128,4 +148,5 @@ export {
   StitchTableRow,
   StitchTableHead,
   StitchTableCell,
+  StitchTableFooter,
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import {
   BarChart,
   Bar,
@@ -16,6 +16,13 @@ import { Loader2, TrendingUp, TrendingDown } from 'lucide-react';
 import WonSign from '@/components/icons/WonSign';
 import { getRevenueAnalytics } from '@/lib/analytics-api';
 import { formatCurrency } from '@/lib/utils';
+import {
+  CHART_PALETTE,
+  CHART_TOOLTIP_STYLE,
+  CHART_AXIS_STYLE,
+  CHART_GRID_STYLE,
+  AMBER_CHART_COLORS,
+} from '@/lib/chart-theme';
 
 interface RevenueData {
   period: string;
@@ -49,7 +56,7 @@ export default function RevenueChart() {
         if (response && response.data) {
           setData((response.data || []).map(d => ({
             ...d,
-            period: d.period.slice(5) + '월', // 2025-01 -> 01월
+            period: d.period.slice(5) + '월',
           })));
           setSummary(response.summary || {
             totalRevenue: 0,
@@ -69,27 +76,27 @@ export default function RevenueChart() {
 
   if (loading) {
     return (
-      <Card className="border-0 shadow-soft h-full flex items-center justify-center min-h-[300px]">
+      <StitchCard variant="surface-low" padding="lg" className="h-full flex items-center justify-center min-h-[300px]">
         <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-      </Card>
+      </StitchCard>
     );
   }
 
   return (
-    <Card className="border-0 shadow-soft h-full">
-      <CardHeader className="pb-2">
+    <StitchCard variant="surface-low" padding="lg" className="h-full">
+      <div className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center">
-              <WonSign className="w-5 h-5 text-emerald-500" />
+            <div className="w-10 h-10 rounded-xl bg-[#FFF8F1] flex items-center justify-center">
+              <WonSign className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">매출 현황</CardTitle>
+              <h3 className="text-lg font-bold">매출 현황</h3>
               <p className="text-sm text-slate-500">최근 6개월</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-emerald-600">
+            <p className="text-2xl font-black tracking-tighter text-primary">
               {formatCurrency(summary.totalRevenue)}
             </p>
             <div className="flex items-center gap-1 justify-end">
@@ -104,53 +111,46 @@ export default function RevenueChart() {
             </div>
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="pt-2">
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+            <CartesianGrid {...CHART_GRID_STYLE} />
             <XAxis
               dataKey="period"
-              tick={{ fontSize: 11, fill: '#64748b' }}
-              tickLine={false}
+              {...CHART_AXIS_STYLE}
               axisLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: '#64748b' }}
-              tickLine={false}
+              {...CHART_AXIS_STYLE}
               axisLine={false}
               tickFormatter={(value) => `${(value / 100000000).toFixed(0)}억`}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-              }}
+              {...CHART_TOOLTIP_STYLE}
               formatter={(value: number) => [formatCurrency(value), '매출']}
             />
-            <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="revenue" radius={[6, 6, 0, 0]}>
               {data.map((entry, index) => (
                 <Cell
                   key={index}
-                  fill={index === data.length - 1 ? '#10b981' : '#a7f3d0'}
+                  fill={index === data.length - 1 ? AMBER_CHART_COLORS.primary : AMBER_CHART_COLORS.accent3}
                 />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-        <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
+        <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-[#EFE7DD]">
           <div>
-            <p className="text-xs text-slate-500">계약 건수</p>
-            <p className="text-lg font-semibold">{summary.totalCount}건</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">계약 건수</p>
+            <p className="text-lg font-black tracking-tighter">{summary.totalCount}건</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500">평균 계약금액</p>
-            <p className="text-lg font-semibold">{formatCurrency(summary.avgDealSize)}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">평균 계약금액</p>
+            <p className="text-lg font-black tracking-tighter">{formatCurrency(summary.avgDealSize)}</p>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }

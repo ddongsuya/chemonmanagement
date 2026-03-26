@@ -17,6 +17,13 @@ import {
   LineChart, Line, CartesianGrid,
 } from 'recharts';
 import { getKPIData, getFunnelData, getChurnRateTrend, getSegmentCLV } from '@/lib/unified-customer-api';
+import {
+  CHART_PALETTE,
+  CHART_TOOLTIP_STYLE,
+  CHART_AXIS_STYLE,
+  CHART_GRID_STYLE,
+  AMBER_CHART_COLORS,
+} from '@/lib/chart-theme';
 
 interface CustomerSummaryBarProps {
   onFilterByGrade?: (grade: string) => void;
@@ -131,12 +138,12 @@ export function CustomerSummaryBar({ onFilterByGrade }: CustomerSummaryBarProps)
                   >
                     {gradeData.map((d: any, i: number) => (
                       <Cell
-                        key={i} fill={d.color} className="cursor-pointer"
+                        key={i} fill={CHART_PALETTE[i % CHART_PALETTE.length]} className="cursor-pointer"
                         onClick={() => onFilterByGrade?.(Object.keys(GRADE_LABELS)[i])}
                       />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip {...CHART_TOOLTIP_STYLE} />
                 </PieChart>
               </ResponsiveContainer>
           </StitchCard>
@@ -147,10 +154,10 @@ export function CustomerSummaryBar({ onFilterByGrade }: CustomerSummaryBarProps)
               <ResponsiveContainer width="100%" height={140}>
                 <BarChart data={funnel} layout="vertical">
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" width={55} tick={{ fontSize: 10 }} />
-                  <Tooltip />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {funnel.map((d, i) => <Cell key={i} fill={d.fill} />)}
+                  <YAxis type="category" dataKey="name" width={55} {...CHART_AXIS_STYLE} />
+                  <Tooltip {...CHART_TOOLTIP_STYLE} />
+                  <Bar dataKey="value" radius={[0, 6, 6, 0]}>
+                    {funnel.map((d, i) => <Cell key={i} fill={CHART_PALETTE[i % CHART_PALETTE.length]} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -161,11 +168,11 @@ export function CustomerSummaryBar({ onFilterByGrade }: CustomerSummaryBarProps)
             <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">이탈률 추이</p>
               <ResponsiveContainer width="100%" height={140}>
                 <LineChart data={churnTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" tick={{ fontSize: 9 }} />
-                  <YAxis tick={{ fontSize: 9 }} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="rate" stroke="#EF4444" strokeWidth={2} dot={{ r: 2 }} />
+                  <CartesianGrid {...CHART_GRID_STYLE} />
+                  <XAxis dataKey="month" {...CHART_AXIS_STYLE} />
+                  <YAxis {...CHART_AXIS_STYLE} />
+                  <Tooltip {...CHART_TOOLTIP_STYLE} />
+                  <Line type="monotone" dataKey="rate" stroke={AMBER_CHART_COLORS.error} strokeWidth={2} dot={{ r: 2 }} />
                 </LineChart>
               </ResponsiveContainer>
           </StitchCard>
@@ -176,9 +183,9 @@ export function CustomerSummaryBar({ onFilterByGrade }: CustomerSummaryBarProps)
               <ResponsiveContainer width="100%" height={140}>
                 <BarChart data={segmentCLV} layout="vertical">
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="segment" width={65} tick={{ fontSize: 9 }} />
-                  <Tooltip formatter={(v: number) => `₩${v.toLocaleString()}`} />
-                  <Bar dataKey="clv" fill="#8B5CF6" radius={[0, 4, 4, 0]} />
+                  <YAxis type="category" dataKey="segment" width={65} {...CHART_AXIS_STYLE} />
+                  <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(v: number) => `₩${v.toLocaleString()}`} />
+                  <Bar dataKey="clv" fill={AMBER_CHART_COLORS.accent2} radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
           </StitchCard>

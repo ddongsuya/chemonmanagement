@@ -43,6 +43,12 @@ import {
 import { formatCurrency } from '@/lib/utils';
 import { getQuotations, Quotation } from '@/lib/data-api';
 import LostReasonStats from '@/components/analytics/LostReasonStats';
+import {
+  CHART_PALETTE,
+  CHART_TOOLTIP_STYLE,
+  CHART_AXIS_STYLE,
+  CHART_GRID_STYLE,
+} from '@/lib/chart-theme';
 
 // 상태 라벨 매핑
 const STATUS_LABELS: Record<string, string> = {
@@ -55,11 +61,11 @@ const STATUS_LABELS: Record<string, string> = {
 
 // 상태 색상 매핑
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: '#9ca3af',
-  SENT: '#3b82f6',
-  ACCEPTED: '#10b981',
-  REJECTED: '#ef4444',
-  EXPIRED: '#f59e0b',
+  DRAFT: CHART_PALETTE[8],   // neutral
+  SENT: CHART_PALETTE[3],    // teal
+  ACCEPTED: CHART_PALETTE[6], // success
+  REJECTED: CHART_PALETTE[9], // error
+  EXPIRED: CHART_PALETTE[1],  // amber gold
 };
 
 export default function ReportsPage() {
@@ -136,11 +142,11 @@ export default function ReportsPage() {
     });
 
     const colorMap: Record<string, string> = {
-      '작성중': '#9ca3af',
-      '제출': '#3b82f6',
-      '수주': '#10b981',
-      '실주': '#ef4444',
-      '만료': '#f59e0b',
+      '작성중': CHART_PALETTE[8],
+      '제출': CHART_PALETTE[3],
+      '수주': CHART_PALETTE[6],
+      '실주': CHART_PALETTE[9],
+      '만료': CHART_PALETTE[1],
     };
 
     return Object.entries(statusCount).map(([name, value]) => ({
@@ -321,13 +327,13 @@ export default function ReportsPage() {
               <h3 className="text-lg font-bold mb-4">월별 견적/수주 건수</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
+                  <CartesianGrid {...CHART_GRID_STYLE} />
+                  <XAxis dataKey="month" {...CHART_AXIS_STYLE} />
+                  <YAxis {...CHART_AXIS_STYLE} />
+                  <Tooltip {...CHART_TOOLTIP_STYLE} />
                   <Legend />
-                  <Bar dataKey="견적수" fill="#3b82f6" name="견적" />
-                  <Bar dataKey="수주수" fill="#10b981" name="수주" />
+                  <Bar dataKey="견적수" fill={CHART_PALETTE[0]} name="견적" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="수주수" fill={CHART_PALETTE[1]} name="수주" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </StitchCard>
@@ -353,7 +359,7 @@ export default function ReportsPage() {
                         <Cell key={index} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => [`${value}건`, '건수']} />
+                    <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(value: number) => [`${value}건`, '건수']} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
@@ -370,18 +376,18 @@ export default function ReportsPage() {
               <h3 className="text-lg font-bold mb-4">유형별 견적/수주</h3>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={typeData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} />
+                  <CartesianGrid {...CHART_GRID_STYLE} />
+                  <XAxis type="number" {...CHART_AXIS_STYLE} />
                   <YAxis
                     dataKey="name"
                     type="category"
-                    tick={{ fontSize: 11 }}
+                    {...CHART_AXIS_STYLE}
                     width={80}
                   />
-                  <Tooltip />
+                  <Tooltip {...CHART_TOOLTIP_STYLE} />
                   <Legend />
-                  <Bar dataKey="견적" fill="#3b82f6" />
-                  <Bar dataKey="수주" fill="#10b981" />
+                  <Bar dataKey="견적" fill={CHART_PALETTE[0]} radius={[0, 6, 6, 0]} />
+                  <Bar dataKey="수주" fill={CHART_PALETTE[1]} radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </StitchCard>

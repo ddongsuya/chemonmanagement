@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Badge } from '@/components/ui/badge';
 import {
   Calendar, FileText, Receipt, FlaskConical, AlertCircle, Loader2,
@@ -118,17 +118,15 @@ export default function WorkDashboard() {
           const Icon = s.icon;
           const hasItems = s.count > 0;
           return (
-            <Card key={s.id} className={cn(hasItems && 'ring-1 ring-border')}>
-              <CardContent className="p-3">
+            <StitchCard key={s.id} variant="elevated" padding="sm" className={cn(hasItems && 'ring-1 ring-[#EFE7DD]')}>
                 <div className="flex items-center gap-2 mb-2">
-                  <div className={cn('p-1.5 rounded-md', s.bgColor)}>
+                  <div className={cn('p-1.5 rounded-xl', s.bgColor)}>
                     <Icon className={cn('w-3.5 h-3.5', s.color)} />
                   </div>
                 </div>
-                <p className="text-xl font-semibold">{s.count}건</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{s.title}</p>
-              </CardContent>
-            </Card>
+                <p className="text-xl font-black tracking-tighter">{s.count}건</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5 truncate">{s.title}</p>
+            </StitchCard>
           );
         })}
       </div>
@@ -139,34 +137,34 @@ export default function WorkDashboard() {
         const hasItems = section.count > 0;
 
         return (
-          <Card key={section.id}>
-            <CardContent className="p-4">
+          <StitchCard key={section.id} variant="elevated" padding="sm">
+            <div className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <div className={cn('p-1 rounded', section.bgColor)}>
+                  <div className={cn('p-1 rounded-xl', section.bgColor)}>
                     <Icon className={cn('w-3.5 h-3.5', section.color)} />
                   </div>
-                  <h3 className="text-sm font-medium">{section.title}</h3>
+                  <h3 className="text-sm font-bold">{section.title}</h3>
                   {hasItems && (
-                    <span className="text-xs text-muted-foreground">({section.count})</span>
+                    <span className="text-xs text-slate-500">({section.count})</span>
                   )}
                 </div>
-                <span className="text-[11px] text-muted-foreground">{section.description}</span>
+                <span className="text-[11px] text-slate-500">{section.description}</span>
               </div>
 
               {!hasItems ? (
-                <div className="flex items-center gap-2 py-3 px-2 text-muted-foreground">
+                <div className="flex items-center gap-2 py-3 px-2 text-slate-500">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   <span className="text-xs">{section.emptyText}</span>
                 </div>
               ) : (
-                <div className="divide-y divide-border/50">
+                <div className="divide-y divide-[#EFE7DD]/50">
                   {section.id === 'meetings' && data?.upcomingMeetings.map(item => (
                     <Link key={item.id} href={`/customers/${item.customer.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-[#FFF8F1] transition-colors">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate">{item.title}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-xs text-slate-500 mt-0.5">
                             {item.customer.companyName} · {MEETING_TYPE_LABELS[item.type] || item.type}
                           </p>
                         </div>
@@ -180,10 +178,10 @@ export default function WorkDashboard() {
 
                   {section.id === 'quotations' && data?.pendingQuotations.map(item => (
                     <Link key={item.id} href={item.quotationType === 'EFFICACY' ? `/efficacy-quotations/${item.id}` : `/quotations/${item.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-[#FFF8F1] transition-colors">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate">{item.quotationNumber}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-xs text-slate-500 mt-0.5">
                             {item.customerName} · {formatAmount(Number(item.totalAmount))}
                           </p>
                         </div>
@@ -196,10 +194,10 @@ export default function WorkDashboard() {
 
                   {section.id === 'invoices' && data?.upcomingInvoices.map(item => (
                     <Link key={item.id} href={`/customers/${item.customer.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-[#FFF8F1] transition-colors">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate">{item.customer.companyName}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-xs text-slate-500 mt-0.5">
                             {item.testReception?.testNumber || '미지정'} · {formatAmount(Number(item.amount))}
                           </p>
                         </div>
@@ -210,10 +208,10 @@ export default function WorkDashboard() {
 
                   {section.id === 'tests' && data?.upcomingTests.map(item => (
                     <Link key={item.id} href={`/customers/${item.customer.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-[#FFF8F1] transition-colors">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate">{item.testNumber || item.testTitle || '미지정'}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{item.customer.companyName}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{item.customer.companyName}</p>
                         </div>
                         <p className="text-xs font-medium flex-shrink-0 ml-3">{formatDate(item.expectedCompletionDate)}</p>
                       </div>
@@ -222,10 +220,10 @@ export default function WorkDashboard() {
 
                   {section.id === 'followUps' && data?.pendingFollowUps.map(item => (
                     <Link key={item.id} href={`/customers/${item.customer.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-[#FFF8F1] transition-colors">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate">{item.title}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                          <p className="text-xs text-slate-500 mt-0.5 truncate">
                             {item.customer.companyName}
                             {item.followUpActions && ` · ${item.followUpActions.slice(0, 30)}`}
                           </p>
@@ -241,8 +239,8 @@ export default function WorkDashboard() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
         );
       })}
     </div>

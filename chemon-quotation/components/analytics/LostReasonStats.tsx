@@ -6,6 +6,7 @@ import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import { StitchInput } from '@/components/ui/StitchInput';
 import { Progress } from '@/components/ui/progress';
+import { AMBER_CHART_COLORS } from '@/lib/chart-theme';
 
 // 미진행 사유 타입
 export type LostReason = 
@@ -26,12 +27,12 @@ export const LOST_REASON_LABELS: Record<LostReason, string> = {
 };
 
 export const LOST_REASON_COLORS: Record<LostReason, string> = {
-  BUDGET_PLANNING: '#6366F1', // indigo
-  COMPETITOR_SELECTED: '#EF4444', // red
-  PRICE_ISSUE: '#F59E0B', // amber
-  SCHEDULE_ISSUE: '#3B82F6', // blue
-  ON_HOLD: '#8B5CF6', // violet
-  OTHER: '#6B7280', // gray
+  BUDGET_PLANNING: AMBER_CHART_COLORS.accent2,    // purple accent
+  COMPETITOR_SELECTED: AMBER_CHART_COLORS.error,   // red
+  PRICE_ISSUE: AMBER_CHART_COLORS.secondary,       // amber gold
+  SCHEDULE_ISSUE: AMBER_CHART_COLORS.accent1,      // teal accent
+  ON_HOLD: AMBER_CHART_COLORS.tertiary,            // deep brown-orange
+  OTHER: AMBER_CHART_COLORS.neutral,               // slate
 };
 
 // 통계 데이터 인터페이스

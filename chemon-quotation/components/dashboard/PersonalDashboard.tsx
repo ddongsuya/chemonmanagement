@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { DashboardPersonalStats } from '@/lib/dashboard-api';
 import { FileText, TrendingUp, Users } from 'lucide-react';
 import WonSign from '@/components/icons/WonSign';
@@ -14,15 +14,9 @@ interface PersonalDashboardProps {
 }
 
 function formatAmount(amount: number): string {
-  if (amount >= 100000000) {
-    return `${(amount / 100000000).toFixed(1)}억`;
-  }
-  if (amount >= 10000000) {
-    return `${(amount / 10000000).toFixed(1)}천만`;
-  }
-  if (amount >= 10000) {
-    return `${(amount / 10000).toFixed(0)}만`;
-  }
+  if (amount >= 100000000) return `${(amount / 100000000).toFixed(1)}억`;
+  if (amount >= 10000000) return `${(amount / 10000000).toFixed(1)}천만`;
+  if (amount >= 10000) return `${(amount / 10000).toFixed(0)}만`;
   return amount.toLocaleString();
 }
 
@@ -61,55 +55,51 @@ export default function PersonalDashboard({ stats, userName, period }: PersonalD
       {/* 헤더 */}
       <div className="flex items-baseline gap-2">
         <h2 className="text-base font-semibold text-foreground">{userName}님의 현황</h2>
-        <span className="text-xs text-muted-foreground">{period.year}년 {period.month}월</span>
+        <span className="text-xs text-slate-500">{period.year}년 {period.month}월</span>
       </div>
 
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {statCards.map(({ key, label, icon: Icon, href }) => (
           <Link key={key} href={href}>
-            <Card className="transition-colors hover:bg-accent/50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-1.5 rounded-md bg-muted">
-                    <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">{label}</span>
+            <StitchCard variant="elevated" hover padding="sm">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 rounded-xl bg-[#FAF2E9]">
+                  <Icon className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <div className="text-xl font-semibold text-foreground">
-                  {getValue(key)}
-                </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">
-                  {getSub(key)}
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
+              <div className="text-xl font-black tracking-tighter text-foreground">
+                {getValue(key)}
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                {getSub(key)}
+              </div>
+            </StitchCard>
           </Link>
         ))}
       </div>
 
       {/* 견적서 상태별 현황 */}
       {quotation.byStatus && Object.keys(quotation.byStatus).length > 0 && (
-        <Card className="shadow-soft">
-          <CardContent className="p-4">
-            <h3 className="text-sm font-medium mb-3">견적서 상태별 현황</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {[
-                { key: 'DRAFT', label: '작성중', color: '' },
-                { key: 'SENT', label: '발송완료', color: 'text-blue-600' },
-                { key: 'ACCEPTED', label: '수주', color: 'text-emerald-600' },
-                { key: 'REJECTED', label: '실주', color: 'text-red-500' },
-              ].map(({ key, label, color: textColor }) => (
-                <div key={key} className="p-3 bg-muted/50 rounded-lg">
-                  <div className="text-[11px] text-muted-foreground">{label}</div>
-                  <div className={cn('text-lg font-semibold mt-0.5', textColor)}>
-                    {quotation.byStatus?.[key]?.count || 0}건
-                  </div>
+        <StitchCard variant="elevated" padding="md">
+          <h3 className="text-sm font-medium mb-3">견적서 상태별 현황</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {[
+              { key: 'DRAFT', label: '작성중', color: '' },
+              { key: 'SENT', label: '발송완료', color: 'text-blue-600' },
+              { key: 'ACCEPTED', label: '수주', color: 'text-emerald-600' },
+              { key: 'REJECTED', label: '실주', color: 'text-red-500' },
+            ].map(({ key, label, color: textColor }) => (
+              <div key={key} className="p-3 bg-[#FAF2E9] rounded-lg">
+                <div className="text-[11px] text-slate-500">{label}</div>
+                <div className={cn('text-lg font-black tracking-tighter mt-0.5', textColor)}>
+                  {quotation.byStatus?.[key]?.count || 0}건
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            ))}
+          </div>
+        </StitchCard>
       )}
     </div>
   );
