@@ -4,11 +4,11 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const SURFACE_COLORS = {
-  'surface': 'bg-[#FFF8F1]',
-  'surface-low': 'bg-[#FAF2E9]',
-  'surface-container': 'bg-[#F5EDE3]',
-  'surface-high': 'bg-[#EFE7DD]',
-  'surface-highest': 'bg-[#E9E1D8]',
+  'surface': 'bg-[#F8FAFC]',
+  'surface-low': 'bg-white',
+  'surface-container': 'bg-[#F8FAFC]',
+  'surface-high': 'bg-[#F1F5F9]',
+  'surface-highest': 'bg-[#E2E8F0]',
   'elevated': 'bg-white',
 } as const;
 
@@ -35,7 +35,7 @@ const StitchCard = React.forwardRef<HTMLDivElement, StitchCardProps>(
         ref={ref}
         className={cn(
           SURFACE_COLORS[variant],
-          isElevated ? 'rounded-2xl shadow-ambient' : 'rounded-xl',
+          isElevated ? 'rounded-2xl shadow-sm' : 'rounded-xl shadow-sm',
           PADDING_MAP[padding],
           hover && 'hover:translate-y-[-2px] hover:shadow-ambient transition-all duration-200 cursor-pointer',
           className

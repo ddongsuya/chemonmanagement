@@ -12,7 +12,7 @@ const StitchTable = React.forwardRef<HTMLDivElement, StitchTableProps>(
     <div
       ref={ref}
       className={cn(
-        'bg-[#FAF2E9] rounded-xl md:rounded-[2.5rem] p-4 md:p-8',
+        'bg-white rounded-xl md:rounded-[2.5rem] p-4 md:p-8 shadow-sm',
         className,
       )}
       {...props}
@@ -70,7 +70,7 @@ const StitchTableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'group hover:bg-[#FFF8F1] transition-all duration-150 even:bg-[#FFF8F1]/50',
+      'group hover:bg-slate-50 transition-all duration-150',
       className,
     )}
     {...props}
@@ -133,7 +133,7 @@ const StitchTableFooter = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn('bg-[#F5EDE3] font-bold', className)}
+    className={cn('bg-slate-50 font-bold', className)}
     {...props}
   >
     {children}
