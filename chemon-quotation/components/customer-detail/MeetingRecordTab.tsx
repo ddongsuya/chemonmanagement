@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Skeleton from '@/components/ui/Skeleton';
@@ -17,10 +16,10 @@ interface MeetingRecordTabProps {
 }
 
 const TYPE_CONFIG: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
-  meeting: { icon: <Video className="w-4 h-4" />, label: '미팅', color: 'bg-blue-100 text-blue-800' },
-  call: { icon: <Phone className="w-4 h-4" />, label: '통화', color: 'bg-green-100 text-green-800' },
-  email: { icon: <Mail className="w-4 h-4" />, label: '이메일', color: 'bg-purple-100 text-purple-800' },
-  visit: { icon: <MessageSquare className="w-4 h-4" />, label: '방문', color: 'bg-orange-100 text-orange-800' },
+  meeting: { icon: <Video className="w-4 h-4" />, label: '미팅', color: 'bg-blue-50 text-blue-700' },
+  call: { icon: <Phone className="w-4 h-4" />, label: '통화', color: 'bg-emerald-50 text-emerald-700' },
+  email: { icon: <Mail className="w-4 h-4" />, label: '이메일', color: 'bg-violet-50 text-violet-700' },
+  visit: { icon: <MessageSquare className="w-4 h-4" />, label: '방문', color: 'bg-orange-50 text-orange-700' },
 };
 
 export default function MeetingRecordTab({ customerId, requesterId }: MeetingRecordTabProps) {
@@ -80,12 +79,12 @@ export default function MeetingRecordTab({ customerId, requesterId }: MeetingRec
         const isExpanded = expandedId === record.id;
 
         return (
-          <Card
+          <div
             key={record.id}
-            className="cursor-pointer hover:shadow-sm transition-shadow"
+            className="bg-[#FAF2E9] rounded-xl cursor-pointer hover:bg-[#FFF8F1] transition-colors"
             onClick={() => setExpandedId(isExpanded ? null : record.id)}
           >
-            <CardContent className="p-4">
+            <div className="p-4">
               <div className="flex items-center gap-3">
                 <span className={`p-2 rounded-md ${config.color}`}>{config.icon}</span>
                 <div className="flex-1 min-w-0">
@@ -97,7 +96,7 @@ export default function MeetingRecordTab({ customerId, requesterId }: MeetingRec
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
                     <span>{new Date(record.date).toLocaleDateString('ko-KR')}</span>
                     {record.time && <span>{record.time}</span>}
                     {record.duration && <span>{record.duration}분</span>}
@@ -108,29 +107,29 @@ export default function MeetingRecordTab({ customerId, requesterId }: MeetingRec
               </div>
 
               {isExpanded && (
-                <div className="mt-4 pt-4 border-t space-y-3 text-sm">
+                <div className="mt-4 pt-4 space-y-3 text-sm">
                   {record.content && (
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">내용</p>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">내용</p>
                       <p className="whitespace-pre-wrap">{record.content}</p>
                     </div>
                   )}
                   {record.follow_up_actions && (
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">후속 조치</p>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">후속 조치</p>
                       <p className="whitespace-pre-wrap">{record.follow_up_actions}</p>
                     </div>
                   )}
                   {record.request_response && (
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">응답</p>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">응답</p>
                       <p className="whitespace-pre-wrap">{record.request_response}</p>
                     </div>
                   )}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         );
       })}
     </div>

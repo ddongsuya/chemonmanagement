@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useToxicityV2Store } from '@/stores/toxicityV2Store';
 import { useQuotationStore } from '@/stores/quotationStore';
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PreviewCover from './PreviewCover';
@@ -164,18 +164,17 @@ export default function StepPreviewV2() {
   return (
     <div className="space-y-6">
       {/* 액션 버튼 */}
-      <Card>
-        <CardContent className="py-4">
+      <StitchCard variant="elevated" padding="sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-semibold truncate">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate">
                 견적번호: {displayQuotationNumber}
               </h2>
-              <p className="text-sm text-gray-500 truncate">
+              <p className="text-sm text-slate-500 truncate">
                 {quotationStore.customerName || v2Store.info.org || '-'} |{' '}
                 {quotationStore.projectName || v2Store.info.substance || '-'}
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 {v2Store.mode ? MODE_LABELS[v2Store.mode] : '-'} | 시험 {v2Store.selectedTests.length}건 | 합계 {formatKRW(v2Store.totalAmount)}
               </p>
             </div>
@@ -184,7 +183,7 @@ export default function StepPreviewV2() {
                 <Printer className="w-4 h-4 sm:mr-2" />
                 <span className="hidden sm:inline">인쇄</span>
               </Button>
-              <Button size="sm" onClick={handleSave} disabled={saving}>
+              <Button size="sm" className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold" onClick={handleSave} disabled={saving}>
                 {saving ? (
                   <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
                 ) : (
@@ -200,8 +199,7 @@ export default function StepPreviewV2() {
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+      </StitchCard>
 
       {/* 미리보기 탭 (4탭: 표지/견적서/상세내역/전체) */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>

@@ -229,36 +229,36 @@ export default function CustomerDetailPage() {
   const isSecondaryTab = SECONDARY_TABS.some(t => t.value === activeTab);
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-[#FFF8F1]">
       {/* ─── Sticky 헤더 ─── */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* 브레드크럼 */}
-          <div className="flex items-center gap-2 py-2.5 text-sm text-muted-foreground">
-            <button onClick={() => router.push('/customers')} className="hover:text-foreground transition-colors">
+          <div className="flex items-center gap-2 py-2.5 text-sm text-slate-500">
+            <button onClick={() => router.push('/customers')} className="hover:text-slate-900 transition-colors">
               고객사 관리
             </button>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-foreground font-medium truncate">{customer.company || customer.name}</span>
+            <span className="text-slate-900 font-medium truncate">{customer.company || customer.name}</span>
           </div>
 
           {/* 메인 헤더 */}
           <div className="flex items-start justify-between pb-4">
             <div className="flex items-start gap-4 min-w-0">
               {/* 이니셜 아바타 */}
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-semibold text-lg shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center text-white font-semibold text-lg shrink-0">
                 {(customer.company || customer.name).charAt(0)}
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-xl font-semibold text-slate-900 truncate">
+                  <h1 className="text-xl font-extrabold tracking-tight text-slate-900 truncate">
                     {customer.company || customer.name}
                   </h1>
                   {customer.grade === 'VIP' && (
-                    <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">VIP</span>
+                    <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-yellow-700">VIP</span>
                   )}
                   <Select value={customer.grade || 'CUSTOMER'} onValueChange={handleGradeChange} disabled={gradeUpdating}>
-                    <SelectTrigger className="w-[110px] h-7 text-xs">
+                    <SelectTrigger className="w-[110px] h-7 text-xs bg-white border-none rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -268,7 +268,7 @@ export default function CustomerDetailPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
+                <div className="flex items-center gap-3 mt-1 text-sm text-slate-500 flex-wrap">
                   <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" />{customer.name}</span>
                   <span>·</span>
                   <span>{daysSinceCreated}일 거래</span>
@@ -321,7 +321,7 @@ export default function CustomerDetailPage() {
       </div>
 
       {/* ─── 담당자 선택 바 ─── */}
-      <div className="bg-white border-b sticky top-[auto] z-[9]">
+      <div className="bg-[#FAF2E9] sticky top-[auto] z-[9]">
         <div className="max-w-7xl mx-auto">
           <RequesterSelector
             customerId={customerId}
@@ -340,7 +340,7 @@ export default function CustomerDetailPage() {
             {/* 모바일: 접기/펼치기 토글 */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden w-full flex items-center justify-between bg-white rounded-xl border px-4 py-3 touch-manipulation"
+              className="lg:hidden w-full flex items-center justify-between bg-white rounded-xl px-4 py-3 touch-manipulation shadow-ambient"
             >
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                 <Building2 className="w-4 h-4" />
@@ -357,7 +357,7 @@ export default function CustomerDetailPage() {
             {/* 사이드바 콘텐츠 — 데스크톱 항상 표시, 모바일 토글 */}
             <div className={cn('space-y-4', !sidebarOpen && 'hidden lg:block')}>
             {/* 모바일: 점수 게이지 */}
-            <div className="flex sm:hidden items-center gap-3 justify-center bg-white rounded-xl border p-3">
+            <div className="flex sm:hidden items-center gap-3 justify-center bg-white rounded-xl p-3 shadow-ambient">
               {healthScore != null && (
                 <MiniGauge value={healthScore} label="건강도"
                   color={healthScore >= 70 ? '#10B981' : healthScore >= 40 ? '#F59E0B' : '#EF4444'} />
@@ -373,9 +373,9 @@ export default function CustomerDetailPage() {
             </div>
 
             {/* 기본 정보 */}
-            <div className="bg-white rounded-xl border">
-              <div className="px-4 py-3 border-b">
-                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <div className="bg-white rounded-xl shadow-ambient">
+              <div className="px-4 py-3">
+                <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                   <Building2 className="w-4 h-4" /> 기본 정보
                 </h3>
               </div>
@@ -389,9 +389,9 @@ export default function CustomerDetailPage() {
             </div>
 
             {/* 연락처 — 선택된 담당자 기준 */}
-            <div className="bg-white rounded-xl border">
-              <div className="px-4 py-3 border-b">
-                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <div className="bg-white rounded-xl shadow-ambient">
+              <div className="px-4 py-3">
+                <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                   <Phone className="w-4 h-4" />
                   {selectedRequester ? `${selectedRequester.name} 연락처` : '연락처'}
                 </h3>
@@ -424,9 +424,9 @@ export default function CustomerDetailPage() {
 
             {/* 메모 */}
             {customer.notes && (
-              <div className="bg-white rounded-xl border">
-                <div className="px-4 py-3 border-b">
-                  <h3 className="text-sm font-semibold text-slate-900">메모</h3>
+              <div className="bg-white rounded-xl shadow-ambient">
+                <div className="px-4 py-3">
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">메모</h3>
                 </div>
                 <div className="px-4 py-3">
                   <p className="text-sm text-slate-600 whitespace-pre-wrap">{customer.notes}</p>
@@ -442,13 +442,13 @@ export default function CustomerDetailPage() {
           {/* ─── 우측 메인 콘텐츠 ─── */}
           <div className="lg:col-span-2">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)}>
-              <div className="bg-white rounded-xl border">
-                <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0 overflow-x-auto no-scrollbar">
+              <div className="bg-white rounded-xl shadow-ambient">
+                <TabsList className="w-full justify-start rounded-none bg-transparent h-auto p-0 overflow-x-auto no-scrollbar">
                   {PRIMARY_TABS.map(tab => (
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm shrink-0"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm shrink-0"
                     >
                       {tab.label}
                     </TabsTrigger>
@@ -456,7 +456,7 @@ export default function CustomerDetailPage() {
                   {hasLinkedLead && (
                     <TabsTrigger
                       value="lead-activities"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm shrink-0"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm shrink-0"
                     >
                       리드 활동
                     </TabsTrigger>
@@ -574,7 +574,7 @@ export default function CustomerDetailPage() {
 
       {/* 수정 다이얼로그 */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg bg-[#E9E1D8]">
           <CustomerForm
             customer={{
               id: customer.id,

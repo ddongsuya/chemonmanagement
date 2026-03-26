@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Plus, Building2, User, Phone, GripVertical, ChevronRight } from 'lucide-react';
 import { getPipelineBoard, updateLeadStage, Lead, PipelineStage } from '@/lib/lead-api';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 
 export default function PipelinePage() {
   const router = useRouter();
@@ -79,23 +78,23 @@ export default function PipelinePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold">파이프라인</h1>
-          <p className="text-sm text-muted-foreground hidden sm:block">드래그 앤 드롭으로 리드 단계를 변경하세요</p>
-          <p className="text-sm text-muted-foreground sm:hidden">리드 단계별 현황</p>
-        </div>
-        <div className="flex gap-2 flex-shrink-0">
-          <Button variant="outline" size="sm" onClick={() => router.push('/leads')}>
-            리스트
-          </Button>
-          <Button size="sm" onClick={() => router.push('/leads/new')}>
-            <Plus className="w-4 h-4 mr-1" />
-            <span className="hidden sm:inline">새 리드</span>
-            <span className="sm:hidden">추가</span>
-          </Button>
-        </div>
-      </div>
+      <StitchPageHeader
+        label="PIPELINE"
+        title="파이프라인"
+        description="드래그 앤 드롭으로 리드 단계를 변경하세요"
+        actions={
+          <div className="flex gap-2 flex-shrink-0">
+            <Button variant="outline" size="sm" onClick={() => router.push('/leads')}>
+              리스트
+            </Button>
+            <Button size="sm" onClick={() => router.push('/leads/new')}>
+              <Plus className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">새 리드</span>
+              <span className="sm:hidden">추가</span>
+            </Button>
+          </div>
+        }
+      />
 
       {/* 모바일: 단계별 아코디언 리스트 */}
       <div className="md:hidden space-y-3">
@@ -120,73 +119,71 @@ export default function PipelinePage() {
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, stage.id)}
               >
-                <Card className="h-full">
-                  <CardHeader className="pb-3">
+                <div className="h-full bg-[#FAF2E9] rounded-xl p-4">
+                  <div className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: stage.color || '#6B7280' }}
                         />
-                        <CardTitle className="text-sm font-medium">{stage.name}</CardTitle>
+                        <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{stage.name}</span>
                       </div>
-                      <Badge variant="secondary" className="text-xs">
+                      <span className="text-xs font-bold text-slate-600 bg-[#F5EDE3] px-2 py-0.5 rounded-full">
                         {stage.leads?.length || 0}
-                      </Badge>
+                      </span>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2 min-h-[400px]">
+                  </div>
+                  <div className="space-y-2 min-h-[400px]">
                     {stage.leads?.map((lead) => (
-                      <Card
+                      <div
                         key={lead.id}
-                        className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
+                        className="bg-white rounded-xl p-3 space-y-2 cursor-grab active:cursor-grabbing hover:translate-y-[-2px] shadow-ambient transition-all duration-200"
                         draggable
                         onDragStart={(e) => handleDragStart(e, lead)}
                         onClick={() => router.push(`/leads/${lead.id}`)}
                       >
-                        <CardContent className="p-3 space-y-2">
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-2">
-                              <GripVertical className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground">{lead.leadNumber}</span>
+                              <GripVertical className="w-4 h-4 text-slate-400" />
+                              <span className="text-xs text-slate-500">{lead.leadNumber}</span>
                             </div>
                             {lead.expectedAmount && (
-                              <Badge variant="outline" className="text-xs">
+                              <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
                                 {formatAmount(lead.expectedAmount)}
-                              </Badge>
+                              </span>
                             )}
                           </div>
                           <div className="space-y-1">
-                            <div className="flex items-center gap-2 font-medium">
-                              <Building2 className="w-4 h-4 text-muted-foreground" />
+                            <div className="flex items-center gap-2 font-bold text-slate-900">
+                              <Building2 className="w-4 h-4 text-slate-400" />
                               <span className="truncate">{lead.companyName}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2 text-sm text-slate-500">
                               <User className="w-3 h-3" />
                               <span>{lead.contactName}</span>
                             </div>
                             {lead.contactPhone && (
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-2 text-xs text-slate-500">
                                 <Phone className="w-3 h-3" />
                                 <span>{lead.contactPhone}</span>
                               </div>
                             )}
                           </div>
                           {lead._count && lead._count.activities > 0 && (
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-slate-500">
                               활동 {lead._count.activities}건
                             </div>
                           )}
-                        </CardContent>
-                      </Card>
+                      </div>
                     ))}
                     {(!stage.leads || stage.leads.length === 0) && (
-                      <div className="text-center py-8 text-sm text-muted-foreground">
+                      <div className="text-center py-8 text-sm text-slate-500">
                         리드 없음
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -211,7 +208,7 @@ function MobilePipelineStage({
   const leadCount = stage.leads?.length || 0;
 
   return (
-    <Card>
+    <div className="bg-[#FAF2E9] rounded-xl">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between p-4 touch-manipulation"
@@ -221,55 +218,53 @@ function MobilePipelineStage({
             className="w-3 h-3 rounded-full flex-shrink-0"
             style={{ backgroundColor: stage.color || '#6B7280' }}
           />
-          <span className="text-sm font-medium">{stage.name}</span>
-          <Badge variant="secondary" className="text-xs">{leadCount}</Badge>
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{stage.name}</span>
+          <span className="text-xs font-bold text-slate-600 bg-[#F5EDE3] px-2 py-0.5 rounded-full">{leadCount}</span>
         </div>
         <ChevronRight className={cn(
-          'w-4 h-4 text-muted-foreground transition-transform',
+          'w-4 h-4 text-slate-400 transition-transform',
           expanded && 'rotate-90'
         )} />
       </button>
 
       {expanded && leadCount > 0 && (
-        <CardContent className="pt-0 pb-3 px-3 space-y-2">
+        <div className="pt-0 pb-3 px-3 space-y-2">
           {stage.leads?.map((lead) => (
-            <Card
+            <div
               key={lead.id}
-              className="touch-manipulation active:bg-muted/50 transition-colors cursor-pointer"
+              className="bg-white rounded-xl p-3 touch-manipulation active:bg-[#FFF8F1] transition-all cursor-pointer shadow-ambient"
               onClick={() => onLeadClick(lead.id)}
             >
-              <CardContent className="p-3">
                 <div className="flex items-start justify-between mb-1">
-                  <span className="text-xs font-mono text-muted-foreground">{lead.leadNumber}</span>
+                  <span className="text-xs font-mono text-slate-500">{lead.leadNumber}</span>
                   {lead.expectedAmount && (
-                    <span className="text-xs font-semibold">{formatAmount(lead.expectedAmount)}</span>
+                    <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">{formatAmount(lead.expectedAmount)}</span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Building2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                  <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
                   <span className="truncate">{lead.companyName}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
                   <User className="w-3 h-3 flex-shrink-0" />
                   <span>{lead.contactName}</span>
                   {lead.contactPhone && (
                     <>
-                      <span className="text-border">·</span>
+                      <span className="text-slate-300">·</span>
                       <span>{lead.contactPhone}</span>
                     </>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+            </div>
           ))}
-        </CardContent>
+        </div>
       )}
 
       {expanded && leadCount === 0 && (
-        <CardContent className="pt-0 pb-4">
-          <div className="text-center text-xs text-muted-foreground py-3">리드 없음</div>
-        </CardContent>
+        <div className="pt-0 pb-4 px-3">
+          <div className="text-center text-xs text-slate-500 py-3">리드 없음</div>
+        </div>
       )}
-    </Card>
+    </div>
   );
 }

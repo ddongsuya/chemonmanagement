@@ -9,7 +9,7 @@ import {
   usePackageTemplates,
 } from '@/hooks/useTests';
 import { Test } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -160,14 +160,14 @@ export default function StepTestSelection() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 좌측: 시험 목록 */}
       <div className="lg:col-span-2 space-y-4">
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center justify-between">
+        <StitchCard variant="surface-low" padding="md">
+          <div className="pb-4">
+            <h3 className="text-xl font-bold flex items-center justify-between">
               <span>시험 선택</span>
               <Badge variant="outline">{modality}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </h3>
+          </div>
+          <div>
             {/* 필터 영역 */}
             <div className="space-y-3 mb-4">
               <div className="flex flex-wrap gap-2">
@@ -175,7 +175,7 @@ export default function StepTestSelection() {
                   value={selectedCategory}
                   onValueChange={setSelectedCategory}
                 >
-                  <SelectTrigger className="w-36">
+                  <SelectTrigger className="w-36 bg-white border-none rounded-xl">
                     <SelectValue placeholder="카테고리" />
                   </SelectTrigger>
                   <SelectContent>
@@ -189,7 +189,7 @@ export default function StepTestSelection() {
                 </Select>
 
                 <Select value={testTypeFilter} onValueChange={setTestTypeFilter}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-32 bg-white border-none rounded-xl">
                     <SelectValue placeholder="시험유형" />
                   </SelectTrigger>
                   <SelectContent>
@@ -207,7 +207,7 @@ export default function StepTestSelection() {
                 </Select>
 
                 <Select value={animalFilter} onValueChange={setAnimalFilter}>
-                  <SelectTrigger className="w-28">
+                  <SelectTrigger className="w-28 bg-white border-none rounded-xl">
                     <SelectValue placeholder="동물종" />
                   </SelectTrigger>
                   <SelectContent>
@@ -222,7 +222,7 @@ export default function StepTestSelection() {
                 </Select>
 
                 <Select value={routeFilter} onValueChange={setRouteFilter}>
-                  <SelectTrigger className="w-28">
+                  <SelectTrigger className="w-28 bg-white border-none rounded-xl">
                     <SelectValue placeholder="투여경로" />
                   </SelectTrigger>
                   <SelectContent>
@@ -238,12 +238,12 @@ export default function StepTestSelection() {
                 </Select>
 
                 <div className="relative flex-1 min-w-48">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     placeholder="시험명 검색..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+                    className="pl-9 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
               </div>
@@ -272,7 +272,7 @@ export default function StepTestSelection() {
             <ScrollArea className="h-[500px]">
               <div className="space-y-6 pr-4">
                 {Object.keys(groupedTests).length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
+                  <div className="text-center py-12 text-slate-500">
                     <p>해당 조건의 시험이 없습니다.</p>
                     <p className="text-sm mt-1">
                       필터를 변경하거나 검색어를 확인해주세요.
@@ -281,7 +281,7 @@ export default function StepTestSelection() {
                 ) : (
                   Object.entries(groupedTests).map(([categoryName, catTests]) => (
                     <div key={categoryName}>
-                      <h3 className="font-semibold text-gray-900 mb-3 sticky top-0 bg-white py-2 z-10">
+                      <h3 className="font-semibold text-slate-900 mb-3 sticky top-0 bg-[#FAF2E9] py-2 z-10">
                         {categoryName} ({catTests.length})
                       </h3>
                       <div className="space-y-3">
@@ -311,8 +311,8 @@ export default function StepTestSelection() {
                 )}
               </div>
             </ScrollArea>
-          </CardContent>
-        </Card>
+          </div>
+        </StitchCard>
       </div>
 
       {/* 우측: 선택된 시험 */}

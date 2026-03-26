@@ -9,7 +9,8 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import { calendarEventApi } from '@/lib/customer-data-api';
 import { useEffect } from 'react';
 import { Calendar, Clock } from 'lucide-react';
@@ -56,14 +57,11 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* 페이지 헤더 */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          캘린더
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-          일정을 관리하고 중요한 날짜를 확인하세요
-        </p>
-      </div>
+      <StitchPageHeader
+        label="CALENDAR"
+        title="캘린더"
+        description="일정을 관리하고 중요한 날짜를 확인하세요"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* 메인 캘린더 */}
@@ -74,16 +72,16 @@ export default function CalendarPage() {
         {/* 사이드바 */}
         <div className="space-y-4">
           {/* 오늘의 일정 */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
+          <StitchCard variant="elevated" padding="md">
+            <div className="pb-3">
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary" />
                 오늘의 일정
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+              </h3>
+            </div>
+            <div className="space-y-2">
               {todayEvents.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
+                <p className="text-sm text-slate-500 text-center py-4">
                   오늘 예정된 일정이 없습니다
                 </p>
               ) : (
@@ -95,26 +93,26 @@ export default function CalendarPage() {
                   />
                 ))
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
 
           {/* 이번 주 일정 */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Clock className="w-4 h-4" />
+          <StitchCard variant="elevated" padding="md">
+            <div className="pb-3">
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" />
                 이번 주 일정
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
+              </h3>
+            </div>
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {weekEvents.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
+                <p className="text-sm text-slate-500 text-center py-4">
                   이번 주 예정된 일정이 없습니다
                 </p>
               ) : (
                 weekEvents.map((event) => (
                   <div key={event.id} className="space-y-1">
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-slate-400">
                       {new Date(event.start_date).toLocaleDateString('ko-KR', {
                         month: 'short',
                         day: 'numeric',
@@ -129,8 +127,8 @@ export default function CalendarPage() {
                   </div>
                 ))
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
         </div>
       </div>
 

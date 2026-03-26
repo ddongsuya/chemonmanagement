@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Skeleton from '@/components/ui/Skeleton';
 import { UserCircle, RefreshCw, Phone, Mail } from 'lucide-react';
 import { requesterApi } from '@/lib/customer-data-api';
+import { cn } from '@/lib/utils';
 import type { Requester } from '@/types/customer';
 
 interface RequesterTabProps {
@@ -60,17 +60,16 @@ export default function RequesterTab({ customerId }: RequesterTabProps) {
   return (
     <div className="space-y-3">
       {requesters.map(r => (
-        <Card key={r.id} className={!r.is_active ? 'opacity-50' : ''}>
-          <CardContent className="p-4">
+        <div key={r.id} className={cn('bg-[#FAF2E9] rounded-xl p-4', !r.is_active && 'opacity-50')}>
             <div className="flex items-center gap-3">
-              <UserCircle className="w-8 h-8 text-muted-foreground shrink-0" />
+              <UserCircle className="w-8 h-8 text-slate-500 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium">{r.name}</p>
                   {r.is_primary && <Badge variant="default" className="text-xs">주 담당자</Badge>}
                   {!r.is_active && <Badge variant="outline" className="text-xs">비활성</Badge>}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
+                <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
                   {r.position && <span>{r.position}</span>}
                   {r.department && <span>{r.department}</span>}
                   {r.phone && (
@@ -86,8 +85,7 @@ export default function RequesterTab({ customerId }: RequesterTabProps) {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </div>
       ))}
     </div>
   );

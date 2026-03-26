@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import {
   Dialog, DialogContent, DialogTrigger,
 } from '@/components/ui/dialog';
@@ -225,23 +226,22 @@ export default function CustomersPage() {
   if (loading && entities.length === 0) {
     return (
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold">고객사 관리</h1>
-            <p className="text-xs text-muted-foreground">리드와 고객을 통합하여 관리합니다</p>
-          </div>
-        </div>
+        <StitchPageHeader
+          label="CUSTOMERS"
+          title="고객사 관리"
+          description="리드와 고객을 통합하여 관리합니다"
+        />
     
-        <div className="rounded-lg border bg-card px-4 py-3 animate-pulse">
-          <div className="h-5 w-64 bg-muted rounded" />
-        </div>
-        <div className="rounded-lg border bg-card p-4 animate-pulse space-y-3">
-          <div className="h-8 w-full bg-muted rounded" />
-          <div className="h-8 w-full bg-muted rounded" />
-          <div className="h-8 w-full bg-muted rounded" />
-          <div className="h-8 w-full bg-muted rounded" />
-          <div className="h-8 w-full bg-muted rounded" />
-        </div>
+        <StitchCard variant="surface-low" padding="sm" className="animate-pulse">
+          <div className="h-5 w-64 bg-slate-200 rounded" />
+        </StitchCard>
+        <StitchCard variant="surface-low" padding="md" className="animate-pulse space-y-3">
+          <div className="h-8 w-full bg-slate-200 rounded" />
+          <div className="h-8 w-full bg-slate-200 rounded" />
+          <div className="h-8 w-full bg-slate-200 rounded" />
+          <div className="h-8 w-full bg-slate-200 rounded" />
+          <div className="h-8 w-full bg-slate-200 rounded" />
+        </StitchCard>
       </div>
     );
   }
@@ -249,41 +249,42 @@ export default function CustomersPage() {
   return (
     <div className="space-y-3">
       {/* 페이지 헤더 */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div>
-          <h1 className="text-lg font-semibold">고객사 관리</h1>
-          <p className="text-xs text-muted-foreground">리드와 고객을 통합하여 관리합니다</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <ImportExportPanel onImportSuccess={loadData} />
-          <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-            새로고침
-          </Button>
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button size="sm"><Plus className="w-4 h-4 mr-1" />신규 등록</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <CustomerForm onSuccess={handleAddSuccess} />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+      <StitchPageHeader
+        label="CUSTOMERS"
+        title="고객사 관리"
+        description="리드와 고객을 통합하여 관리합니다"
+        actions={
+          <div className="flex items-center gap-2">
+            <ImportExportPanel onImportSuccess={loadData} />
+            <Button variant="outline" size="sm" onClick={loadData} disabled={loading} className="rounded-xl">
+              <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+              새로고침
+            </Button>
+            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="rounded-xl bg-gradient-to-r from-primary to-orange-400 font-bold"><Plus className="w-4 h-4 mr-1" />신규 등록</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <CustomerForm onSuccess={handleAddSuccess} />
+              </DialogContent>
+            </Dialog>
+          </div>
+        }
+      />
 
       {/* KPI 요약 바 */}
       <CustomerSummaryBar onFilterByGrade={handleFilterByGrade} />
 
       {/* 뷰 탭 + 필터 통합 카드 */}
-      <div className="rounded-lg border bg-card">
-        <div className="flex items-center justify-between border-b px-3 py-2">
+      <StitchCard variant="surface-low" padding="sm">
+        <div className="flex items-center justify-between px-1 py-1">
           <ViewModeToggle />
           <div className="flex items-center gap-2">
             <SortControl filters={filters} onFilterChange={handleFilterChange} />
             <FilterPresetManager filters={filters} onApplyPreset={handleFilterChange} />
           </div>
         </div>
-        <div className="px-3 py-2">
+        <div className="px-1 py-2">
           <AdvancedFilterPanel
             filters={filters}
             stages={stages}
@@ -291,7 +292,7 @@ export default function CustomersPage() {
             loading={loading || stagesLoading}
           />
         </div>
-      </div>
+      </StitchCard>
 
       {/* 일괄 작업 바 */}
       <BulkActionBar
@@ -302,14 +303,14 @@ export default function CustomersPage() {
 
       {/* 엔티티 목록 */}
       {entities.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-gray-500">
-            <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+        <StitchCard variant="surface-low">
+          <div className="py-12 text-center text-slate-500">
+            <Users className="w-12 h-12 mx-auto mb-4 text-slate-300" />
             <p>{filters.search || filters.stageId || filters.type !== 'all'
               ? '검색 결과가 없습니다. 필터를 조정해보세요.'
               : '등록된 리드 또는 고객이 없습니다.'}</p>
-          </CardContent>
-        </Card>
+          </div>
+        </StitchCard>
       ) : (
         <>
           {viewMode === 'card' && (
@@ -359,7 +360,7 @@ export default function CustomersPage() {
                     }, [])
                     .map((item, idx) =>
                       item === '...' ? (
-                        <span key={`ellipsis-${idx}`} className="px-2 text-gray-400">…</span>
+                        <span key={`ellipsis-${idx}`} className="px-2 text-slate-400">…</span>
                       ) : (
                         <Button key={item} variant={pagination.page === item ? 'default' : 'outline'} size="sm" className="min-w-[36px]"
                           onClick={() => setFilters(prev => ({ ...prev, page: item as number }))} disabled={loading}>{item}</Button>
@@ -383,7 +384,7 @@ export default function CustomersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center gap-4">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            <p className="text-base font-medium text-gray-700">일괄 처리 중입니다...</p>
+            <p className="text-base font-medium text-slate-700">일괄 처리 중입니다...</p>
           </div>
         </div>
       )}

@@ -41,7 +41,7 @@ export default function MobileBottomNav() {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border pb-safe">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#E9E1D8] backdrop-blur-xl pb-safe">
       <div className="flex items-center justify-around h-14">
         {tabs.map((tab) => {
           const active = isActive(tab.href);
@@ -51,15 +51,15 @@ export default function MobileBottomNav() {
               <Sheet key={tab.id} open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetTrigger asChild>
                   <button
-                    className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation"
+                    className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation min-h-[44px]"
                   >
                     <tab.icon className={cn(
                       'w-5 h-5 transition-colors',
-                      'text-muted-foreground'
+                      'text-slate-500'
                     )} />
                     <span className={cn(
                       'text-[10px] transition-colors',
-                      'text-muted-foreground'
+                      'text-slate-500'
                     )}>
                       {tab.label}
                     </span>
@@ -76,15 +76,15 @@ export default function MobileBottomNav() {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation"
+              className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation min-h-[44px]"
             >
               <tab.icon className={cn(
                 'w-5 h-5 transition-colors',
-                active ? 'text-primary' : 'text-muted-foreground'
+                active ? 'text-primary' : 'text-slate-500'
               )} />
               <span className={cn(
                 'text-[10px] transition-colors',
-                active ? 'text-primary font-semibold' : 'text-muted-foreground'
+                active ? 'text-primary font-semibold' : 'text-slate-500'
               )}>
                 {tab.label}
               </span>

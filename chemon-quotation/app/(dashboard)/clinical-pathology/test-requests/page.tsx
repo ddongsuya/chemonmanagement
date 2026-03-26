@@ -2,10 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { StitchBadge } from '@/components/ui/StitchBadge';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
+import { StitchCard } from '@/components/ui/StitchCard';
+import {
+  StitchTable,
+  StitchTableHeader,
+  StitchTableBody,
+  StitchTableRow,
+  StitchTableHead,
+  StitchTableCell,
+} from '@/components/ui/StitchTable';
 import {
   Select,
   SelectContent,
@@ -13,14 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Search, ClipboardList, MoreHorizontal, Play, CheckCircle, XCircle } from 'lucide-react';
 import {
   DropdownMenu,
@@ -113,51 +113,46 @@ export default function ClinicalTestRequestsPage() {
   };
 
   const getStatusBadge = (status: ClinicalTestRequestStatus) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      DRAFT: 'secondary',
-      SUBMITTED: 'default',
-      RECEIVED: 'default',
-      IN_PROGRESS: 'default',
-      COMPLETED: 'default',
-      CANCELLED: 'destructive',
-    };
-    const colors: Record<string, string> = {
-      IN_PROGRESS: 'bg-blue-500',
-      COMPLETED: 'bg-green-500',
+    const variantMap: Record<string, 'neutral' | 'info' | 'success' | 'error' | 'warning' | 'primary'> = {
+      DRAFT: 'neutral',
+      SUBMITTED: 'info',
+      RECEIVED: 'info',
+      IN_PROGRESS: 'primary',
+      COMPLETED: 'success',
+      CANCELLED: 'error',
     };
     return (
-      <Badge variant={variants[status]} className={colors[status]}>
+      <StitchBadge variant={variantMap[status] || 'neutral'}>
         {REQUEST_STATUS_LABELS[status]}
-      </Badge>
+      </StitchBadge>
     );
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">시험의뢰서</h1>
-          <p className="text-muted-foreground">임상병리검사 시험의뢰서 목록 및 관리</p>
-        </div>
-      </div>
+      <StitchPageHeader
+        title="시험의뢰서"
+        label="TEST REQUESTS"
+        description="임상병리검사 시험의뢰서 목록 및 관리"
+      />
 
-      <Card>
-        <CardHeader>
+      <StitchCard variant="surface-low" padding="lg">
+        <div className="mb-6">
           <div className="flex items-center gap-4">
             <div className="flex-1 flex gap-2">
-              <Input
+              <input
                 placeholder="시험번호, 고객명 검색..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="max-w-sm"
+                className="max-w-sm bg-white border-none rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
               />
-              <Button variant="outline" onClick={handleSearch}>
+              <Button variant="outline" className="rounded-xl" onClick={handleSearch}>
                 <Search className="h-4 w-4" />
               </Button>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] bg-white border-none rounded-xl">
                 <SelectValue placeholder="상태 필터" />
               </SelectTrigger>
               <SelectContent>
@@ -171,52 +166,52 @@ export default function ClinicalTestRequestsPage() {
               </SelectContent>
             </Select>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div>
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : requests.length === 0 ? (
             <div className="text-center py-12">
-              <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">시험의뢰서가 없습니다.</p>
-              <p className="text-sm text-muted-foreground mt-2">
+              <ClipboardList className="h-12 w-12 mx-auto text-slate-400 mb-4" />
+              <p className="text-slate-500">시험의뢰서가 없습니다.</p>
+              <p className="text-sm text-slate-500 mt-2">
                 승인된 견적서에서 시험의뢰서를 생성할 수 있습니다.
               </p>
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>시험번호</TableHead>
-                    <TableHead>견적번호</TableHead>
-                    <TableHead>고객사</TableHead>
-                    <TableHead>담당자</TableHead>
-                    <TableHead>검체수</TableHead>
-                    <TableHead>상태</TableHead>
-                    <TableHead>의뢰일</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <StitchTable>
+                <StitchTableHeader>
+                  <StitchTableRow>
+                    <StitchTableHead>시험번호</StitchTableHead>
+                    <StitchTableHead>견적번호</StitchTableHead>
+                    <StitchTableHead>고객사</StitchTableHead>
+                    <StitchTableHead>담당자</StitchTableHead>
+                    <StitchTableHead>검체수</StitchTableHead>
+                    <StitchTableHead>상태</StitchTableHead>
+                    <StitchTableHead>의뢰일</StitchTableHead>
+                    <StitchTableHead className="w-[50px]"></StitchTableHead>
+                  </StitchTableRow>
+                </StitchTableHeader>
+                <StitchTableBody>
                   {requests.map((request) => (
-                    <TableRow
+                    <StitchTableRow
                       key={request.id}
                       className="cursor-pointer"
                       onClick={() => router.push(`/clinical-pathology/test-requests/${request.id}`)}
                     >
-                      <TableCell className="font-medium">
+                      <StitchTableCell className="font-bold text-primary">
                         {request.testNumber || '-'}
-                      </TableCell>
-                      <TableCell>{request.quotation?.quotationNumber || '-'}</TableCell>
-                      <TableCell>{request.customerName}</TableCell>
-                      <TableCell>{request.contactName}</TableCell>
-                      <TableCell>{request.totalSamples}개</TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
-                      <TableCell>{new Date(request.requestDate).toLocaleDateString('ko-KR')}</TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      </StitchTableCell>
+                      <StitchTableCell>{request.quotation?.quotationNumber || '-'}</StitchTableCell>
+                      <StitchTableCell className="font-bold text-slate-900">{request.customerName}</StitchTableCell>
+                      <StitchTableCell className="text-slate-700">{request.contactName}</StitchTableCell>
+                      <StitchTableCell className="text-slate-700">{request.totalSamples}개</StitchTableCell>
+                      <StitchTableCell>{getStatusBadge(request.status)}</StitchTableCell>
+                      <StitchTableCell className="text-slate-500">{new Date(request.requestDate).toLocaleDateString('ko-KR')}</StitchTableCell>
+                      <StitchTableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -256,11 +251,11 @@ export default function ClinicalTestRequestsPage() {
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                      </StitchTableCell>
+                    </StitchTableRow>
                   ))}
-                </TableBody>
-              </Table>
+                </StitchTableBody>
+              </StitchTable>
 
               {pagination.totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-4">
@@ -272,7 +267,7 @@ export default function ClinicalTestRequestsPage() {
                   >
                     이전
                   </Button>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-slate-500">
                     {pagination.page} / {pagination.totalPages}
                   </span>
                   <Button
@@ -287,8 +282,8 @@ export default function ClinicalTestRequestsPage() {
               )}
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
     </div>
   );
 }

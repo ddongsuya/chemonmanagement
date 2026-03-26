@@ -8,7 +8,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { Pin, PinOff, Trash2, Edit2, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { getNotes, createNote, updateNote, deleteNote, toggleNotePin } from '@/lib/unified-customer-api';
 import { format } from 'date-fns';
@@ -90,11 +89,11 @@ export default function NotesTab({ customerId }: NotesTabProps) {
   });
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">메모</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="bg-[#FAF2E9] rounded-xl">
+      <div className="p-6 pb-3">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">메모</h3>
+      </div>
+      <div className="px-6 pb-6 space-y-4">
         {/* 새 메모 작성 */}
         <div className="space-y-2">
           <Textarea
@@ -113,15 +112,15 @@ export default function NotesTab({ customerId }: NotesTabProps) {
 
         {/* 메모 목록 */}
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">로딩 중...</div>
+          <div className="text-center py-8 text-slate-500 text-sm">로딩 중...</div>
         ) : sorted.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">메모가 없습니다</div>
+          <div className="text-center py-8 text-slate-500 text-sm">메모가 없습니다</div>
         ) : (
           <div className="space-y-3">
             {sorted.map(note => (
-              <div key={note.id} className={`rounded-lg border p-3 ${note.isPinned ? 'border-yellow-300 bg-yellow-50/50 dark:bg-yellow-900/10' : ''}`}>
+              <div key={note.id} className={`rounded-xl p-3 ${note.isPinned ? 'bg-yellow-50/50' : 'bg-[#F5EDE3]'}`}>
                 <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
                     <span>{note.createdBy}</span>
                     <span>·</span>
                     <span>{format(new Date(note.createdAt), 'yyyy.MM.dd HH:mm', { locale: ko })}</span>
@@ -154,7 +153,7 @@ export default function NotesTab({ customerId }: NotesTabProps) {
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

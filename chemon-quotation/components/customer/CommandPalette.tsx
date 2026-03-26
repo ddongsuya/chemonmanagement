@@ -52,20 +52,20 @@ export function CommandPalette() {
 
   return (
     <Dialog open={isCommandPaletteOpen} onOpenChange={() => { toggleCommandPalette(); setSearch(''); }}>
-      <DialogContent className="p-0 max-w-lg overflow-hidden">
-        <Command className="rounded-lg border-none" shouldFilter={false}>
-          <div className="flex items-center border-b px-3">
-            <Search className="h-4 w-4 text-muted-foreground mr-2 shrink-0" />
+      <DialogContent className="p-0 max-w-lg overflow-hidden bg-white/80 backdrop-blur-xl rounded-2xl shadow-ambient">
+        <Command className="rounded-2xl border-none" shouldFilter={false}>
+          <div className="flex items-center px-4">
+            <Search className="h-4 w-4 text-slate-400 mr-2 shrink-0" />
             <Command.Input
               value={search}
               onValueChange={setSearch}
               placeholder="고객 검색, 페이지 이동..."
-              className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+              className="flex h-12 w-full bg-transparent py-3 text-sm outline-none placeholder:text-slate-400"
             />
-            <kbd className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">ESC</kbd>
+            <kbd className="ml-2 text-xs text-slate-400 bg-[#F5EDE3] px-1.5 py-0.5 rounded-lg">ESC</kbd>
           </div>
           <Command.List className="max-h-[300px] overflow-y-auto p-2">
-            <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
+            <Command.Empty className="py-6 text-center text-sm text-slate-500">
               결과가 없습니다
             </Command.Empty>
 
@@ -76,27 +76,27 @@ export function CommandPalette() {
                     key={entity.id}
                     value={entity.companyName}
                     onSelect={() => navigate(entity.entityType === 'LEAD' ? `/leads/${entity.id}` : `/customers/${entity.id}`)}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer hover:bg-muted aria-selected:bg-muted"
+                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm cursor-pointer hover:bg-[#FFF8F1] aria-selected:bg-[#FFF8F1]"
                   >
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>{entity.companyName}</span>
-                    <span className="text-xs text-muted-foreground ml-auto">{entity.contactName}</span>
+                    <Users className="h-4 w-4 text-slate-400" />
+                    <span className="font-bold text-slate-900">{entity.companyName}</span>
+                    <span className="text-xs text-slate-500 ml-auto">{entity.contactName}</span>
                   </Command.Item>
                 ))}
               </Command.Group>
             )}
 
             <Command.Group heading="빠른 이동">
-              <Command.Item onSelect={() => navigate('/customers')} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer hover:bg-muted aria-selected:bg-muted">
+              <Command.Item onSelect={() => navigate('/customers')} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm cursor-pointer hover:bg-[#FFF8F1] aria-selected:bg-[#FFF8F1]">
                 <Users className="h-4 w-4" /> 고객 목록
               </Command.Item>
-              <Command.Item onSelect={() => navigate('/leads')} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer hover:bg-muted aria-selected:bg-muted">
+              <Command.Item onSelect={() => navigate('/leads')} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm cursor-pointer hover:bg-[#FFF8F1] aria-selected:bg-[#FFF8F1]">
                 <FileText className="h-4 w-4" /> 리드 목록
               </Command.Item>
-              <Command.Item onSelect={() => navigate('/dashboard')} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer hover:bg-muted aria-selected:bg-muted">
+              <Command.Item onSelect={() => navigate('/dashboard')} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm cursor-pointer hover:bg-[#FFF8F1] aria-selected:bg-[#FFF8F1]">
                 <BarChart3 className="h-4 w-4" /> 대시보드
               </Command.Item>
-              <Command.Item onSelect={() => navigate('/settings')} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer hover:bg-muted aria-selected:bg-muted">
+              <Command.Item onSelect={() => navigate('/settings')} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm cursor-pointer hover:bg-[#FFF8F1] aria-selected:bg-[#FFF8F1]">
                 <Settings className="h-4 w-4" /> 설정
               </Command.Item>
             </Command.Group>

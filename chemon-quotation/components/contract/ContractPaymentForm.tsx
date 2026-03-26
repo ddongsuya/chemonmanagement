@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { CreditCard, Calculator, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -12,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 
@@ -162,26 +161,26 @@ export default function ContractPaymentForm({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <CreditCard className="h-5 w-5 text-blue-500" />
-          <CardTitle>지급조건 설정</CardTitle>
+    <StitchCard variant="surface-low">
+      <div className="mb-2">
+        <div className="flex items-center gap-2 mb-1">
+          <CreditCard className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-bold">지급조건 설정</h3>
         </div>
-        <CardDescription>
+        <p className="text-sm text-slate-500">
           계약 총액: <span className="font-semibold">{formatCurrency(totalAmount)}원</span>
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </p>
+      </div>
+      <div className="space-y-6 mt-6">
         {/* 지급 유형 선택 */}
         <div className="space-y-2">
-          <Label>지급 유형</Label>
+          <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">지급 유형</label>
           <Select
             value={paymentType}
             onValueChange={(value) => setPaymentType(value as PaymentType)}
             disabled={disabled}
           >
-            <SelectTrigger>
+            <SelectTrigger className="bg-white border-none rounded-xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -198,13 +197,14 @@ export default function ContractPaymentForm({
 
         {/* INSTALLMENT 타입: 선금/잔금 입력 */}
         {paymentType === 'INSTALLMENT' && (
-          <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="space-y-4 p-4 bg-[#F5EDE3] rounded-xl">
             {/* 입력 방식 선택 */}
             <div className="flex gap-4">
               <Button
                 type="button"
                 variant={useRate ? 'default' : 'outline'}
                 size="sm"
+                className="rounded-xl"
                 onClick={() => setUseRate(true)}
                 disabled={disabled}
               >
@@ -215,6 +215,7 @@ export default function ContractPaymentForm({
                 type="button"
                 variant={!useRate ? 'default' : 'outline'}
                 size="sm"
+                className="rounded-xl"
                 onClick={() => setUseRate(false)}
                 disabled={disabled}
               >
@@ -225,7 +226,7 @@ export default function ContractPaymentForm({
             {/* 비율 입력 */}
             {useRate && (
               <div className="space-y-2">
-                <Label htmlFor="advanceRate">선금 비율 (%)</Label>
+                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500" htmlFor="advanceRate">선금 비율 (%)</label>
                 <Input
                   id="advanceRate"
                   type="number"
@@ -234,6 +235,7 @@ export default function ContractPaymentForm({
                   value={advanceRate}
                   onChange={(e) => setAdvanceRate(e.target.value)}
                   disabled={disabled}
+                  className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                 />
               </div>
             )}
@@ -241,27 +243,27 @@ export default function ContractPaymentForm({
             {/* 금액 표시/입력 */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="advanceAmount">선금</Label>
+                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500" htmlFor="advanceAmount">선금</label>
                 <Input
                   id="advanceAmount"
                   type="number"
                   value={advanceAmount}
                   onChange={(e) => setAdvanceAmount(e.target.value)}
                   disabled={disabled || useRate}
-                  className={errors.advanceAmount ? 'border-red-500' : ''}
+                  className={`bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40 ${errors.advanceAmount ? 'ring-2 ring-red-500' : ''}`}
                 />
                 {errors.advanceAmount && (
                   <p className="text-sm text-red-500">{errors.advanceAmount}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="balanceAmount">잔금</Label>
+                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500" htmlFor="balanceAmount">잔금</label>
                 <Input
                   id="balanceAmount"
                   type="number"
                   value={balanceAmount}
                   disabled
-                  className="bg-gray-100 dark:bg-gray-700"
+                  className="bg-[#EFE7DD] border-none rounded-xl"
                 />
               </div>
             </div>
@@ -275,7 +277,7 @@ export default function ContractPaymentForm({
             )}
 
             {/* 금액 요약 */}
-            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+            <div className="text-sm text-slate-500 space-y-1">
               <div className="flex justify-between">
                 <span>선금:</span>
                 <span className="font-medium">{formatCurrency(parseFloat(advanceAmount) || 0)}원</span>
@@ -284,7 +286,7 @@ export default function ContractPaymentForm({
                 <span>잔금:</span>
                 <span className="font-medium">{formatCurrency(parseFloat(balanceAmount) || 0)}원</span>
               </div>
-              <div className="flex justify-between border-t pt-1 mt-1">
+              <div className="flex justify-between pt-1 mt-1">
                 <span>합계:</span>
                 <span className="font-semibold">
                   {formatCurrency((parseFloat(advanceAmount) || 0) + (parseFloat(balanceAmount) || 0))}원
@@ -308,11 +310,11 @@ export default function ContractPaymentForm({
         <Button
           onClick={handleSubmit}
           disabled={disabled || isSubmitting}
-          className="w-full"
+          className="w-full bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold"
         >
           {isSubmitting ? '저장 중...' : '지급조건 저장'}
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }

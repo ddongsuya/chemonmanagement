@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import { 
   FileText, 
   ClipboardList, 
@@ -49,18 +50,18 @@ export default function ClinicalPathologyPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      DRAFT: 'secondary',
-      SENT: 'default',
-      ACCEPTED: 'default',
-      REJECTED: 'destructive',
-      EXPIRED: 'outline',
-      CONVERTED: 'default',
+    const variantMap: Record<string, 'neutral' | 'info' | 'success' | 'error' | 'warning' | 'primary'> = {
+      DRAFT: 'neutral',
+      SENT: 'info',
+      ACCEPTED: 'success',
+      REJECTED: 'error',
+      EXPIRED: 'warning',
+      CONVERTED: 'primary',
     };
     return (
-      <Badge variant={variants[status] || 'secondary'}>
+      <StitchBadge variant={variantMap[status] || 'neutral'}>
         {QUOTATION_STATUS_LABELS[status as keyof typeof QUOTATION_STATUS_LABELS] || status}
-      </Badge>
+      </StitchBadge>
     );
   };
 
@@ -74,142 +75,139 @@ export default function ClinicalPathologyPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">임상병리검사</h1>
-          <p className="text-muted-foreground">임상병리검사 견적서 및 시험의뢰서 관리</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push('/clinical-pathology/settings')}>
-            <Settings className="h-4 w-4 mr-2" />
-            설정
-          </Button>
-          <Button onClick={() => router.push('/clinical-pathology/quotations/new')}>
-            <Plus className="h-4 w-4 mr-2" />
-            새 견적서
-          </Button>
-        </div>
-      </div>
+      <StitchPageHeader
+        title="임상병리검사"
+        label="CLINICAL PATHOLOGY"
+        description="임상병리검사 견적서 및 시험의뢰서 관리"
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" className="rounded-xl font-bold" onClick={() => router.push('/clinical-pathology/settings')}>
+              <Settings className="h-4 w-4 mr-2" />
+              설정
+            </Button>
+            <Button className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold" onClick={() => router.push('/clinical-pathology/quotations/new')}>
+              <Plus className="h-4 w-4 mr-2" />
+              새 견적서
+            </Button>
+          </div>
+        }
+      />
 
       {/* 통계 카드 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">전체 견적서</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statistics?.quotations.total || 0}</div>
-            <p className="text-xs text-muted-foreground">
+        <StitchCard variant="surface-low" padding="md">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">전체 견적서</span>
+            <FileText className="h-4 w-4 text-slate-400" />
+          </div>
+          <div>
+            <div className="text-2xl font-black tracking-tighter">{statistics?.quotations.total || 0}</div>
+            <p className="text-xs text-slate-500">
               작성중 {statistics?.quotations.draft || 0}건
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </StitchCard>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">발송 완료</CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statistics?.quotations.sent || 0}</div>
-            <p className="text-xs text-muted-foreground">
+        <StitchCard variant="surface-low" padding="md">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">발송 완료</span>
+            <Send className="h-4 w-4 text-slate-400" />
+          </div>
+          <div>
+            <div className="text-2xl font-black tracking-tighter">{statistics?.quotations.sent || 0}</div>
+            <p className="text-xs text-slate-500">
               승인 대기중
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </StitchCard>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">시험의뢰서</CardTitle>
-            <ClipboardList className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statistics?.testRequests.total || 0}</div>
-            <p className="text-xs text-muted-foreground">
+        <StitchCard variant="surface-low" padding="md">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">시험의뢰서</span>
+            <ClipboardList className="h-4 w-4 text-slate-400" />
+          </div>
+          <div>
+            <div className="text-2xl font-black tracking-tighter">{statistics?.testRequests.total || 0}</div>
+            <p className="text-xs text-slate-500">
               진행중 {statistics?.testRequests.inProgress || 0}건
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </StitchCard>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">이번 달 견적</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statistics?.monthly.count || 0}건</div>
-            <p className="text-xs text-muted-foreground">
+        <StitchCard variant="surface-low" padding="md">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">이번 달 견적</span>
+            <TrendingUp className="h-4 w-4 text-slate-400" />
+          </div>
+          <div>
+            <div className="text-2xl font-black tracking-tighter">{statistics?.monthly.count || 0}건</div>
+            <p className="text-xs text-slate-500">
               {formatCurrency(statistics?.monthly.amount || 0)}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </StitchCard>
       </div>
 
       {/* 빠른 액션 */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => router.push('/clinical-pathology/quotations')}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+        <StitchCard variant="elevated" hover className="cursor-pointer" onClick={() => router.push('/clinical-pathology/quotations')}>
+          <div className="mb-3">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
               견적서 관리
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              임상병리검사 견적서 목록 조회 및 관리
-            </p>
-          </CardContent>
-        </Card>
+            </h3>
+          </div>
+          <p className="text-sm text-slate-500">
+            임상병리검사 견적서 목록 조회 및 관리
+          </p>
+        </StitchCard>
 
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => router.push('/clinical-pathology/test-requests')}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5" />
+        <StitchCard variant="elevated" hover className="cursor-pointer" onClick={() => router.push('/clinical-pathology/test-requests')}>
+          <div className="mb-3">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-primary" />
               시험의뢰서 관리
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              시험의뢰서 목록 조회 및 진행 상태 관리
-            </p>
-          </CardContent>
-        </Card>
+            </h3>
+          </div>
+          <p className="text-sm text-slate-500">
+            시험의뢰서 목록 조회 및 진행 상태 관리
+          </p>
+        </StitchCard>
       </div>
 
       {/* 최근 견적서 */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>최근 견적서</CardTitle>
+      <StitchCard variant="surface-low" padding="lg">
+        <div className="flex flex-row items-center justify-between mb-6">
+          <h3 className="text-xl font-bold">최근 견적서</h3>
           <Button variant="ghost" size="sm" onClick={() => router.push('/clinical-pathology/quotations')}>
             전체보기
           </Button>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div>
           {recentQuotations.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
+            <p className="text-center text-slate-500 py-8">
               아직 작성된 견적서가 없습니다.
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {recentQuotations.map((quotation) => (
                 <div
                   key={quotation.id}
-                  className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+                  className="flex items-center justify-between p-4 bg-white rounded-xl cursor-pointer hover:translate-y-[-1px] hover:shadow-ambient transition-all duration-200"
                   onClick={() => router.push(`/clinical-pathology/quotations/${quotation.id}`)}
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{quotation.quotationNumber}</span>
+                      <span className="font-bold text-slate-900">{quotation.quotationNumber}</span>
                       {getStatusBadge(quotation.status)}
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-slate-500">
                       {quotation.customerName} · {quotation.contactName}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">{formatCurrency(quotation.totalAmount)}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-bold text-slate-900">{formatCurrency(quotation.totalAmount)}</p>
+                    <p className="text-xs text-slate-500">
                       {new Date(quotation.createdAt).toLocaleDateString('ko-KR')}
                     </p>
                   </div>
@@ -217,8 +215,8 @@ export default function ClinicalPathologyPage() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
     </div>
   );
 }

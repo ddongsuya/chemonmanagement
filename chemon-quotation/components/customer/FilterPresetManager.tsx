@@ -101,7 +101,7 @@ export function FilterPresetManager({ filters, onApplyPreset }: FilterPresetMana
     <div className="flex items-center gap-2">
       {presets.length > 0 && (
         <Select onValueChange={handleApply}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-40 bg-white border-none rounded-xl">
             <SelectValue placeholder="프리셋 선택" />
           </SelectTrigger>
           <SelectContent>
@@ -124,10 +124,10 @@ export function FilterPresetManager({ filters, onApplyPreset }: FilterPresetMana
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>필터 프리셋 저장</DialogTitle></DialogHeader>
-          <Input placeholder="프리셋 이름" value={presetName} onChange={(e) => setPresetName(e.target.value)} />
+          <Input placeholder="프리셋 이름" value={presetName} onChange={(e) => setPresetName(e.target.value)} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           {presets.length > 0 && (
             <div className="space-y-1 max-h-40 overflow-y-auto">
-              <p className="text-xs text-muted-foreground">기존 프리셋:</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">기존 프리셋:</p>
               {presets.map(p => (
                 <div key={p.id} className="flex items-center justify-between text-sm py-1">
                   <span>{p.name}</span>

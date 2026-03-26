@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -252,21 +252,19 @@ export default function AutomationConditionBuilder({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Filter className="h-5 w-5" />
+    <StitchCard variant="surface-container">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <Filter className="h-5 w-5 text-primary" />
           조건 설정
-        </CardTitle>
-        <CardDescription>
-          트리거 발동 시 추가로 확인할 조건을 설정합니다 (선택사항)
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+        </h2>
+        <p className="text-sm text-slate-500">트리거 발동 시 추가로 확인할 조건을 설정합니다 (선택사항)</p>
+      </div>
+      <div className="space-y-4">
         {conditions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center border border-dashed rounded-lg">
-            <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground mb-4">
+          <div className="flex flex-col items-center justify-center py-8 text-center rounded-xl bg-[#EFE7DD]">
+            <AlertCircle className="h-8 w-8 text-slate-400 mb-2" />
+            <p className="text-sm text-slate-500 mb-4">
               조건이 설정되지 않았습니다.
               <br />
               조건 없이 트리거 발동 시 항상 실행됩니다.
@@ -282,7 +280,7 @@ export default function AutomationConditionBuilder({
               {conditions.map((condition, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 p-4 rounded-lg border bg-muted/30"
+                  className="flex items-start gap-3 p-4 rounded-xl bg-[#EFE7DD]"
                 >
                   <div className="flex-1 grid gap-3 md:grid-cols-3">
                     {/* 필드 선택 */}
@@ -353,8 +351,8 @@ export default function AutomationConditionBuilder({
             </Button>
 
             {/* 조건 설명 */}
-            <div className="rounded-lg bg-muted/50 p-4">
-              <p className="text-sm text-muted-foreground">
+            <div className="rounded-xl bg-[#EFE7DD] p-4">
+              <p className="text-sm text-slate-500">
                 <strong>참고:</strong> 여러 조건이 설정된 경우 모든 조건이 충족되어야 (AND) 규칙이 실행됩니다.
               </p>
             </div>
@@ -362,15 +360,15 @@ export default function AutomationConditionBuilder({
         )}
 
         {/* 예시 */}
-        <div className="rounded-lg border border-dashed p-4">
+        <div className="rounded-xl bg-[#EFE7DD] p-4">
           <p className="text-sm font-medium mb-2">조건 예시</p>
-          <ul className="text-sm text-muted-foreground space-y-1">
+          <ul className="text-sm text-slate-500 space-y-1">
             <li>• 견적 금액 &gt; 100,000,000 (1억 이상)</li>
             <li>• 리드 상태 = WON (성공)</li>
             <li>• 우선순위 = HIGH 또는 URGENT</li>
           </ul>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }

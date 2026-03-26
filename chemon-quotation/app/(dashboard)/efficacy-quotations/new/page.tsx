@@ -8,7 +8,7 @@ import StepModelSelection from '@/components/efficacy-quotation/StepModelSelecti
 import StepItemConfiguration from '@/components/efficacy-quotation/StepItemConfiguration';
 import StepCalculation from '@/components/efficacy-quotation/StepCalculation';
 import StepPreview from '@/components/efficacy-quotation/StepPreview';
-import PageHeader from '@/components/layout/PageHeader';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import { QuotationCodeGuard } from '@/components/quotation/QuotationCodeGuard';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, Loader2 } from 'lucide-react';
@@ -77,11 +77,12 @@ export default function NewEfficacyQuotationPage() {
   return (
     <QuotationCodeGuard userCode={userCode} quotationType="EFFICACY">
       <div className="max-w-5xl mx-auto">
-        <PageHeader
+        <StitchPageHeader
+          label="NEW EFFICACY QUOTATION"
           title="새 효력시험 견적서 작성"
           description="단계별로 효력시험 견적서를 작성합니다"
           actions={
-            <Button variant="outline" size="sm" onClick={handleReset}>
+            <Button variant="outline" size="sm" onClick={handleReset} className="bg-white border-none rounded-xl font-bold">
               <RotateCcw className="w-4 h-4 mr-2" />
               초기화
             </Button>

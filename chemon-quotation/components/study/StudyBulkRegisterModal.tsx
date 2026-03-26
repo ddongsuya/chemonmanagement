@@ -6,7 +6,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Upload, ImageIcon, Loader2, Trash2, Plus, Camera, AlertCircle,
 } from 'lucide-react';
@@ -102,13 +101,13 @@ export default function StudyBulkRegisterModal({ open, onOpenChange, contractId,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-[#E9E1D8] rounded-xl">
         <DialogHeader>
-          <DialogTitle className="text-base">시험 일괄 등록</DialogTitle>
+          <DialogTitle className="text-base font-bold">시험 일괄 등록</DialogTitle>
         </DialogHeader>
 
         {/* OCR 이미지 업로드 */}
-        <div className="border-2 border-dashed border-border rounded-lg p-4">
+        <div className="bg-[#F5EDE3] rounded-xl p-4">
           <input
             ref={fileRef}
             type="file"
@@ -129,14 +128,14 @@ export default function StudyBulkRegisterModal({ open, onOpenChange, contractId,
                 <><Camera className="w-4 h-4 mr-1.5" />이미지로 등록</>
               )}
             </Button>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-slate-500">
               시험관리팀 접수 안내 캡쳐를 업로드하면 자동으로 데이터를 인식합니다
             </span>
           </div>
           {ocrConfidence !== null && (
             <div className="flex items-center gap-1.5 mt-2 text-xs">
               <AlertCircle className="w-3 h-3" />
-              <span className="text-muted-foreground">
+              <span className="text-slate-500">
                 인식 신뢰도: {Math.round(ocrConfidence)}% — 결과를 확인하고 수정해주세요
               </span>
             </div>
@@ -147,28 +146,28 @@ export default function StudyBulkRegisterModal({ open, onOpenChange, contractId,
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b">
-                <th className="text-left py-2 px-1 text-xs font-medium text-muted-foreground w-8">#</th>
-                <th className="text-left py-2 px-1 text-xs font-medium text-muted-foreground">물질코드</th>
-                <th className="text-left py-2 px-1 text-xs font-medium text-muted-foreground">프로젝트코드</th>
-                <th className="text-left py-2 px-1 text-xs font-medium text-muted-foreground">시험물질</th>
-                <th className="text-left py-2 px-1 text-xs font-medium text-muted-foreground">의뢰기관</th>
-                <th className="text-left py-2 px-1 text-xs font-medium text-muted-foreground">시험번호</th>
-                <th className="text-left py-2 px-1 text-xs font-medium text-muted-foreground">시험제목</th>
-                <th className="text-left py-2 px-1 text-xs font-medium text-muted-foreground">시험책임자</th>
+              <tr>
+                <th className="text-left py-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400 w-8">#</th>
+                <th className="text-left py-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">물질코드</th>
+                <th className="text-left py-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">프로젝트코드</th>
+                <th className="text-left py-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">시험물질</th>
+                <th className="text-left py-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">의뢰기관</th>
+                <th className="text-left py-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">시험번호</th>
+                <th className="text-left py-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">시험제목</th>
+                <th className="text-left py-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">시험책임자</th>
                 <th className="w-8"></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {rows.map((row, idx) => (
-                <tr key={idx} className="border-b border-border/40">
-                  <td className="py-1 px-1 text-xs text-muted-foreground">{idx + 1}</td>
+                <tr key={idx} className="hover:bg-[#FFF8F1] transition-colors">
+                  <td className="py-1 px-1 text-xs text-slate-500">{idx + 1}</td>
                   {(['substanceCode', 'projectCode', 'testSubstance', 'sponsor', 'studyCode', 'studyTitle', 'studyDirector'] as const).map(field => (
                     <td key={field} className="py-1 px-1">
                       <Input
                         value={row[field]}
                         onChange={e => updateRow(idx, field, e.target.value)}
-                        className="h-7 text-xs"
+                        className="h-7 text-xs bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                         placeholder={field === 'studyCode' ? '25-NV-0194' : ''}
                       />
                     </td>
@@ -180,7 +179,7 @@ export default function StudyBulkRegisterModal({ open, onOpenChange, contractId,
                       onClick={() => removeRow(idx)}
                       disabled={rows.length <= 1}
                     >
-                      <Trash2 className="w-3 h-3 text-muted-foreground" />
+                      <Trash2 className="w-3 h-3 text-slate-400" />
                     </Button>
                   </td>
                 </tr>
@@ -189,13 +188,13 @@ export default function StudyBulkRegisterModal({ open, onOpenChange, contractId,
           </table>
         </div>
 
-        <Button variant="outline" size="sm" onClick={addRow} className="w-fit">
+        <Button variant="outline" size="sm" onClick={addRow} className="w-fit rounded-xl border-none bg-white font-bold">
           <Plus className="w-3.5 h-3.5 mr-1" />행 추가
         </Button>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>취소</Button>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl border-none bg-white font-bold">취소</Button>
+          <Button onClick={handleSave} disabled={saving} className="rounded-xl bg-gradient-to-r from-primary to-orange-400 font-bold">
             {saving ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : null}
             {rows.filter(r => r.studyTitle || r.studyCode).length}건 등록
           </Button>

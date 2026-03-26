@@ -109,16 +109,16 @@ export function ImportExportPanel({ onImportSuccess }: ImportExportPanelProps) {
 
       {/* 가져오기 다이얼로그 */}
       <Dialog open={showImport} onOpenChange={setShowImport}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-[#E9E1D8] rounded-xl">
           <DialogHeader><DialogTitle>고객 데이터 가져오기</DialogTitle></DialogHeader>
           {importStep === 'upload' && (
             <div
-              className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 cursor-pointer hover:border-primary/50 transition-colors"
+              className="flex flex-col items-center justify-center rounded-xl bg-[#FAF2E9] p-8 cursor-pointer hover:bg-[#F5EDE3] transition-colors"
               onClick={() => fileRef.current?.click()}
             >
-              <FileSpreadsheet className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm font-medium">Excel 파일을 선택하세요</p>
-              <p className="text-xs text-muted-foreground mt-1">.xlsx, .csv 지원</p>
+              <FileSpreadsheet className="h-10 w-10 text-slate-400 mb-3" />
+              <p className="text-sm font-bold text-slate-900">Excel 파일을 선택하세요</p>
+              <p className="text-xs text-slate-500 mt-1">.xlsx, .csv 지원</p>
               <input ref={fileRef} type="file" accept=".xlsx,.csv" className="hidden" onChange={handleFileSelect} />
             </div>
           )}
@@ -127,7 +127,7 @@ export function ImportExportPanel({ onImportSuccess }: ImportExportPanelProps) {
               <div className="flex items-center gap-2 text-sm">
                 <FileSpreadsheet className="h-4 w-4" />
                 <span>{importFile.name}</span>
-                <span className="text-muted-foreground">({(importFile.size / 1024).toFixed(1)} KB)</span>
+                <span className="text-slate-500">({(importFile.size / 1024).toFixed(1)} KB)</span>
               </div>
               {processing && <Progress value={progress} />}
               <DialogFooter>
@@ -140,8 +140,8 @@ export function ImportExportPanel({ onImportSuccess }: ImportExportPanelProps) {
           )}
           {importStep === 'result' && (
             <div className="flex flex-col items-center py-4">
-              <CheckCircle className="h-10 w-10 text-green-500 mb-3" />
-              <p className="text-sm font-medium">가져오기가 완료되었습니다</p>
+              <CheckCircle className="h-10 w-10 text-emerald-500 mb-3" />
+              <p className="text-sm font-bold text-slate-900">가져오기가 완료되었습니다</p>
               <Button className="mt-4" onClick={() => setShowImport(false)}>닫기</Button>
             </div>
           )}
@@ -150,13 +150,13 @@ export function ImportExportPanel({ onImportSuccess }: ImportExportPanelProps) {
 
       {/* 내보내기 다이얼로그 */}
       <Dialog open={showExport} onOpenChange={setShowExport}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm bg-[#E9E1D8] rounded-xl">
           <DialogHeader><DialogTitle>고객 데이터 내보내기</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label className="text-xs mb-1.5 block">파일 형식</Label>
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">파일 형식</Label>
               <Select value={exportFormat} onValueChange={(v) => setExportFormat(v as 'xlsx' | 'csv')}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="xlsx">Excel (.xlsx)</SelectItem>
                   <SelectItem value="csv">CSV (.csv)</SelectItem>
@@ -164,7 +164,7 @@ export function ImportExportPanel({ onImportSuccess }: ImportExportPanelProps) {
               </Select>
             </div>
             <div>
-              <Label className="text-xs mb-1.5 block">내보낼 열 선택</Label>
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">내보낼 열 선택</Label>
               <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
                 {EXPORT_COLUMNS.map(col => (
                   <label key={col.key} className="flex items-center gap-2 text-sm cursor-pointer">

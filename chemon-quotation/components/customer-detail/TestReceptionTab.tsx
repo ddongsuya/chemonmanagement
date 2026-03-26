@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Skeleton from '@/components/ui/Skeleton';
@@ -79,20 +78,19 @@ export default function TestReceptionTab({ customerId, requesterId }: TestRecept
       {receptions.map(r => {
         const status = STATUS_CONFIG[r.status] || STATUS_CONFIG.received;
         return (
-          <Card key={r.id}>
-            <CardContent className="p-4">
+          <div key={r.id} className="bg-[#FAF2E9] rounded-xl p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium">{r.test_title || '(제목 없음)'}</p>
                     <Badge variant={status.variant}>{status.label}</Badge>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
+                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
                     {r.test_number && <span>시험번호: {r.test_number}</span>}
                     {r.substance_name && <span>시험물질: {r.substance_name}</span>}
                     {r.test_director && <span>책임자: {r.test_director}</span>}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
                     <span>접수: {new Date(r.reception_date).toLocaleDateString('ko-KR')}</span>
                     {r.expected_completion_date && (
                       <span>예상완료: {new Date(r.expected_completion_date).toLocaleDateString('ko-KR')}</span>
@@ -101,13 +99,12 @@ export default function TestReceptionTab({ customerId, requesterId }: TestRecept
                 </div>
                 <div className="text-right text-sm shrink-0">
                   <p className="font-medium">{formatAmount(r.total_amount)}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     납부 {formatAmount(r.paid_amount)} / 잔액 {formatAmount(r.remaining_amount)}
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </div>
         );
       })}
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Users, Building2, UserCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UnifiedCustomerStats as StatsType } from '@/types/unified-customer';
@@ -47,8 +47,8 @@ export default function UnifiedCustomerStats({
       label: '전체',
       value: stats.totalCount,
       icon: Users,
-      color: 'text-gray-700 dark:text-gray-300',
-      bgColor: 'bg-gray-100 dark:bg-gray-800',
+      color: 'text-slate-700 dark:text-slate-300',
+      bgColor: 'bg-slate-100 dark:bg-slate-800',
     },
     {
       label: '리드',
@@ -79,30 +79,27 @@ export default function UnifiedCustomerStats({
       {/* 기본 통계 카드 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {statCards.map((card) => (
-          <Card key={card.label} className="overflow-hidden">
-            <CardContent className="p-4">
+          <StitchCard key={card.label} variant="elevated" padding="sm" className="overflow-hidden">
               <div className="flex items-center gap-4">
-                <div className={cn('p-3 rounded-lg', card.bgColor)}>
+                <div className={cn('p-3 rounded-xl', card.bgColor)}>
                   <card.icon className={cn('h-5 w-5', card.color)} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-muted-foreground">{card.label}</p>
-                  <p className={cn('text-xl font-semibold', card.color)}>
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{card.label}</p>
+                  <p className={cn('text-xl font-bold', card.color)}>
                     {card.value.toLocaleString('ko-KR')}
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </StitchCard>
         ))}
       </div>
 
       {/* 등급별 분포 바 */}
       {hasGradeData && (
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground mb-3">단계별 분포</p>
-            <div className="flex gap-1 h-3 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <StitchCard variant="surface-low" padding="sm">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3">단계별 분포</p>
+            <div className="flex gap-1 h-3 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
               {gradeEntries.map(([stage, count]) => {
                 const pct = stats.totalCount > 0 ? (count / stats.totalCount) * 100 : 0;
                 if (pct === 0) return null;
@@ -127,13 +124,12 @@ export default function UnifiedCustomerStats({
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: GRADE_COLORS[stage] || '#9CA3AF' }}
                   />
-                  <span className="text-muted-foreground">{stage}</span>
-                  <span className="font-medium">{count}</span>
+                  <span className="text-slate-500">{stage}</span>
+                  <span className="font-bold">{count}</span>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+        </StitchCard>
       )}
     </div>
   );
@@ -147,25 +143,21 @@ export function UnifiedCustomerStatsSkeleton({ className }: { className?: string
     <div className={cn('space-y-4 animate-pulse', className)}>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="overflow-hidden">
-            <CardContent className="p-4">
+          <StitchCard key={i} variant="elevated" padding="sm" className="overflow-hidden">
               <div className="flex items-center gap-4">
-                <div className="w-11 h-11 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+                <div className="w-11 h-11 bg-slate-200 dark:bg-slate-700 rounded-xl" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded" />
-                  <div className="h-7 w-16 bg-gray-200 dark:bg-gray-700 rounded" />
+                  <div className="h-4 w-12 bg-slate-200 dark:bg-slate-700 rounded" />
+                  <div className="h-7 w-16 bg-slate-200 dark:bg-slate-700 rounded" />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </StitchCard>
         ))}
       </div>
-      <Card>
-        <CardContent className="p-4">
-          <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full" />
-        </CardContent>
-      </Card>
+      <StitchCard variant="surface-low" padding="sm">
+          <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded mb-3" />
+          <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full" />
+      </StitchCard>
     </div>
   );
 }

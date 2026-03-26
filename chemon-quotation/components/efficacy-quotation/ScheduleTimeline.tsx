@@ -89,7 +89,7 @@ export default function ScheduleTimeline({
 
   if (sortedPhases.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400 text-sm">
+      <div className="text-center py-8 text-slate-400 text-sm">
         스케쥴 단계를 추가해주세요.
       </div>
     );
@@ -99,8 +99,8 @@ export default function ScheduleTimeline({
     <div className="space-y-6">
       {/* Animal info */}
       {(animalInfo.species || animalInfo.sex || animalInfo.age) && (
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <span className="font-medium">{animalInfo.species || 'Animal'}</span>
+        <div className="flex items-center gap-2 text-sm text-slate-600">
+          <span className="font-bold">{animalInfo.species || 'Animal'}</span>
           {animalInfo.sex && <span>({animalInfo.sex}</span>}
           {animalInfo.age && <span>, {animalInfo.age})</span>}
         </div>
@@ -123,20 +123,20 @@ export default function ScheduleTimeline({
               className="absolute bottom-full mb-2 flex flex-col items-center z-10"
               style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
             >
-              <span className="text-xs font-medium text-gray-900 whitespace-nowrap mb-1">
+              <span className="text-xs font-bold text-slate-900 whitespace-nowrap mb-1">
                 {event.name}
               </span>
-              <span className="text-xs text-gray-600 font-medium mb-1">
+              <span className="text-xs text-slate-600 font-bold mb-1">
                 Day {Math.round((position / 100) * totalDays)}
               </span>
-              <div className="w-0.5 h-5 bg-gray-400" />
-              <div className="text-gray-400 text-[10px]">▼</div>
+              <div className="w-0.5 h-5 bg-slate-400" />
+              <div className="text-slate-400 text-[10px]">▼</div>
             </div>
           );
         })}
 
         {/* Timeline bar */}
-        <div className="flex h-12 rounded-lg overflow-hidden bg-gray-50">
+        <div className="flex h-12 rounded-xl overflow-hidden bg-[#FAF2E9]">
           {phaseWidths.map((phase, idx) => {
             const isFirst = idx === 0;
             const isLast = idx === phaseWidths.length - 1;
@@ -146,10 +146,10 @@ export default function ScheduleTimeline({
               <div
                 key={phase.id}
                 className={cn(
-                  'flex items-center justify-center text-xs font-medium relative',
-                  isMainPhase ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700',
-                  isFirst && 'rounded-l-lg',
-                  isLast && 'rounded-r-lg'
+                  'flex items-center justify-center text-xs font-bold relative',
+                  isMainPhase ? 'bg-orange-500 text-white' : 'bg-[#EFE7DD] text-slate-700',
+                  isFirst && 'rounded-l-xl',
+                  isLast && 'rounded-r-xl'
                 )}
                 style={{ width: `${phase.widthPercent}%` }}
               >
@@ -165,7 +165,7 @@ export default function ScheduleTimeline({
         </div>
 
         {/* Day labels (below timeline) */}
-        <div className="relative mt-2 text-xs text-gray-600 font-medium">
+        <div className="relative mt-2 text-xs text-slate-600 font-bold">
           <span className="absolute left-0">
             Day -{phaseWidths[0]?.days || 0}
           </span>
@@ -192,7 +192,7 @@ export default function ScheduleTimeline({
       {/* Group Timelines (optional) */}
       {showGroupTimelines && groups.length > 0 && (
         <div className="space-y-4 mt-8">
-          <h4 className="text-sm font-medium text-gray-700">군별 타임라인</h4>
+          <h4 className="text-sm font-bold text-slate-700">군별 타임라인</h4>
           
           {groups.map((group, groupIdx) => {
             const colors = getGroupColor(groupIdx);
@@ -208,8 +208,8 @@ export default function ScheduleTimeline({
                     G{group.groupNumber}
                   </div>
                   <div>
-                    <div className="text-sm font-medium">{group.treatment}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-sm font-bold">{group.treatment}</div>
+                    <div className="text-xs text-slate-500">
                       {group.animalCount}마리 · {group.dose}
                     </div>
                   </div>
@@ -217,9 +217,8 @@ export default function ScheduleTimeline({
 
                 {/* Group Timeline Bar */}
                 <div className={cn(
-                  'relative h-10 rounded-md mb-8 border overflow-hidden',
-                  colors.bg,
-                  colors.border
+                  'relative h-10 rounded-xl mb-8 overflow-hidden',
+                  colors.bg
                 )}>
                   {phaseWidths.map((phase, idx) => {
                     const startPercent = getPhaseStartPercent(idx);
@@ -284,7 +283,7 @@ export default function ScheduleTimeline({
                         className="absolute bottom-[-24px] text-center"
                         style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
                       >
-                        <div className="text-xs text-gray-700 font-medium whitespace-nowrap">
+                        <div className="text-xs text-slate-700 font-bold whitespace-nowrap">
                           {event.name}
                         </div>
                       </div>
@@ -296,13 +295,13 @@ export default function ScheduleTimeline({
           })}
 
           {/* Legend */}
-          <div className="flex gap-4 text-xs text-gray-500 mt-4 pt-4 border-t">
+          <div className="flex gap-4 text-xs text-slate-500 mt-4 pt-4">
             <div className="flex items-center gap-1.5">
               <div className="text-orange-500">▼</div>
               <span>투여</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-1 h-3 bg-gray-300" />
+              <div className="w-1 h-3 bg-slate-300" />
               <span>관찰/측정</span>
             </div>
           </div>

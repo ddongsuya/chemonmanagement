@@ -134,11 +134,11 @@ export default function LostReasonDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-[#E9E1D8] rounded-xl">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-orange-500" />
-            <DialogTitle>미진행 사유 입력</DialogTitle>
+            <DialogTitle className="font-extrabold tracking-tight">미진행 사유 입력</DialogTitle>
           </div>
           <DialogDescription>
             {leadNumber ? (
@@ -152,7 +152,7 @@ export default function LostReasonDialog({
         <div className="space-y-4 py-4">
           {/* 미진행 사유 선택 */}
           <div className="space-y-2">
-            <Label htmlFor="lostReason">
+            <Label htmlFor="lostReason" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
               미진행 사유 <span className="text-red-500">*</span>
             </Label>
             <Select
@@ -164,7 +164,7 @@ export default function LostReasonDialog({
                 }
               }}
             >
-              <SelectTrigger id="lostReason" className={errors.reason ? 'border-red-500' : ''}>
+              <SelectTrigger id="lostReason" className={`bg-white border-none rounded-xl ${errors.reason ? 'ring-2 ring-red-500' : ''}`}>
                 <SelectValue placeholder="사유를 선택하세요" />
               </SelectTrigger>
               <SelectContent>
@@ -185,7 +185,7 @@ export default function LostReasonDialog({
           {/* 기타 사유 상세 입력 (OTHER 선택 시) */}
           {lostReason === 'OTHER' && (
             <div className="space-y-2">
-              <Label htmlFor="lostReasonDetail">
+              <Label htmlFor="lostReasonDetail" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
                 상세 사유 <span className="text-red-500">*</span>
               </Label>
               <Textarea
@@ -198,7 +198,7 @@ export default function LostReasonDialog({
                     setErrors((prev) => ({ ...prev, detail: undefined }));
                   }
                 }}
-                className={errors.detail ? 'border-red-500' : ''}
+                className={`bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40 ${errors.detail ? 'ring-2 ring-red-500' : ''}`}
                 rows={3}
               />
               {errors.detail && (
@@ -213,13 +213,14 @@ export default function LostReasonDialog({
             variant="outline"
             onClick={() => handleOpenChange(false)}
             disabled={isSubmitting}
+            className="rounded-xl"
           >
             취소
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="bg-orange-500 hover:bg-orange-600"
+            className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold"
           >
             {isSubmitting ? '처리 중...' : '미진행 처리'}
           </Button>

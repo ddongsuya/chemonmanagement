@@ -42,7 +42,7 @@ export function SortControl({ filters, onFilterChange }: SortControlProps) {
         value={filters.sortBy || 'updatedAt'}
         onValueChange={(v) => onFilterChange({ ...filters, sortBy: v as UnifiedCustomerFilters['sortBy'], page: 1 })}
       >
-        <SelectTrigger className="w-36 h-8 text-xs">
+        <SelectTrigger className="w-36 h-8 text-xs bg-white border-none rounded-xl">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -51,7 +51,7 @@ export function SortControl({ filters, onFilterChange }: SortControlProps) {
           ))}
         </SelectContent>
       </Select>
-      <Button variant="ghost" size="sm" onClick={toggleOrder} className="h-8 w-8 p-0" aria-label="정렬 순서 변경">
+      <Button variant="ghost" size="sm" onClick={toggleOrder} className="h-8 w-8 p-0 rounded-xl" aria-label="정렬 순서 변경">
         {filters.sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
       </Button>
     </div>

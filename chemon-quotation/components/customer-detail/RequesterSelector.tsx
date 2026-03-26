@@ -42,29 +42,29 @@ export default function RequesterSelector({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 px-4 sm:px-6 py-2 border-b bg-white">
-        <span className="text-xs text-muted-foreground">담당자:</span>
-        <div className="h-6 w-16 bg-muted rounded-full animate-pulse" />
-        <div className="h-6 w-20 bg-muted rounded-full animate-pulse" />
+      <div className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-[#FAF2E9] rounded-xl">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">담당자:</span>
+        <div className="h-6 w-16 bg-[#F5EDE3] rounded-full animate-pulse" />
+        <div className="h-6 w-20 bg-[#F5EDE3] rounded-full animate-pulse" />
       </div>
     );
   }
 
   if (requesters.length === 0) {
     return (
-      <div className="flex items-center gap-2 px-4 sm:px-6 py-2 border-b bg-white">
-        <span className="text-xs text-muted-foreground flex items-center gap-1">
+      <div className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-[#FAF2E9] rounded-xl">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1">
           <UserCircle className="w-3.5 h-3.5" /> 담당자:
         </span>
-        <span className="text-xs text-muted-foreground">등록된 담당자가 없습니다</span>
+        <span className="text-[11px] text-slate-500">등록된 담당자가 없습니다</span>
         <InlineRequesterForm customerId={customerId} onSuccess={loadRequesters} />
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 px-4 sm:px-6 py-2 border-b bg-white overflow-x-auto no-scrollbar">
-      <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1">
+    <div className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-[#FAF2E9] rounded-xl overflow-x-auto no-scrollbar">
+      <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 shrink-0 flex items-center gap-1">
         <UserCircle className="w-3.5 h-3.5" /> 담당자:
       </span>
 
@@ -72,10 +72,10 @@ export default function RequesterSelector({
       <button
         onClick={() => onSelect(null)}
         className={cn(
-          'rounded-full px-3 py-1 text-xs font-medium transition-colors shrink-0',
+          'rounded-full px-3 py-1 text-xs font-bold transition-colors shrink-0',
           !selectedRequesterId
             ? 'bg-slate-900 text-white'
-            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            : 'bg-[#F5EDE3] text-slate-600 hover:bg-[#EFE7DD]'
         )}
       >
         전체
@@ -87,10 +87,10 @@ export default function RequesterSelector({
           key={r.id}
           onClick={() => onSelect(r.id)}
           className={cn(
-            'rounded-full px-3 py-1 text-xs font-medium transition-colors shrink-0 flex items-center gap-1',
+            'rounded-full px-3 py-1 text-xs font-bold transition-colors shrink-0 flex items-center gap-1',
             selectedRequesterId === r.id
               ? 'bg-slate-900 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              : 'bg-[#F5EDE3] text-slate-600 hover:bg-[#EFE7DD]'
           )}
         >
           {r.name}

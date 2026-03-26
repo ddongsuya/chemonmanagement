@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import PageHeader from '@/components/layout/PageHeader';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
 import {
   Select,
   SelectContent,
@@ -15,13 +15,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  StitchTable,
+  StitchTableBody,
+  StitchTableCell,
+  StitchTableHead,
+  StitchTableHeader,
+  StitchTableRow,
+} from '@/components/ui/StitchTable';
 import {
   Edit,
   Copy,
@@ -38,7 +38,6 @@ import {
   formatCurrency,
   formatDate,
   getStatusLabel,
-  getStatusColor,
 } from '@/lib/utils';
 import { QUOTATION_STATUSES } from '@/lib/constants';
 import { getQuotationById, updateQuotation, Quotation, QuotationStatus } from '@/lib/data-api';
@@ -178,33 +177,34 @@ export default function QuotationDetailPage() {
 
   return (
     <div>
-      <PageHeader
+      <StitchPageHeader
+        label="QUOTATION DETAIL"
         title={quotation.quotation_number}
         description={`${quotation.customer_name} | ${quotation.project_name}`}
         actions={
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" className="rounded-xl" asChild>
               <Link href="/quotations">
                 <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">목록</span>
               </Link>
             </Button>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" className="rounded-xl" asChild>
               <Link href={`/quotations/${params.id}/edit`}>
                 <Edit className="w-4 h-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">수정</span>
               </Link>
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="rounded-xl">
               <Copy className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">복사</span>
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="rounded-xl">
               <FileText className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">PDF</span>
             </Button>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" className="rounded-xl" asChild>
               <Link href={`/contract/new?quotationId=${params.id}`}>
                 <FileSignature className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">계약서 생성</span>
               </Link>
             </Button>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" className="rounded-xl" asChild>
               <Link href={`/consultation/new?quotationId=${params.id}`}>
                 <ClipboardList className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">상담기록지</span>
               </Link>
@@ -217,104 +217,93 @@ export default function QuotationDetailPage() {
         {/* 좌측: 상세 정보 */}
         <div className="lg:col-span-2 space-y-6">
           {/* 기본 정보 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>기본 정보</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <StitchCard variant="surface-low">
+            <h2 className="text-lg font-bold mb-4">기본 정보</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-600">고객사:</span>
-                  <span className="font-medium">{quotation.customer_name}</span>
+                  <Building2 className="w-4 h-4 text-slate-400" />
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">고객사:</span>
+                  <span className="font-bold">{quotation.customer_name}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-600">유효기간:</span>
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">유효기간:</span>
                   <span>{formatDate(quotation.valid_until)}까지</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">{quotation.modality}</Badge>
+                  <StitchBadge variant="neutral">{quotation.modality}</StitchBadge>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600">작성자:</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">작성자:</span>
                   <span>{quotation.created_by || '사용자'}</span>
                 </div>
               </div>
               {quotation.notes && (
-                <div className="mt-4 pt-4 border-t">
-                  <span className="text-gray-600">특이사항:</span>
+                <div className="mt-4 pt-4">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">특이사항:</span>
                   <p className="mt-1">{quotation.notes}</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+          </StitchCard>
 
           {/* 시험 항목 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>시험 항목</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto -mx-6 px-6">
-                <Table className="min-w-[380px]">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>시험항목</TableHead>
-                      <TableHead className="w-20 sm:w-auto">카테고리</TableHead>
-                      <TableHead className="text-right whitespace-nowrap">금액</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+          <StitchCard variant="surface-low">
+            <h2 className="text-lg font-bold mb-4">시험 항목</h2>
+              <div className="overflow-x-auto">
+                <StitchTable>
+                  <StitchTableHeader>
+                    <StitchTableRow>
+                      <StitchTableHead>시험항목</StitchTableHead>
+                      <StitchTableHead className="w-20 sm:w-auto">카테고리</StitchTableHead>
+                      <StitchTableHead className="text-right whitespace-nowrap">금액</StitchTableHead>
+                    </StitchTableRow>
+                  </StitchTableHeader>
+                  <StitchTableBody>
                     {items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell
+                      <StitchTableRow key={item.id}>
+                        <StitchTableCell
                           className={
-                            item.is_option ? 'pl-8 text-gray-600' : 'font-medium'
+                            item.is_option ? 'pl-8 text-slate-500' : 'font-bold'
                           }
                         >
                           {item.is_option ? '└ ' : ''}{item.name}
-                        </TableCell>
-                        <TableCell>{item.category}</TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
+                        </StitchTableCell>
+                        <StitchTableCell>{item.category}</StitchTableCell>
+                        <StitchTableCell className="text-right whitespace-nowrap">
                           {item.amount > 0 ? formatCurrency(item.amount) : '별도 협의'}
-                        </TableCell>
-                      </TableRow>
+                        </StitchTableCell>
+                      </StitchTableRow>
                     ))}
                     {/* 조제물분석 */}
                     {quotation.subtotal_analysis > 0 && (
-                      <TableRow>
-                        <TableCell className="font-medium">조제물분석</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell className="text-right">
+                      <StitchTableRow>
+                        <StitchTableCell className="font-bold">조제물분석</StitchTableCell>
+                        <StitchTableCell>-</StitchTableCell>
+                        <StitchTableCell className="text-right">
                           {formatCurrency(quotation.subtotal_analysis)}
-                        </TableCell>
-                      </TableRow>
+                        </StitchTableCell>
+                      </StitchTableRow>
                     )}
-                  </TableBody>
-                </Table>
+                  </StitchTableBody>
+                </StitchTable>
               </div>
-            </CardContent>
-          </Card>
+          </StitchCard>
         </div>
 
         {/* 우측: 상태 및 금액 */}
         <div className="space-y-6">
           {/* 상태 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>상태</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <StitchCard variant="surface-low">
+            <h2 className="text-lg font-bold mb-4">상태</h2>
               <div className="space-y-3">
-                <Badge className={`${getStatusColor(quotation.status)} text-sm`}>
+                <StitchBadge status={quotation.status.toUpperCase()} className="text-sm">
                   {getStatusLabel(quotation.status)}
-                </Badge>
+                </StitchBadge>
                 <Select
                   value={quotation.status}
                   onValueChange={handleStatusChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -326,31 +315,28 @@ export default function QuotationDetailPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
+          </StitchCard>
 
           {/* 금액 요약 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <WonSign className="w-5 h-5" />
+          <StitchCard variant="surface-low">
+            <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
+                <WonSign className="w-5 h-5 text-primary" />
                 금액 요약
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+            </h2>
+            <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">시험비용</span>
-                <span>{formatCurrency(quotation.subtotal_test)}</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">시험비용</span>
+                <span className="font-bold">{formatCurrency(quotation.subtotal_test)}</span>
               </div>
               {quotation.subtotal_analysis > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">조제물분석</span>
-                  <span>{formatCurrency(quotation.subtotal_analysis)}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">조제물분석</span>
+                  <span className="font-bold">{formatCurrency(quotation.subtotal_analysis)}</span>
                 </div>
               )}
-              <div className="border-t pt-3 flex justify-between">
-                <span className="text-gray-600">소계</span>
-                <span>
+              <div className="pt-3 flex justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">소계</span>
+                <span className="font-bold">
                   {formatCurrency(
                     quotation.subtotal_test + quotation.subtotal_analysis
                   )}
@@ -362,34 +348,30 @@ export default function QuotationDetailPage() {
                   <span>-{formatCurrency(quotation.discount_amount)}</span>
                 </div>
               )}
-              <div className="border-t pt-3 flex justify-between text-lg font-bold">
+              <div className="pt-3 flex justify-between text-lg font-bold">
                 <span>합계</span>
                 <span className="text-primary">
                   {formatCurrency(quotation.total_amount)}
                 </span>
               </div>
-              <p className="text-xs text-gray-500">* 부가가치세 별도</p>
-            </CardContent>
-          </Card>
+              <p className="text-xs text-slate-500">* 부가가치세 별도</p>
+            </div>
+          </StitchCard>
 
           {/* 이력 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>이력</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <StitchCard variant="surface-low">
+            <h2 className="text-lg font-bold mb-4">이력</h2>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">작성일</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">작성일</span>
                   <span>{formatDate(quotation.created_at.split('T')[0])}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">최종수정</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">최종수정</span>
                   <span>{formatDate(quotation.updated_at.split('T')[0])}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </StitchCard>
         </div>
       </div>
     </div>

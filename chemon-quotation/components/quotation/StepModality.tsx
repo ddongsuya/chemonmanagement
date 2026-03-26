@@ -3,13 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useQuotationStore } from '@/stores/quotationStore';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
@@ -45,16 +39,16 @@ const level1Icons: Record<string, React.ElementType> = {
 };
 
 // Level1 색상 매핑
-const level1Colors: Record<string, { bg: string; border: string; text: string }> = {
-  SM: { bg: 'bg-blue-50', border: 'border-blue-500', text: 'text-blue-600' },
-  BIO: { bg: 'bg-green-50', border: 'border-green-500', text: 'text-green-600' },
-  CELL: { bg: 'bg-purple-50', border: 'border-purple-500', text: 'text-purple-600' },
-  GENE: { bg: 'bg-pink-50', border: 'border-pink-500', text: 'text-pink-600' },
-  OLIGO: { bg: 'bg-indigo-50', border: 'border-indigo-500', text: 'text-indigo-600' },
-  RADIO: { bg: 'bg-yellow-50', border: 'border-yellow-500', text: 'text-yellow-600' },
-  DEVICE: { bg: 'bg-cyan-50', border: 'border-cyan-500', text: 'text-cyan-600' },
-  MICRO: { bg: 'bg-teal-50', border: 'border-teal-500', text: 'text-teal-600' },
-  ADV: { bg: 'bg-orange-50', border: 'border-orange-500', text: 'text-orange-600' },
+const level1Colors: Record<string, { bg: string; text: string }> = {
+  SM: { bg: 'bg-blue-50', text: 'text-blue-600' },
+  BIO: { bg: 'bg-green-50', text: 'text-green-600' },
+  CELL: { bg: 'bg-purple-50', text: 'text-purple-600' },
+  GENE: { bg: 'bg-pink-50', text: 'text-pink-600' },
+  OLIGO: { bg: 'bg-indigo-50', text: 'text-indigo-600' },
+  RADIO: { bg: 'bg-yellow-50', text: 'text-yellow-600' },
+  DEVICE: { bg: 'bg-cyan-50', text: 'text-cyan-600' },
+  MICRO: { bg: 'bg-teal-50', text: 'text-teal-600' },
+  ADV: { bg: 'bg-orange-50', text: 'text-orange-600' },
 };
 
 interface Level3 {
@@ -162,23 +156,22 @@ export default function StepModality() {
   // 색상 가져오기
   const getColors = (id: string) =>
     level1Colors[id] || {
-      bg: 'bg-gray-50',
-      border: 'border-gray-500',
-      text: 'text-gray-600',
+      bg: 'bg-slate-50',
+      text: 'text-slate-600',
     };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>의약품 유형(모달리티) 선택</CardTitle>
-        <CardDescription>
+    <StitchCard variant="surface-low" padding="lg">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold">의약품 유형(모달리티) 선택</h2>
+        <p className="text-sm text-slate-500 mt-1">
           3단계로 의약품 유형을 선택해주세요: 대분류 → 중분류 → 소분류
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </p>
+      </div>
+      <div className="space-y-6">
         {/* Step 1: Level1 선택 */}
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+          <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
             <Badge variant="outline">1단계</Badge>
             대분류 선택
           </h3>
@@ -193,22 +186,22 @@ export default function StepModality() {
                   key={item.level1_id}
                   onClick={() => handleLevel1Select(item.level1_id)}
                   className={cn(
-                    'p-3 rounded-lg border-2 transition-all text-center hover:shadow-md',
+                    'p-3 rounded-xl transition-all text-center hover:shadow-ambient',
                     isSelected
-                      ? `${colors.border} ${colors.bg}`
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                      ? `${colors.bg} shadow-ambient`
+                      : 'bg-white hover:bg-[#FFF8F1]'
                   )}
                 >
                   <Icon
                     className={cn(
                       'w-6 h-6 mx-auto mb-2',
-                      isSelected ? colors.text : 'text-gray-400'
+                      isSelected ? colors.text : 'text-slate-400'
                     )}
                   />
                   <p
                     className={cn(
                       'text-xs font-medium',
-                      isSelected ? colors.text : 'text-gray-700'
+                      isSelected ? colors.text : 'text-slate-700'
                     )}
                   >
                     {item.level1_name}
@@ -223,11 +216,11 @@ export default function StepModality() {
         {/* Step 2: Level2 선택 */}
         {selectedLevel1 && level2Options.length > 0 && (
           <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-            <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
               <Badge variant="outline">2단계</Badge>
               중분류 선택
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-500">{selectedInfo?.level1?.level1_name}</span>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+              <span className="text-slate-500">{selectedInfo?.level1?.level1_name}</span>
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {level2Options.map((item) => {
@@ -239,21 +232,21 @@ export default function StepModality() {
                     key={item.level2_id}
                     onClick={() => handleLevel2Select(item.level2_id)}
                     className={cn(
-                      'p-3 rounded-lg border-2 transition-all text-left hover:shadow-md',
+                      'p-3 rounded-xl transition-all text-left hover:shadow-ambient',
                       isSelected
-                        ? `${colors.border} ${colors.bg}`
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                        ? `${colors.bg} shadow-ambient`
+                        : 'bg-white hover:bg-[#FFF8F1]'
                     )}
                   >
                     <p
                       className={cn(
-                        'text-sm font-medium',
-                        isSelected ? colors.text : 'text-gray-700'
+                        'text-sm font-bold',
+                        isSelected ? colors.text : 'text-slate-700'
                       )}
                     >
                       {item.level2_name}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-slate-400 mt-1">
                       {item.level2_name_en}
                     </p>
                   </button>
@@ -266,11 +259,11 @@ export default function StepModality() {
         {/* Step 3: Level3 선택 */}
         {selectedLevel2 && level3Options.length > 0 && (
           <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-            <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
               <Badge variant="outline">3단계</Badge>
               소분류 선택
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-500">
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+              <span className="text-slate-500">
                 {selectedInfo?.level1?.level1_name} &gt; {selectedInfo?.level2?.level2_name}
               </span>
             </h3>
@@ -284,10 +277,10 @@ export default function StepModality() {
                     key={item.level3_id}
                     onClick={() => handleLevel3Select(item.level3_id)}
                     className={cn(
-                      'p-3 rounded-lg border-2 transition-all text-left hover:shadow-md relative',
+                      'p-3 rounded-xl transition-all text-left hover:shadow-ambient relative',
                       isSelected
-                        ? `${colors.border} ${colors.bg}`
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                        ? `${colors.bg} shadow-ambient`
+                        : 'bg-white hover:bg-[#FFF8F1]'
                     )}
                   >
                     {isSelected && (
@@ -295,13 +288,13 @@ export default function StepModality() {
                     )}
                     <p
                       className={cn(
-                        'text-sm font-medium',
-                        isSelected ? colors.text : 'text-gray-700'
+                        'text-sm font-bold',
+                        isSelected ? colors.text : 'text-slate-700'
                       )}
                     >
                       {item.level3_name}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-slate-400 mt-1">
                       {item.level3_name_en}
                     </p>
                   </button>
@@ -313,21 +306,21 @@ export default function StepModality() {
 
         {/* 선택 결과 표시 */}
         {selectedLevel3 && selectedInfo && (
-          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 animate-in fade-in duration-300">
+          <div className="p-4 bg-emerald-50 rounded-xl animate-in fade-in duration-300">
             <div className="flex items-center gap-2 mb-2">
-              <Check className="w-5 h-5 text-green-600" />
-              <span className="font-medium text-green-800 dark:text-green-300">
+              <Check className="w-5 h-5 text-emerald-600" />
+              <span className="font-bold text-emerald-800">
                 모달리티 선택 완료
               </span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+            <div className="flex items-center gap-2 text-sm text-emerald-700">
               <Badge variant="secondary">{selectedInfo.level1?.level1_name}</Badge>
               <ChevronRight className="w-4 h-4" />
               <Badge variant="secondary">{selectedInfo.level2?.level2_name}</Badge>
               <ChevronRight className="w-4 h-4" />
               <Badge variant="default">{selectedInfo.level3?.level3_name}</Badge>
             </div>
-            <p className="text-xs text-green-600 dark:text-green-500 mt-2">
+            <p className="text-xs text-emerald-600 mt-2">
               선택한 모달리티에 맞는 시험 항목을 다음 단계에서 선택할 수 있습니다.
             </p>
           </div>
@@ -339,12 +332,12 @@ export default function StepModality() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             이전
           </Button>
-          <Button onClick={nextStep} disabled={!modality}>
+          <Button onClick={nextStep} disabled={!modality} className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold">
             다음: 시험 선택
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }

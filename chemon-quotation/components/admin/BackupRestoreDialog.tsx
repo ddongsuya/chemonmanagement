@@ -96,7 +96,7 @@ export default function BackupRestoreDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="max-w-lg">
+      <AlertDialogContent className="max-w-lg bg-[#E9E1D8] rounded-xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <RotateCcw className="h-5 w-5 text-orange-500" />
@@ -105,7 +105,7 @@ export default function BackupRestoreDialog({
           <AlertDialogDescription asChild>
             <div className="space-y-4">
               {/* 경고 메시지 */}
-              <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 p-3">
+              <div className="flex items-start gap-3 rounded-xl bg-amber-50 p-3">
                 <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-amber-800">
                   <p className="font-medium">주의: 이 작업은 되돌릴 수 없습니다!</p>
@@ -117,13 +117,13 @@ export default function BackupRestoreDialog({
               </div>
 
               {/* 백업 정보 */}
-              <div className="rounded-lg bg-gray-50 border p-3">
+              <div className="rounded-xl bg-[#F5EDE3] p-3">
                 <div className="flex items-center gap-2 text-sm">
-                  <Database className="h-4 w-4 text-gray-500" />
+                  <Database className="h-4 w-4 text-slate-500" />
                   <span className="font-medium">백업 파일:</span>
-                  <span className="text-muted-foreground">{backupFilename}</span>
+                  <span className="text-slate-500">{backupFilename}</span>
                 </div>
-                <div className="text-sm text-muted-foreground mt-1 ml-6">
+                <div className="text-sm text-slate-500 mt-1 ml-6">
                   생성일: {backupDate}
                 </div>
               </div>
@@ -144,11 +144,11 @@ export default function BackupRestoreDialog({
                   </div>
                 </div>
                 
-                <div className="max-h-48 overflow-y-auto rounded-lg border p-2 space-y-2">
+                <div className="max-h-48 overflow-y-auto rounded-xl bg-[#F5EDE3] p-2 space-y-2">
                   {RESTORABLE_TABLES.map((table) => (
                     <div
                       key={table.id}
-                      className="flex items-start gap-2 p-2 rounded hover:bg-gray-50 transition-colors"
+                      className="flex items-start gap-2 p-2 rounded-xl hover:bg-[#EFE7DD] transition-colors"
                     >
                       <Checkbox
                         id={table.id}
@@ -164,7 +164,7 @@ export default function BackupRestoreDialog({
                         >
                           {table.label}
                         </Label>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-slate-500">
                           {table.description}
                         </p>
                       </div>
@@ -173,7 +173,7 @@ export default function BackupRestoreDialog({
                 </div>
                 
                 {selectedTables.length === 0 && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     * 테이블을 선택하지 않으면 모든 테이블이 복구됩니다.
                   </p>
                 )}
@@ -182,11 +182,11 @@ export default function BackupRestoreDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isRestoring}>취소</AlertDialogCancel>
+          <AlertDialogCancel disabled={isRestoring} className="rounded-xl">취소</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={isRestoring}
-            className="bg-orange-500 hover:bg-orange-600"
+            className="bg-orange-500 hover:bg-orange-600 rounded-xl"
           >
             {isRestoring ? (
               <>

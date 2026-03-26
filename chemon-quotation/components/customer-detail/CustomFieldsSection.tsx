@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { getCustomFields, getCustomFieldValues, updateCustomFieldValues } from '@/lib/unified-customer-api';
 
@@ -92,15 +91,15 @@ export default function CustomFieldsSection({ customerId }: CustomFieldsSectionP
   const renderField = (field: FieldDef, value: string, onChange: (v: string) => void) => {
     switch (field.fieldType) {
       case 'TEXT':
-        return <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-8" />;
+        return <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-8 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />;
       case 'NUMBER':
-        return <Input type="number" value={value} onChange={(e) => onChange(e.target.value)} className="h-8" />;
+        return <Input type="number" value={value} onChange={(e) => onChange(e.target.value)} className="h-8 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />;
       case 'DATE':
-        return <Input type="date" value={value} onChange={(e) => onChange(e.target.value)} className="h-8" />;
+        return <Input type="date" value={value} onChange={(e) => onChange(e.target.value)} className="h-8 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />;
       case 'DROPDOWN':
         return (
           <Select value={value} onValueChange={onChange}>
-            <SelectTrigger className="h-8"><SelectValue placeholder="선택" /></SelectTrigger>
+            <SelectTrigger className="h-8 bg-white border-none rounded-xl"><SelectValue placeholder="선택" /></SelectTrigger>
             <SelectContent>
               {(field.options || []).map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
             </SelectContent>
@@ -111,7 +110,7 @@ export default function CustomFieldsSection({ customerId }: CustomFieldsSectionP
           <Checkbox checked={value === 'true'} onCheckedChange={(c) => onChange(String(c))} />
         );
       default:
-        return <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-8" />;
+        return <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-8 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />;
     }
   };
 
@@ -119,9 +118,9 @@ export default function CustomFieldsSection({ customerId }: CustomFieldsSectionP
   if (fields.length === 0) return null;
 
   return (
-    <Card>
-      <CardHeader className="pb-3 flex flex-row items-center justify-between">
-        <CardTitle className="text-base">커스텀 필드</CardTitle>
+    <div className="bg-[#FAF2E9] rounded-xl">
+      <div className="p-6 pb-3 flex flex-row items-center justify-between">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">커스텀 필드</h3>
         {!editing ? (
           <Button variant="ghost" size="sm" onClick={startEdit}>
             <Edit2 className="h-3.5 w-3.5 mr-1" /> 편집
@@ -134,12 +133,12 @@ export default function CustomFieldsSection({ customerId }: CustomFieldsSectionP
             </Button>
           </div>
         )}
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="px-6 pb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {fields.sort((a, b) => a.displayOrder - b.displayOrder).map(field => (
             <div key={field.id} className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground w-28 shrink-0 truncate">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 w-28 shrink-0 truncate">
                 {field.name}{field.isRequired && <span className="text-red-500">*</span>}
               </span>
               {editing ? (
@@ -150,7 +149,7 @@ export default function CustomFieldsSection({ customerId }: CustomFieldsSectionP
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

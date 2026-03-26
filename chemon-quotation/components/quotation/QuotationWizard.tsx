@@ -17,7 +17,7 @@ const steps = [
 
 export default function QuotationWizard({ currentStep, onStepClick }: QuotationWizardProps) {
   return (
-    <nav aria-label="Progress" className="mb-8">
+    <nav aria-label="Progress" className="mb-8 bg-[#FAF2E9] rounded-xl p-4 sm:p-6">
       <ol className="flex items-center">
         {steps.map((step, stepIdx) => {
           const isCompleted = step.id < currentStep;
@@ -38,27 +38,27 @@ export default function QuotationWizard({ currentStep, onStepClick }: QuotationW
                   onClick={() => isClickable && onStepClick?.(step.id)}
                   disabled={!isClickable}
                   className={cn(
-                    'relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 transition-colors flex-shrink-0',
+                    'relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all duration-200 flex-shrink-0',
                     isCompleted
-                      ? 'border-primary bg-primary text-white cursor-pointer hover:bg-primary/90'
+                      ? 'bg-primary text-white cursor-pointer hover:bg-primary/90 shadow-ambient'
                       : isCurrent
-                      ? 'border-primary bg-primary text-white'
-                      : 'border-gray-300 bg-white text-gray-500',
+                      ? 'bg-primary text-white shadow-ambient'
+                      : 'bg-white text-slate-500',
                     !isClickable && !isCurrent && 'cursor-not-allowed'
                   )}
                 >
                   {isCompleted ? (
                     <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                   ) : (
-                    <span className="text-xs sm:text-sm font-medium">{step.id}</span>
+                    <span className="text-xs sm:text-sm font-bold">{step.id}</span>
                   )}
                 </button>
 
                 {/* 스텝 이름 */}
                 <span
                   className={cn(
-                    'ml-3 text-sm font-medium hidden sm:block',
-                    isCurrent ? 'text-primary' : isCompleted ? 'text-gray-900' : 'text-gray-500'
+                    'ml-3 text-[11px] font-bold uppercase tracking-widest hidden sm:block',
+                    isCurrent ? 'text-primary' : isCompleted ? 'text-slate-900' : 'text-slate-500'
                   )}
                 >
                   {step.name}
@@ -67,8 +67,8 @@ export default function QuotationWizard({ currentStep, onStepClick }: QuotationW
                 {/* 모바일용 짧은 이름 */}
                 <span
                   className={cn(
-                    'ml-2 text-xs font-medium sm:hidden',
-                    isCurrent ? 'text-primary' : isCompleted ? 'text-gray-900' : 'text-gray-500'
+                    'ml-2 text-[10px] font-bold uppercase tracking-widest sm:hidden',
+                    isCurrent ? 'text-primary' : isCompleted ? 'text-slate-900' : 'text-slate-500'
                   )}
                 >
                   {step.shortName}
@@ -78,8 +78,8 @@ export default function QuotationWizard({ currentStep, onStepClick }: QuotationW
                 {stepIdx !== steps.length - 1 && (
                   <div
                     className={cn(
-                      'ml-2 sm:ml-4 h-0.5 flex-1 min-w-[12px] sm:min-w-[40px]',
-                      isCompleted ? 'bg-primary' : 'bg-gray-300'
+                      'ml-2 sm:ml-4 h-0.5 flex-1 min-w-[12px] sm:min-w-[40px] rounded-full',
+                      isCompleted ? 'bg-primary' : 'bg-slate-200'
                     )}
                   />
                 )}

@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Building2, User, Phone, Mail, FileText, ArrowRight, Globe } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { Customer } from '@/types';
@@ -25,19 +25,19 @@ interface CustomerCardProps {
 
 export default function CustomerCard({ customer }: CustomerCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-5">
+    <StitchCard variant="elevated" hover>
+      <div>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Building2 className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">
+              <h3 className="font-semibold text-slate-900">
                 {customer.company_name}
               </h3>
               {customer.business_number && (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-slate-500">
                   {customer.business_number}
                 </p>
               )}
@@ -50,51 +50,51 @@ export default function CustomerCard({ customer }: CustomerCardProps) {
         </div>
 
         <div className="space-y-2 text-sm mb-4">
-          <div className="flex items-center gap-2 text-gray-600">
+          <div className="flex items-center gap-2 text-slate-600">
             <User className="w-4 h-4" />
             <span>{customer.contact_person}</span>
           </div>
           {customer.contact_phone && (
-            <div className="flex items-center gap-2 text-gray-600">
+            <div className="flex items-center gap-2 text-slate-600">
               <Phone className="w-4 h-4" />
               <span>{customer.contact_phone}</span>
             </div>
           )}
           {customer.contact_email && (
-            <div className="flex items-center gap-2 text-gray-600">
+            <div className="flex items-center gap-2 text-slate-600">
               <Mail className="w-4 h-4" />
               <span>{customer.contact_email}</span>
             </div>
           )}
           {/* 연결된 리드의 유입경로 표시 (Requirements 4.4) */}
           {customer.linked_lead && (
-            <div className="flex items-center gap-2 text-gray-600">
+            <div className="flex items-center gap-2 text-slate-600">
               <Globe className="w-4 h-4" />
               <span>유입경로: {sourceLabels[customer.linked_lead.source] || customer.linked_lead.source}</span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-3 pt-4 border-t">
+        <div className="flex items-center gap-3 pt-4 bg-[#FAF2E9] -mx-6 px-6 py-3 rounded-b-xl">
           <div className="flex items-center gap-1">
-            <FileText className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-600">
+            <FileText className="w-4 h-4 text-slate-400" />
+            <span className="text-sm text-slate-600">
               견적 {customer.quotation_count}건
             </span>
           </div>
-          <Badge variant="outline" className="text-xs">
+          <StitchBadge variant="primary">
             {formatCurrency(customer.total_amount)}
-          </Badge>
+          </StitchBadge>
         </div>
 
         <div className="mt-4">
-          <Button variant="outline" size="sm" className="w-full" asChild>
+          <Button variant="outline" size="sm" className="w-full rounded-xl" asChild>
             <Link href={`/customers/${customer.id}`}>
               상세보기 <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }

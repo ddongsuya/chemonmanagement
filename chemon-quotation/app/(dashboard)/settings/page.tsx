@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import PageHeader from '@/components/layout/PageHeader';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   User,
@@ -19,7 +19,7 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <PageHeader title="설정" description="시스템 설정을 관리합니다" />
+      <StitchPageHeader title="설정" description="시스템 설정을 관리합니다" label="SETTINGS" className="mb-6" />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4 mb-6">

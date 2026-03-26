@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { useToxicityV2Store } from '@/stores/toxicityV2Store';
 import { TEST_RELATIONS } from '@/lib/toxicity-v2/data/relations';
 import { TOXICITY_DATA } from '@/lib/toxicity-v2/data/toxicityData';
@@ -132,8 +132,8 @@ function RelationOptions({
   };
 
   return (
-    <Card className="p-4 space-y-3 border-dashed">
-      <p className="text-sm font-medium text-muted-foreground">
+    <StitchCard variant="surface-low" padding="sm" className="space-y-3">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
         📋 {mainItem?.name ?? `시험 #${relation.mainTestId}`} 옵션
       </p>
 
@@ -168,16 +168,16 @@ function RelationOptions({
       {/* tkList: 단순 TK 항목 목록 */}
       {relation.tkList && relation.tkList.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">TK 옵션</p>
+          <p className="text-xs text-slate-500">TK 옵션</p>
           {relation.tkList.map((tkId) => {
             const tkItem = TOXICITY_DATA.find((d) => d.id === tkId);
             if (!tkItem || addedOptionIds.has(tkId)) return null;
             const price = getItemPrice(tkItem, route, standard, OV_OVERLAY, OE_OVERLAY);
             return (
-              <div key={tkId} className="flex items-center justify-between gap-2 rounded-md bg-muted/50 p-2">
+              <div key={tkId} className="flex items-center justify-between gap-2 rounded-xl bg-[#F5EDE3] p-2">
                 <div className="min-w-0">
                   <p className="text-sm truncate">{tkItem.name}</p>
-                  <p className="text-xs text-muted-foreground">{price != null ? formatKRW(price) : '별도 협의'}</p>
+                  <p className="text-xs text-slate-500">{price != null ? formatKRW(price) : '별도 협의'}</p>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => acceptTkListItem(tkId)}>
                   추가
@@ -194,10 +194,10 @@ function RelationOptions({
         if (!tkItem) return null;
         const price = getItemPrice(tkItem, route, standard, OV_OVERLAY, OE_OVERLAY);
         return (
-          <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 p-2">
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-[#F5EDE3] p-2">
             <div className="min-w-0">
               <p className="text-sm truncate">{tkItem.name}</p>
-              <p className="text-xs text-muted-foreground">{price != null ? formatKRW(price) : '별도 협의'}</p>
+              <p className="text-xs text-slate-500">{price != null ? formatKRW(price) : '별도 협의'}</p>
             </div>
             <Button size="sm" variant="outline" onClick={acceptTkSimple}>
               추가
@@ -205,7 +205,7 @@ function RelationOptions({
           </div>
         );
       })()}
-    </Card>
+    </StitchCard>
   );
 }
 
@@ -226,10 +226,10 @@ function RecoveryOption({
   const price = getItemPrice(item, route, standard, OV_OVERLAY, OE_OVERLAY);
 
   return (
-    <div className="flex items-center justify-between gap-2 rounded-md bg-blue-50 dark:bg-blue-950/30 p-3">
+    <div className="flex items-center justify-between gap-2 rounded-xl bg-blue-50 dark:bg-blue-950/30 p-3">
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">🔄 {item.name}</p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-slate-500">
           {price != null ? formatKRW(price) : '별도 협의'}
         </p>
       </div>
@@ -297,11 +297,11 @@ function TkOptionTreeUI({
 
   return (
     <div className="space-y-2">
-      <p className="text-xs text-muted-foreground font-medium">🧬 TK 옵션</p>
+      <p className="text-xs text-slate-500 font-medium">🧬 TK 옵션</p>
 
       {/* Level 1: 채혈방식 */}
       <div className="space-y-1">
-        <p className="text-xs text-muted-foreground">채혈방식</p>
+        <p className="text-xs text-slate-500">채혈방식</p>
         <div className="flex gap-2">
           {methods.map((m) => (
             <Button
@@ -324,7 +324,7 @@ function TkOptionTreeUI({
       {/* Level 2: 포인트수 */}
       {tkMethod && pointOptions.length > 0 && (
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">포인트수</p>
+          <p className="text-xs text-slate-500">포인트수</p>
           <div className="flex gap-2">
             {pointOptions.map((p) => (
               <Button
@@ -347,7 +347,7 @@ function TkOptionTreeUI({
       {/* Level 3: 채혈횟수 (13주 이상만) */}
       {threeLevel && tkPoints && countOptions.length > 0 && (
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">채혈횟수</p>
+          <p className="text-xs text-slate-500">채혈횟수</p>
           <div className="flex gap-2">
             {countOptions.map((c) => (
               <Button
@@ -366,10 +366,10 @@ function TkOptionTreeUI({
 
       {/* 선택 완료 시 미리보기 + 추가 버튼 */}
       {previewItem && !alreadyAdded && (
-        <div className="flex items-center justify-between gap-2 rounded-md bg-green-50 dark:bg-green-950/30 p-2 mt-2">
+        <div className="flex items-center justify-between gap-2 rounded-xl bg-green-50 dark:bg-green-950/30 p-2 mt-2">
           <div className="min-w-0">
             <p className="text-sm truncate">{previewItem.name}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500">
               {previewPrice != null ? formatKRW(previewPrice) : '별도 협의'}
             </p>
           </div>
@@ -420,7 +420,7 @@ export default function TestRelationPanel() {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-muted-foreground">
+      <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
         시험 옵션
       </h3>
       {relationsForSelected.map(({ test, relation }) => (

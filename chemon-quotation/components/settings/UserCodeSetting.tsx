@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { useToast } from '@/hooks/use-toast';
 import { Check, X, Loader2 } from 'lucide-react';
 import { getAccessToken } from '@/lib/auth-api';
@@ -211,7 +210,7 @@ export default function UserCodeSetting({
 
     if (state.isChecking) {
       return (
-        <div className="flex items-center gap-1 text-gray-500">
+        <div className="flex items-center gap-1 text-slate-500">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-sm">확인 중...</span>
         </div>
@@ -257,8 +256,8 @@ export default function UserCodeSetting({
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="userCode">견적서 코드</Label>
-        <p className="text-xs text-gray-500 mt-1">
+        <label htmlFor="userCode" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">견적서 코드</label>
+        <p className="text-xs text-slate-500 mt-1">
           견적번호에 사용될 2글자 영문 코드입니다. (예: DL, PK, KS)
         </p>
       </div>
@@ -273,12 +272,12 @@ export default function UserCodeSetting({
               onChange={handleChange}
               maxLength={2}
               placeholder="예: DL"
-              className={`w-24 text-center text-lg font-mono uppercase ${
+              className={`w-24 text-center text-lg font-mono uppercase bg-white border-none rounded-xl focus:ring-2 ${
                 state.isDuplicate 
-                  ? 'border-red-500 focus-visible:ring-red-500' 
+                  ? 'ring-2 ring-red-500' 
                   : state.isAvailable 
-                    ? 'border-green-500 focus-visible:ring-green-500' 
-                    : ''
+                    ? 'ring-2 ring-emerald-500' 
+                    : 'focus:ring-primary/40'
               }`}
               disabled={externalLoading}
             />
@@ -304,23 +303,22 @@ export default function UserCodeSetting({
       </div>
 
       {state.inputCode.length === 2 && (
-        <Card className="bg-gray-50">
-          <CardContent className="pt-4">
-            <p className="text-xs text-gray-500 mb-2">견적번호 미리보기</p>
-            <p className="font-mono text-xl">
-              {previewYear}-
-              {previewMonth}-
-              <span className="text-primary font-bold">{state.inputCode}</span>-
-              {previewSeq}
-            </p>
-            <p className="text-xs text-gray-400 mt-2">
-              연도-월-사용자코드-일련번호
-            </p>
-          </CardContent>
-        </Card>
+        <StitchCard variant="surface-container" padding="sm">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">견적번호 미리보기</p>
+          <p className="font-mono text-xl">
+            {previewYear}-
+            {previewMonth}-
+            <span className="text-primary font-bold">{state.inputCode}</span>-
+            {previewSeq}
+          </p>
+          <p className="text-xs text-slate-400 mt-2">
+            연도-월-사용자코드-일련번호
+          </p>
+        </StitchCard>
       )}
 
-      <div className="text-sm text-gray-500 pt-2 border-t">
+      <div className="text-sm text-slate-500 pt-2">
+        <div className="h-px bg-[#EFE7DD] mb-2" />
         <p>
           발행한 견적서:{' '}
           <span className="font-medium">{currentSeq - 1}건</span>

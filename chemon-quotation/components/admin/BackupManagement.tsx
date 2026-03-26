@@ -1,17 +1,17 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
+import {
+  StitchTable,
+  StitchTableHeader,
+  StitchTableBody,
+  StitchTableRow,
+  StitchTableHead,
+  StitchTableCell,
+} from '@/components/ui/StitchTable';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -388,149 +388,97 @@ export default function BackupManagement() {
    */
   const renderTypeBadge = (type: BackupType) => {
     return (
-      <Badge variant="outline" className={type === 'AUTO' ? 'border-blue-300 text-blue-600' : 'border-green-300 text-green-600'}>
+      <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${type === 'AUTO' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50'}`}>
         {type === 'AUTO' ? '자동' : '수동'}
-      </Badge>
+      </span>
     );
   };
 
   return (
     <div className="space-y-6">
       {/* 헤더 */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orange-100">
-                <Database className="h-6 w-6 text-orange-600" />
-              </div>
-              <div>
-                <CardTitle>백업 관리</CardTitle>
-                <CardDescription>
-                  시스템 데이터를 백업하고 복구할 수 있습니다
-                </CardDescription>
-              </div>
+      <StitchCard variant="surface-low">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-orange-100">
+              <Database className="h-6 w-6 text-orange-600" />
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchBackups}
-                disabled={isLoading}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                새로고침
-              </Button>
-              <Button
-                onClick={handleCreateBackup}
-                disabled={progressStatus !== 'idle'}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                지금 백업
-              </Button>
+            <div>
+              <h2 className="text-xl font-bold">백업 관리</h2>
+              <p className="text-sm text-slate-500">시스템 데이터를 백업하고 복구할 수 있습니다</p>
             </div>
           </div>
-        </CardHeader>
-        
-        {/* 진행 상태 표시 */}
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchBackups} disabled={isLoading} className="rounded-xl">
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />새로고침
+            </Button>
+            <Button onClick={handleCreateBackup} disabled={progressStatus !== 'idle'} className="rounded-xl">
+              <Plus className="h-4 w-4 mr-2" />지금 백업
+            </Button>
+          </div>
+        </div>
         {progressStatus !== 'idle' && (
-          <CardContent className="pt-0">
-            <BackupProgress
-              status={progressStatus}
-              message={progressMessage}
-            />
-          </CardContent>
+          <div className="mt-4">
+            <BackupProgress status={progressStatus} message={progressMessage} />
+          </div>
         )}
-      </Card>
+      </StitchCard>
 
       {/* 백업 목록 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <HardDrive className="h-5 w-5" />
-            백업 히스토리
-          </CardTitle>
-          <CardDescription>
-            생성된 백업 파일 목록입니다. 다운로드하거나 복구할 수 있습니다.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : backups.length === 0 ? (
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-lg font-bold flex items-center gap-2"><HardDrive className="h-5 w-5 text-primary" />백업 히스토리</h2>
+          <p className="text-sm text-slate-500">생성된 백업 파일 목록입니다. 다운로드하거나 복구할 수 있습니다.</p>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="h-6 w-6 animate-spin text-slate-400" />
+          </div>
+        ) : backups.length === 0 ? (
+          <StitchCard variant="surface-low">
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">백업 파일이 없습니다</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                &quot;지금 백업&quot; 버튼을 클릭하여 첫 번째 백업을 생성하세요
-              </p>
+              <AlertCircle className="h-12 w-12 text-slate-400 mb-4" />
+              <p className="text-slate-500">백업 파일이 없습니다</p>
+              <p className="text-sm text-slate-400 mt-1">&quot;지금 백업&quot; 버튼을 클릭하여 첫 번째 백업을 생성하세요</p>
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>파일명</TableHead>
-                  <TableHead>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      생성일
-                    </div>
-                  </TableHead>
-                  <TableHead>크기</TableHead>
-                  <TableHead>타입</TableHead>
-                  <TableHead>상태</TableHead>
-                  <TableHead className="text-right">작업</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {backups.map((backup) => (
-                  <TableRow key={backup.id}>
-                    <TableCell className="font-medium">{backup.filename}</TableCell>
-                    <TableCell>{formatDate(backup.createdAt)}</TableCell>
-                    <TableCell>{formatFileSize(backup.size)}</TableCell>
-                    <TableCell>{renderTypeBadge(backup.type)}</TableCell>
-                    <TableCell>{renderStatusBadge(backup.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => handleDownload(backup)}
-                            disabled={backup.status !== 'COMPLETED'}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            다운로드
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleOpenRestoreDialog(backup)}
-                            disabled={backup.status !== 'COMPLETED'}
-                          >
-                            <RotateCcw className="h-4 w-4 mr-2" />
-                            복구
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(backup)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            삭제
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+          </StitchCard>
+        ) : (
+          <StitchTable>
+            <StitchTableHeader>
+              <StitchTableRow>
+                <StitchTableHead>파일명</StitchTableHead>
+                <StitchTableHead><div className="flex items-center gap-1"><Clock className="h-4 w-4" />생성일</div></StitchTableHead>
+                <StitchTableHead>크기</StitchTableHead>
+                <StitchTableHead>타입</StitchTableHead>
+                <StitchTableHead>상태</StitchTableHead>
+                <StitchTableHead className="text-right">작업</StitchTableHead>
+              </StitchTableRow>
+            </StitchTableHeader>
+            <StitchTableBody>
+              {backups.map((backup) => (
+                <StitchTableRow key={backup.id}>
+                  <StitchTableCell className="font-bold">{backup.filename}</StitchTableCell>
+                  <StitchTableCell>{formatDate(backup.createdAt)}</StitchTableCell>
+                  <StitchTableCell>{formatFileSize(backup.size)}</StitchTableCell>
+                  <StitchTableCell>{renderTypeBadge(backup.type)}</StitchTableCell>
+                  <StitchTableCell>{renderStatusBadge(backup.status)}</StitchTableCell>
+                  <StitchTableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleDownload(backup)} disabled={backup.status !== 'COMPLETED'}><Download className="h-4 w-4 mr-2" />다운로드</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenRestoreDialog(backup)} disabled={backup.status !== 'COMPLETED'}><RotateCcw className="h-4 w-4 mr-2" />복구</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(backup)} className="text-red-600"><Trash2 className="h-4 w-4 mr-2" />삭제</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </StitchTableCell>
+                </StitchTableRow>
+              ))}
+            </StitchTableBody>
+          </StitchTable>
+        )}
+      </div>
 
       {/* 복구 다이얼로그 */}
       {selectedBackup && (

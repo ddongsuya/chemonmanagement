@@ -5,8 +5,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, TrendingUp, AlertTriangle, DollarSign } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -37,20 +37,20 @@ function StatCard({ icon: Icon, label, value, delta, onClick }: {
   icon: typeof Users; label: string; value: string | number; delta?: number; onClick?: () => void;
 }) {
   return (
-    <Card className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''} onClick={onClick}>
-      <CardContent className="p-4 flex items-center gap-3">
-        <div className="rounded-lg bg-primary/10 p-2"><Icon className="h-5 w-5 text-primary" /></div>
+    <div className={cn('bg-white rounded-xl p-4 shadow-ambient', onClick ? 'cursor-pointer hover:translate-y-[-2px] transition-all duration-200' : '')} onClick={onClick}>
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl bg-primary/10 p-2"><Icon className="h-5 w-5 text-primary" /></div>
         <div>
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-lg font-bold">{value}</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
+          <p className="text-lg font-bold text-slate-900">{value}</p>
           {delta != null && (
-            <p className={`text-xs ${delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-xs ${delta >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {delta >= 0 ? '+' : ''}{delta}% 전월 대비
             </p>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -91,7 +91,7 @@ export function KPIDashboard({ onFilterByGrade }: KPIDashboardProps) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[1, 2, 3, 4].map(i => (
-          <Card key={i}><CardContent className="p-4 h-20 animate-pulse bg-muted/50" /></Card>
+          <div key={i} className="bg-white rounded-xl p-4 h-20 animate-pulse shadow-ambient" />
         ))}
       </div>
     );
@@ -132,9 +132,9 @@ export function KPIDashboard({ onFilterByGrade }: KPIDashboardProps) {
       {/* 차트 행 */}
       <div className="flex gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0">
         {/* 등급 분포 도넛 */}
-        <Card className="min-w-[260px] flex-shrink-0 md:min-w-0">
-          <CardHeader className="p-3 pb-0"><CardTitle className="text-xs">등급별 분포</CardTitle></CardHeader>
-          <CardContent className="p-3 pt-0">
+        <div className="bg-white rounded-xl shadow-ambient min-w-[260px] flex-shrink-0 md:min-w-0">
+          <div className="p-3 pb-0"><p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">등급별 분포</p></div>
+          <div className="p-3 pt-0">
             <ResponsiveContainer width="100%" height={160}>
               <PieChart>
                 <Pie data={gradeData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={2}>
@@ -143,13 +143,13 @@ export function KPIDashboard({ onFilterByGrade }: KPIDashboardProps) {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* 전환 퍼널 */}
-        <Card className="min-w-[260px] flex-shrink-0 md:min-w-0">
-          <CardHeader className="p-3 pb-0"><CardTitle className="text-xs">전환 퍼널</CardTitle></CardHeader>
-          <CardContent className="p-3 pt-0">
+        <div className="bg-white rounded-xl shadow-ambient min-w-[260px] flex-shrink-0 md:min-w-0">
+          <div className="p-3 pb-0"><p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">전환 퍼널</p></div>
+          <div className="p-3 pt-0">
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={funnel} layout="vertical">
                 <XAxis type="number" hide />
@@ -160,13 +160,13 @@ export function KPIDashboard({ onFilterByGrade }: KPIDashboardProps) {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* 이탈률 추이 */}
-        <Card className="min-w-[260px] flex-shrink-0 md:min-w-0">
-          <CardHeader className="p-3 pb-0"><CardTitle className="text-xs">이탈률 추이</CardTitle></CardHeader>
-          <CardContent className="p-3 pt-0">
+        <div className="bg-white rounded-xl shadow-ambient min-w-[260px] flex-shrink-0 md:min-w-0">
+          <div className="p-3 pb-0"><p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">이탈률 추이</p></div>
+          <div className="p-3 pt-0">
             <ResponsiveContainer width="100%" height={160}>
               <LineChart data={churnTrend}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -176,13 +176,13 @@ export function KPIDashboard({ onFilterByGrade }: KPIDashboardProps) {
                 <Line type="monotone" dataKey="rate" stroke="#EF4444" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* 세그먼트별 CLV */}
-        <Card className="min-w-[260px] flex-shrink-0 md:min-w-0">
-          <CardHeader className="p-3 pb-0"><CardTitle className="text-xs">세그먼트별 CLV</CardTitle></CardHeader>
-          <CardContent className="p-3 pt-0">
+        <div className="bg-white rounded-xl shadow-ambient min-w-[260px] flex-shrink-0 md:min-w-0">
+          <div className="p-3 pb-0"><p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">세그먼트별 CLV</p></div>
+          <div className="p-3 pt-0">
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={segmentCLV} layout="vertical">
                 <XAxis type="number" hide />
@@ -191,8 +191,8 @@ export function KPIDashboard({ onFilterByGrade }: KPIDashboardProps) {
                 <Bar dataKey="clv" fill="#8B5CF6" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

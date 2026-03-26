@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -286,107 +287,57 @@ export default function AutomationRuleForm({ ruleId }: AutomationRuleFormProps) 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* 헤더 */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push('/admin/automation')}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="p-2 rounded-lg bg-purple-100">
-                <Zap className="h-6 w-6 text-purple-600" />
-              </div>
-              <div>
-                <CardTitle>{isEditMode ? '규칙 수정' : '새 규칙 생성'}</CardTitle>
-                <CardDescription>
-                  자동화 규칙의 트리거, 조건, 액션을 설정합니다
-                </CardDescription>
-              </div>
-            </div>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  저장 중...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  저장
-                </>
-              )}
+      <StitchCard variant="surface-low">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button type="button" variant="ghost" size="icon" onClick={() => router.push('/admin/automation')}>
+              <ArrowLeft className="h-5 w-5" />
             </Button>
+            <div className="p-2 rounded-xl bg-violet-100">
+              <Zap className="h-6 w-6 text-violet-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">{isEditMode ? '규칙 수정' : '새 규칙 생성'}</h2>
+              <p className="text-sm text-slate-500">자동화 규칙의 트리거, 조건, 액션을 설정합니다</p>
+            </div>
           </div>
-        </CardHeader>
-      </Card>
+          <Button type="submit" disabled={isLoading} className="rounded-xl">
+            {isLoading ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" />저장 중...</>) : (<><Save className="h-4 w-4 mr-2" />저장</>)}
+          </Button>
+        </div>
+      </StitchCard>
 
       {/* 기본 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">기본 정보</CardTitle>
-          <CardDescription>
-            규칙의 이름, 설명, 활성화 상태를 설정합니다
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <StitchCard variant="surface-low">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold">기본 정보</h2>
+          <p className="text-sm text-slate-500">규칙의 이름, 설명, 활성화 상태를 설정합니다</p>
+        </div>
+        <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="name">규칙 이름 *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleBasicInfoChange('name', e.target.value)}
-                placeholder="예: 리드 상태 변경 알림"
-                required
-              />
+            <div className="flex flex-col gap-2">
+              <label htmlFor="name" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">규칙 이름 *</label>
+              <Input id="name" value={formData.name} onChange={(e) => handleBasicInfoChange('name', e.target.value)} placeholder="예: 리드 상태 변경 알림" required className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="priority">우선순위</Label>
-              <Input
-                id="priority"
-                type="number"
-                value={formData.priority}
-                onChange={(e) => handleBasicInfoChange('priority', parseInt(e.target.value) || 0)}
-                placeholder="0"
-                min={0}
-              />
-              <p className="text-xs text-muted-foreground">
-                높은 숫자가 먼저 실행됩니다
-              </p>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="priority" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">우선순위</label>
+              <Input id="priority" type="number" value={formData.priority} onChange={(e) => handleBasicInfoChange('priority', parseInt(e.target.value) || 0)} placeholder="0" min={0} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
+              <p className="text-xs text-slate-500">높은 숫자가 먼저 실행됩니다</p>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">설명</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleBasicInfoChange('description', e.target.value)}
-              placeholder="규칙에 대한 설명을 입력하세요"
-              rows={3}
-            />
+          <div className="flex flex-col gap-2">
+            <label htmlFor="description" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">설명</label>
+            <Textarea id="description" value={formData.description} onChange={(e) => handleBasicInfoChange('description', e.target.value)} placeholder="규칙에 대한 설명을 입력하세요" rows={3} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           </div>
-          <div className="flex items-center justify-between rounded-lg border p-4">
+          <div className="flex items-center justify-between rounded-xl bg-[#F5EDE3] p-4">
             <div className="space-y-0.5">
-              <Label htmlFor="status">활성화 상태</Label>
-              <p className="text-sm text-muted-foreground">
-                규칙을 활성화하면 트리거 조건 충족 시 자동으로 실행됩니다
-              </p>
+              <label htmlFor="status" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">활성화 상태</label>
+              <p className="text-sm text-slate-500">규칙을 활성화하면 트리거 조건 충족 시 자동으로 실행됩니다</p>
             </div>
-            <Switch
-              id="status"
-              checked={formData.status === 'ACTIVE'}
-              onCheckedChange={(checked) => 
-                handleBasicInfoChange('status', checked ? 'ACTIVE' : 'INACTIVE')
-              }
-            />
+            <Switch id="status" checked={formData.status === 'ACTIVE'} onCheckedChange={(checked) => handleBasicInfoChange('status', checked ? 'ACTIVE' : 'INACTIVE')} />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
 
       {/* 트리거 설정 */}
       <AutomationTriggerConfig

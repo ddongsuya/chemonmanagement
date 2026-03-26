@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -337,50 +336,46 @@ export default function ProjectManagementTab({ customerId }: { customerId: strin
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
+      <div className="bg-[#FAF2E9] rounded-xl p-6 text-center">
           <p className="text-sm text-destructive mb-3">{error}</p>
           <Button variant="outline" size="sm" onClick={loadData}>
             <RefreshCw className="w-4 h-4 mr-1" /> 재시도
           </Button>
-        </CardContent>
-      </Card>
+      </div>
     );
   }
 
   if (projects.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <FolderKanban className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">등록된 프로젝트가 없습니다</p>
-          <p className="text-xs text-muted-foreground mt-1">시험접수 탭에서 시험을 등록하면 여기에 표시됩니다</p>
-        </CardContent>
-      </Card>
+      <div className="bg-[#FAF2E9] rounded-xl p-6 text-center">
+          <FolderKanban className="w-8 h-8 mx-auto mb-2 text-slate-500" />
+          <p className="text-sm text-slate-500">등록된 프로젝트가 없습니다</p>
+          <p className="text-xs text-slate-500 mt-1">시험접수 탭에서 시험을 등록하면 여기에 표시됩니다</p>
+      </div>
     );
   }
 
   return (
     <>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="bg-[#FAF2E9] rounded-xl md:rounded-[2.5rem] p-4 md:p-8 overflow-x-auto">
+        <table className="w-full text-sm text-left">
           <thead>
-            <tr className="border-b text-left">
-              <th className="py-2.5 px-3 font-medium text-muted-foreground whitespace-nowrap">물질코드</th>
-              <th className="py-2.5 px-3 font-medium text-muted-foreground whitespace-nowrap">프로젝트코드</th>
-              <th className="py-2.5 px-3 font-medium text-muted-foreground whitespace-nowrap">시험물질</th>
-              <th className="py-2.5 px-3 font-medium text-muted-foreground whitespace-nowrap">의뢰기관</th>
-              <th className="py-2.5 px-3 font-medium text-muted-foreground whitespace-nowrap">시험번호</th>
-              <th className="py-2.5 px-3 font-medium text-muted-foreground whitespace-nowrap">시험제목</th>
-              <th className="py-2.5 px-3 font-medium text-muted-foreground whitespace-nowrap">시험책임자</th>
-              <th className="py-2.5 px-3 font-medium text-muted-foreground whitespace-nowrap">진행단계</th>
+            <tr>
+              <th className="py-2.5 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">물질코드</th>
+              <th className="py-2.5 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">프로젝트코드</th>
+              <th className="py-2.5 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">시험물질</th>
+              <th className="py-2.5 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">의뢰기관</th>
+              <th className="py-2.5 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">시험번호</th>
+              <th className="py-2.5 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">시험제목</th>
+              <th className="py-2.5 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">시험책임자</th>
+              <th className="py-2.5 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">진행단계</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {projects.map(p => (
               <tr
                 key={p.id}
-                className="border-b hover:bg-muted/50 cursor-pointer transition-colors"
+                className="hover:bg-[#FFF8F1] cursor-pointer transition-colors"
                 onClick={() => setSelectedProject(p)}
               >
                 <td className="py-2.5 px-3 whitespace-nowrap">{p.substance_code || '-'}</td>

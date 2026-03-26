@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Pill, Leaf, Cpu, FlaskConical, FileText } from 'lucide-react';
 import type { TestMode } from '@/types/toxicity-v2';
@@ -94,24 +94,25 @@ export default function ModeSelector({ onModeSelect }: ModeSelectorProps) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
         )}
-        <h2 className="text-lg font-semibold">{config.title}</h2>
+        <h2 className="text-lg font-bold text-slate-900">{config.title}</h2>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {config.cards.map((card) => (
-          <Card
+          <StitchCard
             key={card.label}
-            className="cursor-pointer hover:border-orange-400 transition-colors"
+            variant="elevated"
+            hover
+            padding="md"
+            className="cursor-pointer flex flex-col items-center justify-center gap-3 min-h-[120px]"
             onClick={() => handleCardClick(card)}
           >
-            <CardContent className="flex flex-col items-center justify-center gap-3 p-6 min-h-[120px]">
-              {card.icon && <div className="text-orange-500">{card.icon}</div>}
-              <span className="text-base font-medium">{card.label}</span>
+              {card.icon && <div className="text-primary">{card.icon}</div>}
+              <span className="text-base font-bold text-slate-900">{card.label}</span>
               {card.description && (
-                <span className="text-sm text-muted-foreground text-center">{card.description}</span>
+                <span className="text-sm text-slate-500 text-center">{card.description}</span>
               )}
-            </CardContent>
-          </Card>
+          </StitchCard>
         ))}
       </div>
     </div>

@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { BarChart3, TrendingDown, Calendar } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { StitchInput } from '@/components/ui/StitchInput';
 import { Progress } from '@/components/ui/progress';
 
 // 미진행 사유 타입
@@ -103,46 +102,46 @@ export default function LostReasonStats({
   const maxCount = data?.byReason.reduce((max, stat) => Math.max(max, stat.count), 0) || 1;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingDown className="h-5 w-5 text-orange-500" />
-              미진행 사유 분석
-            </CardTitle>
-            <CardDescription>
-              기간별 미진행 사유 통계를 확인합니다.
-            </CardDescription>
-          </div>
-          {data && (
-            <div className="text-right">
-              <p className="text-2xl font-bold">{data.total}</p>
-              <p className="text-sm text-gray-500">총 미진행 건수</p>
-            </div>
-          )}
+    <StitchCard variant="elevated" padding="lg">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <TrendingDown className="h-5 w-5 text-orange-500" />
+            미진행 사유 분석
+          </h3>
+          <p className="text-sm text-slate-500 mt-1">
+            기간별 미진행 사유 통계를 확인합니다.
+          </p>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        {data && (
+          <div className="text-right">
+            <p className="text-2xl font-black tracking-tighter">{data.total}</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">총 미진행 건수</p>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-6">
         {/* 기간 필터 */}
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
-          <div className="flex items-center gap-2 text-sm font-medium">
+        <div className="p-4 bg-[#FAF2E9] rounded-xl space-y-4">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
             <Calendar className="h-4 w-4" />
             기간 설정
           </div>
           
           {/* 빠른 선택 버튼 */}
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setQuickPeriod(1)}>
+            <Button variant="ghost" size="sm" onClick={() => setQuickPeriod(1)} className="rounded-xl font-bold">
               1개월
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setQuickPeriod(3)}>
+            <Button variant="ghost" size="sm" onClick={() => setQuickPeriod(3)} className="rounded-xl font-bold">
               3개월
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setQuickPeriod(6)}>
+            <Button variant="ghost" size="sm" onClick={() => setQuickPeriod(6)} className="rounded-xl font-bold">
               6개월
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setQuickPeriod(12)}>
+            <Button variant="ghost" size="sm" onClick={() => setQuickPeriod(12)} className="rounded-xl font-bold">
               1년
             </Button>
           </div>
@@ -150,25 +149,27 @@ export default function LostReasonStats({
           {/* 직접 입력 */}
           <div className="flex items-end gap-4">
             <div className="flex-1">
-              <Label htmlFor="startDate" className="text-xs">시작일</Label>
-              <Input
-                id="startDate"
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 block mb-2">시작일</label>
+              <StitchInput
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
-            <span className="pb-2">~</span>
+            <span className="pb-3 text-slate-400">~</span>
             <div className="flex-1">
-              <Label htmlFor="endDate" className="text-xs">종료일</Label>
-              <Input
-                id="endDate"
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 block mb-2">종료일</label>
+              <StitchInput
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
-            <Button onClick={handleApplyPeriod} disabled={loading}>
+            <Button
+              onClick={handleApplyPeriod}
+              disabled={loading}
+              className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold"
+            >
               적용
             </Button>
           </div>
@@ -179,8 +180,8 @@ export default function LostReasonStats({
           <div className="space-y-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="space-y-2 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-24" />
-                <div className="h-6 bg-gray-200 rounded" />
+                <div className="h-4 bg-[#FAF2E9] rounded w-24" />
+                <div className="h-6 bg-[#FAF2E9] rounded" />
               </div>
             ))}
           </div>
@@ -189,8 +190,8 @@ export default function LostReasonStats({
             {data.byReason.map((stat) => (
               <div key={stat.reason} className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="font-medium">{LOST_REASON_LABELS[stat.reason]}</span>
-                  <span className="text-gray-500">
+                  <span className="font-bold">{LOST_REASON_LABELS[stat.reason]}</span>
+                  <span className="text-slate-500">
                     {stat.count}건 ({stat.percentage.toFixed(1)}%)
                   </span>
                 </div>
@@ -216,7 +217,7 @@ export default function LostReasonStats({
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-slate-500">
             <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>해당 기간에 미진행 데이터가 없습니다.</p>
           </div>
@@ -224,19 +225,19 @@ export default function LostReasonStats({
 
         {/* 범례 */}
         {data && data.byReason.length > 0 && (
-          <div className="flex flex-wrap gap-4 pt-4 border-t">
+          <div className="flex flex-wrap gap-4 pt-4">
             {(Object.entries(LOST_REASON_LABELS) as [LostReason, string][]).map(([reason, label]) => (
               <div key={reason} className="flex items-center gap-2 text-sm">
                 <div
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: LOST_REASON_COLORS[reason] }}
                 />
-                <span>{label}</span>
+                <span className="text-slate-600">{label}</span>
               </div>
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }

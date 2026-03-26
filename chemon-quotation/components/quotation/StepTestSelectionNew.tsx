@@ -8,7 +8,7 @@ import {
   parsePrice,
 } from '@/hooks/useToxicityTests';
 import { ToxicityTest } from '@/lib/master-api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -261,33 +261,33 @@ export default function StepTestSelectionNew() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 좌측: 시험 선택 */}
       <div className="lg:col-span-2 space-y-4">
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center justify-between">
+        <StitchCard variant="surface-low" padding="md">
+          <div className="pb-4">
+            <h3 className="text-xl font-bold flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <FlaskConical className="w-5 h-5" />
+                <FlaskConical className="w-5 h-5 text-primary" />
                 시험 항목 선택
               </span>
               <Button variant="ghost" size="sm" onClick={clearAll}>
                 <RotateCcw className="w-4 h-4 mr-1" />
                 초기화
               </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+            </h3>
+          </div>
+          <div className="space-y-6">
             {/* 기본 조건 설정 영역 */}
-            <div className="p-4 bg-gray-50 rounded-lg border space-y-4">
-              <h4 className="font-medium text-gray-700 text-sm">기본 조건 설정</h4>
+            <div className="p-4 bg-[#F5EDE3] rounded-xl space-y-4">
+              <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">기본 조건 설정</h4>
               
               <div className="grid grid-cols-2 gap-4">
                 {/* Step 1: 동물분류 */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                     <Badge variant="outline" className="bg-white">1</Badge>
                     동물분류
                   </label>
                   <Select value={selectedAnimalClass} onValueChange={handleAnimalClassChange}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-none rounded-xl">
                       <SelectValue placeholder="동물분류 선택" />
                     </SelectTrigger>
                     <SelectContent>
@@ -302,7 +302,7 @@ export default function StepTestSelectionNew() {
 
                 {/* Step 2: 투여경로 그룹 */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                     <Badge variant="outline" className="bg-white">2</Badge>
                     투여경로 그룹
                   </label>
@@ -311,7 +311,7 @@ export default function StepTestSelectionNew() {
                     onValueChange={handleRouteGroupChange}
                     disabled={!selectedAnimalClass}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-none rounded-xl">
                       <SelectValue placeholder="투여경로 그룹 선택" />
                     </SelectTrigger>
                     <SelectContent>
@@ -326,7 +326,7 @@ export default function StepTestSelectionNew() {
 
                 {/* Step 3: 투여기간 */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                     <Badge variant="outline" className="bg-white">3</Badge>
                     투여기간
                   </label>
@@ -335,7 +335,7 @@ export default function StepTestSelectionNew() {
                     onValueChange={handleDurationChange}
                     disabled={!selectedRouteGroup}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-none rounded-xl">
                       <SelectValue placeholder="투여기간 선택" />
                     </SelectTrigger>
                     <SelectContent>
@@ -350,7 +350,7 @@ export default function StepTestSelectionNew() {
 
                 {/* Step 4: 투여경로 (선택) */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                     <Badge variant="outline" className="bg-white">4</Badge>
                     투여경로 (선택)
                   </label>
@@ -359,7 +359,7 @@ export default function StepTestSelectionNew() {
                     onValueChange={setSelectedRoute}
                     disabled={!matchedTest || routeOptions.length <= 1}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-none rounded-xl">
                       <SelectValue placeholder={routeOptions.length > 0 ? routeOptions[0] : "투여경로 선택"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -376,13 +376,13 @@ export default function StepTestSelectionNew() {
 
             {/* 시험 종류 선택 */}
             <div className="space-y-3">
-              <label className="text-sm font-medium flex items-center gap-2">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                 <Badge className="bg-blue-600">5</Badge>
                 시험 종류 선택
               </label>
               
               {availableSubcategories.length === 0 ? (
-                <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+                <div className="p-4 text-center text-slate-500 bg-[#F5EDE3] rounded-xl">
                   위의 조건을 먼저 선택해주세요
                 </div>
               ) : (
@@ -393,10 +393,10 @@ export default function StepTestSelectionNew() {
                       <button
                         key={sub}
                         onClick={() => handleSubcategoryChange(sub)}
-                        className={`p-3 text-sm rounded-lg border-2 transition-all text-left ${
+                        className={`p-3 text-sm rounded-xl transition-all text-left ${
                           isSelected
-                            ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
-                            : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
+                            ? 'bg-blue-50 text-blue-700 font-bold shadow-ambient'
+                            : 'bg-white hover:bg-[#FFF8F1]'
                         }`}
                       >
                         {sub}
@@ -409,7 +409,7 @@ export default function StepTestSelectionNew() {
 
             {/* 매칭된 시험 정보 */}
             {matchedTest && (
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 animate-in fade-in">
+              <div className="p-4 bg-blue-50 rounded-xl animate-in fade-in">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h4 className="font-semibold text-blue-900">
@@ -455,7 +455,7 @@ export default function StepTestSelectionNew() {
 
             {/* 선택 경로 표시 */}
             {(selectedAnimalClass || selectedRouteGroup || selectedDuration || selectedSubcategory) && (
-              <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+              <div className="flex items-center gap-2 text-sm text-slate-500 flex-wrap">
                 {selectedAnimalClass && <Badge variant="secondary">{selectedAnimalClass}</Badge>}
                 {selectedRouteGroup && (
                   <>
@@ -477,22 +477,22 @@ export default function StepTestSelectionNew() {
                 )}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </StitchCard>
       </div>
 
       {/* 우측: 선택된 시험 */}
       <div className="space-y-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center justify-between">
+        <StitchCard variant="surface-low" padding="md">
+          <div className="pb-3">
+            <h3 className="text-lg font-bold flex items-center justify-between">
               <span>선택된 시험</span>
               <Badge>{selectedToxicityTests.length}개</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </h3>
+          </div>
+          <div>
             {selectedToxicityTests.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-slate-500">
                 <p>선택된 시험이 없습니다.</p>
                 <p className="text-sm mt-1">좌측에서 시험을 선택해주세요.</p>
               </div>
@@ -502,12 +502,12 @@ export default function StepTestSelectionNew() {
                   {selectedToxicityTests.map((item) => (
                     <div
                       key={item.id}
-                      className="p-3 border rounded-lg bg-blue-50 border-blue-200"
+                      className="p-3 rounded-xl bg-blue-50"
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <p className="font-medium text-sm">{item.displayName}</p>
-                          <p className="text-xs text-gray-600 mt-1">
+                          <p className="text-xs text-slate-600 mt-1">
                             {item.test.species} / {item.test.leadTime}
                           </p>
                           {item.includeAnalysis && (
@@ -542,17 +542,17 @@ export default function StepTestSelectionNew() {
 
             {/* 합계 */}
             {selectedToxicityTests.length > 0 && (
-              <div className="mt-4 pt-4 border-t">
+              <div className="mt-4 pt-4">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">예상 합계</span>
+                  <span className="font-bold">예상 합계</span>
                   <span className="text-lg font-bold text-blue-600">
                     {totalAmount.toLocaleString()}원
                   </span>
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </StitchCard>
 
         {/* 버튼 */}
         <div className="flex gap-2">

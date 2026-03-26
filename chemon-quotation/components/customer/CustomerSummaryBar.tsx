@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import {
   ChevronDown, ChevronUp, Users, TrendingUp, AlertTriangle, DollarSign,
@@ -71,16 +71,16 @@ export function CustomerSummaryBar({ onFilterByGrade }: CustomerSummaryBarProps)
 
   if (loading) {
     return (
-      <div className="mb-4 rounded-lg border bg-card px-4 py-3 animate-pulse">
-        <div className="h-5 w-64 bg-muted rounded" />
-      </div>
+      <StitchCard variant="surface-low" padding="sm" className="mb-4 animate-pulse">
+        <div className="h-5 w-64 bg-slate-200 rounded" />
+      </StitchCard>
     );
   }
 
   return (
     <div className="mb-4 space-y-2">
       {/* 한 줄 요약 바 */}
-      <div className="flex items-center justify-between rounded-lg border bg-card px-4 py-2.5">
+      <div className="flex items-center justify-between rounded-xl bg-[#FAF2E9] px-4 py-2.5">
         <div className="flex items-center gap-5 text-sm overflow-x-auto no-scrollbar">
           <span className="flex items-center gap-1.5 text-muted-foreground shrink-0">
             <Users className="h-3.5 w-3.5" />
@@ -121,11 +121,8 @@ export function CustomerSummaryBar({ onFilterByGrade }: CustomerSummaryBarProps)
       {expanded && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* 등급 분포 도넛 */}
-          <Card>
-            <CardHeader className="p-3 pb-0">
-              <CardTitle className="text-xs">등급별 분포</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
+          <StitchCard variant="elevated" padding="sm">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">등급별 분포</p>
               <ResponsiveContainer width="100%" height={140}>
                 <PieChart>
                   <Pie
@@ -142,15 +139,11 @@ export function CustomerSummaryBar({ onFilterByGrade }: CustomerSummaryBarProps)
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          </StitchCard>
 
           {/* 전환 퍼널 */}
-          <Card>
-            <CardHeader className="p-3 pb-0">
-              <CardTitle className="text-xs">전환 퍼널</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
+          <StitchCard variant="elevated" padding="sm">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">전환 퍼널</p>
               <ResponsiveContainer width="100%" height={140}>
                 <BarChart data={funnel} layout="vertical">
                   <XAxis type="number" hide />
@@ -161,15 +154,11 @@ export function CustomerSummaryBar({ onFilterByGrade }: CustomerSummaryBarProps)
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          </StitchCard>
 
           {/* 이탈률 추이 */}
-          <Card>
-            <CardHeader className="p-3 pb-0">
-              <CardTitle className="text-xs">이탈률 추이</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
+          <StitchCard variant="elevated" padding="sm">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">이탈률 추이</p>
               <ResponsiveContainer width="100%" height={140}>
                 <LineChart data={churnTrend}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -179,15 +168,11 @@ export function CustomerSummaryBar({ onFilterByGrade }: CustomerSummaryBarProps)
                   <Line type="monotone" dataKey="rate" stroke="#EF4444" strokeWidth={2} dot={{ r: 2 }} />
                 </LineChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          </StitchCard>
 
           {/* 세그먼트별 CLV */}
-          <Card>
-            <CardHeader className="p-3 pb-0">
-              <CardTitle className="text-xs">세그먼트별 CLV</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
+          <StitchCard variant="elevated" padding="sm">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">세그먼트별 CLV</p>
               <ResponsiveContainer width="100%" height={140}>
                 <BarChart data={segmentCLV} layout="vertical">
                   <XAxis type="number" hide />
@@ -196,8 +181,7 @@ export function CustomerSummaryBar({ onFilterByGrade }: CustomerSummaryBarProps)
                   <Bar dataKey="clv" fill="#8B5CF6" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          </StitchCard>
         </div>
       )}
     </div>

@@ -66,36 +66,36 @@ export default function InlineRequesterForm({ customerId, onSuccess }: InlineReq
       <DialogTrigger asChild>
         <Button size="sm"><Plus className="w-4 h-4 mr-1" />의뢰자 추가</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-[#E9E1D8] rounded-xl">
         <DialogHeader><DialogTitle>의뢰자 추가</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <Label className="text-xs">이름 *</Label>
-            <Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="의뢰자 이름" />
+            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">이름 *</Label>
+            <Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="의뢰자 이름" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">직책</Label>
-              <Input value={form.position} onChange={e => setForm(p => ({ ...p, position: e.target.value }))} placeholder="팀장" />
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">직책</Label>
+              <Input value={form.position} onChange={e => setForm(p => ({ ...p, position: e.target.value }))} placeholder="팀장" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
             <div>
-              <Label className="text-xs">부서</Label>
-              <Input value={form.department} onChange={e => setForm(p => ({ ...p, department: e.target.value }))} placeholder="연구개발부" />
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">부서</Label>
+              <Input value={form.department} onChange={e => setForm(p => ({ ...p, department: e.target.value }))} placeholder="연구개발부" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">전화번호</Label>
-              <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="010-0000-0000" />
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">전화번호</Label>
+              <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="010-0000-0000" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
             <div>
-              <Label className="text-xs">이메일</Label>
-              <Input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="email@example.com" />
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">이메일</Label>
+              <Input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="email@example.com" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Switch checked={form.isPrimary} onCheckedChange={v => setForm(p => ({ ...p, isPrimary: v }))} />
-            <Label className="text-xs">주 담당자</Label>
+            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">주 담당자</Label>
           </div>
           <Button type="submit" className="w-full" disabled={saving}>
             {saving ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />저장 중...</> : '저장'}

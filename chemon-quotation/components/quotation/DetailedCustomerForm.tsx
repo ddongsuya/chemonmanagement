@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Loader2, Save, X, Building2, Mail, Phone, Briefcase } from 'lucide-react';
 import { LeadSource } from '@/lib/lead-api';
 
@@ -164,27 +164,27 @@ export default function DetailedCustomerForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card className="w-full">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg">
+      <StitchCard variant="surface-low" padding="lg" className="w-full">
+        <div className="pb-4">
+          <h3 className="flex items-center gap-2 text-lg font-bold">
             <Building2 className="w-5 h-5 text-primary" />
             신규 고객 등록
-          </CardTitle>
-          <CardDescription>
+          </h3>
+          <p className="text-sm text-slate-500 mt-1">
             리드 정보를 입력하여 신규 고객을 등록합니다
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+          </p>
+        </div>
+        <div className="space-y-6">
           {/* 회사 정보 섹션 */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
               <Building2 className="w-4 h-4" />
               회사 정보
             </h3>
             
             {/* 회사명 */}
             <div className="space-y-2">
-              <Label htmlFor="companyName">
+              <Label htmlFor="companyName" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
                 회사명 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -192,7 +192,7 @@ export default function DetailedCustomerForm({
                 value={formData.companyName}
                 onChange={(e) => handleChange('companyName', e.target.value)}
                 placeholder="회사명을 입력하세요"
-                className={errors.companyName ? 'border-red-500' : ''}
+                className={`bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40 ${errors.companyName ? 'ring-2 ring-red-500' : ''}`}
                 disabled={isLoading}
               />
               {errors.companyName && (
@@ -203,7 +203,7 @@ export default function DetailedCustomerForm({
             {/* 담당자명 & 직책 */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="contactName">
+                <Label htmlFor="contactName" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
                   담당자명 <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -211,7 +211,7 @@ export default function DetailedCustomerForm({
                   value={formData.contactName}
                   onChange={(e) => handleChange('contactName', e.target.value)}
                   placeholder="담당자명"
-                  className={errors.contactName ? 'border-red-500' : ''}
+                  className={`bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40 ${errors.contactName ? 'ring-2 ring-red-500' : ''}`}
                   disabled={isLoading}
                 />
                 {errors.contactName && (
@@ -219,12 +219,13 @@ export default function DetailedCustomerForm({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="position">직책</Label>
+                <Label htmlFor="position" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">직책</Label>
                 <Input
                   id="position"
                   value={formData.position}
                   onChange={(e) => handleChange('position', e.target.value)}
                   placeholder="직책"
+                  className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                   disabled={isLoading}
                 />
               </div>
@@ -232,12 +233,13 @@ export default function DetailedCustomerForm({
 
             {/* 부서 */}
             <div className="space-y-2">
-              <Label htmlFor="department">부서</Label>
+              <Label htmlFor="department" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">부서</Label>
               <Input
                 id="department"
                 value={formData.department}
                 onChange={(e) => handleChange('department', e.target.value)}
                 placeholder="부서명"
+                className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                 disabled={isLoading}
               />
             </div>
@@ -245,30 +247,30 @@ export default function DetailedCustomerForm({
             {/* 연락처 & 이메일 */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="contactPhone">연락처</Label>
+                <Label htmlFor="contactPhone" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">연락처</Label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     id="contactPhone"
                     value={formData.contactPhone}
                     onChange={(e) => handleChange('contactPhone', e.target.value)}
                     placeholder="010-0000-0000"
-                    className="pl-10"
+                    className="pl-10 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                     disabled={isLoading}
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contactEmail">이메일</Label>
+                <Label htmlFor="contactEmail" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">이메일</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     id="contactEmail"
                     type="email"
                     value={formData.contactEmail}
                     onChange={(e) => handleChange('contactEmail', e.target.value)}
                     placeholder="email@example.com"
-                    className={`pl-10 ${errors.contactEmail ? 'border-red-500' : ''}`}
+                    className={`pl-10 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40 ${errors.contactEmail ? 'ring-2 ring-red-500' : ''}`}
                     disabled={isLoading}
                   />
                 </div>
@@ -280,8 +282,8 @@ export default function DetailedCustomerForm({
           </div>
 
           {/* 문의 정보 섹션 */}
-          <div className="space-y-4 pt-4 border-t">
-            <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <div className="space-y-4 pt-4">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               문의 정보
             </h3>
@@ -289,13 +291,13 @@ export default function DetailedCustomerForm({
             {/* 유입경로 & 문의유형 */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="source">유입경로</Label>
+                <Label htmlFor="source" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">유입경로</Label>
                 <Select
                   value={formData.source}
                   onValueChange={(v) => handleChange('source', v)}
                   disabled={isLoading}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white border-none rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -308,13 +310,13 @@ export default function DetailedCustomerForm({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="inquiryType">문의유형</Label>
+                <Label htmlFor="inquiryType" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">문의유형</Label>
                 <Select
                   value={formData.inquiryType}
                   onValueChange={(v) => handleChange('inquiryType', v)}
                   disabled={isLoading}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white border-none rounded-xl">
                     <SelectValue placeholder="선택" />
                   </SelectTrigger>
                   <SelectContent>
@@ -331,7 +333,7 @@ export default function DetailedCustomerForm({
             {/* 예상금액 & 예상계약일 */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="expectedAmount">예상금액</Label>
+                <Label htmlFor="expectedAmount" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">예상금액</Label>
                 <Input
                   id="expectedAmount"
                   type="number"
@@ -339,16 +341,18 @@ export default function DetailedCustomerForm({
                   onChange={(e) => handleChange('expectedAmount', e.target.value)}
                   placeholder="0"
                   min="0"
+                  className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                   disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="expectedDate">예상계약일</Label>
+                <Label htmlFor="expectedDate" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">예상계약일</Label>
                 <Input
                   id="expectedDate"
                   type="date"
                   value={formData.expectedDate}
                   onChange={(e) => handleChange('expectedDate', e.target.value)}
+                  className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                   disabled={isLoading}
                 />
               </div>
@@ -356,30 +360,32 @@ export default function DetailedCustomerForm({
 
             {/* 문의 내용 */}
             <div className="space-y-2">
-              <Label htmlFor="inquiryDetail">문의 내용</Label>
+              <Label htmlFor="inquiryDetail" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">문의 내용</Label>
               <Textarea
                 id="inquiryDetail"
                 value={formData.inquiryDetail}
                 onChange={(e) => handleChange('inquiryDetail', e.target.value)}
                 placeholder="문의 내용을 입력하세요"
                 rows={3}
+                className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                 disabled={isLoading}
               />
             </div>
           </div>
 
           {/* 버튼 영역 */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end gap-3 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
               disabled={isLoading}
+              className="rounded-xl"
             >
               <X className="w-4 h-4 mr-2" />
               취소
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="rounded-xl">
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -393,8 +399,8 @@ export default function DetailedCustomerForm({
               )}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
     </form>
   );
 }

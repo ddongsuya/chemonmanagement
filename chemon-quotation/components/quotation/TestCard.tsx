@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { Test } from '@/types';
-import { Card } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -33,9 +33,11 @@ export default function TestCard({
   const testName = test.test_name.split('\n')[0];
 
   return (
-    <Card
+    <StitchCard
+      variant={isSelected ? 'surface-low' : 'elevated'}
+      padding="sm"
       className={cn(
-        'p-4 transition-all',
+        'transition-all',
         isSelected && 'ring-2 ring-primary bg-primary/5'
       )}
     >
@@ -48,22 +50,21 @@ export default function TestCard({
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-gray-900 text-sm">
+            <span className="font-medium text-slate-900 text-sm">
               {testName}
             </span>
-            <Badge
-              variant={test.glp_status === 'GLP' ? 'default' : 'secondary'}
-              className="text-xs"
+            <StitchBadge
+              variant={test.glp_status === 'GLP' ? 'primary' : 'neutral'}
             >
               {test.glp_status}
-            </Badge>
+            </StitchBadge>
             {test.clinical_phase && (
-              <Badge variant="outline" className="text-xs">
+              <StitchBadge variant="info">
                 {test.clinical_phase}
-              </Badge>
+              </StitchBadge>
             )}
           </div>
-          <div className="text-sm text-gray-500 mt-1">
+          <div className="text-sm text-slate-500 mt-1">
             {test.animal_species && <span>{test.animal_species}</span>}
             {test.animals_per_sex && test.animals_per_sex > 0 && (
               <span className="ml-2">
@@ -78,7 +79,7 @@ export default function TestCard({
             )}
           </div>
           {test.guidelines && (
-            <div className="text-xs text-gray-400 mt-1 line-clamp-1">
+            <div className="text-xs text-slate-400 mt-1 line-clamp-1">
               {test.guidelines}
             </div>
           )}
@@ -104,10 +105,10 @@ export default function TestCard({
 
       {/* 옵션 시험 */}
       {options.length > 0 && isSelected && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
+        <div className="mt-3 pt-3">
           <button
             onClick={() => setShowOptions(!showOptions)}
-            className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900"
           >
             {showOptions ? (
               <ChevronDown className="w-4 h-4" />
@@ -122,7 +123,7 @@ export default function TestCard({
               {options.map((option) => (
                 <div
                   key={option.test_id}
-                  className="flex items-center justify-between p-2 rounded-lg bg-gray-50"
+                  className="flex items-center justify-between p-2 rounded-xl bg-[#FAF2E9]"
                 >
                   <div className="flex items-center gap-2">
                     <Checkbox
@@ -144,6 +145,6 @@ export default function TestCard({
           )}
         </div>
       )}
-    </Card>
+    </StitchCard>
   );
 }

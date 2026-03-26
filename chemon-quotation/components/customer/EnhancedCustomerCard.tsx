@@ -39,9 +39,9 @@ function HealthGauge({ score }: { score: number }) {
 
 function getGradeColor(grade?: string): string {
   const map: Record<string, string> = {
-    LEAD: 'bg-gray-400', PROSPECT: 'bg-blue-500', CUSTOMER: 'bg-green-500', VIP: 'bg-purple-500', INACTIVE: 'bg-red-400',
+    LEAD: 'bg-slate-400', PROSPECT: 'bg-blue-500', CUSTOMER: 'bg-green-500', VIP: 'bg-purple-500', INACTIVE: 'bg-red-400',
   };
-  return map[grade || ''] || 'bg-gray-300';
+  return map[grade || ''] || 'bg-slate-300';
 }
 
 function getInitials(name: string): string {
@@ -65,7 +65,7 @@ export function EnhancedCustomerCard({ entity, isSelected, onSelect, onClick }: 
   return (
     <div
       className={cn(
-        'group relative flex cursor-pointer rounded-lg border bg-card p-4 transition-colors duration-150 hover:border-foreground/15',
+        'group relative flex cursor-pointer rounded-xl bg-white p-4 transition-all duration-200 hover:translate-y-[-2px] shadow-ambient',
         isSelected && 'ring-2 ring-primary'
       )}
       onClick={() => onClick?.(entity)}
@@ -86,7 +86,7 @@ export function EnhancedCustomerCard({ entity, isSelected, onSelect, onClick }: 
                 type="checkbox"
                 checked={isSelected}
                 onChange={(e) => { e.stopPropagation(); onSelect(entity.id); }}
-                className="h-4 w-4 rounded border-gray-300"
+                className="h-4 w-4 rounded border-slate-300"
                 aria-label={`${entity.companyName} 선택`}
               />
             )}
@@ -152,18 +152,18 @@ export function EnhancedCustomerCard({ entity, isSelected, onSelect, onClick }: 
       <div className="absolute right-2 top-2 hidden gap-1 group-hover:flex">
         {entity.contactPhone && (
           <a href={`tel:${entity.contactPhone}`} onClick={(e) => e.stopPropagation()}
-            className="rounded-full bg-background p-1.5 shadow-sm hover:bg-muted" aria-label="전화 걸기">
+            className="rounded-full bg-background p-1.5 shadow-ambient hover:bg-[#FAF2E9]" aria-label="전화 걸기">
             <Phone className="h-3.5 w-3.5" />
           </a>
         )}
         {entity.contactEmail && (
           <a href={`mailto:${entity.contactEmail}`} onClick={(e) => e.stopPropagation()}
-            className="rounded-full bg-background p-1.5 shadow-sm hover:bg-muted" aria-label="이메일 보내기">
+            className="rounded-full bg-background p-1.5 shadow-ambient hover:bg-[#FAF2E9]" aria-label="이메일 보내기">
             <Mail className="h-3.5 w-3.5" />
           </a>
         )}
         <button onClick={(e) => e.stopPropagation()}
-          className="rounded-full bg-background p-1.5 shadow-sm hover:bg-muted" aria-label="메모 추가">
+          className="rounded-full bg-background p-1.5 shadow-ambient hover:bg-[#FAF2E9]" aria-label="메모 추가">
           <StickyNote className="h-3.5 w-3.5" />
         </button>
       </div>

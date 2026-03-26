@@ -2,10 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { StitchBadge } from '@/components/ui/StitchBadge';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
+import { StitchCard } from '@/components/ui/StitchCard';
+import {
+  StitchTable,
+  StitchTableHeader,
+  StitchTableBody,
+  StitchTableRow,
+  StitchTableHead,
+  StitchTableCell,
+} from '@/components/ui/StitchTable';
 import {
   Select,
   SelectContent,
@@ -13,14 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Plus, Search, FileText, MoreHorizontal, Copy, Trash2, Send, Check, X } from 'lucide-react';
 import {
   DropdownMenu,
@@ -127,55 +127,52 @@ export default function ClinicalQuotationsPage() {
   };
 
   const getStatusBadge = (status: ClinicalQuotationStatus) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      DRAFT: 'secondary',
-      SENT: 'default',
-      ACCEPTED: 'default',
-      REJECTED: 'destructive',
-      EXPIRED: 'outline',
-      CONVERTED: 'default',
-    };
-    const colors: Record<string, string> = {
-      ACCEPTED: 'bg-green-500',
-      CONVERTED: 'bg-purple-500',
+    const variantMap: Record<string, 'neutral' | 'info' | 'success' | 'error' | 'warning' | 'primary'> = {
+      DRAFT: 'neutral',
+      SENT: 'info',
+      ACCEPTED: 'success',
+      REJECTED: 'error',
+      EXPIRED: 'warning',
+      CONVERTED: 'primary',
     };
     return (
-      <Badge variant={variants[status]} className={colors[status]}>
+      <StitchBadge variant={variantMap[status] || 'neutral'}>
         {QUOTATION_STATUS_LABELS[status]}
-      </Badge>
+      </StitchBadge>
     );
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">임상병리검사 견적서</h1>
-          <p className="text-muted-foreground">견적서 목록 및 관리</p>
-        </div>
-        <Button onClick={() => router.push('/clinical-pathology/quotations/new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          새 견적서
-        </Button>
-      </div>
+      <StitchPageHeader
+        title="임상병리검사 견적서"
+        label="QUOTATIONS"
+        description="견적서 목록 및 관리"
+        actions={
+          <Button className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold" onClick={() => router.push('/clinical-pathology/quotations/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            새 견적서
+          </Button>
+        }
+      />
 
-      <Card>
-        <CardHeader>
+      <StitchCard variant="surface-low" padding="lg">
+        <div className="mb-6">
           <div className="flex items-center gap-4">
             <div className="flex-1 flex gap-2">
-              <Input
+              <input
                 placeholder="견적번호, 고객명 검색..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="max-w-sm"
+                className="max-w-sm bg-white border-none rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
               />
-              <Button variant="outline" onClick={handleSearch}>
+              <Button variant="outline" className="rounded-xl" onClick={handleSearch}>
                 <Search className="h-4 w-4" />
               </Button>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] bg-white border-none rounded-xl">
                 <SelectValue placeholder="상태 필터" />
               </SelectTrigger>
               <SelectContent>
@@ -188,50 +185,50 @@ export default function ClinicalQuotationsPage() {
               </SelectContent>
             </Select>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div>
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : quotations.length === 0 ? (
             <div className="text-center py-12">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">견적서가 없습니다.</p>
-              <Button className="mt-4" onClick={() => router.push('/clinical-pathology/quotations/new')}>
+              <FileText className="h-12 w-12 mx-auto text-slate-400 mb-4" />
+              <p className="text-slate-500">견적서가 없습니다.</p>
+              <Button className="mt-4 bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold" onClick={() => router.push('/clinical-pathology/quotations/new')}>
                 새 견적서 작성
               </Button>
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>견적번호</TableHead>
-                    <TableHead>고객사</TableHead>
-                    <TableHead>담당자</TableHead>
-                    <TableHead>검체수</TableHead>
-                    <TableHead className="text-right">금액</TableHead>
-                    <TableHead>상태</TableHead>
-                    <TableHead>작성일</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <StitchTable>
+                <StitchTableHeader>
+                  <StitchTableRow>
+                    <StitchTableHead>견적번호</StitchTableHead>
+                    <StitchTableHead>고객사</StitchTableHead>
+                    <StitchTableHead>담당자</StitchTableHead>
+                    <StitchTableHead>검체수</StitchTableHead>
+                    <StitchTableHead className="text-right">금액</StitchTableHead>
+                    <StitchTableHead>상태</StitchTableHead>
+                    <StitchTableHead>작성일</StitchTableHead>
+                    <StitchTableHead className="w-[50px]"></StitchTableHead>
+                  </StitchTableRow>
+                </StitchTableHeader>
+                <StitchTableBody>
                   {quotations.map((quotation) => (
-                    <TableRow
+                    <StitchTableRow
                       key={quotation.id}
                       className="cursor-pointer"
                       onClick={() => router.push(`/clinical-pathology/quotations/${quotation.id}`)}
                     >
-                      <TableCell className="font-medium">{quotation.quotationNumber}</TableCell>
-                      <TableCell>{quotation.customerName}</TableCell>
-                      <TableCell>{quotation.contactName}</TableCell>
-                      <TableCell>{quotation.totalSamples}개</TableCell>
-                      <TableCell className="text-right">{formatCurrency(quotation.totalAmount)}</TableCell>
-                      <TableCell>{getStatusBadge(quotation.status)}</TableCell>
-                      <TableCell>{new Date(quotation.createdAt).toLocaleDateString('ko-KR')}</TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      <StitchTableCell className="font-bold text-primary">{quotation.quotationNumber}</StitchTableCell>
+                      <StitchTableCell className="font-bold text-slate-900">{quotation.customerName}</StitchTableCell>
+                      <StitchTableCell className="text-slate-700">{quotation.contactName}</StitchTableCell>
+                      <StitchTableCell className="text-slate-700">{quotation.totalSamples}개</StitchTableCell>
+                      <StitchTableCell className="text-right font-bold text-slate-900">{formatCurrency(quotation.totalAmount)}</StitchTableCell>
+                      <StitchTableCell>{getStatusBadge(quotation.status)}</StitchTableCell>
+                      <StitchTableCell className="text-slate-500">{new Date(quotation.createdAt).toLocaleDateString('ko-KR')}</StitchTableCell>
+                      <StitchTableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -273,11 +270,11 @@ export default function ClinicalQuotationsPage() {
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                      </StitchTableCell>
+                    </StitchTableRow>
                   ))}
-                </TableBody>
-              </Table>
+                </StitchTableBody>
+              </StitchTable>
 
               {pagination.totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-4">
@@ -289,7 +286,7 @@ export default function ClinicalQuotationsPage() {
                   >
                     이전
                   </Button>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-slate-500">
                     {pagination.page} / {pagination.totalPages}
                   </span>
                   <Button
@@ -304,8 +301,8 @@ export default function ClinicalQuotationsPage() {
               )}
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
     </div>
   );
 }

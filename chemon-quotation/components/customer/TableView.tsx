@@ -41,11 +41,11 @@ const GRADE_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 function HealthBadge({ score }: { score?: number }) {
-  if (score == null) return <span className="text-muted-foreground text-xs">-</span>;
-  const color = score >= 70 ? 'bg-green-50 text-green-700 border-green-200'
-    : score >= 40 ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-    : 'bg-red-50 text-red-700 border-red-200';
-  return <span className={cn('rounded px-1.5 py-0.5 text-xs font-medium border', color)}>{score}</span>;
+  if (score == null) return <span className="text-slate-400 text-xs">-</span>;
+  const color = score >= 70 ? 'bg-emerald-50 text-emerald-600'
+    : score >= 40 ? 'bg-amber-50 text-amber-600'
+    : 'bg-red-50 text-red-600';
+  return <span className={cn('rounded-full px-2 py-0.5 text-xs font-bold', color)}>{score}</span>;
 }
 
 function formatDaysAgo(dateStr?: string): string {
@@ -69,7 +69,7 @@ function InlineGradeCell({ value, onChange }: { value?: string; onChange?: (v: s
   return (
     <Select value={value || 'CUSTOMER'} onValueChange={onChange}>
       <SelectTrigger
-        className="h-6 w-[80px] border-0 bg-transparent text-xs font-medium px-1.5 focus:ring-0"
+        className="h-6 w-[80px] border-none bg-transparent text-xs font-bold px-1.5 focus:ring-0"
         style={{ color: config.color }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -100,7 +100,7 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
             if (table.getIsAllRowsSelected()) onSelectAll?.([]);
             else onSelectAll?.(entities.map(e => e.id));
           }}
-          className="h-4 w-4 rounded border-gray-300"
+          className="h-4 w-4 rounded accent-primary"
           aria-label="전체 선택"
         />
       ),
@@ -109,7 +109,7 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
           type="checkbox"
           checked={selectedIds.includes(row.original.id)}
           onChange={(e) => { e.stopPropagation(); onToggleSelection?.(row.original.id); }}
-          className="h-4 w-4 rounded border-gray-300"
+          className="h-4 w-4 rounded accent-primary"
           aria-label={`${row.original.companyName} 선택`}
         />
       ),
@@ -123,8 +123,8 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
         const badge = ENTITY_TYPE_BADGE_CONFIG[row.original.entityType];
         return (
           <div className="flex items-center gap-2">
-            <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-medium', badge.className)}>{badge.label}</span>
-            <span className="font-medium text-sm">{row.original.companyName}</span>
+            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider', badge.className)}>{badge.label}</span>
+            <span className="font-bold text-sm text-slate-900">{row.original.companyName}</span>
           </div>
         );
       },
@@ -132,13 +132,13 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
     {
       accessorKey: 'contactName',
       header: '담당자',
-      cell: ({ row }) => <span className="text-sm">{row.original.contactName}</span>,
+      cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.contactName}</span>,
     },
     {
       id: 'contact',
       header: '연락처',
       cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground">{row.original.contactPhone || row.original.contactEmail || '-'}</span>
+        <span className="text-xs text-slate-500">{row.original.contactPhone || row.original.contactEmail || '-'}</span>
       ),
       enableSorting: false,
     },
@@ -179,7 +179,7 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
       id: 'quotations',
       header: '견적',
       cell: ({ row }) => (
-        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1 text-xs text-slate-500">
           <FileText className="h-3 w-3" />{row.original.activeQuotationCount ?? row.original.quotationCount ?? 0}
         </span>
       ),
@@ -188,7 +188,7 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
       id: 'contracts',
       header: '계약',
       cell: ({ row }) => (
-        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1 text-xs text-slate-500">
           <Briefcase className="h-3 w-3" />{row.original.activeContractCount ?? 0}
         </span>
       ),
@@ -198,13 +198,13 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
       header: '총금액',
       cell: ({ row }) => {
         const amt = row.original.totalAmount;
-        return <span className="text-sm">{amt != null ? `₩${amt.toLocaleString()}` : '-'}</span>;
+        return <span className="text-sm font-bold text-slate-900">{amt != null ? `₩${amt.toLocaleString()}` : '-'}</span>;
       },
     },
     {
       accessorKey: 'lastActivityAt',
       header: '최근활동',
-      cell: ({ row }) => <span className="text-xs text-muted-foreground">{formatDaysAgo(row.original.lastActivityAt)}</span>,
+      cell: ({ row }) => <span className="text-xs text-slate-500">{formatDaysAgo(row.original.lastActivityAt)}</span>,
     },
     {
       id: 'actions',
@@ -212,13 +212,13 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
       cell: ({ row }) => (
         <div className="flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 transition-opacity">
           {row.original.contactPhone && (
-            <a href={`tel:${row.original.contactPhone}`} className="p-1 rounded hover:bg-muted" onClick={(e) => e.stopPropagation()} aria-label="전화">
-              <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+            <a href={`tel:${row.original.contactPhone}`} className="p-1 rounded-xl hover:bg-[#FAF2E9]" onClick={(e) => e.stopPropagation()} aria-label="전화">
+              <Phone className="h-3.5 w-3.5 text-slate-400" />
             </a>
           )}
           {row.original.contactEmail && (
-            <a href={`mailto:${row.original.contactEmail}`} className="p-1 rounded hover:bg-muted" onClick={(e) => e.stopPropagation()} aria-label="이메일">
-              <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+            <a href={`mailto:${row.original.contactEmail}`} className="p-1 rounded-xl hover:bg-[#FAF2E9]" onClick={(e) => e.stopPropagation()} aria-label="이메일">
+              <Mail className="h-3.5 w-3.5 text-slate-400" />
             </a>
           )}
         </div>
@@ -238,17 +238,17 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
   });
 
   return (
-    <div className="overflow-x-auto rounded-lg border bg-card">
+    <div className="overflow-x-auto bg-[#FAF2E9] rounded-xl md:rounded-[2.5rem] p-4 md:p-8">
       <table className="w-full text-sm" role="grid">
         <thead>
           {table.getHeaderGroups().map(hg => (
-            <tr key={hg.id} className="border-b bg-muted/30">
+            <tr key={hg.id}>
               {hg.headers.map(header => (
                 <th
                   key={header.id}
                   className={cn(
-                    'px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider',
-                    header.column.getCanSort() && 'cursor-pointer select-none hover:text-foreground'
+                    'px-3 pb-6 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest',
+                    header.column.getCanSort() && 'cursor-pointer select-none hover:text-slate-600'
                   )}
                   onClick={header.column.getToggleSortingHandler()}
                   style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
@@ -262,18 +262,18 @@ export function TableView({ entities, selectedIds, onToggleSelection, onSelectAl
             </tr>
           ))}
         </thead>
-        <tbody className="divide-y divide-border">
+        <tbody className="divide-y divide-slate-100">
           {table.getRowModel().rows.map(row => (
             <tr
               key={row.id}
               className={cn(
-                'group/row hover:bg-muted/20 cursor-pointer transition-colors',
+                'group/row hover:bg-[#FFF8F1] cursor-pointer transition-colors',
                 selectedIds.includes(row.original.id) && 'bg-primary/5'
               )}
               onClick={() => onClick?.(row.original)}
             >
               {row.getVisibleCells().map(cell => (
-                <td key={cell.id} className="px-3 py-2">
+                <td key={cell.id} className="px-3 py-5">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}

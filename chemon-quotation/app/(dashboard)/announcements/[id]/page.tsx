@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
 import Skeleton from '@/components/ui/Skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -39,12 +38,12 @@ import {
 } from '@/lib/announcement-api';
 import { cn } from '@/lib/utils';
 
-// Priority badge styles
-const priorityStyles: Record<AnnouncementPriority, { bg: string; text: string; label: string; icon: typeof Megaphone }> = {
-  URGENT: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400', label: '긴급', icon: AlertTriangle },
-  HIGH: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-400', label: '중요', icon: AlertTriangle },
-  NORMAL: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: '공지', icon: Megaphone },
-  LOW: { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-700 dark:text-gray-400', label: '안내', icon: Info },
+// Priority badge styles (Stitch-compatible)
+const priorityStyles: Record<AnnouncementPriority, { bg: string; text: string; label: string; icon: typeof Megaphone; variant: 'error' | 'warning' | 'info' | 'neutral' }> = {
+  URGENT: { bg: 'bg-red-50', text: 'text-red-600', label: '긴급', icon: AlertTriangle, variant: 'error' },
+  HIGH: { bg: 'bg-orange-50', text: 'text-orange-600', label: '중요', icon: AlertTriangle, variant: 'warning' },
+  NORMAL: { bg: 'bg-blue-50', text: 'text-blue-600', label: '공지', icon: Megaphone, variant: 'info' },
+  LOW: { bg: 'bg-slate-100', text: 'text-slate-600', label: '안내', icon: Info, variant: 'neutral' },
 };
 
 function formatDate(dateString: string): string {
@@ -139,10 +138,10 @@ function CommentItem({
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-medium text-sm">{comment.userName}</span>
-            <span className="text-xs text-gray-400">{formatShortDate(comment.createdAt)}</span>
+            <span className="font-bold text-sm">{comment.userName}</span>
+            <span className="text-xs text-slate-400">{formatShortDate(comment.createdAt)}</span>
             {comment.createdAt !== comment.updatedAt && (
-              <span className="text-xs text-gray-400">(수정됨)</span>
+              <span className="text-xs text-slate-400">(수정됨)</span>
             )}
           </div>
           
@@ -151,14 +150,14 @@ function CommentItem({
               <Textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="min-h-[80px]"
+                className="min-h-[80px] bg-white rounded-xl focus:ring-2 focus:ring-primary/40"
               />
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleUpdate} disabled={isSubmitting}>
+                <Button size="sm" onClick={handleUpdate} disabled={isSubmitting} className="rounded-xl font-bold">
                   <Check className="w-4 h-4 mr-1" />
                   저장
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
+                <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="rounded-xl font-bold">
                   <X className="w-4 h-4 mr-1" />
                   취소
                 </Button>
@@ -166,7 +165,7 @@ function CommentItem({
             </div>
           ) : (
             <>
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+              <p className="text-sm text-slate-700 whitespace-pre-wrap">
                 {comment.content}
               </p>
               
@@ -175,7 +174,7 @@ function CommentItem({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-7 text-xs rounded-xl"
                     onClick={() => onReply(comment.id)}
                   >
                     <CornerDownRight className="w-3 h-3 mr-1" />
@@ -186,7 +185,7 @@ function CommentItem({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-7 text-xs rounded-xl"
                     onClick={() => setIsEditing(true)}
                   >
                     <Edit2 className="w-3 h-3 mr-1" />
@@ -197,7 +196,7 @@ function CommentItem({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 text-xs text-red-500 hover:text-red-600"
+                    className="h-7 text-xs text-red-500 hover:text-red-600 rounded-xl"
                     onClick={handleDelete}
                   >
                     <Trash2 className="w-3 h-3 mr-1" />
@@ -304,13 +303,11 @@ export default function AnnouncementDetailPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
-        <Card>
-          <CardContent className="py-6">
-            <Skeleton className="h-8 w-3/4 mb-4" />
-            <Skeleton className="h-4 w-1/2 mb-8" />
-            <Skeleton className="h-32 w-full" />
-          </CardContent>
-        </Card>
+        <StitchCard variant="elevated" padding="lg">
+          <Skeleton className="h-8 w-3/4 mb-4" />
+          <Skeleton className="h-4 w-1/2 mb-8" />
+          <Skeleton className="h-32 w-full" />
+        </StitchCard>
       </div>
     );
   }
@@ -318,8 +315,8 @@ export default function AnnouncementDetailPage() {
   if (!announcement) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">공지사항을 찾을 수 없습니다.</p>
-        <Button variant="outline" className="mt-4" onClick={() => router.push('/announcements')}>
+        <p className="text-slate-500">공지사항을 찾을 수 없습니다.</p>
+        <Button variant="ghost" className="mt-4 rounded-xl font-bold" onClick={() => router.push('/announcements')}>
           목록으로 돌아가기
         </Button>
       </div>
@@ -334,73 +331,73 @@ export default function AnnouncementDetailPage() {
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Back Button */}
       <Link href="/announcements">
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" className="rounded-xl">
           <ArrowLeft className="w-4 h-4 mr-2" />
           목록으로
         </Button>
       </Link>
 
       {/* Announcement Content */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3 mb-4">
-            <div className={cn('w-12 h-12 rounded-lg flex items-center justify-center', style.bg)}>
-              <Icon className={cn('w-6 h-6', style.text)} />
+      <StitchCard variant="elevated" padding="lg">
+        {/* Header area */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', style.bg)}>
+            <Icon className={cn('w-6 h-6', style.text)} />
+          </div>
+          <div>
+            <StitchBadge variant={style.variant} className="mb-1">
+              {style.label}
+            </StitchBadge>
+            <div className="flex items-center gap-3 text-sm text-slate-500">
+              <span className="flex items-center gap-1">
+                <Eye className="w-4 h-4" />
+                {announcement.viewCount}
+              </span>
+              <span className="flex items-center gap-1">
+                <MessageSquare className="w-4 h-4" />
+                {totalComments}
+              </span>
             </div>
-            <div>
-              <Badge className={cn(style.bg, style.text, 'border-0 mb-1')}>
-                {style.label}
-              </Badge>
-              <div className="flex items-center gap-3 text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <Eye className="w-4 h-4" />
-                  {announcement.viewCount}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MessageSquare className="w-4 h-4" />
-                  {totalComments}
-                </span>
-              </div>
-            </div>
           </div>
-          <CardTitle className="text-2xl">{announcement.title}</CardTitle>
-          <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
-            <span>작성자: {announcement.creatorName || '관리자'}</span>
-            <span>작성일: {formatDate(announcement.createdAt)}</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs text-gray-400 mt-1">
-            <Calendar className="w-3.5 h-3.5" />
-            게시기간: {formatDate(announcement.startDate)} ~ {formatDate(announcement.endDate)}
-          </div>
-        </CardHeader>
-        <Separator />
-        <CardContent className="py-6">
-          <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+        </div>
+
+        <h1 className="text-2xl font-extrabold tracking-tight mb-2">{announcement.title}</h1>
+        <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
+          <span>작성자: {announcement.creatorName || '관리자'}</span>
+          <span>작성일: {formatDate(announcement.createdAt)}</span>
+        </div>
+        <div className="flex items-center gap-1 text-xs text-slate-400 mt-1 mb-6">
+          <Calendar className="w-3.5 h-3.5" />
+          게시기간: {formatDate(announcement.startDate)} ~ {formatDate(announcement.endDate)}
+        </div>
+
+        {/* Content */}
+        <div className="bg-[#FAF2E9] rounded-xl p-6">
+          <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap text-slate-700">
             {announcement.content}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
 
       {/* Comments Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <MessageSquare className="w-5 h-5" />
-            댓글 {totalComments > 0 && `(${totalComments})`}
-          </CardTitle>
-        </CardHeader>
-        <Separator />
-        <CardContent className="py-6 space-y-6">
+      <StitchCard variant="surface-low" padding="lg">
+        <h2 className="text-lg font-bold flex items-center gap-2 mb-6">
+          <MessageSquare className="w-5 h-5 text-primary" />
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">COMMENTS</span>
+          <span className="text-lg font-bold">{totalComments > 0 && `(${totalComments})`}</span>
+        </h2>
+
+        <div className="space-y-6">
           {/* Comment Input */}
           <div className="space-y-3">
             {replyTo && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 text-sm text-slate-500">
                 <CornerDownRight className="w-4 h-4" />
                 <span>답글 작성 중</span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 px-2"
+                  className="h-6 px-2 rounded-xl"
                   onClick={() => setReplyTo(null)}
                 >
                   <X className="w-3 h-3" />
@@ -418,12 +415,13 @@ export default function AnnouncementDetailPage() {
                   placeholder="댓글을 입력하세요..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[80px]"
+                  className="min-h-[80px] bg-white rounded-xl focus:ring-2 focus:ring-primary/40"
                 />
                 <div className="flex justify-end">
                   <Button
                     onClick={handleSubmitComment}
                     disabled={!newComment.trim() || isSubmitting}
+                    className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold"
                   >
                     <Send className="w-4 h-4 mr-2" />
                     {isSubmitting ? '등록 중...' : '댓글 등록'}
@@ -433,12 +431,13 @@ export default function AnnouncementDetailPage() {
             </div>
           </div>
 
-          <Separator />
+          {/* Divider via tonal layering */}
+          <div className="h-px bg-[#F5EDE3]" />
 
           {/* Comments List */}
           {comments.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <MessageSquare className="w-10 h-10 mx-auto text-gray-300 mb-3" />
+            <div className="text-center py-8 text-slate-500">
+              <MessageSquare className="w-10 h-10 mx-auto text-slate-300 mb-3" />
               <p>아직 댓글이 없습니다.</p>
               <p className="text-sm">첫 번째 댓글을 남겨보세요!</p>
             </div>
@@ -458,8 +457,8 @@ export default function AnnouncementDetailPage() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
     </div>
   );
 }

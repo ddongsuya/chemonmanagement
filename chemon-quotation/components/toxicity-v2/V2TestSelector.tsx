@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { StitchInput } from '@/components/ui/StitchInput';
 import { useToxicityV2Store } from '@/stores/toxicityV2Store';
 import type { TestMode, ToxicityV2Item, ComboItem, SimpleItem, DocumentItem, RouteType } from '@/types/toxicity-v2';
 import { CATS_MAPPING, CC_MAPPING } from '@/lib/toxicity-v2/data/metadata';
@@ -107,8 +107,8 @@ export default function V2TestSelector() {
               className={cn(
                 'whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors min-h-[44px] min-w-[44px]',
                 selectedCat === cat
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'bg-gradient-to-r from-primary to-orange-400 text-white'
+                  : 'bg-[#FAF2E9] text-slate-600 hover:bg-[#F5EDE3]'
               )}
             >
               {cat}
@@ -119,8 +119,8 @@ export default function V2TestSelector() {
 
       {/* 검색 입력 (Req 9.3) */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+        <StitchInput
           placeholder="시험명 검색..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -152,7 +152,7 @@ export default function V2TestSelector() {
       </div>
 
       {filteredItems.length === 0 && (
-        <p className="text-center text-sm text-muted-foreground py-8">
+        <p className="text-center text-sm text-slate-500 py-8">
           검색 결과가 없습니다.
         </p>
       )}

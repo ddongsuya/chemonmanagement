@@ -122,37 +122,37 @@ export default function InlineTestReceptionForm({ customerId, requesterId, onSuc
       <DialogTrigger asChild>
         <Button size="sm"><Plus className="w-4 h-4 mr-1" />시험접수 추가</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-[#E9E1D8] rounded-xl">
         <DialogHeader><DialogTitle>시험 접수 추가</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* 공통 정보 섹션 */}
           <div className="space-y-3">
-            <p className="text-xs font-medium text-muted-foreground">공통 정보</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">공통 정보</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">물질코드</Label>
-                <Input value={common.substance_code} onChange={e => setCommon(p => ({ ...p, substance_code: e.target.value }))} />
+                <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">물질코드</Label>
+                <Input value={common.substance_code} onChange={e => setCommon(p => ({ ...p, substance_code: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
               </div>
               <div>
-                <Label className="text-xs">프로젝트코드</Label>
-                <Input value={common.project_code} onChange={e => setCommon(p => ({ ...p, project_code: e.target.value }))} />
+                <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">프로젝트코드</Label>
+                <Input value={common.project_code} onChange={e => setCommon(p => ({ ...p, project_code: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
               </div>
             </div>
             <div>
-              <Label className="text-xs">시험물질</Label>
-              <Input value={common.substance_name} onChange={e => setCommon(p => ({ ...p, substance_name: e.target.value }))} />
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">시험물질</Label>
+              <Input value={common.substance_name} onChange={e => setCommon(p => ({ ...p, substance_name: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">의뢰기관</Label>
-                <Input value={common.institution_name} onChange={e => setCommon(p => ({ ...p, institution_name: e.target.value }))} />
+                <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">의뢰기관</Label>
+                <Input value={common.institution_name} onChange={e => setCommon(p => ({ ...p, institution_name: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs">상태</Label>
+                <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">상태</Label>
                 <Select value={common.status} onValueChange={v => setCommon(p => ({ ...p, status: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="received">접수</SelectItem>
                     <SelectItem value="in_progress">진행중</SelectItem>
@@ -161,49 +161,49 @@ export default function InlineTestReceptionForm({ customerId, requesterId, onSuc
                 </Select>
               </div>
               <div>
-                <Label className="text-xs">접수일 *</Label>
-                <Input type="date" value={common.reception_date} onChange={e => setCommon(p => ({ ...p, reception_date: e.target.value }))} />
+                <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">접수일 *</Label>
+                <Input type="date" value={common.reception_date} onChange={e => setCommon(p => ({ ...p, reception_date: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
               </div>
               <div>
-                <Label className="text-xs">예상완료일</Label>
-                <Input type="date" value={common.expected_completion_date} onChange={e => setCommon(p => ({ ...p, expected_completion_date: e.target.value }))} />
+                <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">예상완료일</Label>
+                <Input type="date" value={common.expected_completion_date} onChange={e => setCommon(p => ({ ...p, expected_completion_date: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
               </div>
             </div>
           </div>
 
-          {/* 구분선 */}
-          <div className="border-t" />
+          {/* 구분선 — tonal layering instead of border */}
+          <div className="h-px bg-[#F5EDE3]" />
 
           {/* 시험 항목 섹션 */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-muted-foreground">시험 항목 ({entries.length}건)</p>
-              <Button type="button" variant="outline" size="sm" onClick={addEntry} className="h-7 text-xs">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">시험 항목 ({entries.length}건)</p>
+              <Button type="button" variant="outline" size="sm" onClick={addEntry} className="h-7 text-xs rounded-xl border-none bg-white">
                 <Plus className="w-3 h-3 mr-1" />항목 추가
               </Button>
             </div>
             {entries.map((entry, idx) => (
-              <div key={idx} className="flex items-start gap-2 p-3 rounded-lg border bg-slate-50/50">
+              <div key={idx} className="flex items-start gap-2 p-3 rounded-xl bg-[#FAF2E9]">
                 <div className="flex-1 grid grid-cols-4 gap-2">
                   <div>
-                    <Label className="text-xs">시험번호</Label>
-                    <Input value={entry.test_number} onChange={e => updateEntry(idx, 'test_number', e.target.value)} placeholder={`TEST-${String(idx + 1).padStart(3, '0')}`} className="h-8 text-sm" />
+                    <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">시험번호</Label>
+                    <Input value={entry.test_number} onChange={e => updateEntry(idx, 'test_number', e.target.value)} placeholder={`TEST-${String(idx + 1).padStart(3, '0')}`} className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                   </div>
                   <div>
-                    <Label className="text-xs">시험제목 *</Label>
-                    <Input value={entry.test_title} onChange={e => updateEntry(idx, 'test_title', e.target.value)} placeholder="시험 제목" className="h-8 text-sm" />
+                    <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">시험제목 *</Label>
+                    <Input value={entry.test_title} onChange={e => updateEntry(idx, 'test_title', e.target.value)} placeholder="시험 제목" className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                   </div>
                   <div>
-                    <Label className="text-xs">시험책임자</Label>
-                    <Input value={entry.test_director} onChange={e => updateEntry(idx, 'test_director', e.target.value)} placeholder="책임자명" className="h-8 text-sm" />
+                    <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">시험책임자</Label>
+                    <Input value={entry.test_director} onChange={e => updateEntry(idx, 'test_director', e.target.value)} placeholder="책임자명" className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                   </div>
                   <div>
-                    <Label className="text-xs">금액 (원)</Label>
-                    <Input type="number" value={entry.total_amount} onChange={e => updateEntry(idx, 'total_amount', e.target.value)} placeholder="0" className="h-8 text-sm" />
+                    <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">금액 (원)</Label>
+                    <Input type="number" value={entry.total_amount} onChange={e => updateEntry(idx, 'total_amount', e.target.value)} placeholder="0" className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                   </div>
                 </div>
                 {entries.length > 1 && (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => removeEntry(idx)} className="h-8 w-8 p-0 mt-5 text-muted-foreground hover:text-destructive">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => removeEntry(idx)} className="h-8 w-8 p-0 mt-5 text-slate-400 hover:text-destructive">
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 )}

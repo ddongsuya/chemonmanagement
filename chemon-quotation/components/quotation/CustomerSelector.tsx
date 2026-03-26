@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,23 +40,23 @@ export interface CustomerSelectorProps {
 }
 
 // 고객 등급 배지 설정
-const gradeConfig: Record<CustomerGrade, { label: string; className: string }> = {
-  LEAD: { label: '리드', className: 'bg-gray-100 text-gray-700 border-gray-200' },
-  PROSPECT: { label: '잠재고객', className: 'bg-blue-100 text-blue-700 border-blue-200' },
-  CUSTOMER: { label: '고객', className: 'bg-green-100 text-green-700 border-green-200' },
-  VIP: { label: 'VIP', className: 'bg-purple-100 text-purple-700 border-purple-200' },
-  INACTIVE: { label: '비활성', className: 'bg-red-100 text-red-700 border-red-200' },
+const gradeConfig: Record<CustomerGrade, { label: string; variant: 'neutral' | 'info' | 'success' | 'warning' | 'error' }> = {
+  LEAD: { label: '리드', variant: 'neutral' },
+  PROSPECT: { label: '잠재고객', variant: 'info' },
+  CUSTOMER: { label: '고객', variant: 'success' },
+  VIP: { label: 'VIP', variant: 'warning' },
+  INACTIVE: { label: '비활성', variant: 'error' },
 };
 
 // 리드 상태 배지 설정
-const leadStatusConfig: Record<string, { label: string; className: string }> = {
-  NEW: { label: '신규', className: 'bg-blue-100 text-blue-700' },
-  CONTACTED: { label: '연락완료', className: 'bg-cyan-100 text-cyan-700' },
-  QUALIFIED: { label: '검토중', className: 'bg-yellow-100 text-yellow-700' },
-  PROPOSAL: { label: '견적발송', className: 'bg-orange-100 text-orange-700' },
-  NEGOTIATION: { label: '협상중', className: 'bg-pink-100 text-pink-700' },
-  CONVERTED: { label: '전환완료', className: 'bg-green-100 text-green-700' },
-  LOST: { label: '실패', className: 'bg-gray-100 text-gray-700' },
+const leadStatusConfig: Record<string, { label: string; variant: 'info' | 'primary' | 'warning' | 'success' | 'error' | 'neutral' }> = {
+  NEW: { label: '신규', variant: 'info' },
+  CONTACTED: { label: '연락완료', variant: 'info' },
+  QUALIFIED: { label: '검토중', variant: 'warning' },
+  PROPOSAL: { label: '견적발송', variant: 'primary' },
+  NEGOTIATION: { label: '협상중', variant: 'warning' },
+  CONVERTED: { label: '전환완료', variant: 'success' },
+  LOST: { label: '실패', variant: 'neutral' },
 };
 
 // 유입경로 라벨
@@ -237,18 +237,18 @@ export default function CustomerSelector({
         key={customer.id}
         onClick={() => handleCustomerSelect(customer)}
         className={`
-          p-4 rounded-lg border cursor-pointer transition-colors duration-150
+          p-4 rounded-xl cursor-pointer transition-all duration-150
           ${isSelected 
-            ? 'border-primary bg-primary/5 ring-2 ring-primary/20' 
-            : 'border-gray-200 hover:border-primary/30 hover:bg-muted/50'
+            ? 'bg-primary/5 ring-2 ring-primary/20' 
+            : 'bg-[#FAF2E9] hover:bg-[#F5EDE3]'
           }
         `}
       >
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <Building2 className="w-4 h-4 text-gray-500 flex-shrink-0" />
-              <span className="font-medium text-gray-900 truncate">
+              <Building2 className="w-4 h-4 text-slate-500 flex-shrink-0" />
+              <span className="font-medium text-slate-900 truncate">
                 {customer.company || customer.name}
               </span>
               {isSelected && (
@@ -256,21 +256,21 @@ export default function CustomerSelector({
               )}
             </div>
             {customer.name && customer.company && (
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+              <div className="flex items-center gap-2 text-sm text-slate-600 mb-1">
                 <User className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">{customer.name}</span>
               </div>
             )}
             {customer.email && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 text-sm text-slate-500">
                 <Mail className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">{customer.email}</span>
               </div>
             )}
           </div>
-          <Badge className={`ml-2 flex-shrink-0 ${gradeInfo.className}`}>
+          <StitchBadge variant={gradeInfo.variant} className="ml-2 flex-shrink-0">
             {gradeInfo.label}
-          </Badge>
+          </StitchBadge>
         </div>
       </div>
     );
@@ -286,32 +286,32 @@ export default function CustomerSelector({
         key={lead.id}
         onClick={() => handleLeadSelect(lead)}
         className={`
-          p-4 rounded-lg border cursor-pointer transition-colors duration-150
+          p-4 rounded-xl cursor-pointer transition-all duration-150
           ${isSelected 
-            ? 'border-primary bg-primary/5 ring-2 ring-primary/20' 
-            : 'border-gray-200 hover:border-primary/30 hover:bg-muted/50'
+            ? 'bg-primary/5 ring-2 ring-primary/20' 
+            : 'bg-[#FAF2E9] hover:bg-[#F5EDE3]'
           }
         `}
       >
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <Building2 className="w-4 h-4 text-gray-500 flex-shrink-0" />
-              <span className="font-medium text-gray-900 truncate">
+              <Building2 className="w-4 h-4 text-slate-500 flex-shrink-0" />
+              <span className="font-medium text-slate-900 truncate">
                 {lead.companyName}
               </span>
               {isSelected && (
                 <Check className="w-4 h-4 text-primary flex-shrink-0" />
               )}
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+            <div className="flex items-center gap-2 text-sm text-slate-600 mb-1">
               <User className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{lead.contactName}</span>
               {lead.position && (
-                <span className="text-gray-400">({lead.position})</span>
+                <span className="text-slate-400">({lead.position})</span>
               )}
             </div>
-            <div className="flex items-center gap-3 text-sm text-gray-500">
+            <div className="flex items-center gap-3 text-sm text-slate-500">
               {lead.contactEmail && (
                 <div className="flex items-center gap-1">
                   <Mail className="w-3 h-3 flex-shrink-0" />
@@ -326,14 +326,14 @@ export default function CustomerSelector({
               )}
             </div>
             {lead.source && (
-              <div className="mt-2 text-xs text-gray-400">
+              <div className="mt-2 text-xs text-slate-400">
                 유입경로: {sourceLabels[lead.source] || lead.source}
               </div>
             )}
           </div>
-          <Badge className={`ml-2 flex-shrink-0 ${statusInfo.className}`}>
+          <StitchBadge variant={statusInfo.variant} className="ml-2 flex-shrink-0">
             {statusInfo.label}
-          </Badge>
+          </StitchBadge>
         </div>
       </div>
     );
@@ -343,8 +343,8 @@ export default function CustomerSelector({
   const renderError = (error: string, onRetry: () => void) => (
     <div className="flex flex-col items-center justify-center py-8 text-center">
       <AlertCircle className="w-10 h-10 text-red-400 mb-3" />
-      <p className="text-sm text-gray-600 mb-4">{error}</p>
-      <Button variant="outline" size="sm" onClick={onRetry}>
+      <p className="text-sm text-slate-600 mb-4">{error}</p>
+      <Button variant="outline" size="sm" onClick={onRetry} className="rounded-xl">
         <RefreshCw className="w-4 h-4 mr-2" />
         다시 시도
       </Button>
@@ -355,21 +355,20 @@ export default function CustomerSelector({
   const renderLoading = () => (
     <div className="flex items-center justify-center py-8">
       <Loader2 className="w-6 h-6 animate-spin text-primary" />
-      <span className="ml-2 text-sm text-gray-500">로딩 중...</span>
+      <span className="ml-2 text-sm text-slate-500">로딩 중...</span>
     </div>
   );
 
   // 빈 상태 렌더링
   const renderEmpty = (message: string) => (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-      <Building2 className="w-10 h-10 text-gray-300 mb-3" />
-      <p className="text-sm text-gray-500">{message}</p>
+      <Building2 className="w-10 h-10 text-slate-300 mb-3" />
+      <p className="text-sm text-slate-500">{message}</p>
     </div>
   );
 
   return (
-    <Card className="w-full">
-      <CardContent className="p-4">
+    <StitchCard variant="elevated" padding="sm" className="w-full">
         {/* Requirements 1.1: "기존 고객", "리드 목록" 두 가지 탭 표시 */}
         <Tabs 
           value={activeTab} 
@@ -390,12 +389,12 @@ export default function CustomerSelector({
           <TabsContent value="customers" className="mt-0">
             {/* 검색 입력 */}
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="고객사명 또는 담당자명으로 검색..."
                 value={customerSearch}
                 onChange={(e) => setCustomerSearch(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
               />
             </div>
 
@@ -423,12 +422,12 @@ export default function CustomerSelector({
           <TabsContent value="leads" className="mt-0">
             {/* 검색 입력 */}
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="회사명 또는 담당자명으로 검색..."
                 value={leadSearch}
                 onChange={(e) => setLeadSearch(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
               />
             </div>
 
@@ -454,10 +453,10 @@ export default function CustomerSelector({
         </Tabs>
 
         {/* Requirements 1.5: 신규 고객 등록 버튼 */}
-        <div className="mt-4 pt-4 border-t">
+        <div className="mt-4 pt-4">
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full rounded-xl"
             onClick={() => setShowNewCustomerDialog(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -467,7 +466,7 @@ export default function CustomerSelector({
 
         {/* 신규 고객 등록 다이얼로그 (Requirements 1.5, 1.6) */}
         <Dialog open={showNewCustomerDialog} onOpenChange={setShowNewCustomerDialog}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#E9E1D8] rounded-xl">
             <DialogHeader>
               <DialogTitle>신규 고객 등록</DialogTitle>
             </DialogHeader>
@@ -478,7 +477,6 @@ export default function CustomerSelector({
             />
           </DialogContent>
         </Dialog>
-      </CardContent>
-    </Card>
+    </StitchCard>
   );
 }

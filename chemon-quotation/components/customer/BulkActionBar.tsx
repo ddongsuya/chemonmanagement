@@ -81,8 +81,8 @@ export function BulkActionBar({ selectedIds, onClearSelection, onRefresh }: Bulk
 
   return (
     <>
-      <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 mb-4">
-        <span className="text-sm font-medium">{selectedIds.length}건 선택됨</span>
+      <div className="flex items-center justify-between bg-[#E9E1D8] rounded-xl px-4 py-2 mb-4">
+        <span className="text-sm font-bold text-slate-900">{selectedIds.length}건 선택됨</span>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowTagDialog(true)}>
             <Tag className="h-3.5 w-3.5 mr-1" /> 태그
@@ -98,16 +98,16 @@ export function BulkActionBar({ selectedIds, onClearSelection, onRefresh }: Bulk
 
       {/* 태그 다이얼로그 */}
       <Dialog open={showTagDialog} onOpenChange={setShowTagDialog}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm bg-[#E9E1D8] rounded-xl">
           <DialogHeader><DialogTitle>일괄 태그 {tagAction === 'add' ? '추가' : '제거'}</DialogTitle></DialogHeader>
           <Select value={tagAction} onValueChange={(v) => setTagAction(v as 'add' | 'remove')}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger className="bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="add">추가</SelectItem>
               <SelectItem value="remove">제거</SelectItem>
             </SelectContent>
           </Select>
-          <Input placeholder="태그 이름" value={tagName} onChange={(e) => setTagName(e.target.value)} />
+          <Input placeholder="태그 이름" value={tagName} onChange={(e) => setTagName(e.target.value)} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowTagDialog(false)}>취소</Button>
             <Button onClick={handleBulkTag} disabled={processing || !tagName.trim()}>적용</Button>
@@ -117,10 +117,10 @@ export function BulkActionBar({ selectedIds, onClearSelection, onRefresh }: Bulk
 
       {/* 세그먼트 다이얼로그 */}
       <Dialog open={showSegmentDialog} onOpenChange={setShowSegmentDialog}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm bg-[#E9E1D8] rounded-xl">
           <DialogHeader><DialogTitle>일괄 세그먼트 변경</DialogTitle></DialogHeader>
           <Select value={segment} onValueChange={(v) => setSegment(v as SegmentType)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger className="bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
               {SEGMENT_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
             </SelectContent>

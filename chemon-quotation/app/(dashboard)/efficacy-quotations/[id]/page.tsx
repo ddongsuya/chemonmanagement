@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import PageHeader from '@/components/layout/PageHeader';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
 import {
   Select,
   SelectContent,
@@ -15,13 +15,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  StitchTable,
+  StitchTableHeader,
+  StitchTableBody,
+  StitchTableRow,
+  StitchTableHead,
+  StitchTableCell,
+} from '@/components/ui/StitchTable';
 import {
   Edit,
   Copy,
@@ -38,7 +38,6 @@ import WonSign from '@/components/icons/WonSign';
 import {
   formatCurrency,
   formatDate,
-  getStatusColor,
 } from '@/lib/utils';
 import { efficacyQuotationApi } from '@/lib/efficacy-api';
 import { SavedEfficacyQuotation, EfficacyQuotationStatus } from '@/types/efficacy';
@@ -164,33 +163,34 @@ export default function EfficacyQuotationDetailPage() {
 
   return (
     <div>
-      <PageHeader
+      <StitchPageHeader
+        label="EFFICACY QUOTATION DETAIL"
         title={quotation.quotation_number}
         description={`${quotation.customer_name} | ${quotation.project_name}`}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="bg-white border-none rounded-xl">
               <Link href="/efficacy-quotations">
                 <ArrowLeft className="w-4 h-4 mr-2" /> 목록
               </Link>
             </Button>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="bg-white border-none rounded-xl">
               <Link href={`/efficacy-quotations/${params.id}/edit`}>
                 <Edit className="w-4 h-4 mr-2" /> 수정
               </Link>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleCopy}>
+            <Button variant="outline" size="sm" onClick={handleCopy} className="bg-white border-none rounded-xl">
               <Copy className="w-4 h-4 mr-2" /> 복사
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="bg-white border-none rounded-xl">
               <FileText className="w-4 h-4 mr-2" /> PDF
             </Button>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="bg-white border-none rounded-xl">
               <Link href={`/contract/new?efficacyQuotationId=${params.id}`}>
                 <FileSignature className="w-4 h-4 mr-2" /> 계약서 생성
               </Link>
             </Button>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="bg-white border-none rounded-xl">
               <Link href={`/consultation/new?efficacyQuotationId=${params.id}`}>
                 <ClipboardList className="w-4 h-4 mr-2" /> 상담기록지
               </Link>
@@ -203,139 +203,131 @@ export default function EfficacyQuotationDetailPage() {
         {/* 좌측: 상세 정보 */}
         <div className="lg:col-span-2 space-y-6">
           {/* 기본 정보 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>기본 정보</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <StitchCard variant="surface-low">
+            <h3 className="text-lg font-bold mb-4">기본 정보</h3>
+            <div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-600">고객사:</span>
-                  <span className="font-medium">{quotation.customer_name}</span>
+                  <Building2 className="w-4 h-4 text-slate-400" />
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">고객사:</span>
+                  <span className="font-bold">{quotation.customer_name}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-600">유효기간:</span>
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">유효기간:</span>
                   <span>{formatDate(quotation.valid_until)}까지</span>
                 </div>
               </div>
               {quotation.notes && (
-                <div className="mt-4 pt-4 border-t">
-                  <span className="text-gray-600">특이사항:</span>
+                <div className="mt-4 pt-4">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">특이사항:</span>
                   <p className="mt-1">{quotation.notes}</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
 
           {/* 모델 정보 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Beaker className="w-5 h-5" />
-                효력시험 모델
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <StitchCard variant="surface-low">
+            <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+              <Beaker className="w-5 h-5 text-primary" />
+              효력시험 모델
+            </h3>
+            <div>
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600">모델명:</span>
-                  <span className="font-medium">{quotation.model_name}</span>
-                  <Badge variant="outline">{quotation.model_category}</Badge>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">모델명:</span>
+                  <span className="font-bold">{quotation.model_name}</span>
+                  <StitchBadge variant="neutral">{quotation.model_category}</StitchBadge>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="text-gray-600">적응증:</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">적응증:</span>
                   <span>{quotation.indication}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
 
           {/* 시험 항목 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>시험 항목</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <StitchCard variant="surface-low">
+            <h3 className="text-lg font-bold mb-4">시험 항목</h3>
+            <div>
               {Object.entries(itemsByCategory).map(([category, items]) => (
                 <div key={category} className="mb-6 last:mb-0">
-                  <h4 className="font-medium text-gray-700 mb-2 flex items-center justify-between">
+                  <h4 className="font-bold text-slate-700 mb-2 flex items-center justify-between">
                     <span>{category}</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-slate-500">
                       소계: {formatCurrency(quotation.subtotal_by_category[category] || 0)}
                     </span>
                   </h4>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>항목명</TableHead>
-                        <TableHead className="text-center">단가</TableHead>
-                        <TableHead className="text-center">수량</TableHead>
-                        <TableHead className="text-center">횟수</TableHead>
-                        <TableHead className="text-right">금액</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <StitchTable>
+                    <StitchTableHeader>
+                      <StitchTableRow>
+                        <StitchTableHead>항목명</StitchTableHead>
+                        <StitchTableHead className="text-center">단가</StitchTableHead>
+                        <StitchTableHead className="text-center">수량</StitchTableHead>
+                        <StitchTableHead className="text-center">횟수</StitchTableHead>
+                        <StitchTableHead className="text-right">금액</StitchTableHead>
+                      </StitchTableRow>
+                    </StitchTableHeader>
+                    <StitchTableBody>
                       {items.map((item) => (
-                        <TableRow
+                        <StitchTableRow
                           key={item.id}
-                          className={item.is_default ? 'bg-green-50' : ''}
+                          className={item.is_default ? 'bg-emerald-50/50' : ''}
                         >
-                          <TableCell>
+                          <StitchTableCell>
                             <div className="flex flex-col">
-                              <span className={item.is_default ? 'font-medium' : ''}>
+                              <span className={item.is_default ? 'font-bold' : ''}>
                                 {item.item_name}
                               </span>
                               {item.usage_note && (
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-slate-500">
                                   {item.usage_note}
                                 </span>
                               )}
                             </div>
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </StitchTableCell>
+                          <StitchTableCell className="text-center">
                             {formatCurrency(item.unit_price)}
-                            <span className="text-xs text-gray-500 ml-1">
+                            <span className="text-xs text-slate-500 ml-1">
                               {item.unit}
                             </span>
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </StitchTableCell>
+                          <StitchTableCell className="text-center">
                             {item.quantity}
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </StitchTableCell>
+                          <StitchTableCell className="text-center">
                             {item.multiplier}
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
+                          </StitchTableCell>
+                          <StitchTableCell className="text-right font-bold">
                             {formatCurrency(item.amount)}
-                          </TableCell>
-                        </TableRow>
+                          </StitchTableCell>
+                        </StitchTableRow>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </StitchTableBody>
+                  </StitchTable>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
         </div>
 
         {/* 우측: 상태 및 금액 */}
         <div className="space-y-6">
           {/* 상태 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>상태</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <StitchCard variant="surface-low">
+            <h3 className="text-lg font-bold mb-4">상태</h3>
+            <div>
               <div className="space-y-3">
-                <Badge className={`${getStatusColor(quotation.status)} text-sm`}>
+                <StitchBadge status={quotation.status.toUpperCase()} className="text-sm">
                   {getEfficacyStatusLabel(quotation.status)}
-                </Badge>
+                </StitchBadge>
                 <Select
                   value={quotation.status}
                   onValueChange={handleStatusChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white border-none rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -347,90 +339,84 @@ export default function EfficacyQuotationDetailPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
 
           {/* 금액 요약 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <WonSign className="w-5 h-5" />
-                금액 요약
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <StitchCard variant="surface-low">
+            <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+              <WonSign className="w-5 h-5 text-primary" />
+              금액 요약
+            </h3>
+            <div className="space-y-3">
               {/* 카테고리별 소계 */}
               {Object.entries(quotation.subtotal_by_category).map(
                 ([category, amount]) => (
                   <div key={category} className="flex justify-between text-sm">
-                    <span className="text-gray-600">{category}</span>
+                    <span className="text-slate-600">{category}</span>
                     <span>{formatCurrency(amount)}</span>
                   </div>
                 )
               )}
 
-              <div className="border-t pt-3 flex justify-between">
-                <span className="text-gray-600">소계</span>
+              <div className="pt-3 flex justify-between">
+                <span className="text-slate-600">소계</span>
                 <span>{formatCurrency(quotation.subtotal)}</span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-gray-600">VAT (10%)</span>
+                <span className="text-slate-600">VAT (10%)</span>
                 <span>{formatCurrency(quotation.vat)}</span>
               </div>
 
-              <div className="border-t pt-3 flex justify-between text-lg font-bold">
+              <div className="pt-3 flex justify-between text-lg font-bold">
                 <span>합계</span>
                 <span className="text-primary">
                   {formatCurrency(quotation.grand_total)}
                 </span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
 
           {/* 이력 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>이력</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <StitchCard variant="surface-low">
+            <h3 className="text-lg font-bold mb-4">이력</h3>
+            <div>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">작성일</span>
+                  <span className="text-slate-600">작성일</span>
                   <span>{formatDate(quotation.created_at.split('T')[0])}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">최종수정</span>
+                  <span className="text-slate-600">최종수정</span>
                   <span>{formatDate(quotation.updated_at.split('T')[0])}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">유효기간</span>
+                  <span className="text-slate-600">유효기간</span>
                   <span>{quotation.valid_days}일</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
 
           {/* 연결된 문서 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>문서 생성</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start" asChild>
+          <StitchCard variant="surface-low">
+            <h3 className="text-lg font-bold mb-4">문서 생성</h3>
+            <div className="space-y-2">
+              <Button variant="outline" className="w-full justify-start bg-white border-none rounded-xl" asChild>
                 <Link href={`/contract/new?efficacyQuotationId=${params.id}`}>
                   <FileSignature className="w-4 h-4 mr-2" />
                   계약서 생성
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
+              <Button variant="outline" className="w-full justify-start bg-white border-none rounded-xl" asChild>
                 <Link href={`/consultation/new?efficacyQuotationId=${params.id}`}>
                   <ClipboardList className="w-4 h-4 mr-2" />
                   상담기록지 생성
                 </Link>
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
         </div>
       </div>
     </div>

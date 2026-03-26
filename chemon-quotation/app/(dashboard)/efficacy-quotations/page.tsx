@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import PageHeader from '@/components/layout/PageHeader';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,21 +14,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+  StitchTable,
+  StitchTableHeader,
+  StitchTableBody,
+  StitchTableRow,
+  StitchTableHead,
+  StitchTableCell,
+} from '@/components/ui/StitchTable';
+import { StitchBadge } from '@/components/ui/StitchBadge';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,8 +54,6 @@ import {
 import {
   formatCurrency,
   formatDate,
-  getStatusLabel,
-  getStatusColor,
 } from '@/lib/utils';
 import { efficacyQuotationApi } from '@/lib/efficacy-api';
 import { SavedEfficacyQuotation, EfficacyQuotationStatus } from '@/types/efficacy';
@@ -250,11 +248,12 @@ function EfficacyQuotationsContent() {
 
   return (
     <div>
-      <PageHeader
+      <StitchPageHeader
+        label="EFFICACY QUOTATIONS"
         title="효력시험 견적 관리"
         description="효력시험 견적서를 관리합니다"
         actions={
-          <Button asChild>
+          <Button asChild className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold text-white">
             <Link href="/efficacy-quotations/new">
               <Plus className="w-4 h-4 mr-2" />
               새 효력시험 견적서
@@ -263,15 +262,14 @@ function EfficacyQuotationsContent() {
         }
       />
 
-      <Card>
-        <CardContent className="pt-6">
+      <StitchCard variant="surface-low" padding="lg">
           {/* 필터 */}
           <div className="flex flex-wrap gap-3 mb-6">
             <Select
               value={statusFilter}
               onValueChange={(v) => updateFilter('status', v)}
             >
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-32 bg-white border-none rounded-xl">
                 <SelectValue placeholder="상태" />
               </SelectTrigger>
               <SelectContent>
@@ -288,7 +286,7 @@ function EfficacyQuotationsContent() {
               value={categoryFilter}
               onValueChange={(v) => updateFilter('category', v)}
             >
-              <SelectTrigger className="w-36">
+              <SelectTrigger className="w-36 bg-white border-none rounded-xl">
                 <SelectValue placeholder="모델 카테고리" />
               </SelectTrigger>
               <SelectContent>
@@ -302,12 +300,12 @@ function EfficacyQuotationsContent() {
             </Select>
 
             <div className="relative flex-1 min-w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="견적번호, 고객사, 프로젝트, 모델 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                className="pl-9 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
               />
             </div>
 
@@ -327,65 +325,64 @@ function EfficacyQuotationsContent() {
           </div>
 
           {/* 테이블 */}
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>견적번호</TableHead>
-                  <TableHead>고객사</TableHead>
-                  <TableHead>프로젝트</TableHead>
-                  <TableHead>모델</TableHead>
-                  <TableHead>상태</TableHead>
-                  <TableHead className="text-right">금액</TableHead>
-                  <TableHead>작성일</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredQuotations.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="text-center py-8 text-gray-500"
-                    >
-                      {quotations.length === 0
-                        ? '저장된 효력시험 견적서가 없습니다. 새 견적서를 작성해보세요.'
-                        : statusFilter !== 'all'
-                        ? `'${getEfficacyStatusLabel(statusFilter)}' 상태의 견적서가 없습니다.`
-                        : '검색 결과가 없습니다.'}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredQuotations.map((quotation) => (
-                    <TableRow key={quotation.id}>
-                      <TableCell>
-                        <Link
-                          href={`/efficacy-quotations/${quotation.id}`}
-                          className="font-medium text-primary hover:underline font-mono text-sm"
-                        >
-                          {quotation.quotation_number}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{quotation.customer_name}</TableCell>
-                      <TableCell>{quotation.project_name}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span>{quotation.model_name}</span>
-                          <Badge variant="outline" className="w-fit text-xs">
-                            {quotation.model_category}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(quotation.status)}>
-                          {getEfficacyStatusLabel(quotation.status)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(quotation.grand_total)}
-                      </TableCell>
-                      <TableCell>{formatDate(quotation.created_at)}</TableCell>
-                      <TableCell>
+          <StitchTable>
+            <StitchTableHeader>
+              <StitchTableRow>
+                <StitchTableHead>견적번호</StitchTableHead>
+                <StitchTableHead>고객사</StitchTableHead>
+                <StitchTableHead>프로젝트</StitchTableHead>
+                <StitchTableHead>모델</StitchTableHead>
+                <StitchTableHead>상태</StitchTableHead>
+                <StitchTableHead className="text-right">금액</StitchTableHead>
+                <StitchTableHead>작성일</StitchTableHead>
+                <StitchTableHead className="w-12"></StitchTableHead>
+              </StitchTableRow>
+            </StitchTableHeader>
+            <StitchTableBody>
+              {filteredQuotations.length === 0 ? (
+                <StitchTableRow>
+                  <StitchTableCell
+                    colSpan={8}
+                    className="text-center py-8 text-slate-500"
+                  >
+                    {quotations.length === 0
+                      ? '저장된 효력시험 견적서가 없습니다. 새 견적서를 작성해보세요.'
+                      : statusFilter !== 'all'
+                      ? `'${getEfficacyStatusLabel(statusFilter)}' 상태의 견적서가 없습니다.`
+                      : '검색 결과가 없습니다.'}
+                  </StitchTableCell>
+                </StitchTableRow>
+              ) : (
+                filteredQuotations.map((quotation) => (
+                  <StitchTableRow key={quotation.id}>
+                    <StitchTableCell>
+                      <Link
+                        href={`/efficacy-quotations/${quotation.id}`}
+                        className="font-bold text-primary hover:underline font-mono text-sm"
+                      >
+                        {quotation.quotation_number}
+                      </Link>
+                    </StitchTableCell>
+                    <StitchTableCell>{quotation.customer_name}</StitchTableCell>
+                    <StitchTableCell>{quotation.project_name}</StitchTableCell>
+                    <StitchTableCell>
+                      <div className="flex flex-col">
+                        <span>{quotation.model_name}</span>
+                        <StitchBadge variant="neutral" className="w-fit">
+                          {quotation.model_category}
+                        </StitchBadge>
+                      </div>
+                    </StitchTableCell>
+                    <StitchTableCell>
+                      <StitchBadge status={quotation.status.toUpperCase()}>
+                        {getEfficacyStatusLabel(quotation.status)}
+                      </StitchBadge>
+                    </StitchTableCell>
+                    <StitchTableCell className="text-right font-bold">
+                      {formatCurrency(quotation.grand_total)}
+                    </StitchTableCell>
+                    <StitchTableCell>{formatDate(quotation.created_at)}</StitchTableCell>
+                    <StitchTableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -435,33 +432,31 @@ function EfficacyQuotationsContent() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                      </StitchTableCell>
+                    </StitchTableRow>
                   ))
                 )}
-              </TableBody>
-            </Table>
-          </div>
+              </StitchTableBody>
+            </StitchTable>
 
           {/* 페이지네이션 */}
           <div className="flex items-center justify-between mt-4">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               총 {filteredQuotations.length}개의 효력시험 견적서
             </p>
             <div className="flex gap-1">
-              <Button variant="outline" size="sm" disabled>
+              <Button variant="outline" size="sm" disabled className="rounded-xl border-none bg-white">
                 이전
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="rounded-xl border-none bg-white">
                 1
               </Button>
-              <Button variant="outline" size="sm" disabled>
+              <Button variant="outline" size="sm" disabled className="rounded-xl border-none bg-white">
                 다음
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </StitchCard>
 
       {/* 삭제 확인 Dialog */}
       <AlertDialog
@@ -494,7 +489,7 @@ function EfficacyQuotationsContent() {
 
 export default function EfficacyQuotationsPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center">로딩 중...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">로딩 중...</div>}>
       <EfficacyQuotationsContent />
     </Suspense>
   );

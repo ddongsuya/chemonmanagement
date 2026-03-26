@@ -67,11 +67,11 @@ export default function PreviewDetail() {
   const data = getDataForMode(mode);
 
   return (
-    <div className="w-full max-w-[210mm] mx-auto bg-white border border-gray-200 shadow-sm p-4 sm:p-8 print:border-none print:shadow-none">
-      <h2 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-6">상 세 내 역</h2>
+    <div className="w-full max-w-[210mm] mx-auto bg-white rounded-xl shadow-ambient p-4 sm:p-8 print:rounded-none print:shadow-none">
+      <h2 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-6 text-slate-900">상 세 내 역</h2>
 
       {selectedTests.length === 0 ? (
-        <p className="text-center text-gray-400 py-8">선택된 시험 항목이 없습니다</p>
+        <p className="text-center text-slate-400 py-8">선택된 시험 항목이 없습니다</p>
       ) : (
         <div className="space-y-6">
           {selectedTests.map((test, idx) => {
@@ -84,24 +84,24 @@ export default function PreviewDetail() {
             const weeks = getWeeks(item, mode, route);
 
             return (
-              <div key={test.id} className="border border-gray-200 rounded-md p-4">
+              <div key={test.id} className="bg-[#FAF2E9] rounded-xl p-4">
                 {/* 번호 + 시험명 */}
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-sm font-bold text-gray-500">{idx + 1}.</span>
-                  <span className="font-bold text-gray-900">{test.customName || test.name}</span>
+                  <span className="text-sm font-bold text-slate-500">{idx + 1}.</span>
+                  <span className="font-bold text-slate-900">{test.customName || test.name}</span>
                 </div>
 
                 {/* 정식명칭 */}
                 <div className="mb-2">
-                  <span className="text-xs text-gray-500 mr-2">정식명칭</span>
-                  <span className="text-sm text-gray-800">{formalName}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mr-2">정식명칭</span>
+                  <span className="text-sm text-slate-800">{formalName}</span>
                 </div>
 
                 {/* 설명 */}
                 {description && (
                   <div className="mb-2">
-                    <span className="text-xs text-gray-500 block mb-1">설명</span>
-                    <p className="text-sm text-gray-700 whitespace-pre-line pl-2 border-l-2 border-gray-200">
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 block mb-1">설명</span>
+                    <p className="text-sm text-slate-700 whitespace-pre-line pl-2 border-l-2 border-[#E9E1D8]">
                       {description}
                     </p>
                   </div>
@@ -110,32 +110,32 @@ export default function PreviewDetail() {
                 {/* 가이드라인 */}
                 {guideline.length > 0 && guideline.some((g) => g) && (
                   <div className="mb-2">
-                    <span className="text-xs text-gray-500 block mb-1">가이드라인</span>
-                    <div className="text-sm text-gray-700 pl-2 space-y-0.5">
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 block mb-1">가이드라인</span>
+                    <div className="text-sm text-slate-700 pl-2 space-y-0.5">
                       {guideline[0] && <div>{guideline[0]}</div>}
                       {guideline[1] && <div>{guideline[1]}</div>}
                       {guideline[2] && <div>{guideline[2]}</div>}
-                      {guideline[3] && <div className="text-gray-500 text-xs">{guideline[3]}</div>}
+                      {guideline[3] && <div className="text-slate-500 text-xs">{guideline[3]}</div>}
                     </div>
                   </div>
                 )}
 
                 {/* 동물종 / 기간 / 소요기간 */}
-                <div className="flex gap-6 text-sm text-gray-600 mt-3 pt-2 border-t border-gray-100">
+                <div className="flex gap-6 text-sm text-slate-600 mt-3 pt-2">
                   {'species' in item && (
                     <div>
-                      <span className="text-xs text-gray-400 mr-1">동물종</span>
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mr-1">동물종</span>
                       {(item as any).species || '-'}
                     </div>
                   )}
                   {'duration' in item && (
                     <div>
-                      <span className="text-xs text-gray-400 mr-1">기간</span>
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mr-1">기간</span>
                       {(item as any).duration || '-'}
                     </div>
                   )}
                   <div>
-                    <span className="text-xs text-gray-400 mr-1">소요기간</span>
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mr-1">소요기간</span>
                     {weeks === '-' ? '-' : weeks.includes('주') || weeks.endsWith('~') ? weeks : `${weeks}주`}
                   </div>
                 </div>

@@ -2,13 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -81,14 +78,14 @@ import {
 
 // ─── 상수 ───────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
-  NEW: { label: '신규', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200', icon: CircleDot },
-  CONTACTED: { label: '연락완료', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200', icon: Phone },
-  QUALIFIED: { label: '검토완료', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200', icon: CheckCircle2 },
-  PROPOSAL: { label: '견적발송', color: 'text-violet-700', bg: 'bg-violet-50 border-violet-200', icon: FileText },
-  NEGOTIATION: { label: '협상중', color: 'text-orange-700', bg: 'bg-orange-50 border-orange-200', icon: TrendingUp },
-  CONVERTED: { label: '계약전환', color: 'text-teal-700', bg: 'bg-teal-50 border-teal-200', icon: CheckCircle2 },
-  LOST: { label: '실패', color: 'text-red-700', bg: 'bg-red-50 border-red-200', icon: XCircle },
-  DORMANT: { label: '휴면', color: 'text-gray-500', bg: 'bg-gray-50 border-gray-200', icon: Clock },
+  NEW: { label: '신규', color: 'text-blue-700', bg: 'bg-blue-50', icon: CircleDot },
+  CONTACTED: { label: '연락완료', color: 'text-amber-700', bg: 'bg-amber-50', icon: Phone },
+  QUALIFIED: { label: '검토완료', color: 'text-emerald-700', bg: 'bg-emerald-50', icon: CheckCircle2 },
+  PROPOSAL: { label: '견적발송', color: 'text-violet-700', bg: 'bg-violet-50', icon: FileText },
+  NEGOTIATION: { label: '협상중', color: 'text-orange-700', bg: 'bg-orange-50', icon: TrendingUp },
+  CONVERTED: { label: '계약전환', color: 'text-teal-700', bg: 'bg-teal-50', icon: CheckCircle2 },
+  LOST: { label: '실패', color: 'text-red-700', bg: 'bg-red-50', icon: XCircle },
+  DORMANT: { label: '휴면', color: 'text-slate-500', bg: 'bg-slate-50', icon: Clock },
 };
 
 const PIPELINE_STAGES = ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'];
@@ -159,12 +156,12 @@ function PipelineStepper({ currentStatus, onStatusChange }: { currentStatus: str
                 <button
                   onClick={() => !isActive && onStatusChange(stage)}
                   className={`
-                    relative flex-1 h-9 flex items-center justify-center text-xs font-medium transition-all
-                    ${i === 0 ? 'rounded-l-md' : ''} ${i === PIPELINE_STAGES.length - 1 ? 'rounded-r-md' : ''}
-                    ${isActive ? 'bg-slate-900 text-white shadow-sm' : ''}
-                    ${isPast ? 'bg-slate-200 text-slate-700' : ''}
-                    ${isFuture ? 'bg-slate-50 text-slate-400 border border-slate-200' : ''}
-                    ${isTerminal && !isActive ? 'bg-slate-50 text-slate-300 border border-slate-100' : ''}
+                    relative flex-1 h-9 flex items-center justify-center text-xs font-bold uppercase tracking-wider transition-all
+                    ${i === 0 ? 'rounded-l-xl' : ''} ${i === PIPELINE_STAGES.length - 1 ? 'rounded-r-xl' : ''}
+                    ${isActive ? 'bg-gradient-to-r from-primary to-orange-400 text-white shadow-ambient' : ''}
+                    ${isPast ? 'bg-[#EFE7DD] text-slate-700' : ''}
+                    ${isFuture ? 'bg-[#FAF2E9] text-slate-400' : ''}
+                    ${isTerminal && !isActive ? 'bg-[#FAF2E9] text-slate-300' : ''}
                     hover:opacity-80 cursor-pointer
                   `}
                 >
@@ -189,9 +186,9 @@ function InfoRow({ icon: Icon, label, value, action }: {
 }) {
   return (
     <div className="flex items-center justify-between py-2.5 group">
-      <div className="flex items-center gap-2.5 text-sm text-muted-foreground min-w-0">
+      <div className="flex items-center gap-2.5 text-sm text-slate-500 min-w-0">
         {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
-        <span className="shrink-0">{label}</span>
+        <span className="shrink-0 text-[11px] font-bold uppercase tracking-widest">{label}</span>
       </div>
       <div className="flex items-center gap-2 text-sm font-medium text-right min-w-0">
         <span className="truncate">{value || '-'}</span>
@@ -289,12 +286,12 @@ export default function LeadDetailPage() {
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse p-6">
-        <div className="h-8 bg-muted rounded w-1/3" />
-        <div className="h-10 bg-muted rounded" />
+        <div className="h-8 bg-[#FAF2E9] rounded-xl w-1/3" />
+        <div className="h-10 bg-[#FAF2E9] rounded-xl" />
         <div className="grid grid-cols-3 gap-4">
-          <div className="h-32 bg-muted rounded" />
-          <div className="h-32 bg-muted rounded" />
-          <div className="h-32 bg-muted rounded" />
+          <div className="h-32 bg-[#FAF2E9] rounded-xl" />
+          <div className="h-32 bg-[#FAF2E9] rounded-xl" />
+          <div className="h-32 bg-[#FAF2E9] rounded-xl" />
         </div>
       </div>
     );
@@ -303,9 +300,9 @@ export default function LeadDetailPage() {
   if (!lead) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">
-        <AlertCircle className="w-10 h-10 text-muted-foreground" />
-        <p className="text-muted-foreground">리드를 찾을 수 없습니다.</p>
-        <Button variant="outline" onClick={() => router.push('/leads')}>목록으로</Button>
+        <AlertCircle className="w-10 h-10 text-slate-400" />
+        <p className="text-slate-500">리드를 찾을 수 없습니다.</p>
+        <Button variant="outline" onClick={() => router.push('/leads')} className="rounded-xl">목록으로</Button>
       </div>
     );
   }
@@ -318,15 +315,15 @@ export default function LeadDetailPage() {
   const progress = getStageProgress(lead.status);
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-[#FFF8F1]">
       {/* ─── 상단 헤더 ─── */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-white sticky top-0 z-10 shadow-ambient">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* 네비게이션 */}
-          <div className="flex items-center gap-2 py-2.5 text-sm text-muted-foreground">
-            <button onClick={() => router.push('/leads')} className="hover:text-foreground transition-colors">리드</button>
+          <div className="flex items-center gap-2 py-2.5 text-sm text-slate-500">
+            <button onClick={() => router.push('/leads')} className="hover:text-slate-900 transition-colors text-[11px] font-bold uppercase tracking-widest">리드</button>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-foreground font-medium truncate">{lead.companyName}</span>
+            <span className="text-slate-900 font-medium truncate">{lead.companyName}</span>
           </div>
 
           {/* 메인 헤더 */}
@@ -338,13 +335,13 @@ export default function LeadDetailPage() {
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-xl font-bold text-slate-900 truncate">{lead.companyName}</h1>
-                  <Badge variant="outline" className={`${statusConfig.bg} ${statusConfig.color} border font-medium`}>
+                  <h1 className="text-xl font-extrabold tracking-tight text-slate-900 truncate">{lead.companyName}</h1>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${statusConfig.bg} ${statusConfig.color}`}>
                     <StatusIcon className="w-3 h-3 mr-1" />
                     {statusConfig.label}
-                  </Badge>
+                  </span>
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                <div className="flex items-center gap-3 mt-1 text-sm text-slate-500">
                   <span className="font-mono">{lead.leadNumber}</span>
                   <span>·</span>
                   <span>{daysSinceCreated}일 경과</span>
@@ -361,14 +358,14 @@ export default function LeadDetailPage() {
             {/* 액션 버튼 */}
             <div className="flex items-center gap-2 shrink-0">
               {lead.status !== 'CONVERTED' && lead.status !== 'LOST' && (
-                <Button onClick={handleConvert} size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={handleConvert} size="sm" className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold">
                   <UserCheck className="w-3.5 h-3.5 mr-1.5" />
                   고객 전환
                 </Button>
               )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="rounded-xl">
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -412,21 +409,21 @@ export default function LeadDetailPage() {
           <div className="lg:col-span-1 space-y-4">
             {/* 핵심 지표 카드 */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-xl border p-4">
-                <div className="text-xs text-muted-foreground mb-1">예상 금액</div>
+              <div className="bg-[#FAF2E9] rounded-xl p-4">
+                <div className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">예상 금액</div>
                 <div className="text-lg font-bold text-slate-900">{formatCurrency(lead.expectedAmount)}</div>
               </div>
-              <div className="bg-white rounded-xl border p-4">
-                <div className="text-xs text-muted-foreground mb-1">진행률</div>
+              <div className="bg-[#FAF2E9] rounded-xl p-4">
+                <div className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">진행률</div>
                 <div className="text-lg font-bold text-slate-900">{progress}%</div>
                 <Progress value={progress} className="h-1.5 mt-1.5" />
               </div>
             </div>
 
             {/* 회사 정보 */}
-            <div className="bg-white rounded-xl border">
-              <div className="px-4 py-3 border-b">
-                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <div className="bg-[#FAF2E9] rounded-xl">
+              <div className="px-4 py-3">
+                <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                   <Building2 className="w-4 h-4" />
                   회사 정보
                 </h3>
@@ -435,22 +432,22 @@ export default function LeadDetailPage() {
                 {isEditing ? (
                   <div className="py-3 space-y-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">회사명</Label>
-                      <Input value={editForm.companyName || ''} onChange={(e) => setEditForm({ ...editForm, companyName: e.target.value })} className="h-8 text-sm" />
+                      <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">회사명</Label>
+                      <Input value={editForm.companyName || ''} onChange={(e) => setEditForm({ ...editForm, companyName: e.target.value })} className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">유입 경로</Label>
+                      <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">유입 경로</Label>
                       <Select value={editForm.source || ''} onValueChange={(v) => setEditForm({ ...editForm, source: v as LeadSource })}>
-                        <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-sm bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {Object.entries(SOURCE_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">문의 유형</Label>
+                      <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">문의 유형</Label>
                       <Select value={editForm.inquiryType || ''} onValueChange={(v) => setEditForm({ ...editForm, inquiryType: v })}>
-                        <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-sm bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {Object.entries(INQUIRY_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                         </SelectContent>
@@ -476,9 +473,9 @@ export default function LeadDetailPage() {
             </div>
 
             {/* 담당자 정보 */}
-            <div className="bg-white rounded-xl border">
-              <div className="px-4 py-3 border-b">
-                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <div className="bg-[#FAF2E9] rounded-xl">
+              <div className="px-4 py-3">
+                <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                   <User className="w-4 h-4" />
                   담당자 정보
                 </h3>
@@ -488,21 +485,21 @@ export default function LeadDetailPage() {
                   <div className="py-3 space-y-3">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1.5">
-                        <Label className="text-xs">담당자명</Label>
-                        <Input value={editForm.contactName || ''} onChange={(e) => setEditForm({ ...editForm, contactName: e.target.value })} className="h-8 text-sm" />
+                        <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">담당자명</Label>
+                        <Input value={editForm.contactName || ''} onChange={(e) => setEditForm({ ...editForm, contactName: e.target.value })} className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs">직책</Label>
-                        <Input value={editForm.position || ''} onChange={(e) => setEditForm({ ...editForm, position: e.target.value })} className="h-8 text-sm" />
+                        <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">직책</Label>
+                        <Input value={editForm.position || ''} onChange={(e) => setEditForm({ ...editForm, position: e.target.value })} className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">연락처</Label>
-                      <Input value={editForm.contactPhone || ''} onChange={(e) => setEditForm({ ...editForm, contactPhone: e.target.value })} className="h-8 text-sm" />
+                      <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">연락처</Label>
+                      <Input value={editForm.contactPhone || ''} onChange={(e) => setEditForm({ ...editForm, contactPhone: e.target.value })} className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">이메일</Label>
-                      <Input value={editForm.contactEmail || ''} onChange={(e) => setEditForm({ ...editForm, contactEmail: e.target.value })} className="h-8 text-sm" />
+                      <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">이메일</Label>
+                      <Input value={editForm.contactEmail || ''} onChange={(e) => setEditForm({ ...editForm, contactEmail: e.target.value })} className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                     </div>
                   </div>
                 ) : (
@@ -531,9 +528,9 @@ export default function LeadDetailPage() {
             </div>
 
             {/* 영업 정보 */}
-            <div className="bg-white rounded-xl border">
-              <div className="px-4 py-3 border-b">
-                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <div className="bg-[#FAF2E9] rounded-xl">
+              <div className="px-4 py-3">
+                <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" />
                   영업 정보
                 </h3>
@@ -542,12 +539,12 @@ export default function LeadDetailPage() {
                 {isEditing ? (
                   <div className="py-3 space-y-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">예상 금액</Label>
-                      <Input type="number" value={editForm.expectedAmount || ''} onChange={(e) => setEditForm({ ...editForm, expectedAmount: Number(e.target.value) })} className="h-8 text-sm" />
+                      <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">예상 금액</Label>
+                      <Input type="number" value={editForm.expectedAmount || ''} onChange={(e) => setEditForm({ ...editForm, expectedAmount: Number(e.target.value) })} className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">예상 계약일</Label>
-                      <Input type="date" value={editForm.expectedDate?.split('T')[0] || ''} onChange={(e) => setEditForm({ ...editForm, expectedDate: e.target.value })} className="h-8 text-sm" />
+                      <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">예상 계약일</Label>
+                      <Input type="date" value={editForm.expectedDate?.split('T')[0] || ''} onChange={(e) => setEditForm({ ...editForm, expectedDate: e.target.value })} className="h-8 text-sm bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                     </div>
                   </div>
                 ) : (
@@ -558,9 +555,9 @@ export default function LeadDetailPage() {
                     <InfoRow icon={Calendar} label="예상 계약일" value={formatDate(lead.expectedDate)} />
                     <InfoRow icon={Activity} label="현재 단계" value={
                       lead.stage ? (
-                        <Badge variant="outline" className="text-xs" style={{ borderColor: lead.stage.color, color: lead.stage.color }}>
+                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${lead.stage.color}15`, color: lead.stage.color }}>
                           {lead.stage.name}
-                        </Badge>
+                        </span>
                       ) : '-'
                     } />
                   </>
@@ -571,8 +568,8 @@ export default function LeadDetailPage() {
             {/* 편집 모드 저장/취소 */}
             {isEditing && (
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setIsEditing(false)} className="flex-1" size="sm">취소</Button>
-                <Button onClick={handleSave} className="flex-1" size="sm">저장</Button>
+                <Button variant="outline" onClick={() => setIsEditing(false)} className="flex-1 rounded-xl" size="sm">취소</Button>
+                <Button onClick={handleSave} className="flex-1 bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold" size="sm">저장</Button>
               </div>
             )}
           </div>
@@ -580,8 +577,8 @@ export default function LeadDetailPage() {
           {/* ─── 우측: 메인 콘텐츠 ─── */}
           <div className="lg:col-span-2 space-y-4">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <div className="bg-white rounded-xl border">
-                <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0">
+              <div className="bg-[#FAF2E9] rounded-xl">
+                <TabsList className="w-full justify-start rounded-none bg-transparent h-auto p-0">
                   <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm">
                     개요
                   </TabsTrigger>
@@ -603,7 +600,7 @@ export default function LeadDetailPage() {
                 <TabsContent value="overview" className="p-5 space-y-6 mt-0">
                   {/* 문의 내용 */}
                   <div>
-                    <h4 className="text-sm font-semibold text-slate-900 mb-3">문의 내용</h4>
+                    <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3">문의 내용</h4>
                     {isEditing ? (
                       <Textarea
                         value={editForm.inquiryDetail || ''}
@@ -613,9 +610,9 @@ export default function LeadDetailPage() {
                         placeholder="문의 내용을 입력하세요..."
                       />
                     ) : (
-                      <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-700 leading-relaxed">
+                      <div className="bg-white rounded-xl p-4 text-sm text-slate-700 leading-relaxed">
                         {lead.inquiryDetail || (
-                          <span className="text-muted-foreground italic">문의 내용이 없습니다.</span>
+                          <span className="text-slate-400 italic">문의 내용이 없습니다.</span>
                         )}
                       </div>
                     )}
@@ -624,7 +621,7 @@ export default function LeadDetailPage() {
                   {/* 상태 변경 (터미널 상태일 때) */}
                   {(['CONVERTED', 'LOST', 'DORMANT'] as string[]).includes(lead.status) && (
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-900 mb-3">상태 변경</h4>
+                      <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3">상태 변경</h4>
                       <div className="flex flex-wrap gap-2">
                         {Object.entries(STATUS_CONFIG).map(([key, config]) => {
                           const Icon = config.icon;
@@ -650,8 +647,8 @@ export default function LeadDetailPage() {
                   {activities.length > 0 && (
                     <div>
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-slate-900">최근 활동</h4>
-                        <button onClick={() => setActiveTab('activities')} className="text-xs text-blue-600 hover:text-blue-700">
+                        <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">최근 활동</h4>
+                        <button onClick={() => setActiveTab('activities')} className="text-xs text-primary hover:text-orange-600">
                           전체 보기 →
                         </button>
                       </div>
@@ -660,16 +657,16 @@ export default function LeadDetailPage() {
                           const config = ACTIVITY_CONFIG[activity.type] || ACTIVITY_CONFIG.NOTE;
                           const Icon = config.icon;
                           return (
-                            <div key={activity.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                            <div key={activity.id} className="flex items-start gap-3 p-3 bg-white rounded-xl">
                               <div className={`w-7 h-7 rounded-full ${config.color} flex items-center justify-center shrink-0`}>
                                 <Icon className="w-3.5 h-3.5 text-white" />
                               </div>
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm font-medium truncate">{activity.subject}</span>
-                                  <span className="text-xs text-muted-foreground shrink-0 ml-2">{formatDateTime(activity.contactedAt)}</span>
+                                  <span className="text-xs text-slate-400 shrink-0 ml-2">{formatDateTime(activity.contactedAt)}</span>
                                 </div>
-                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{activity.content}</p>
+                                <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{activity.content}</p>
                               </div>
                             </div>
                           );
@@ -682,8 +679,8 @@ export default function LeadDetailPage() {
                   {quotations.length > 0 && (
                     <div>
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-slate-900">연결된 견적서</h4>
-                        <button onClick={() => setActiveTab('quotations')} className="text-xs text-blue-600 hover:text-blue-700">
+                        <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">연결된 견적서</h4>
+                        <button onClick={() => setActiveTab('quotations')} className="text-xs text-primary hover:text-orange-600">
                           전체 보기 →
                         </button>
                       </div>
@@ -691,14 +688,14 @@ export default function LeadDetailPage() {
                         {quotations.slice(0, 2).map((q: any) => (
                           <div
                             key={q.id}
-                            className="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors"
+                            className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-[#FFF8F1] transition-colors"
                             onClick={() => router.push(`/quotations/${q.id}`)}
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <FileText className="w-4 h-4 text-slate-400 shrink-0" />
                               <div className="min-w-0">
                                 <p className="text-sm font-medium truncate">{q.quotationNumber}</p>
-                                <p className="text-xs text-muted-foreground truncate">{q.projectName}</p>
+                                <p className="text-xs text-slate-400 truncate">{q.projectName}</p>
                               </div>
                             </div>
                             <span className="text-sm font-semibold text-slate-900 shrink-0 ml-3">
@@ -714,7 +711,7 @@ export default function LeadDetailPage() {
                 {/* 활동 기록 탭 */}
                 <TabsContent value="activities" className="p-5 mt-0">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-semibold text-slate-900">활동 타임라인</h4>
+                    <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">활동 타임라인</h4>
                     <Dialog open={activityDialogOpen} onOpenChange={setActivityDialogOpen}>
                       <DialogTrigger asChild>
                         <Button size="sm" className="h-8 text-xs">
@@ -728,33 +725,33 @@ export default function LeadDetailPage() {
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="space-y-1.5">
-                            <Label className="text-xs">유형</Label>
+                            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">유형</Label>
                             <Select value={newActivity.type} onValueChange={(v) => setNewActivity({ ...newActivity, type: v })}>
-                              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                              <SelectTrigger className="h-9 bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
                               <SelectContent>
                                 {Object.entries(ACTIVITY_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
                               </SelectContent>
                             </Select>
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">제목</Label>
-                            <Input value={newActivity.subject} onChange={(e) => setNewActivity({ ...newActivity, subject: e.target.value })} className="h-9" />
+                            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">제목</Label>
+                            <Input value={newActivity.subject} onChange={(e) => setNewActivity({ ...newActivity, subject: e.target.value })} className="h-9 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">내용</Label>
-                            <Textarea value={newActivity.content} onChange={(e) => setNewActivity({ ...newActivity, content: e.target.value })} rows={3} />
+                            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">내용</Label>
+                            <Textarea value={newActivity.content} onChange={(e) => setNewActivity({ ...newActivity, content: e.target.value })} rows={3} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                           </div>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                              <Label className="text-xs">다음 액션</Label>
-                              <Input value={newActivity.nextAction} onChange={(e) => setNewActivity({ ...newActivity, nextAction: e.target.value })} className="h-9" />
+                              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">다음 액션</Label>
+                              <Input value={newActivity.nextAction} onChange={(e) => setNewActivity({ ...newActivity, nextAction: e.target.value })} className="h-9 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-xs">다음 일정</Label>
-                              <Input type="datetime-local" value={newActivity.nextDate} onChange={(e) => setNewActivity({ ...newActivity, nextDate: e.target.value })} className="h-9" />
+                              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">다음 일정</Label>
+                              <Input type="datetime-local" value={newActivity.nextDate} onChange={(e) => setNewActivity({ ...newActivity, nextDate: e.target.value })} className="h-9 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
                             </div>
                           </div>
-                          <Button onClick={handleAddActivity} className="w-full">추가</Button>
+                          <Button onClick={handleAddActivity} className="w-full bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold">추가</Button>
                         </div>
                       </DialogContent>
                     </Dialog>
@@ -763,23 +760,23 @@ export default function LeadDetailPage() {
                   {activities.length > 0 ? (
                     <div className="relative">
                       {/* 타임라인 라인 */}
-                      <div className="absolute left-[15px] top-4 bottom-4 w-px bg-slate-200" />
+                      <div className="absolute left-[15px] top-4 bottom-4 w-px bg-[#EFE7DD]" />
                       <div className="space-y-1">
                         {activities.map((activity: LeadActivity, idx: number) => {
                           const config = ACTIVITY_CONFIG[activity.type] || ACTIVITY_CONFIG.NOTE;
                           const Icon = config.icon;
                           return (
                             <div key={activity.id} className="relative flex gap-4 py-3">
-                              <div className={`w-8 h-8 rounded-full ${config.color} flex items-center justify-center shrink-0 z-10 ring-4 ring-white`}>
+                              <div className={`w-8 h-8 rounded-full ${config.color} flex items-center justify-center shrink-0 z-10 ring-4 ring-[#FAF2E9]`}>
                                 <Icon className="w-3.5 h-3.5 text-white" />
                               </div>
-                              <div className="flex-1 min-w-0 bg-slate-50 rounded-lg p-3">
+                              <div className="flex-1 min-w-0 bg-white rounded-xl p-3">
                                 <div className="flex items-center justify-between mb-1">
                                   <div className="flex items-center gap-2">
                                     <span className="text-sm font-medium">{activity.subject}</span>
-                                    <Badge variant="outline" className="text-[10px] h-5">{config.label}</Badge>
+                                    <span className="text-[10px] h-5 inline-flex items-center rounded-full px-2 py-0.5 uppercase tracking-wider font-bold bg-slate-100 text-slate-600">{config.label}</span>
                                   </div>
-                                  <span className="text-xs text-muted-foreground">{formatDateTime(activity.contactedAt)}</span>
+                                  <span className="text-xs text-slate-400">{formatDateTime(activity.contactedAt)}</span>
                                 </div>
                                 <p className="text-sm text-slate-600">{activity.content}</p>
                                 {activity.nextAction && (
@@ -798,8 +795,8 @@ export default function LeadDetailPage() {
                   ) : (
                     <div className="text-center py-12">
                       <Activity className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground">활동 기록이 없습니다.</p>
-                      <p className="text-xs text-muted-foreground mt-1">첫 번째 활동을 추가해보세요.</p>
+                      <p className="text-sm text-slate-500">활동 기록이 없습니다.</p>
+                      <p className="text-xs text-slate-400 mt-1">첫 번째 활동을 추가해보세요.</p>
                     </div>
                   )}
                 </TabsContent>
@@ -807,7 +804,7 @@ export default function LeadDetailPage() {
                 {/* 견적서 탭 */}
                 <TabsContent value="quotations" className="p-5 mt-0">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-semibold text-slate-900">연결된 견적서</h4>
+                    <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">연결된 견적서</h4>
                     <Button size="sm" className="h-8 text-xs" onClick={() => router.push(`/quotations/new?leadId=${lead.id}`)}>
                       <Plus className="w-3 h-3 mr-1" />
                       견적서 작성
@@ -819,7 +816,7 @@ export default function LeadDetailPage() {
                       {quotations.map((q: any) => (
                         <div
                           key={q.id}
-                          className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-slate-50 transition-colors group"
+                          className="flex items-center justify-between p-4 rounded-xl cursor-pointer hover:bg-[#FFF8F1] transition-colors group bg-white"
                           onClick={() => router.push(`/quotations/${q.id}`)}
                         >
                           <div className="flex items-center gap-3 min-w-0">
@@ -828,12 +825,12 @@ export default function LeadDetailPage() {
                             </div>
                             <div className="min-w-0">
                               <p className="text-sm font-medium truncate">{q.quotationNumber}</p>
-                              <p className="text-xs text-muted-foreground truncate">{q.projectName || '프로젝트명 없음'}</p>
+                              <p className="text-xs text-slate-400 truncate">{q.projectName || '프로젝트명 없음'}</p>
                             </div>
                           </div>
                           <div className="text-right shrink-0 ml-3">
                             <p className="text-sm font-semibold">{formatCurrency(Number(q.totalAmount))}</p>
-                            <p className="text-xs text-muted-foreground">{formatDate(q.createdAt)}</p>
+                            <p className="text-xs text-slate-400">{formatDate(q.createdAt)}</p>
                           </div>
                         </div>
                       ))}
@@ -841,8 +838,8 @@ export default function LeadDetailPage() {
                   ) : (
                     <div className="text-center py-12">
                       <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground">연결된 견적서가 없습니다.</p>
-                      <p className="text-xs text-muted-foreground mt-1">새 견적서를 작성해보세요.</p>
+                      <p className="text-sm text-slate-500">연결된 견적서가 없습니다.</p>
+                      <p className="text-xs text-slate-400 mt-1">새 견적서를 작성해보세요.</p>
                     </div>
                   )}
                 </TabsContent>

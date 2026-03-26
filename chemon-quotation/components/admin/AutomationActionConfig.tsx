@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -417,17 +417,15 @@ export default function AutomationActionConfig({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Play className="h-5 w-5" />
+    <StitchCard variant="surface-container">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <Play className="h-5 w-5 text-primary" />
           액션 설정
-        </CardTitle>
-        <CardDescription>
-          트리거 발동 시 실행할 액션을 설정합니다 (최소 1개 필요)
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+        </h2>
+        <p className="text-sm text-slate-500">트리거 발동 시 실행할 액션을 설정합니다 (최소 1개 필요)</p>
+      </div>
+      <div className="space-y-4">
         <Accordion type="multiple" defaultValue={actions.map((_, i) => `action-${i}`)} className="space-y-4">
           {actions.map((action, index) => {
             const actionInfo = getActionTypeInfo(action.actionType);
@@ -466,10 +464,10 @@ export default function AutomationActionConfig({
                             key={type.value}
                             type="button"
                             onClick={() => handleActionTypeChange(index, type.value)}
-                            className={`flex flex-col items-start gap-2 rounded-lg border p-3 text-left transition-all hover:border-primary ${
+                            className={`flex flex-col items-start gap-2 rounded-xl p-3 text-left transition-all ${
                               action.actionType === type.value
-                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                : 'border-border'
+                                ? 'bg-primary/5 ring-2 ring-primary'
+                                : 'bg-[#EFE7DD] hover:bg-[#E9E1D8]'
                             }`}
                           >
                             <div className="flex items-center gap-2">
@@ -537,13 +535,13 @@ export default function AutomationActionConfig({
         </Button>
 
         {/* 안내 */}
-        <div className="rounded-lg bg-muted/50 p-4">
-          <p className="text-sm text-muted-foreground">
+        <div className="rounded-xl bg-[#EFE7DD] p-4">
+          <p className="text-sm text-slate-500">
             <strong>참고:</strong> 여러 액션이 설정된 경우 순서대로 실행됩니다.
             지연 시간을 설정하면 해당 시간 후에 액션이 실행됩니다.
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }

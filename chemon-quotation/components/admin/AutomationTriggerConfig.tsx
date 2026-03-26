@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
@@ -194,17 +194,15 @@ export default function AutomationTriggerConfig({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Zap className="h-5 w-5" />
+    <StitchCard variant="surface-container">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <Zap className="h-5 w-5 text-primary" />
           트리거 설정
-        </CardTitle>
-        <CardDescription>
-          자동화 규칙이 실행될 조건을 설정합니다
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </h2>
+        <p className="text-sm text-slate-500">자동화 규칙이 실행될 조건을 설정합니다</p>
+      </div>
+      <div className="space-y-6">
         {/* 트리거 타입 선택 */}
         <div className="space-y-3">
           <Label>트리거 유형 *</Label>
@@ -214,10 +212,10 @@ export default function AutomationTriggerConfig({
                 key={trigger.value}
                 type="button"
                 onClick={() => handleTriggerTypeChange(trigger.value)}
-                className={`flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-all hover:border-primary ${
+                className={`flex flex-col items-start gap-2 rounded-xl p-4 text-left transition-all ${
                   triggerType === trigger.value
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-border'
+                    ? 'bg-primary/5 ring-2 ring-primary'
+                    : 'bg-[#EFE7DD] hover:bg-[#E9E1D8]'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -350,13 +348,13 @@ export default function AutomationTriggerConfig({
 
         {/* 항목 생성/수정 트리거 안내 */}
         {(triggerType === 'ITEM_CREATED' || triggerType === 'ITEM_UPDATED') && (
-          <div className="rounded-lg border border-dashed p-4 bg-muted/50">
-            <p className="text-sm text-muted-foreground">
+          <div className="rounded-xl bg-[#EFE7DD] p-4">
+            <p className="text-sm text-slate-500">
               {triggerType === 'ITEM_CREATED'
                 ? '선택한 모델의 새 항목이 생성될 때마다 트리거됩니다.'
                 : '선택한 모델의 항목이 수정될 때마다 트리거됩니다.'}
             </p>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm text-slate-500 mt-2">
               아래 조건 설정에서 추가 필터링 조건을 지정할 수 있습니다.
             </p>
           </div>
@@ -364,7 +362,7 @@ export default function AutomationTriggerConfig({
 
         {/* 현재 설정 요약 */}
         {selectedTrigger && (
-          <div className="rounded-lg bg-muted/50 p-4">
+          <div className="rounded-xl bg-[#EFE7DD] p-4">
             <p className="text-sm font-medium mb-2">현재 설정 요약</p>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline" className={selectedTrigger.color}>
@@ -396,7 +394,7 @@ export default function AutomationTriggerConfig({
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import PageHeader from '@/components/layout/PageHeader';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,21 +14,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+  StitchTable,
+  StitchTableBody,
+  StitchTableCell,
+  StitchTableHead,
+  StitchTableHeader,
+  StitchTableRow,
+} from '@/components/ui/StitchTable';
+import { StitchBadge } from '@/components/ui/StitchBadge';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import DeleteConfirmDialog from '@/components/quotation/DeleteConfirmDialog';
 import {
   Plus,
@@ -67,14 +67,6 @@ const STATUS_LABELS: Record<string, string> = {
   EXPIRED: '만료',
 };
 
-// 상태 색상 매핑
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-700',
-  SENT: 'bg-blue-100 text-blue-700',
-  ACCEPTED: 'bg-green-100 text-green-700',
-  REJECTED: 'bg-red-100 text-red-700',
-  EXPIRED: 'bg-yellow-100 text-yellow-700',
-};
 
 function QuotationsContent() {
   const searchParams = useSearchParams();
@@ -260,7 +252,8 @@ function QuotationsContent() {
 
   return (
     <div>
-      <PageHeader
+      <StitchPageHeader
+        label="QUOTATIONS"
         title={getPageTitle()}
         description="작성된 견적서를 관리합니다"
         actions={
@@ -268,7 +261,7 @@ function QuotationsContent() {
             <div className="hidden sm:block">
               <ExcelImportExport defaultType="quotations" onImportSuccess={loadQuotations} />
             </div>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold text-white">
               <Link href="/quotations/new">
                 <Plus className="w-4 h-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">새 견적서 작성</span>
@@ -279,13 +272,12 @@ function QuotationsContent() {
         }
       />
 
-      <Card>
-        <CardContent className="pt-6">
+      <StitchCard variant="surface-low" padding="lg">
           {/* 필터 */}
           <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mb-6">
             <div className="flex gap-2">
               <Select value={typeFilter} onValueChange={(v) => updateFilter('type', v)}>
-                <SelectTrigger className="w-full sm:w-36">
+                <SelectTrigger className="w-full sm:w-36 bg-white rounded-xl">
                   <SelectValue placeholder="유형" />
                 </SelectTrigger>
                 <SelectContent>
@@ -297,7 +289,7 @@ function QuotationsContent() {
               </Select>
 
               <Select value={statusFilter} onValueChange={(v) => updateFilter('status', v)}>
-                <SelectTrigger className="w-full sm:w-32">
+                <SelectTrigger className="w-full sm:w-32 bg-white rounded-xl">
                   <SelectValue placeholder="상태" />
                 </SelectTrigger>
                 <SelectContent>
@@ -317,7 +309,7 @@ function QuotationsContent() {
                 placeholder="견적번호, 고객사, 프로젝트 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                className="pl-9 bg-white rounded-xl focus:ring-2 focus:ring-primary/40"
               />
             </div>
 
@@ -353,8 +345,7 @@ function QuotationsContent() {
                 const detailPath = `/quotations/${quotation.id}`;
                 return (
                   <Link key={quotation.id} href={detailPath} className="block">
-                    <Card className="touch-manipulation active:bg-muted/50 transition-colors">
-                      <CardContent className="p-4">
+                    <StitchCard variant="elevated" hover padding="sm">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             {quotation.quotationType === 'EFFICACY' ? (
@@ -364,22 +355,21 @@ function QuotationsContent() {
                             ) : (
                               <FlaskConical className="w-4 h-4 text-blue-500" />
                             )}
-                            <span className="text-xs font-mono text-muted-foreground">
+                            <span className="text-xs font-mono text-slate-500">
                               {quotation.quotationNumber}
                             </span>
                           </div>
-                          <Badge className={STATUS_COLORS[quotation.status] || ''} variant="secondary">
+                          <StitchBadge status={quotation.status}>
                             {STATUS_LABELS[quotation.status] || quotation.status}
-                          </Badge>
+                          </StitchBadge>
                         </div>
-                        <div className="font-medium text-sm mb-1 truncate">{quotation.customerName}</div>
-                        <div className="text-xs text-muted-foreground truncate mb-3">{quotation.projectName}</div>
+                        <div className="font-bold text-sm mb-1 truncate">{quotation.customerName}</div>
+                        <div className="text-xs text-slate-500 truncate mb-3">{quotation.projectName}</div>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">{formatDate(quotation.createdAt)}</span>
-                          <span className="font-semibold">{formatCurrency(quotation.totalAmount)}</span>
+                          <span className="text-slate-500">{formatDate(quotation.createdAt)}</span>
+                          <span className="font-bold">{formatCurrency(quotation.totalAmount)}</span>
                         </div>
-                      </CardContent>
-                    </Card>
+                    </StitchCard>
                   </Link>
                 );
               })
@@ -387,44 +377,44 @@ function QuotationsContent() {
           </div>
 
           {/* 데스크톱: 테이블 */}
-          <div className="hidden md:block rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>유형</TableHead>
-                  <TableHead>견적번호</TableHead>
-                  <TableHead>고객사</TableHead>
-                  <TableHead>프로젝트</TableHead>
-                  <TableHead>모달리티/모델</TableHead>
-                  <TableHead>상태</TableHead>
-                  <TableHead className="text-right">금액</TableHead>
-                  <TableHead>작성일</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <div className="hidden md:block">
+            <StitchTable>
+              <StitchTableHeader>
+                <StitchTableRow>
+                  <StitchTableHead>유형</StitchTableHead>
+                  <StitchTableHead>견적번호</StitchTableHead>
+                  <StitchTableHead>고객사</StitchTableHead>
+                  <StitchTableHead>프로젝트</StitchTableHead>
+                  <StitchTableHead>모달리티/모델</StitchTableHead>
+                  <StitchTableHead>상태</StitchTableHead>
+                  <StitchTableHead className="text-right">금액</StitchTableHead>
+                  <StitchTableHead>작성일</StitchTableHead>
+                  <StitchTableHead className="w-12"></StitchTableHead>
+                </StitchTableRow>
+              </StitchTableHeader>
+              <StitchTableBody>
                 {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-gray-400" />
-                    </TableCell>
-                  </TableRow>
+                  <StitchTableRow>
+                    <StitchTableCell colSpan={9} className="text-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-400" />
+                    </StitchTableCell>
+                  </StitchTableRow>
                 ) : quotations.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                  <StitchTableRow>
+                    <StitchTableCell colSpan={9} className="text-center py-8 text-slate-500">
                       {searchQuery || statusFilter !== 'all' || typeFilter !== 'all'
                         ? '검색 결과가 없습니다.'
                         : '저장된 견적서가 없습니다. 새 견적서를 작성해보세요.'}
-                    </TableCell>
-                  </TableRow>
+                    </StitchTableCell>
+                  </StitchTableRow>
                 ) : (
                   quotations.map((quotation) => {
                     const detailPath = `/quotations/${quotation.id}`;
                     const editPath = `/quotations/${quotation.id}/edit`;
 
                     return (
-                      <TableRow key={quotation.id}>
-                        <TableCell>
+                      <StitchTableRow key={quotation.id}>
+                        <StitchTableCell>
                           <div className="flex items-center gap-1.5">
                             {quotation.quotationType === 'EFFICACY' ? (
                               <Microscope className="w-4 h-4 text-emerald-500" />
@@ -433,7 +423,7 @@ function QuotationsContent() {
                             ) : (
                               <FlaskConical className="w-4 h-4 text-blue-500" />
                             )}
-                            <span className={`text-xs font-medium ${
+                            <span className={`text-xs font-bold ${
                               quotation.quotationType === 'EFFICACY' 
                                 ? 'text-emerald-600' 
                                 : quotation.quotationType === 'CLINICAL_PATHOLOGY'
@@ -447,30 +437,30 @@ function QuotationsContent() {
                                   : '독성'}
                             </span>
                           </div>
-                        </TableCell>
-                        <TableCell>
+                        </StitchTableCell>
+                        <StitchTableCell>
                           <Link
                             href={detailPath}
-                            className="font-medium text-primary hover:underline font-mono text-sm"
+                            className="font-bold text-primary hover:underline font-mono text-sm"
                           >
                             {quotation.quotationNumber}
                           </Link>
-                        </TableCell>
-                        <TableCell>{quotation.customerName}</TableCell>
-                        <TableCell>{quotation.projectName}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{quotation.modality || '-'}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={STATUS_COLORS[quotation.status] || ''}>
+                        </StitchTableCell>
+                        <StitchTableCell>{quotation.customerName}</StitchTableCell>
+                        <StitchTableCell>{quotation.projectName}</StitchTableCell>
+                        <StitchTableCell>
+                          <StitchBadge variant="neutral">{quotation.modality || '-'}</StitchBadge>
+                        </StitchTableCell>
+                        <StitchTableCell>
+                          <StitchBadge status={quotation.status}>
                             {STATUS_LABELS[quotation.status] || quotation.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
+                          </StitchBadge>
+                        </StitchTableCell>
+                        <StitchTableCell className="text-right font-bold">
                           {formatCurrency(quotation.totalAmount)}
-                        </TableCell>
-                        <TableCell>{formatDate(quotation.createdAt)}</TableCell>
-                        <TableCell>
+                        </StitchTableCell>
+                        <StitchTableCell>{formatDate(quotation.createdAt)}</StitchTableCell>
+                        <StitchTableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon">
@@ -502,13 +492,13 @@ function QuotationsContent() {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
+                        </StitchTableCell>
+                      </StitchTableRow>
                     );
                   })
                 )}
-              </TableBody>
-            </Table>
+              </StitchTableBody>
+            </StitchTable>
           </div>
 
           {/* 페이지네이션 */}
@@ -538,8 +528,7 @@ function QuotationsContent() {
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </StitchCard>
 
       {/* 삭제 확인 Dialog */}
       <DeleteConfirmDialog

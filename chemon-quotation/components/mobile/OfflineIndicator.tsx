@@ -83,21 +83,21 @@ export function OfflineIndicator({ className }: OfflineIndicatorProps) {
   return (
     <div
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        !isOnline ? 'bg-yellow-500 text-yellow-950' : 
-        syncResult ? (syncResult.failed > 0 ? 'bg-orange-500 text-orange-950' : 'bg-green-500 text-green-950') :
-        'bg-blue-500 text-blue-950',
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-xl',
+        !isOnline ? 'bg-amber-50/90 text-amber-800' : 
+        syncResult ? (syncResult.failed > 0 ? 'bg-orange-50/90 text-orange-800' : 'bg-emerald-50/90 text-emerald-800') :
+        'bg-blue-50/90 text-blue-800',
         className
       )}
     >
-      <div className="flex items-center justify-between px-4 py-2 text-sm font-medium">
+      <div className="flex items-center justify-between px-4 py-2 text-sm font-bold">
         <div className="flex items-center gap-2">
           {!isOnline ? (
             <>
               <WifiOff className="h-4 w-4" />
               <span>오프라인 모드</span>
               {pendingCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-yellow-600/20 text-xs">
+                <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-700">
                   {pendingCount}개 대기 중
                 </span>
               )}
@@ -128,7 +128,7 @@ export function OfflineIndicator({ className }: OfflineIndicatorProps) {
             size="sm"
             onClick={handleSync}
             disabled={isSyncing}
-            className="h-7 px-2 text-xs hover:bg-white/20"
+            className="h-7 px-2 text-xs rounded-xl hover:bg-white/40"
           >
             {isSyncing ? (
               <RefreshCw className="h-3 w-3 animate-spin" />

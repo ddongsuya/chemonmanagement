@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Skeleton from '@/components/ui/Skeleton';
@@ -75,29 +74,27 @@ export default function InvoiceScheduleTab({ customerId }: InvoiceScheduleTabPro
       {schedules.map(s => {
         const status = STATUS_CONFIG[s.status] || STATUS_CONFIG.pending;
         return (
-          <Card key={s.id}>
-            <CardContent className="p-4">
+          <div key={s.id} className="bg-[#FAF2E9] rounded-xl p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium">{formatAmount(s.amount)}</p>
                     <Badge variant={status.variant}>{status.label}</Badge>
                     {s.payment_type === 'partial' && s.installment_number && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-slate-500">
                         ({s.installment_number}/{s.total_installments}회차)
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
+                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
                     <span>예정: {new Date(s.scheduled_date).toLocaleDateString('ko-KR')}</span>
                     {s.issued_date && <span>발행: {new Date(s.issued_date).toLocaleDateString('ko-KR')}</span>}
                     {s.invoice_number && <span>번호: {s.invoice_number}</span>}
                   </div>
-                  {s.notes && <p className="text-xs text-muted-foreground mt-1">{s.notes}</p>}
+                  {s.notes && <p className="text-xs text-slate-500 mt-1">{s.notes}</p>}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </div>
         );
       })}
     </div>

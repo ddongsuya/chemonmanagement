@@ -58,10 +58,10 @@ export default function PreviewPanel() {
             <div className="flex-1" onClick={() => setMobileOpen(false)} />
 
             {/* 패널 */}
-            <div className="bg-white rounded-t-xl max-h-[85vh] flex flex-col shadow-xl">
+            <div className="bg-white rounded-t-xl max-h-[85vh] flex flex-col shadow-ambient">
               {/* 헤더 */}
-              <div className="flex items-center justify-between px-4 py-3 border-b">
-                <span className="font-semibold text-sm">미리보기</span>
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">미리보기</span>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={handlePrint}>
                     인쇄
@@ -86,10 +86,10 @@ export default function PreviewPanel() {
 
   // 데스크톱: 우측 패널
   return (
-    <div className="flex flex-col h-full border-l border-gray-200 bg-gray-50">
+    <div className="flex flex-col h-full bg-[#FAF2E9]">
       {/* 헤더 */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
-        <span className="font-semibold text-sm">미리보기</span>
+      <div className="flex items-center justify-between px-4 py-3 bg-white rounded-xl m-2">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">미리보기</span>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handlePrint}>
             인쇄

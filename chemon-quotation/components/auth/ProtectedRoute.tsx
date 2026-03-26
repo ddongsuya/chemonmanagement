@@ -56,8 +56,11 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
 
   if (isLoading && !timedOut) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#FFF8F1]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#EFE7DD] border-t-primary"></div>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Loading</p>
+        </div>
       </div>
     );
   }

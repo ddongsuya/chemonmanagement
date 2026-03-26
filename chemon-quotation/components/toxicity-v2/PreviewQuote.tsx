@@ -64,31 +64,31 @@ export default function PreviewQuote() {
   } = useToxicityV2Store();
 
   return (
-    <div className="w-full max-w-[210mm] mx-auto bg-white border border-gray-200 shadow-sm p-4 sm:p-8 print:border-none print:shadow-none">
+    <div className="w-full max-w-[210mm] mx-auto bg-white rounded-xl shadow-ambient p-4 sm:p-8 print:rounded-none print:shadow-none">
       {/* 헤더 */}
-      <h2 className="text-lg sm:text-xl font-bold text-center mb-1">견 적 서</h2>
+      <h2 className="text-lg sm:text-xl font-bold text-center mb-1 text-slate-900">견 적 서</h2>
       {mode === 'drug_combo' && (
-        <p className="text-sm text-center text-gray-500 mb-4">
+        <p className="text-sm text-center text-slate-500 mb-4">
           복합제 {comboLabel(comboType)}
         </p>
       )}
 
       {/* 견적서 테이블 */}
       <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-        <table className="w-full border-collapse text-xs sm:text-sm mt-4 min-w-[420px]">
+        <table className="w-full text-xs sm:text-sm mt-4 min-w-[420px]">
           <thead>
-            <tr className="bg-gray-100 border-y border-gray-300">
-              <th className="py-2 px-1.5 sm:px-2 text-center w-10 sm:w-12">번호</th>
-              <th className="py-2 px-2 sm:px-3 text-left">시험명</th>
-              <th className="py-2 px-1.5 sm:px-2 text-center w-16 sm:w-24">동물종</th>
-              <th className="py-2 px-1.5 sm:px-2 text-center w-14 sm:w-20">기간</th>
-              <th className="py-2 px-2 sm:px-3 text-right w-24 sm:w-32 whitespace-nowrap">금액</th>
+            <tr className="bg-[#FAF2E9]">
+              <th className="py-2 px-1.5 sm:px-2 text-center w-10 sm:w-12 text-[11px] font-bold uppercase tracking-widest text-slate-400">번호</th>
+              <th className="py-2 px-2 sm:px-3 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400">시험명</th>
+              <th className="py-2 px-1.5 sm:px-2 text-center w-16 sm:w-24 text-[11px] font-bold uppercase tracking-widest text-slate-400">동물종</th>
+              <th className="py-2 px-1.5 sm:px-2 text-center w-14 sm:w-20 text-[11px] font-bold uppercase tracking-widest text-slate-400">기간</th>
+              <th className="py-2 px-2 sm:px-3 text-right w-24 sm:w-32 whitespace-nowrap text-[11px] font-bold uppercase tracking-widest text-slate-400">금액</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
           {selectedTests.length === 0 ? (
             <tr>
-              <td colSpan={5} className="py-8 text-center text-gray-400">
+              <td colSpan={5} className="py-8 text-center text-slate-400">
                 선택된 시험 항목이 없습니다
               </td>
             </tr>
@@ -96,14 +96,14 @@ export default function PreviewQuote() {
             selectedTests.map((test, idx) => {
               const info = lookupItemInfo(test.itemId, mode);
               return (
-                <tr key={test.id} className="border-b border-gray-200">
-                  <td className="py-2 px-1.5 sm:px-2 text-center text-gray-600">{idx + 1}</td>
+                <tr key={test.id} className="hover:bg-[#FFF8F1] transition-colors">
+                  <td className="py-2 px-1.5 sm:px-2 text-center text-slate-600">{idx + 1}</td>
                   <td className="py-2 px-2 sm:px-3">
-                    {test.isOption && <span className="text-xs text-gray-400 mr-1">└</span>}
+                    {test.isOption && <span className="text-xs text-slate-400 mr-1">└</span>}
                     {test.customName || test.name}
                   </td>
-                  <td className="py-2 px-1.5 sm:px-2 text-center text-gray-600">{info.species}</td>
-                  <td className="py-2 px-1.5 sm:px-2 text-center text-gray-600">{info.duration}</td>
+                  <td className="py-2 px-1.5 sm:px-2 text-center text-slate-600">{info.species}</td>
+                  <td className="py-2 px-1.5 sm:px-2 text-center text-slate-600">{info.duration}</td>
                   <td className="py-2 px-2 sm:px-3 text-right font-mono whitespace-nowrap">
                     {(test.customPrice ?? test.price) > 0 ? formatKRW(test.customPrice ?? test.price) : '별도 협의'}
                   </td>
@@ -117,7 +117,7 @@ export default function PreviewQuote() {
 
       {/* 요약 */}
       {selectedTests.length > 0 && (
-        <div className="mt-6 border-t border-gray-300 pt-4 space-y-2 text-sm">
+        <div className="mt-6 pt-4 space-y-2 text-sm">
           <SummaryRow label="시험비 소계" value={formatKRW(subtotalTest)} />
           {formulationCost > 0 && (
             <SummaryRow label="조제물분석비" value={formatKRW(formulationCost)} />
@@ -129,7 +129,7 @@ export default function PreviewQuote() {
               className="text-red-600"
             />
           )}
-          <div className="border-t border-gray-300 pt-2 mt-2">
+          <div className="pt-2 mt-2">
             <SummaryRow label="최종 합계" value={formatKRW(totalAmount)} bold />
           </div>
         </div>
@@ -152,7 +152,7 @@ function SummaryRow({
 }) {
   return (
     <div className={`flex justify-between ${className ?? ''}`}>
-      <span className={bold ? 'font-bold' : 'text-gray-600'}>{label}</span>
+      <span className={bold ? 'font-bold' : 'text-slate-600'}>{label}</span>
       <span className={`font-mono ${bold ? 'font-bold text-lg' : ''}`}>{value}</span>
     </div>
   );

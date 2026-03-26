@@ -79,18 +79,18 @@ export default function InlineMeetingForm({ customerId, requesterId, onSuccess }
       <DialogTrigger asChild>
         <Button size="sm"><Plus className="w-4 h-4 mr-1" />미팅 추가</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-[#E9E1D8] rounded-xl">
         <DialogHeader><DialogTitle>미팅 기록 추가</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <Label className="text-xs">제목 *</Label>
-            <Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="미팅 제목" />
+            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">제목 *</Label>
+            <Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="미팅 제목" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">유형</Label>
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">유형</Label>
               <Select value={form.type} onValueChange={v => setForm(p => ({ ...p, type: v as any }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="meeting">미팅</SelectItem>
                   <SelectItem value="call">통화</SelectItem>
@@ -100,31 +100,31 @@ export default function InlineMeetingForm({ customerId, requesterId, onSuccess }
               </Select>
             </div>
             <div>
-              <Label className="text-xs">날짜 *</Label>
-              <Input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} />
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">날짜 *</Label>
+              <Input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">시간</Label>
-              <Input type="time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))} />
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">시간</Label>
+              <Input type="time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
             <div>
-              <Label className="text-xs">소요시간 (분)</Label>
-              <Input type="number" value={form.duration} onChange={e => setForm(p => ({ ...p, duration: e.target.value }))} placeholder="60" />
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">소요시간 (분)</Label>
+              <Input type="number" value={form.duration} onChange={e => setForm(p => ({ ...p, duration: e.target.value }))} placeholder="60" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
           </div>
           <div>
-            <Label className="text-xs">참석자 (쉼표 구분)</Label>
-            <Input value={form.attendees} onChange={e => setForm(p => ({ ...p, attendees: e.target.value }))} placeholder="홍길동, 김철수" />
+            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">참석자 (쉼표 구분)</Label>
+            <Input value={form.attendees} onChange={e => setForm(p => ({ ...p, attendees: e.target.value }))} placeholder="홍길동, 김철수" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           </div>
           <div>
-            <Label className="text-xs">내용</Label>
-            <Textarea value={form.content} onChange={e => setForm(p => ({ ...p, content: e.target.value }))} rows={3} />
+            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">내용</Label>
+            <Textarea value={form.content} onChange={e => setForm(p => ({ ...p, content: e.target.value }))} rows={3} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           </div>
           <div>
-            <Label className="text-xs">후속 조치</Label>
-            <Input value={form.follow_up_actions} onChange={e => setForm(p => ({ ...p, follow_up_actions: e.target.value }))} />
+            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">후속 조치</Label>
+            <Input value={form.follow_up_actions} onChange={e => setForm(p => ({ ...p, follow_up_actions: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           </div>
           <Button type="submit" className="w-full" disabled={saving}>
             {saving ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />저장 중...</> : '저장'}

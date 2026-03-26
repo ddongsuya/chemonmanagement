@@ -73,18 +73,18 @@ export default function InlineConsultationForm({ customerId, onSuccess }: Inline
       <DialogTrigger asChild>
         <Button size="sm"><Plus className="w-4 h-4 mr-1" />상담 추가</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-[#E9E1D8] rounded-xl">
         <DialogHeader><DialogTitle>상담기록 추가</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <Label className="text-xs">제목 *</Label>
-            <Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="상담 제목" />
+            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">제목 *</Label>
+            <Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="상담 제목" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">유형</Label>
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">유형</Label>
               <Select value={form.type} onValueChange={v => setForm(p => ({ ...p, type: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="phone">전화</SelectItem>
                   <SelectItem value="email">이메일</SelectItem>
@@ -94,21 +94,21 @@ export default function InlineConsultationForm({ customerId, onSuccess }: Inline
               </Select>
             </div>
             <div>
-              <Label className="text-xs">날짜</Label>
-              <Input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} />
+              <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">날짜</Label>
+              <Input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
           </div>
           <div>
-            <Label className="text-xs">내용</Label>
-            <Textarea value={form.content} onChange={e => setForm(p => ({ ...p, content: e.target.value }))} rows={3} />
+            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">내용</Label>
+            <Textarea value={form.content} onChange={e => setForm(p => ({ ...p, content: e.target.value }))} rows={3} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           </div>
           <div>
-            <Label className="text-xs">결과</Label>
-            <Input value={form.result} onChange={e => setForm(p => ({ ...p, result: e.target.value }))} />
+            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">결과</Label>
+            <Input value={form.result} onChange={e => setForm(p => ({ ...p, result: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           </div>
           <div>
-            <Label className="text-xs">후속 조치</Label>
-            <Input value={form.nextAction} onChange={e => setForm(p => ({ ...p, nextAction: e.target.value }))} />
+            <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">후속 조치</Label>
+            <Input value={form.nextAction} onChange={e => setForm(p => ({ ...p, nextAction: e.target.value }))} className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
           </div>
           <Button type="submit" className="w-full" disabled={saving}>
             {saving ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />저장 중...</> : '저장'}

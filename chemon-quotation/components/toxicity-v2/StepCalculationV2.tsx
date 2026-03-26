@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useToxicityV2Store } from '@/stores/toxicityV2Store';
 import { useQuotationStore } from '@/stores/quotationStore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -129,11 +129,8 @@ export default function StepCalculationV2() {
   return (
     <div className="space-y-6">
       {/* 견적 상세 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>견적 상세</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <StitchCard variant="surface-low">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">견적 상세</h3>
           <div className="overflow-x-auto -mx-6 px-6">
             <Table className="min-w-[520px]">
               <TableHeader>
@@ -175,7 +172,7 @@ export default function StepCalculationV2() {
                       )}
                     </TableCell>
                     <TableCell>{test.isOption ? '' : idx + 1}</TableCell>
-                    <TableCell className={test.isOption ? 'pl-8 text-gray-600' : ''}>
+                    <TableCell className={test.isOption ? 'pl-8 text-slate-600' : ''}>
                       {editingId === test.id && editField === 'name' ? (
                         <Input
                           autoFocus
@@ -195,15 +192,15 @@ export default function StepCalculationV2() {
                             startEdit(test.id, 'name', test.customName || test.name)
                           }
                         >
-                          {test.isOption && <span className="text-gray-400 mr-1">└</span>}
+                          {test.isOption && <span className="text-slate-400 mr-1">└</span>}
                           <span className={test.customName ? 'text-blue-600' : ''}>
                             {test.customName || test.name}
                           </span>
-                          <Pencil className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <Pencil className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-center text-sm text-gray-600">
+                    <TableCell className="text-center text-sm text-slate-600">
                       {test.category}
                     </TableCell>
                     <TableCell className="text-right font-mono whitespace-nowrap">
@@ -228,7 +225,7 @@ export default function StepCalculationV2() {
                             startEdit(test.id, 'price', String(effectivePrice));
                           }}
                         >
-                          <Pencil className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <Pencil className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                           {(test.customPrice ?? test.price) > 0
                             ? formatKRW(test.customPrice ?? test.price)
                             : '별도 협의'}
@@ -237,7 +234,7 @@ export default function StepCalculationV2() {
                     </TableCell>
                   </TableRow>
                 ))}
-                <TableRow className="bg-gray-50 font-semibold">
+                <TableRow className="bg-[#FAF2E9] font-semibold">
                   <TableCell colSpan={4} className="text-right">
                     시험비용 소계
                   </TableCell>
@@ -248,45 +245,42 @@ export default function StepCalculationV2() {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
+      </StitchCard>
 
       {/* 조제물분석 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
+      <StitchCard variant="surface-low">
+        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4">
+            <Calculator className="w-5 h-5 text-primary" />
             조제물분석 (자동계산)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </h3>
+        <div className="space-y-4">
           {mode === 'drug_single' && (
             <>
               {/* Validation (in vivo / in vitro) */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[#F5EDE3]">
                   <div className="flex items-center gap-2">
                     {formCost.assayBase >= 10_000_000 ? (
                       <Check className="w-4 h-4 text-green-600" />
                     ) : (
-                      <X className="w-4 h-4 text-gray-300" />
+                      <X className="w-4 h-4 text-slate-300" />
                     )}
                     <span>Validation (in vivo)</span>
                   </div>
-                  <span className={formCost.assayBase >= 10_000_000 ? 'font-medium' : 'text-gray-400'}>
+                  <span className={formCost.assayBase >= 10_000_000 ? 'font-medium' : 'text-slate-400'}>
                     {formatKRW(selectedTests.some((t) => IM_MAPPING[t.itemId]?.[0] === 1) ? 10_000_000 : 0)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[#F5EDE3]">
                   <div className="flex items-center gap-2">
                     {selectedTests.some((t) => IM_MAPPING[t.itemId]?.[0] === 2) ? (
                       <Check className="w-4 h-4 text-green-600" />
                     ) : (
-                      <X className="w-4 h-4 text-gray-300" />
+                      <X className="w-4 h-4 text-slate-300" />
                     )}
                     <span>Validation (in vitro)</span>
                   </div>
-                  <span className={selectedTests.some((t) => IM_MAPPING[t.itemId]?.[0] === 2) ? 'font-medium' : 'text-gray-400'}>
+                  <span className={selectedTests.some((t) => IM_MAPPING[t.itemId]?.[0] === 2) ? 'font-medium' : 'text-slate-400'}>
                     {formatKRW(selectedTests.some((t) => IM_MAPPING[t.itemId]?.[0] === 2) ? 10_000_000 : 0)}
                   </span>
                 </div>
@@ -299,7 +293,7 @@ export default function StepCalculationV2() {
                 <h4 className="font-medium mb-2">
                   함량분석 내역 ({contentItems.reduce((s, c) => s + c.count, 0)}회)
                 </h4>
-                <div className="space-y-1 text-sm text-gray-600">
+                <div className="space-y-1 text-sm text-slate-600">
                   {contentItems.length > 0 ? (
                     contentItems.map((ci) => (
                       <div key={ci.id} className="flex justify-between">
@@ -310,7 +304,7 @@ export default function StepCalculationV2() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-400">함량분석 대상 시험이 없습니다.</p>
+                    <p className="text-slate-400">함량분석 대상 시험이 없습니다.</p>
                   )}
                 </div>
               </div>
@@ -319,16 +313,16 @@ export default function StepCalculationV2() {
 
           {/* 건기식 모드 */}
           {(mode === 'hf_indv' || mode === 'hf_prob' || mode === 'hf_temp') && (
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#F5EDE3]">
               <div className="flex items-center gap-2">
                 {formCost.hfFormulation > 0 ? (
                   <Check className="w-4 h-4 text-green-600" />
                 ) : (
-                  <X className="w-4 h-4 text-gray-300" />
+                  <X className="w-4 h-4 text-slate-300" />
                 )}
                 <span>건기식 조제물분석비</span>
               </div>
-              <span className={formCost.hfFormulation > 0 ? 'font-medium' : 'text-gray-400'}>
+              <span className={formCost.hfFormulation > 0 ? 'font-medium' : 'text-slate-400'}>
                 {formatKRW(formCost.hfFormulation)}
               </span>
             </div>
@@ -336,7 +330,7 @@ export default function StepCalculationV2() {
 
           {/* 복합제/백신/스크리닝/의료기기: 조제물분석 없음 */}
           {mode && !['drug_single', 'hf_indv', 'hf_prob', 'hf_temp'].includes(mode) && (
-            <p className="text-gray-400 text-sm">해당 모드에서는 조제물분석이 적용되지 않습니다.</p>
+            <p className="text-slate-400 text-sm">해당 모드에서는 조제물분석이 적용되지 않습니다.</p>
           )}
 
           <Separator />
@@ -346,18 +340,15 @@ export default function StepCalculationV2() {
             <span>조제물분석 소계</span>
             <span className="text-primary">{formatKRW(formulationCost)}</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
 
       {/* 할인 적용 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>할인 적용</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <StitchCard variant="surface-low">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">할인 적용</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>할인율 (%)</Label>
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">할인율 (%)</label>
               <Input
                 type="number"
                 min="0"
@@ -365,26 +356,26 @@ export default function StepCalculationV2() {
                 value={discountRate}
                 onChange={(e) => setDiscountRate(Number(e.target.value))}
                 placeholder="0"
+                className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
               />
             </div>
             <div className="space-y-2">
-              <Label>할인 사유 (선택)</Label>
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">할인 사유 (선택)</label>
               <Input
                 value={discountReason}
                 onChange={(e) => setDiscountReason(e.target.value)}
                 placeholder="예: 장기 거래 고객"
+                className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
               />
             </div>
           </div>
-        </CardContent>
-      </Card>
+      </StitchCard>
 
       {/* 최종 금액 */}
-      <Card className="border-primary">
-        <CardHeader className="bg-primary/5">
-          <CardTitle>최종 견적 금액</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
+      <StitchCard variant="surface-container">
+        <div className="bg-primary/5 rounded-xl p-4 mb-4">
+          <h3 className="text-lg font-bold text-slate-900">최종 견적 금액</h3>
+        </div>
           <div className="space-y-3">
             <div className="flex justify-between">
               <span>시험비용</span>
@@ -412,10 +403,9 @@ export default function StepCalculationV2() {
               <span>최종 견적금액</span>
               <span className="text-primary">{formatKRW(totalAmount)}</span>
             </div>
-            <p className="text-sm text-gray-500 text-right">* 부가가치세 별도</p>
+            <p className="text-sm text-slate-500 text-right">* 부가가치세 별도</p>
           </div>
-        </CardContent>
-      </Card>
+      </StitchCard>
 
       {/* 버튼 */}
       <div className="flex justify-between">

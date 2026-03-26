@@ -94,8 +94,8 @@ export default function CustomerSummaryHeader({
 
   return (
     <div className={cn(
-      'bg-card border rounded-lg p-4 sm:p-6 mb-6',
-      isVIP && 'border-yellow-400/50 ring-1 ring-yellow-400/20'
+      'bg-[#FAF2E9] rounded-xl p-4 sm:p-6 mb-6',
+      isVIP && 'ring-1 ring-yellow-400/20'
     )}>
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         {/* 좌측: 기본 정보 */}
@@ -106,12 +106,12 @@ export default function CustomerSummaryHeader({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <Building2 className="w-5 h-5 text-muted-foreground shrink-0" />
-              <h1 className="text-xl font-bold truncate">
+              <h1 className="text-xl font-extrabold tracking-tight truncate">
                 {customer.company || customer.name}
               </h1>
-              {isVIP && <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">VIP</span>}
+              {isVIP && <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-yellow-700">VIP</span>}
               <Select value={customer.grade || 'LEAD'} onValueChange={onGradeChange} disabled={gradeUpdating}>
-                <SelectTrigger className="w-[120px] h-8 text-sm">
+                <SelectTrigger className="w-[120px] h-8 text-sm bg-white border-none rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -121,7 +121,7 @@ export default function CustomerSummaryHeader({
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-4 mt-1.5 text-sm text-muted-foreground flex-wrap">
+            <div className="flex items-center gap-4 mt-1.5 text-sm text-slate-500 flex-wrap">
               <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" />{customer.name}</span>
               {customer.phone && (
                 <a href={`tel:${customer.phone}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
@@ -175,7 +175,7 @@ export default function CustomerSummaryHeader({
       </div>
 
       {/* 모바일: 점수 게이지 */}
-      <div className="flex sm:hidden items-center gap-3 mt-3 pt-3 border-t justify-center">
+      <div className="flex sm:hidden items-center gap-3 mt-3 pt-3 justify-center">
         {healthScore != null && (
           <MiniGauge value={healthScore} label="건강도" color={healthScore >= 70 ? '#10B981' : healthScore >= 40 ? '#F59E0B' : '#EF4444'} />
         )}

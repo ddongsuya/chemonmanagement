@@ -32,8 +32,8 @@ export default function PriceOptionBar() {
       <div className="flex flex-wrap items-center gap-4">
         {/* 투여 경로 선택 (Req 3.1) */}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium whitespace-nowrap">투여 경로</span>
-          <div className="flex rounded-md border overflow-x-auto">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 whitespace-nowrap">투여 경로</span>
+          <div className="flex rounded-xl overflow-x-auto bg-[#FAF2E9]">
             {([
               { value: 'oral', label: '경구' },
               { value: 'iv', label: '정맥' },
@@ -62,12 +62,12 @@ export default function PriceOptionBar() {
 
         {/* 시험 기준 선택 (Req 4.1) */}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium whitespace-nowrap">시험 기준</span>
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 whitespace-nowrap">시험 기준</span>
           <Select
             value={standard}
             onValueChange={(v) => setStandard(v as StandardType)}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[160px] bg-white border-none rounded-xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -84,8 +84,8 @@ export default function PriceOptionBar() {
     return (
       <div className="flex items-center gap-4">
         {/* 복합제 종수 선택 (Req 5.1) */}
-        <span className="text-sm font-medium whitespace-nowrap">복합제 종수</span>
-        <div className="flex rounded-md border">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 whitespace-nowrap">복합제 종수</span>
+        <div className="flex rounded-xl bg-[#FAF2E9]">
           {([2, 3, 4] as const).map((n, i) => (
             <Button
               key={n}

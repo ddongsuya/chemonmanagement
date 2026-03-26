@@ -1,19 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { StitchBadge } from '@/components/ui/StitchBadge';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
+import { StitchCard } from '@/components/ui/StitchCard';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  StitchTable,
+  StitchTableHeader,
+  StitchTableBody,
+  StitchTableRow,
+  StitchTableHead,
+  StitchTableCell,
+} from '@/components/ui/StitchTable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, RefreshCw } from 'lucide-react';
 import { getTestItems, getQcSettings, updateQcSettings, toggleTestItemActive } from '@/lib/clinical-pathology-api';
@@ -95,10 +94,11 @@ export default function ClinicalPathologySettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">임상병리검사 설정</h1>
-        <p className="text-muted-foreground">검사항목 및 QC 비용 설정 관리</p>
-      </div>
+      <StitchPageHeader
+        title="임상병리검사 설정"
+        label="SETTINGS"
+        description="검사항목 및 QC 비용 설정 관리"
+      />
 
       <Tabs defaultValue="test-items">
         <TabsList>
@@ -107,55 +107,55 @@ export default function ClinicalPathologySettingsPage() {
         </TabsList>
 
         <TabsContent value="test-items" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>검사항목 목록</CardTitle>
-              <CardDescription>
+          <StitchCard variant="surface-low" padding="lg">
+            <div className="mb-2">
+              <h3 className="text-xl font-bold">검사항목 목록</h3>
+              <p className="text-sm text-slate-500 mt-1">
                 검사항목의 활성화/비활성화 상태를 관리합니다. 비활성화된 항목은 견적서 작성 시 표시되지 않습니다.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>코드</TableHead>
-                    <TableHead>검사명</TableHead>
-                    <TableHead>카테고리</TableHead>
-                    <TableHead className="text-right">단가</TableHead>
-                    <TableHead>패키지</TableHead>
-                    <TableHead>상태</TableHead>
-                    <TableHead className="w-[100px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              </p>
+            </div>
+            <div className="mt-6">
+              <StitchTable>
+                <StitchTableHeader>
+                  <StitchTableRow>
+                    <StitchTableHead>코드</StitchTableHead>
+                    <StitchTableHead>검사명</StitchTableHead>
+                    <StitchTableHead>카테고리</StitchTableHead>
+                    <StitchTableHead className="text-right">단가</StitchTableHead>
+                    <StitchTableHead>패키지</StitchTableHead>
+                    <StitchTableHead>상태</StitchTableHead>
+                    <StitchTableHead className="w-[100px]"></StitchTableHead>
+                  </StitchTableRow>
+                </StitchTableHeader>
+                <StitchTableBody>
                   {testItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-mono">{item.code}</TableCell>
-                      <TableCell>
+                    <StitchTableRow key={item.id}>
+                      <StitchTableCell className="font-mono text-primary">{item.code}</StitchTableCell>
+                      <StitchTableCell>
                         <div>
-                          <p className="font-medium">{item.nameKr}</p>
-                          <p className="text-xs text-muted-foreground">{item.nameEn}</p>
+                          <p className="font-bold text-slate-900">{item.nameKr}</p>
+                          <p className="text-xs text-slate-500">{item.nameEn}</p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
+                      </StitchTableCell>
+                      <StitchTableCell>
+                        <StitchBadge variant="neutral">
                           {CATEGORY_LABELS[item.category]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
-                      <TableCell>
+                        </StitchBadge>
+                      </StitchTableCell>
+                      <StitchTableCell className="text-right font-bold text-slate-900">{formatCurrency(item.unitPrice)}</StitchTableCell>
+                      <StitchTableCell>
                         {item.isPackage ? (
-                          <Badge variant="secondary">패키지</Badge>
+                          <StitchBadge variant="primary">패키지</StitchBadge>
                         ) : (
-                          <span className="text-muted-foreground">-</span>
+                          <span className="text-slate-400">-</span>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={item.isActive ? 'default' : 'secondary'}>
+                      </StitchTableCell>
+                      <StitchTableCell>
+                        <StitchBadge variant={item.isActive ? 'success' : 'neutral'}>
                           {item.isActive ? '활성' : '비활성'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
+                        </StitchBadge>
+                      </StitchTableCell>
+                      <StitchTableCell>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -163,77 +163,77 @@ export default function ClinicalPathologySettingsPage() {
                         >
                           {item.isActive ? '비활성화' : '활성화'}
                         </Button>
-                      </TableCell>
-                    </TableRow>
+                      </StitchTableCell>
+                    </StitchTableRow>
                   ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                </StitchTableBody>
+              </StitchTable>
+            </div>
+          </StitchCard>
         </TabsContent>
 
         <TabsContent value="qc-settings" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>QC 비용 설정</CardTitle>
-              <CardDescription>
+          <StitchCard variant="surface-low" padding="lg">
+            <div className="mb-2">
+              <h3 className="text-xl font-bold">QC 비용 설정</h3>
+              <p className="text-sm text-slate-500 mt-1">
                 카테고리별 QC 비용을 설정합니다. 검체 수가 기준 미만일 경우 QC 비용이 추가됩니다.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>카테고리</TableHead>
-                    <TableHead>기준 검체 수</TableHead>
-                    <TableHead>QC 비용</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              </p>
+            </div>
+            <div className="space-y-6 mt-6">
+              <StitchTable>
+                <StitchTableHeader>
+                  <StitchTableRow>
+                    <StitchTableHead>카테고리</StitchTableHead>
+                    <StitchTableHead>기준 검체 수</StitchTableHead>
+                    <StitchTableHead>QC 비용</StitchTableHead>
+                  </StitchTableRow>
+                </StitchTableHeader>
+                <StitchTableBody>
                   {qcSettings.map((setting) => (
-                    <TableRow key={setting.id}>
-                      <TableCell className="font-medium">
+                    <StitchTableRow key={setting.id}>
+                      <StitchTableCell className="font-bold text-slate-900">
                         {CATEGORY_LABELS[setting.category]}
-                      </TableCell>
-                      <TableCell>
+                      </StitchTableCell>
+                      <StitchTableCell>
                         <div className="flex items-center gap-2">
-                          <Input
+                          <input
                             type="number"
                             value={setting.thresholdCount}
                             onChange={(e) => handleQcSettingChange(setting.category, 'thresholdCount', parseInt(e.target.value) || 0)}
-                            className="w-24"
+                            className="w-24 bg-white border-none rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                           />
-                          <span className="text-muted-foreground">개 미만</span>
+                          <span className="text-slate-500">개 미만</span>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </StitchTableCell>
+                      <StitchTableCell>
                         <div className="flex items-center gap-2">
-                          <Input
+                          <input
                             type="number"
                             value={setting.qcFee}
                             onChange={(e) => handleQcSettingChange(setting.category, 'qcFee', parseInt(e.target.value) || 0)}
-                            className="w-32"
+                            className="w-32 bg-white border-none rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                           />
-                          <span className="text-muted-foreground">원</span>
+                          <span className="text-slate-500">원</span>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </StitchTableCell>
+                    </StitchTableRow>
                   ))}
-                </TableBody>
-              </Table>
+                </StitchTableBody>
+              </StitchTable>
 
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={loadData}>
+                <Button variant="outline" className="rounded-xl font-bold" onClick={loadData}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   초기화
                 </Button>
-                <Button onClick={handleSaveQcSettings} disabled={saving}>
+                <Button className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold" onClick={handleSaveQcSettings} disabled={saving}>
                   <Save className="h-4 w-4 mr-2" />
                   {saving ? '저장 중...' : '저장'}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
         </TabsContent>
       </Tabs>
     </div>

@@ -1,11 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
-  FileText, Plus, AlertTriangle, MessageSquare, Loader2, Trash2,
+  Plus, AlertTriangle, MessageSquare, Loader2, Trash2,
 } from 'lucide-react';
 import {
   getStudyDocuments,
@@ -87,11 +85,11 @@ export default function StudyDocumentTimeline({ studyId, studyCode }: Props) {
   const getDocColor = (type: StudyDocumentType) => {
     const cfg = DOCUMENT_TYPE_CONFIG[type];
     const colorMap: Record<string, string> = {
-      gray: 'bg-slate-100 text-slate-700 border-slate-200',
-      blue: 'bg-blue-50 text-blue-700 border-blue-200',
-      amber: 'bg-amber-50 text-amber-700 border-amber-200',
-      red: 'bg-red-50 text-red-700 border-red-200',
-      green: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      gray: 'bg-slate-100 text-slate-700',
+      blue: 'bg-blue-50 text-blue-700',
+      amber: 'bg-amber-50 text-amber-700',
+      red: 'bg-red-50 text-red-700',
+      green: 'bg-emerald-50 text-emerald-700',
     };
     return colorMap[cfg.color] || colorMap.gray;
   };
@@ -107,20 +105,20 @@ export default function StudyDocumentTimeline({ studyId, studyCode }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">문서 송부 이력</h3>
-        <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">문서 송부 이력</h3>
+        <Button size="sm" variant="outline" onClick={() => setAddOpen(true)} className="rounded-xl border-none bg-white">
           <Plus className="w-3.5 h-3.5 mr-1" />기록 추가
         </Button>
       </div>
 
       {sortedMonths.length === 0 ? (
-        <div className="text-center py-8 text-sm text-muted-foreground border rounded-lg border-dashed">
+        <div className="text-center py-8 text-sm text-slate-500 bg-[#F5EDE3] rounded-xl">
           아직 문서 기록이 없습니다
         </div>
       ) : (
         <div className="relative pl-6">
           {/* 타임라인 세로선 */}
-          <div className="absolute left-2.5 top-0 bottom-0 w-px bg-border" />
+          <div className="absolute left-2.5 top-0 bottom-0 w-px bg-slate-200" />
 
           {sortedMonths.map(monthKey => {
             const [y, m] = monthKey.split('-');
@@ -132,7 +130,7 @@ export default function StudyDocumentTimeline({ studyId, studyCode }: Props) {
                   <div className="w-5 h-5 rounded-full bg-background border-2 border-primary flex items-center justify-center z-10">
                     <div className="w-2 h-2 rounded-full bg-primary" />
                   </div>
-                  <span className="text-xs font-medium text-muted-foreground">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
                     {parseInt(y)}년 {parseInt(m)}월
                   </span>
                 </div>
@@ -145,36 +143,36 @@ export default function StudyDocumentTimeline({ studyId, studyCode }: Props) {
                       <div
                         key={doc.id}
                         className={cn(
-                          'rounded-lg border p-3 text-sm group',
-                          isAlert ? 'border-red-200 bg-red-50/50' : 'border-border bg-card'
+                          'rounded-xl p-3 text-sm group',
+                          isAlert ? 'bg-red-50' : 'bg-[#F5EDE3]'
                         )}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2 flex-wrap">
                             {isAlert && <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />}
                             <span className={cn(
-                              'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border',
+                              'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider',
                               getDocColor(doc.documentType)
                             )}>
                               {getDocLabel(doc)}
                             </span>
-                            <span className="text-xs text-muted-foreground">송부</span>
+                            <span className="text-xs text-slate-500">송부</span>
                           </div>
                           <Button
                             variant="ghost" size="icon"
                             className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={() => handleDelete(doc.id)}
                           >
-                            <Trash2 className="w-3 h-3 text-muted-foreground" />
+                            <Trash2 className="w-3 h-3 text-slate-400" />
                           </Button>
                         </div>
                         {doc.comment && (
-                          <div className="flex items-start gap-1.5 mt-2 text-xs text-muted-foreground">
+                          <div className="flex items-start gap-1.5 mt-2 text-xs text-slate-500">
                             <MessageSquare className="w-3 h-3 mt-0.5 shrink-0" />
                             <span>{doc.comment}</span>
                           </div>
                         )}
-                        <div className="flex items-center gap-2 mt-1.5 text-[11px] text-muted-foreground">
+                        <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500">
                           <span>{doc.creator.name}</span>
                           {doc.sentDate && (
                             <span>· {new Date(doc.sentDate).toLocaleDateString('ko-KR')}</span>

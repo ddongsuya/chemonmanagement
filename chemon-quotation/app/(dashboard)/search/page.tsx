@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchInput } from '@/components/ui/StitchInput';
+import { StitchBadge } from '@/components/ui/StitchBadge';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import {
   Search, Loader2, Users, FileText, FileSignature, FlaskConical,
   ClipboardList, MessageSquare, UserPlus, ArrowRight,
@@ -74,16 +75,17 @@ export default function SearchPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">통합 검색</h1>
-        <p className="text-sm text-muted-foreground">고객사, 견적, 계약, 시험, 상담, 리드를 한 번에 검색</p>
-      </div>
+      <StitchPageHeader
+        label="SEARCH"
+        title="통합 검색"
+        description="고객사, 견적, 계약, 시험, 상담, 리드를 한 번에 검색"
+      />
 
       {/* 검색 바 */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <StitchInput
             placeholder="고객사명, 견적번호, 계약번호, 시험번호, 물질명..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -92,7 +94,11 @@ export default function SearchPage() {
             autoFocus
           />
         </div>
-        <Button onClick={() => handleSearch()} disabled={loading}>
+        <Button
+          onClick={() => handleSearch()}
+          disabled={loading}
+          className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold"
+        >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
           <span className="ml-1.5 hidden sm:inline">검색</span>
         </Button>
@@ -103,10 +109,10 @@ export default function SearchPage() {
         <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           <button
             onClick={() => setActiveCategory('all')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${
               activeCategory === 'all'
                 ? 'bg-slate-900 text-white'
-                : 'bg-muted text-muted-foreground hover:text-foreground'
+                : 'bg-[#FAF2E9] text-slate-500 hover:text-slate-700'
             }`}
           >
             전체 ({totalCount})
@@ -118,10 +124,10 @@ export default function SearchPage() {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${
                   activeCategory === cat
                     ? 'bg-slate-900 text-white'
-                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                    : 'bg-[#FAF2E9] text-slate-500 hover:text-slate-700'
                 }`}
               >
                 {CATEGORY_LABELS[cat]} ({count})
@@ -140,23 +146,23 @@ export default function SearchPage() {
             ))}
           </div>
         ) : (
-          <Card className="border">
-            <CardContent className="py-12 text-center text-muted-foreground">
+          <StitchCard variant="surface-low" padding="lg">
+            <div className="py-6 text-center text-slate-500">
               <Search className="w-10 h-10 mx-auto mb-2 opacity-40" />
               <p className="text-sm">검색 결과가 없습니다.</p>
-            </CardContent>
-          </Card>
+            </div>
+          </StitchCard>
         )
       )}
 
       {/* 초기 상태 */}
       {!results && !loading && (
-        <Card className="border">
-          <CardContent className="py-16 text-center">
-            <Search className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
-            <p className="text-sm text-muted-foreground">검색어를 입력하면 웹앱 전체 데이터에서 검색합니다.</p>
-          </CardContent>
-        </Card>
+        <StitchCard variant="surface-low" padding="lg">
+          <div className="py-10 text-center">
+            <Search className="w-12 h-12 mx-auto text-slate-400/40 mb-3" />
+            <p className="text-sm text-slate-500">검색어를 입력하면 웹앱 전체 데이터에서 검색합니다.</p>
+          </div>
+        </StitchCard>
       )}
     </div>
   );
@@ -165,38 +171,38 @@ export default function SearchPage() {
 function SearchResultCard({ result, router }: { result: GlobalSearchResult; router: ReturnType<typeof useRouter> }) {
   const config = CATEGORY_CONFIG[result.category];
   const Icon = config.icon;
-  const [iconBg, iconText] = config.color.split(' ');
 
   return (
-    <Card
-      className="border cursor-pointer hover:bg-muted/30 transition-colors duration-150"
+    <StitchCard
+      variant="elevated"
+      padding="sm"
+      hover
+      className="cursor-pointer"
       onClick={() => router.push(result.href)}
     >
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${config.color}`}>
-            <Icon className="w-4 h-4" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium truncate">{result.title}</span>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                {CATEGORY_LABELS[result.category]}
-              </Badge>
-              {result.status && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  {STATUS_LABELS[result.status] || result.status}
-                </Badge>
-              )}
-            </div>
-            <div className="flex items-center justify-between mt-0.5">
-              <p className="text-xs text-muted-foreground truncate max-w-[70%]">{result.subtitle}</p>
-              <span className="text-[10px] text-muted-foreground shrink-0">{formatDate(result.date)}</span>
-            </div>
-          </div>
-          <ArrowRight className="w-4 h-4 text-muted-foreground/40 shrink-0 hidden sm:block" />
+      <div className="flex items-center gap-3">
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${config.color}`}>
+          <Icon className="w-4 h-4" />
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-bold truncate">{result.title}</span>
+            <StitchBadge variant="neutral">
+              {CATEGORY_LABELS[result.category]}
+            </StitchBadge>
+            {result.status && (
+              <StitchBadge status={result.status}>
+                {STATUS_LABELS[result.status] || result.status}
+              </StitchBadge>
+            )}
+          </div>
+          <div className="flex items-center justify-between mt-0.5">
+            <p className="text-xs text-slate-500 truncate max-w-[70%]">{result.subtitle}</p>
+            <span className="text-[10px] text-slate-400 shrink-0">{formatDate(result.date)}</span>
+          </div>
+        </div>
+        <ArrowRight className="w-4 h-4 text-slate-400/40 shrink-0 hidden sm:block" />
+      </div>
+    </StitchCard>
   );
 }

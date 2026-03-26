@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,15 +63,15 @@ const STATUS_FLOW: StudyStatus[] = [
 
 function getStatusBadgeClass(status: StudyStatus): string {
   const map: Record<StudyStatus, string> = {
-    REGISTERED: 'border-gray-300 text-gray-600',
-    PREPARING: 'border-blue-300 text-blue-600',
-    IN_PROGRESS: 'border-green-300 text-green-600',
-    ON_HOLD: 'border-amber-300 text-amber-600',
-    ANALYSIS: 'border-purple-300 text-purple-600',
-    REPORT_DRAFT: 'border-amber-300 text-amber-600',
-    REPORT_REVIEW: 'border-pink-300 text-pink-600',
-    COMPLETED: 'border-emerald-300 text-emerald-600',
-    SUSPENDED: 'border-red-300 text-red-600',
+    REGISTERED: 'bg-slate-100 text-slate-600',
+    PREPARING: 'bg-blue-50 text-blue-600',
+    IN_PROGRESS: 'bg-emerald-50 text-emerald-600',
+    ON_HOLD: 'bg-amber-50 text-amber-600',
+    ANALYSIS: 'bg-violet-50 text-violet-600',
+    REPORT_DRAFT: 'bg-amber-50 text-amber-600',
+    REPORT_REVIEW: 'bg-pink-50 text-pink-600',
+    COMPLETED: 'bg-emerald-50 text-emerald-600',
+    SUSPENDED: 'bg-red-50 text-red-600',
   };
   return map[status] || '';
 }
@@ -220,13 +220,14 @@ export default function StudyDetailPage() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">STUDY DETAIL</p>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-semibold">{study.studyNumber}</h1>
-              <Badge variant="outline" className={getStatusBadgeClass(study.status)}>
+              <h1 className="text-xl font-extrabold tracking-tight">{study.studyNumber}</h1>
+              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${getStatusBadgeClass(study.status)}`}>
                 {STUDY_STATUS_LABELS[study.status]}
-              </Badge>
+              </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-0.5">{study.testName}</p>
+            <p className="text-sm text-slate-500 mt-0.5">{study.testName}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -272,8 +273,7 @@ export default function StudyDetailPage() {
 
       {/* 상태 스테퍼 */}
       {study.status !== 'SUSPENDED' && (
-        <Card className="border shadow-sm">
-          <CardContent className="py-4">
+        <StitchCard variant="surface-low">
             <div className="flex items-center overflow-x-auto gap-1">
               {STATUS_FLOW.map((status, idx) => {
                 const isActive = status === study.status;
@@ -282,17 +282,17 @@ export default function StudyDetailPage() {
                 return (
                   <React.Fragment key={status}>
                     {idx > 0 && (
-                      <div className={`flex-shrink-0 w-6 h-px ${isPast ? 'bg-primary' : 'bg-border'}`} />
+                      <div className={`flex-shrink-0 w-6 h-px ${isPast ? 'bg-primary' : 'bg-slate-200'}`} />
                     )}
                     <button
                       onClick={() => !isActive && handleStatusChange(status)}
                       disabled={isActive}
-                      className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-150 ${
+                      className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-colors duration-150 ${
                         isActive
                           ? 'text-white'
                           : isPast
-                          ? 'bg-muted text-foreground hover:bg-muted/80'
-                          : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                          ? 'bg-[#F5EDE3] text-slate-700 hover:bg-[#EFE7DD]'
+                          : 'bg-[#FAF2E9] text-slate-500 hover:bg-[#F5EDE3]'
                       }`}
                       style={isActive ? { backgroundColor: color } : undefined}
                     >
@@ -302,8 +302,7 @@ export default function StudyDetailPage() {
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
+        </StitchCard>
       )}
 
       {/* 메인 콘텐츠: 3컬럼 */}
@@ -311,14 +310,13 @@ export default function StudyDetailPage() {
         {/* 좌측 2컬럼: 시험 정보 */}
         <div className="lg:col-span-2 space-y-6">
           {/* 기본 정보 */}
-          <Card className="border shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FlaskConical className="w-4 h-4 text-muted-foreground" />
+          <StitchCard variant="surface-low" padding="lg">
+            <div className="mb-4">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <FlaskConical className="w-4 h-4 text-primary" />
                 시험 정보
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
+            </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InfoField label="시험번호" value={study.studyNumber} />
                 <InfoField label="시험 유형" value={study.studyType || '-'} editing={editing}
@@ -357,110 +355,103 @@ export default function StudyDetailPage() {
 
               {/* 메모 */}
               <div className="mt-4">
-                <label className="text-xs text-muted-foreground mb-1 block">메모</label>
+                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">메모</label>
                 {editing ? (
                   <Textarea
                     value={editForm.notes || ''}
                     onChange={(e) => setEditForm(p => ({ ...p, notes: e.target.value }))}
                     rows={3}
                     placeholder="메모를 입력하세요..."
+                    className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                   />
                 ) : (
                   <p className="text-sm whitespace-pre-wrap">{study.notes || '메모 없음'}</p>
                 )}
               </div>
-            </CardContent>
-          </Card>
+          </StitchCard>
 
           {/* 시험 접수 연결 */}
-          <Card className="border shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Link2 className="w-4 h-4 text-muted-foreground" />
-                  시험 접수 연결
-                </CardTitle>
+          <StitchCard variant="surface-low" padding="lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <Link2 className="w-4 h-4 text-primary" />
+                시험 접수 연결
+              </h3>
                 {study.testReception && (
                   <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 h-7"
                     onClick={handleUnlinkReception}>
                     <Unlink className="w-3.5 h-3.5 mr-1" /> 연결 해제
                   </Button>
                 )}
-              </div>
-            </CardHeader>
-            <CardContent>
+            </div>
               {study.testReception ? (
-                <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="p-3 bg-[#F5EDE3] rounded-xl">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium">{study.testReception.receptionNumber}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-sm font-bold">{study.testReception.receptionNumber}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
                         {study.testReception.customer?.company || study.testReception.customer?.name || '-'}
                       </p>
                       {study.testReception.requester && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-slate-500">
                           의뢰자: {study.testReception.requester.name}
                         </p>
                       )}
                     </div>
-                    <Badge variant="outline">{study.testReception.status}</Badge>
+                    <StitchBadge variant="neutral">{study.testReception.status}</StitchBadge>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-6 text-muted-foreground">
+                <div className="text-center py-6 text-slate-500">
                   <Link2 className="w-8 h-8 mx-auto mb-2 opacity-40" />
                   <p className="text-sm">연결된 시험 접수가 없습니다</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+          </StitchCard>
         </div>
 
         {/* 우측 1컬럼: 관련 정보 */}
         <div className="space-y-6">
           {/* 계약 정보 */}
-          <Card className="border shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileSignature className="w-4 h-4 text-muted-foreground" />
+          <StitchCard variant="surface-low" padding="lg">
+            <div className="mb-4">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <FileSignature className="w-4 h-4 text-primary" />
                 계약 정보
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
+            </div>
               {study.contract ? (
                 <div
-                  className="p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors duration-150"
+                  className="p-3 bg-[#F5EDE3] rounded-xl cursor-pointer hover:bg-[#EFE7DD] transition-colors duration-150"
                   onClick={() => router.push(`/contracts/${study.contract!.id}`)}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium font-mono">{study.contract.contractNumber}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{study.contract.title}</p>
+                      <p className="text-sm font-bold font-mono">{study.contract.contractNumber}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{study.contract.title}</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
                   </div>
                   {study.contract.customer && (
-                    <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
                       <Building2 className="w-3 h-3" />
                       {study.contract.customer.company || study.contract.customer.name}
                     </div>
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">계약 정보 없음</p>
+                <p className="text-sm text-slate-500">계약 정보 없음</p>
               )}
-            </CardContent>
-          </Card>
+          </StitchCard>
 
           {/* 타임라인 */}
-          <Card className="border shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
+          <StitchCard variant="surface-low" padding="lg">
+            <div className="mb-4">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary" />
                 타임라인
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
+            </div>
               <div className="space-y-3">
                 <TimelineItem label="등록" date={study.createdAt} />
                 <TimelineItem label="접수일" date={study.receivedDate} />
@@ -471,37 +462,31 @@ export default function StudyDetailPage() {
                 <TimelineItem label="보고서 최종" date={study.reportFinalDate} />
                 <TimelineItem label="최종 수정" date={study.updatedAt} />
               </div>
-            </CardContent>
-          </Card>
+          </StitchCard>
 
           {/* 문서 송부 이력 */}
-          <Card className="border shadow-sm">
-            <CardContent className="pt-5 pb-4">
+          <StitchCard variant="surface-low">
               <StudyDocumentTimeline studyId={study.id} studyCode={study.studyNumber} />
-            </CardContent>
-          </Card>
+          </StitchCard>
 
           {/* 중단 처리 */}
           {study.status !== 'COMPLETED' && study.status !== 'SUSPENDED' && (
-            <Card className="border shadow-sm border-red-100 dark:border-red-900/30">
-              <CardContent className="pt-5 pb-4">
+            <StitchCard variant="surface-low">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+                  className="w-full text-red-500 rounded-xl hover:bg-red-50 hover:text-red-600 border-none bg-red-50/50"
                   onClick={() => handleStatusChange('SUSPENDED')}
                 >
                   시험 중단
                 </Button>
-              </CardContent>
-            </Card>
+            </StitchCard>
           )}
           {study.status === 'SUSPENDED' && (
-            <Card className="border shadow-sm border-amber-100 dark:border-amber-900/30">
-              <CardContent className="pt-5 pb-4">
-                <p className="text-xs text-muted-foreground mb-2">중단된 시험입니다. 재개하려면 상태를 변경하세요.</p>
+            <StitchCard variant="surface-low">
+                <p className="text-xs text-slate-500 mb-2">중단된 시험입니다. 재개하려면 상태를 변경하세요.</p>
                 <Select onValueChange={(v) => handleStatusChange(v as StudyStatus)}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full bg-white border-none rounded-xl">
                     <SelectValue placeholder="상태 변경..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -510,8 +495,7 @@ export default function StudyDetailPage() {
                     ))}
                   </SelectContent>
                 </Select>
-              </CardContent>
-            </Card>
+            </StitchCard>
           )}
         </div>
       </div>
@@ -530,8 +514,8 @@ function InfoField({ label, value, editing, editNode, colSpan }: {
 }) {
   return (
     <div className={colSpan ? 'sm:col-span-2' : ''}>
-      <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
-      {editing && editNode ? editNode : <p className="text-sm font-medium">{value}</p>}
+      <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">{label}</label>
+      {editing && editNode ? editNode : <p className="text-sm font-bold">{value}</p>}
     </div>
   );
 }
@@ -542,7 +526,7 @@ function TimelineItem({ label, date }: { label: string; date?: string | null }) 
     <div className="flex items-center gap-3">
       <div className="w-2 h-2 rounded-full bg-primary/60 flex-shrink-0" />
       <div className="flex-1 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{label}</span>
         <span className="text-xs">{formatDate(date)}</span>
       </div>
     </div>

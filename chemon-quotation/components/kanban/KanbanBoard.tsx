@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -80,37 +78,36 @@ const KanbanCard: React.FC<{
   onDragStart?: (e: React.DragEvent) => void;
 }> = ({ item, onClick, onDragStart }) => {
   return (
-    <Card 
-      className="cursor-pointer hover:shadow-md transition-shadow mb-2 group"
+    <div 
+      className="bg-white rounded-xl p-3 cursor-pointer hover:translate-y-[-2px] shadow-ambient transition-all duration-200 mb-2 group"
       onClick={onClick}
       draggable
       onDragStart={onDragStart}
     >
-      <CardContent className="p-3">
         <div className="flex items-start gap-2">
-          <GripVertical className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab" />
+          <GripVertical className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab" />
           <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-sm truncate">{item.title}</h4>
+            <h4 className="font-bold text-sm text-slate-900 truncate">{item.title}</h4>
             {item.subtitle && (
-              <p className="text-xs text-muted-foreground truncate">{item.subtitle}</p>
+              <p className="text-xs text-slate-500 truncate">{item.subtitle}</p>
             )}
             
             <div className="flex flex-wrap gap-1 mt-2">
               {item.fields.totalAmount && (
-                <Badge variant="secondary" className="text-xs">
+                <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full inline-flex items-center">
                   <WonSign className="w-3 h-3 mr-1" />
                   {formatAmount(Number(item.fields.totalAmount))}
-                </Badge>
+                </span>
               )}
               {item.fields.expectedAmount && (
-                <Badge variant="secondary" className="text-xs">
+                <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full inline-flex items-center">
                   <WonSign className="w-3 h-3 mr-1" />
                   {formatAmount(Number(item.fields.expectedAmount))}
-                </Badge>
+                </span>
               )}
             </div>
 
-            <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+            <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
               {item.assignee && (
                 <div className="flex items-center gap-1">
                   <User className="w-3 h-3" />
@@ -126,8 +123,7 @@ const KanbanCard: React.FC<{
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 };
 
@@ -160,7 +156,7 @@ const KanbanColumnComponent: React.FC<{
 
   return (
     <div 
-      className={`flex-shrink-0 w-72 bg-gray-50 dark:bg-gray-900 rounded-lg ${
+      className={`flex-shrink-0 w-72 bg-[#FAF2E9] rounded-xl ${
         isDragOver ? 'ring-2 ring-primary' : ''
       }`}
       onDragOver={handleDragOver}
@@ -169,7 +165,7 @@ const KanbanColumnComponent: React.FC<{
     >
       {/* 컬럼 헤더 */}
       <div 
-        className="p-3 border-b cursor-pointer"
+        className="p-3 cursor-pointer"
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
         <div className="flex items-center justify-between">
@@ -183,14 +179,14 @@ const KanbanColumnComponent: React.FC<{
               className="w-3 h-3 rounded-full" 
               style={{ backgroundColor: column.color }}
             />
-            <span className="font-medium text-sm">{column.name}</span>
-            <Badge variant="outline" className="text-xs">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{column.name}</span>
+            <span className="text-xs font-bold text-slate-600 bg-[#F5EDE3] px-2 py-0.5 rounded-full">
               {column.count}
-            </Badge>
+            </span>
           </div>
         </div>
         {column.totalAmount !== undefined && column.totalAmount > 0 && (
-          <div className="text-xs text-muted-foreground mt-1 ml-6">
+          <div className="text-xs text-slate-500 mt-1 ml-6">
             {formatAmount(column.totalAmount)}
           </div>
         )}
@@ -210,7 +206,7 @@ const KanbanColumnComponent: React.FC<{
             />
           ))}
           {column.items.length === 0 && (
-            <div className="text-center text-sm text-muted-foreground py-8">
+            <div className="text-center text-sm text-slate-500 py-8">
               항목 없음
             </div>
           )}
@@ -262,7 +258,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
@@ -278,7 +274,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               placeholder="검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="pl-9 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
             />
           </div>
           
@@ -302,7 +298,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           </Button>
         </div>
 
-        <div className="flex items-center gap-1 border rounded-md p-1">
+        <div className="flex items-center gap-1 bg-[#F5EDE3] rounded-xl p-1">
           <Button
             variant={currentView === 'table' ? 'secondary' : 'ghost'}
             size="sm"

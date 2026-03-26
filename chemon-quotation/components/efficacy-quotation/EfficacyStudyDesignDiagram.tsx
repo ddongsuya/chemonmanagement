@@ -98,64 +98,64 @@ export default function EfficacyStudyDesignDiagram({
 
   if (sortedPhases.length === 0) {
     return (
-      <div className={cn('text-center py-12 text-gray-400', className)}>
+      <div className={cn('text-center py-12 text-slate-400', className)}>
         스케쥴 단계를 추가해주세요.
       </div>
     );
   }
 
   return (
-    <div className={cn('bg-white p-6 rounded-lg', className)}>
+    <div className={cn('bg-[#FAF2E9] p-6 rounded-xl', className)}>
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-1">효력시험 디자인 다이어그램</h2>
-        <p className="text-sm text-gray-500">비임상 CRO 효력시험 시각화</p>
+        <h2 className="text-xl font-bold mb-1">효력시험 디자인 다이어그램</h2>
+        <p className="text-sm text-slate-500">비임상 CRO 효력시험 시각화</p>
       </div>
 
       {/* Info Cards */}
       <div className="grid grid-cols-4 gap-3 mb-6">
         {/* Test Info */}
-        <div className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
-          <div className="text-xs text-gray-500 mb-2">시험 정보</div>
-          <div className="text-sm font-medium mb-1">{modelName || testName}</div>
-          <div className="text-xs text-gray-500">{testCode} · {guideline}</div>
+        <div className="bg-[#F5EDE3] rounded-xl p-4 hover:shadow-ambient transition-all">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">시험 정보</div>
+          <div className="text-sm font-bold mb-1">{modelName || testName}</div>
+          <div className="text-xs text-slate-500">{testCode} · {guideline}</div>
         </div>
 
         {/* Animal Info */}
-        <div className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
-          <div className="text-xs text-gray-500 mb-2">동물 정보</div>
-          <div className="text-sm font-medium mb-1">
+        <div className="bg-[#F5EDE3] rounded-xl p-4 hover:shadow-ambient transition-all">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">동물 정보</div>
+          <div className="text-sm font-bold mb-1">
             {animalInfo.species || 'SD Rat'}, {animalInfo.sex || '수컷'}
           </div>
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-slate-500">
             {totalAnimals}마리 · {animalInfo.age || '7주령'}
           </div>
         </div>
 
         {/* Administration Info */}
-        <div className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
-          <div className="text-xs text-gray-500 mb-2">투여 정보</div>
-          <div className="text-sm font-medium mb-1">{administrationRoute}</div>
-          <div className="text-xs text-gray-500">{administrationFrequency} · {administrationTime}</div>
+        <div className="bg-[#F5EDE3] rounded-xl p-4 hover:shadow-ambient transition-all">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">투여 정보</div>
+          <div className="text-sm font-bold mb-1">{administrationRoute}</div>
+          <div className="text-xs text-slate-500">{administrationFrequency} · {administrationTime}</div>
         </div>
 
         {/* Duration Info */}
-        <div className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
-          <div className="text-xs text-gray-500 mb-2">시험 기간</div>
-          <div className="text-sm font-medium mb-1">총 {totalDays}일</div>
-          <div className="text-xs text-gray-500">
+        <div className="bg-[#F5EDE3] rounded-xl p-4 hover:shadow-ambient transition-all">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">시험 기간</div>
+          <div className="text-sm font-bold mb-1">총 {totalDays}일</div>
+          <div className="text-xs text-slate-500">
             {sortedPhases.map((p, i) => formatPhaseDuration(p)).join(' · ')}
           </div>
         </div>
       </div>
 
       {/* Full Timeline */}
-      <div className="border border-gray-200 rounded-lg p-6 mb-4">
-        <h3 className="text-base font-semibold mb-6">전체 시험 타임라인</h3>
+      <div className="bg-[#F5EDE3] rounded-xl p-6 mb-4">
+        <h3 className="text-base font-bold mb-6">전체 시험 타임라인</h3>
         
         <div className="relative pt-16 pb-8">
           {/* Timeline Bar */}
-          <div className="relative h-12 rounded-lg overflow-visible bg-gray-50">
+          <div className="relative h-12 rounded-xl overflow-visible bg-[#EFE7DD]">
             {phaseWidths.map((phase, idx) => {
               const startPercent = getPhaseStartPercent(idx);
               const isFirst = idx === 0;
@@ -167,9 +167,9 @@ export default function EfficacyStudyDesignDiagram({
                   key={phase.id}
                   className={cn(
                     'absolute top-0 h-full flex items-center justify-center',
-                    isMainPhase ? 'bg-orange-500' : 'bg-gray-200',
-                    isFirst && 'rounded-l-lg',
-                    isLast && 'rounded-r-lg'
+                    isMainPhase ? 'bg-orange-500' : 'bg-[#EFE7DD]',
+                    isFirst && 'rounded-l-xl',
+                    isLast && 'rounded-r-xl'
                   )}
                   style={{
                     left: `${startPercent}%`,
@@ -177,8 +177,8 @@ export default function EfficacyStudyDesignDiagram({
                   }}
                 >
                   <span className={cn(
-                    'text-xs font-medium',
-                    isMainPhase ? 'text-white' : 'text-gray-700'
+                    'text-xs font-bold',
+                    isMainPhase ? 'text-white' : 'text-slate-700'
                   )}>
                     {formatPhaseDuration(phase)}
                   </span>
@@ -214,20 +214,20 @@ export default function EfficacyStudyDesignDiagram({
                 className="absolute bottom-full mb-2 flex flex-col items-center"
                 style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
               >
-                <div className="text-xs font-medium text-gray-900 mb-1 whitespace-nowrap">
+                <div className="text-xs font-bold text-slate-900 mb-1 whitespace-nowrap">
                   {event.name}
                 </div>
-                <div className="text-xs text-gray-600 font-medium mb-1">
+                <div className="text-xs text-slate-600 font-bold mb-1">
                   Day {Math.round((position / 100) * totalDays)}
                 </div>
-                <div className="w-0.5 h-5 bg-gray-400 mb-1" />
-                <div className="text-gray-400 text-[10px]">▼</div>
+                <div className="w-0.5 h-5 bg-slate-400 mb-1" />
+                <div className="text-slate-400 text-[10px]">▼</div>
               </div>
             );
           })}
 
           {/* Bottom Day Labels */}
-          <div className="absolute bottom-0 left-0 right-0 text-xs text-gray-600 font-medium">
+          <div className="absolute bottom-0 left-0 right-0 text-xs text-slate-600 font-bold">
             <span className="absolute left-0">Day -{getPhaseDurationInDays(sortedPhases[0])}</span>
             {phaseWidths.map((phase, idx) => {
               if (idx === 0) return null;
@@ -249,8 +249,8 @@ export default function EfficacyStudyDesignDiagram({
       </div>
 
       {/* Group Timelines */}
-      <div className="border border-gray-200 rounded-lg p-6 mb-4">
-        <h3 className="text-base font-semibold mb-6">군별 상세 타임라인</h3>
+      <div className="bg-[#F5EDE3] rounded-xl p-6 mb-4">
+        <h3 className="text-base font-bold mb-6">군별 상세 타임라인</h3>
         
         <div className="space-y-4">
           {groups.map((group, groupIdx) => {
@@ -267,8 +267,8 @@ export default function EfficacyStudyDesignDiagram({
                     G{group.groupNumber}
                   </div>
                   <div>
-                    <div className="text-sm font-medium">{group.treatment}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-sm font-bold">{group.treatment}</div>
+                    <div className="text-xs text-slate-500">
                       {group.animalCount}마리 · {group.dose}
                     </div>
                   </div>
@@ -276,9 +276,8 @@ export default function EfficacyStudyDesignDiagram({
 
                 {/* Group Timeline Bar */}
                 <div className={cn(
-                  'relative h-10 rounded-md mb-10 border',
-                  colors.bg,
-                  colors.border
+                  'relative h-10 rounded-xl mb-10',
+                  colors.bg
                 )}>
                   {/* Phase segments */}
                   {phaseWidths.map((phase, idx) => {
@@ -347,7 +346,7 @@ export default function EfficacyStudyDesignDiagram({
                         className="absolute bottom-[-28px] text-center"
                         style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
                       >
-                        <div className="text-xs text-gray-700 font-medium whitespace-nowrap">
+                        <div className="text-xs text-slate-700 font-bold whitespace-nowrap">
                           {event.name}
                         </div>
                       </div>
@@ -360,13 +359,13 @@ export default function EfficacyStudyDesignDiagram({
         </div>
 
         {/* Legend */}
-        <div className="flex gap-4 text-xs text-gray-500 mt-6 pt-4 border-t">
+        <div className="flex gap-4 text-xs text-slate-500 mt-6 pt-4">
           <div className="flex items-center gap-1.5">
             <div className="text-orange-500">▼</div>
             <span>투여</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-1 h-3 bg-gray-300" />
+            <div className="w-1 h-3 bg-slate-300" />
             <span>관찰/측정</span>
           </div>
         </div>
@@ -374,14 +373,14 @@ export default function EfficacyStudyDesignDiagram({
 
       {/* Observation Items */}
       {events.length > 0 && (
-        <div className="border border-gray-200 rounded-lg p-6">
-          <h3 className="text-base font-semibold mb-4">관찰 및 측정 항목</h3>
+        <div className="bg-[#F5EDE3] rounded-xl p-6">
+          <h3 className="text-base font-bold mb-4">관찰 및 측정 항목</h3>
           
           <div className="grid grid-cols-2 gap-3">
             {events.map((event) => (
-              <div key={event.id} className="p-3 bg-gray-50 rounded-md">
-                <div className="text-sm font-medium mb-2">{event.name}</div>
-                <div className="text-xs text-gray-500 space-y-0.5">
+              <div key={event.id} className="p-3 bg-[#EFE7DD] rounded-xl">
+                <div className="text-sm font-bold mb-2">{event.name}</div>
+                <div className="text-xs text-slate-500 space-y-0.5">
                   <div>시점: Day {Math.round((event.position / 100) * totalDays)}</div>
                 </div>
               </div>

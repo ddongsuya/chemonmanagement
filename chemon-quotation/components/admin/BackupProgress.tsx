@@ -66,17 +66,17 @@ export default function BackupProgress({
   const getStatusColor = () => {
     switch (status) {
       case 'creating':
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-blue-50';
       case 'restoring':
-        return 'bg-orange-50 border-orange-200';
+        return 'bg-orange-50';
       case 'downloading':
-        return 'bg-green-50 border-green-200';
+        return 'bg-emerald-50';
       case 'completed':
-        return 'bg-green-50 border-green-200';
+        return 'bg-emerald-50';
       case 'failed':
-        return 'bg-red-50 border-red-200';
+        return 'bg-red-50';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-[#F5EDE3]';
     }
   };
 
@@ -85,7 +85,7 @@ export default function BackupProgress({
   return (
     <div
       className={cn(
-        'rounded-lg border p-4 transition-all duration-300',
+        'rounded-xl p-4 transition-all duration-300',
         getStatusColor(),
         className
       )}

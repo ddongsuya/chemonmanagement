@@ -4,15 +4,6 @@ import { useState } from 'react';
 import { Calendar, CheckCircle, Clock, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
@@ -20,7 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
+import {
+  StitchTable,
+  StitchTableBody,
+  StitchTableCell,
+  StitchTableHead,
+  StitchTableHeader,
+  StitchTableRow,
+} from '@/components/ui/StitchTable';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 
@@ -197,38 +197,37 @@ export default function PaymentScheduleTable({
       case 'SCHEDULED':
         return <Calendar className="h-4 w-4 text-blue-500" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
+        return <Clock className="h-4 w-4 text-slate-500" />;
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-blue-500" />
-              지급 일정 관리
-            </CardTitle>
-            <CardDescription>
-              시험번호별 지급 일정을 관리합니다.
-            </CardDescription>
+    <StitchCard variant="surface-low">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Calendar className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-bold">지급 일정 관리</h3>
           </div>
-          {editable && onAddSchedule && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAdding(!isAdding)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              일정 추가
-            </Button>
-          )}
+          <p className="text-sm text-slate-500">
+            시험번호별 지급 일정을 관리합니다.
+          </p>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        {editable && onAddSchedule && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-xl"
+            onClick={() => setIsAdding(!isAdding)}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            일정 추가
+          </Button>
+        )}
+      </div>
+      <div className="space-y-6 mt-6">
         {/* 지급 현황 요약 */}
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
+        <div className="p-4 bg-[#F5EDE3] rounded-xl space-y-3">
           <div className="flex justify-between text-sm">
             <span>지급 진행률</span>
             <span className="font-medium">{summary.completionRate.toFixed(1)}%</span>
@@ -236,15 +235,15 @@ export default function PaymentScheduleTable({
           <Progress value={summary.completionRate} className="h-2" />
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
-              <p className="text-gray-500">총액</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">총액</p>
               <p className="font-semibold">{formatCurrency(summary.totalAmount)}원</p>
             </div>
             <div>
-              <p className="text-gray-500">지급완료</p>
-              <p className="font-semibold text-green-600">{formatCurrency(summary.paidAmount)}원</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">지급완료</p>
+              <p className="font-semibold text-emerald-600">{formatCurrency(summary.paidAmount)}원</p>
             </div>
             <div>
-              <p className="text-gray-500">잔액</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">잔액</p>
               <p className="font-semibold text-orange-600">{formatCurrency(summary.remainingAmount)}원</p>
             </div>
           </div>
@@ -252,48 +251,52 @@ export default function PaymentScheduleTable({
 
         {/* 새 일정 추가 폼 */}
         {isAdding && (
-          <div className="p-4 border rounded-lg space-y-4">
-            <h4 className="font-medium">새 지급 일정</h4>
+          <div className="p-4 bg-[#F5EDE3] rounded-xl space-y-4">
+            <h4 className="font-bold">새 지급 일정</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-gray-500">시험번호</label>
+                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">시험번호</label>
                 <Input
                   placeholder="예: ST-2025-0001"
                   value={newSchedule.testNumber}
                   onChange={(e) => setNewSchedule({ ...newSchedule, testNumber: e.target.value })}
+                  className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-500">금액 *</label>
+                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">금액 *</label>
                 <Input
                   type="number"
                   placeholder="금액"
                   value={newSchedule.amount}
                   onChange={(e) => setNewSchedule({ ...newSchedule, amount: e.target.value })}
+                  className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-500">예정일 *</label>
+                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">예정일 *</label>
                 <Input
                   type="date"
                   value={newSchedule.scheduledDate}
                   onChange={(e) => setNewSchedule({ ...newSchedule, scheduledDate: e.target.value })}
+                  className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-500">메모</label>
+                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">메모</label>
                 <Input
                   placeholder="메모"
                   value={newSchedule.notes}
                   onChange={(e) => setNewSchedule({ ...newSchedule, notes: e.target.value })}
+                  className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
                 />
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={() => setIsAdding(false)}>
+              <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setIsAdding(false)}>
                 취소
               </Button>
-              <Button size="sm" onClick={handleAddSchedule}>
+              <Button size="sm" className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold" onClick={handleAddSchedule}>
                 추가
               </Button>
             </div>
@@ -303,31 +306,31 @@ export default function PaymentScheduleTable({
         {/* 지급 일정 테이블 */}
         {schedules.length > 0 ? (
           <div className="overflow-x-auto -mx-6 px-6">
-            <Table className="min-w-[580px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>시험번호</TableHead>
-                  <TableHead className="text-right whitespace-nowrap">금액</TableHead>
-                  <TableHead className="whitespace-nowrap">예정일</TableHead>
-                  <TableHead className="whitespace-nowrap">지급일</TableHead>
-                  <TableHead>상태</TableHead>
-                  {editable && <TableHead className="text-right">작업</TableHead>}
-                </TableRow>
-              </TableHeader>
-            <TableBody>
+            <StitchTable className="min-w-[580px]">
+              <StitchTableHeader>
+                <StitchTableRow>
+                  <StitchTableHead>시험번호</StitchTableHead>
+                  <StitchTableHead className="text-right whitespace-nowrap">금액</StitchTableHead>
+                  <StitchTableHead className="whitespace-nowrap">예정일</StitchTableHead>
+                  <StitchTableHead className="whitespace-nowrap">지급일</StitchTableHead>
+                  <StitchTableHead>상태</StitchTableHead>
+                  {editable && <StitchTableHead className="text-right">작업</StitchTableHead>}
+                </StitchTableRow>
+              </StitchTableHeader>
+            <StitchTableBody>
               {schedules.map((schedule) => (
-                <TableRow key={schedule.id}>
-                  <TableCell className="font-medium">
+                <StitchTableRow key={schedule.id}>
+                  <StitchTableCell className="font-bold">
                     {schedule.testNumber || '-'}
-                  </TableCell>
-                  <TableCell className="text-right whitespace-nowrap">
+                  </StitchTableCell>
+                  <StitchTableCell className="text-right whitespace-nowrap">
                     {formatCurrency(schedule.amount)}원
-                  </TableCell>
-                  <TableCell>{formatDate(schedule.scheduledDate)}</TableCell>
-                  <TableCell>
+                  </StitchTableCell>
+                  <StitchTableCell>{formatDate(schedule.scheduledDate)}</StitchTableCell>
+                  <StitchTableCell>
                     {schedule.paidDate ? formatDate(schedule.paidDate) : '-'}
-                  </TableCell>
-                  <TableCell>
+                  </StitchTableCell>
+                  <StitchTableCell>
                     <div className="flex items-center gap-2">
                       {getStatusIcon(schedule.status)}
                       {editable && schedule.status !== 'PAID' ? (
@@ -336,7 +339,7 @@ export default function PaymentScheduleTable({
                           onValueChange={(value) => handleStatusChange(schedule.id, value as PaymentStatus)}
                           disabled={processingId === schedule.id}
                         >
-                          <SelectTrigger className="w-24 h-8">
+                          <SelectTrigger className="w-24 h-8 bg-white border-none rounded-xl">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -350,22 +353,22 @@ export default function PaymentScheduleTable({
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge
+                        <StitchBadge
                           variant={
                             schedule.status === 'PAID'
-                              ? 'default'
+                              ? 'success'
                               : schedule.status === 'OVERDUE'
-                              ? 'destructive'
-                              : 'secondary'
+                              ? 'error'
+                              : 'neutral'
                           }
                         >
                           {PAYMENT_STATUS_LABELS[schedule.status]}
-                        </Badge>
+                        </StitchBadge>
                       )}
                     </div>
-                  </TableCell>
+                  </StitchTableCell>
                   {editable && (
-                    <TableCell className="text-right">
+                    <StitchTableCell className="text-right">
                       {schedule.status !== 'PAID' && onDeleteSchedule && (
                         <Button
                           variant="ghost"
@@ -376,19 +379,19 @@ export default function PaymentScheduleTable({
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
-                    </TableCell>
+                    </StitchTableCell>
                   )}
-                </TableRow>
+                </StitchTableRow>
               ))}
-            </TableBody>
-          </Table>
+            </StitchTableBody>
+          </StitchTable>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-slate-500">
             등록된 지급 일정이 없습니다.
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }

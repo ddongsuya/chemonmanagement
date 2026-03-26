@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useQuotationStore } from '@/stores/quotationStore';
-import { Card, CardContent } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import QuotationPDF from './QuotationPDF';
@@ -173,14 +173,14 @@ export default function StepPreview() {
   return (
     <div className="space-y-6">
       {/* 액션 버튼 */}
-      <Card>
-        <CardContent className="py-4">
+      <StitchCard variant="surface-low" padding="md">
+        <div className="py-0">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold">
+              <h2 className="text-lg font-bold">
                 견적번호: {displayQuotationNumber}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500">
                 {store.customerName} | {store.projectName}
               </p>
             </div>
@@ -206,7 +206,7 @@ export default function StepPreview() {
                 <Printer className="w-4 h-4 mr-2" />
                 인쇄
               </Button>
-              <Button size="sm" onClick={handleSave} disabled={saving}>
+              <Button size="sm" onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold">
                 {saving ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
@@ -222,8 +222,8 @@ export default function StepPreview() {
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
 
       {/* 미리보기 탭 */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>

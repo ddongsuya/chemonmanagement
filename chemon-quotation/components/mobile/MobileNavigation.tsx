@@ -54,17 +54,17 @@ export function MobileNavigation() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t md:hidden safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#E9E1D8] backdrop-blur-xl md:hidden safe-area-bottom">
       <div className="flex items-center justify-around h-16 px-2">
         {mainNavItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              'flex flex-col items-center justify-center flex-1 h-full py-2 text-xs transition-colors',
+              'flex flex-col items-center justify-center flex-1 h-full py-2 text-xs transition-colors min-h-[44px]',
               isActive(item.href)
                 ? 'text-primary'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-slate-500 hover:text-slate-700'
             )}
           >
             {item.icon}
@@ -77,17 +77,17 @@ export function MobileNavigation() {
           <SheetTrigger asChild>
             <button
               className={cn(
-                'flex flex-col items-center justify-center flex-1 h-full py-2 text-xs transition-colors',
-                'text-muted-foreground hover:text-foreground'
+                'flex flex-col items-center justify-center flex-1 h-full py-2 text-xs transition-colors min-h-[44px]',
+                'text-slate-500 hover:text-slate-700'
               )}
             >
               <Menu className="h-5 w-5" />
               <span className="mt-1">더보기</span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto max-h-[70vh]">
+          <SheetContent side="bottom" className="h-auto max-h-[70vh] bg-[#E9E1D8] rounded-t-2xl">
             <SheetHeader>
-              <SheetTitle>메뉴</SheetTitle>
+              <SheetTitle className="font-bold text-slate-900">메뉴</SheetTitle>
             </SheetHeader>
             <div className="grid grid-cols-3 gap-4 py-4">
               {moreNavItems.map((item) => (
@@ -96,10 +96,10 @@ export function MobileNavigation() {
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={cn(
-                    'flex flex-col items-center justify-center p-4 rounded-lg transition-colors',
+                    'flex flex-col items-center justify-center p-4 rounded-xl transition-colors min-h-[44px]',
                     isActive(item.href)
                       ? 'bg-primary/10 text-primary'
-                      : 'hover:bg-muted'
+                      : 'hover:bg-[#F5EDE3] text-slate-700'
                   )}
                 >
                   {item.icon}
@@ -128,14 +128,14 @@ export function MobileFAB() {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <button
-            className="flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
+            className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r from-primary to-orange-400 text-white shadow-ambient hover:shadow-lg transition-all min-w-[44px] min-h-[44px]"
           >
             <Plus className="h-6 w-6" />
           </button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="h-auto">
+        <SheetContent side="bottom" className="h-auto bg-[#E9E1D8] rounded-t-2xl">
           <SheetHeader>
-            <SheetTitle>빠른 작업</SheetTitle>
+            <SheetTitle className="font-bold text-slate-900">빠른 작업</SheetTitle>
           </SheetHeader>
           <div className="flex flex-col gap-2 py-4">
             {quickActions.map((action) => (
@@ -143,12 +143,12 @@ export function MobileFAB() {
                 key={action.href}
                 href={action.href}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 p-4 rounded-lg hover:bg-muted transition-colors"
+                className="flex items-center gap-3 p-4 rounded-xl hover:bg-[#F5EDE3] transition-colors min-h-[44px]"
               >
                 <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
                   {action.icon}
                 </div>
-                <span className="font-medium">{action.label}</span>
+                <span className="font-bold text-slate-900">{action.label}</span>
               </Link>
             ))}
           </div>

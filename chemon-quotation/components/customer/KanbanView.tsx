@@ -48,13 +48,13 @@ function KanbanCard({ entity, onClick }: { entity: UnifiedEntity; onClick?: (e: 
       {...attributes}
       {...listeners}
       className={cn(
-        'rounded-lg border bg-card p-3 cursor-grab active:cursor-grabbing transition-shadow',
-        isDragging && 'opacity-50 shadow-lg'
+        'bg-white rounded-xl p-4 cursor-grab active:cursor-grabbing shadow-ambient hover:translate-y-[-2px] transition-all duration-200',
+        isDragging && 'opacity-50 shadow-ambient'
       )}
       onClick={() => onClick?.(entity)}
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-medium truncate">{entity.companyName}</span>
+        <span className="text-sm font-bold text-slate-900 truncate">{entity.companyName}</span>
         {entity.healthScore != null && (
           <span className={cn(
             'text-xs font-bold rounded-full px-1.5',
@@ -64,13 +64,13 @@ function KanbanCard({ entity, onClick }: { entity: UnifiedEntity; onClick?: (e: 
           </span>
         )}
       </div>
-      <p className="text-xs text-muted-foreground truncate">{entity.contactName}</p>
+      <p className="text-xs text-slate-500 truncate">{entity.contactName}</p>
       {entity.tags && entity.tags.length > 0 && (
         <div className="flex gap-1 mt-1.5 flex-wrap">
           {entity.tags.slice(0, 2).map(t => (
-            <span key={t} className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{t}</span>
+            <span key={t} className="rounded-full bg-[#F5EDE3] px-2 py-0.5 text-[10px] font-bold text-slate-600">{t}</span>
           ))}
-          {entity.tags.length > 2 && <span className="text-[10px] text-muted-foreground">+{entity.tags.length - 2}</span>}
+          {entity.tags.length > 2 && <span className="text-[10px] text-slate-400">+{entity.tags.length - 2}</span>}
         </div>
       )}
     </div>
@@ -88,16 +88,16 @@ function KanbanColumn({ stage, entities, onClick }: {
     <div
       ref={setNodeRef}
       className={cn(
-        'flex flex-col rounded-lg border bg-muted/30 min-w-[260px] w-[260px] flex-shrink-0',
+        'flex flex-col bg-[#FAF2E9] rounded-xl min-w-[260px] w-[260px] flex-shrink-0',
         isOver && 'ring-2 ring-primary/50'
       )}
     >
-      <div className="flex items-center justify-between px-3 py-2 border-b">
+      <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: stage.color }} />
-          <span className="text-sm font-medium">{stage.label}</span>
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{stage.label}</span>
         </div>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">{entities.length}</span>
+        <span className="rounded-full bg-[#F5EDE3] px-2 py-0.5 text-xs font-bold text-slate-600">{entities.length}</span>
       </div>
       <div className="flex flex-col gap-2 p-2 overflow-y-auto max-h-[calc(100vh-300px)]">
         <SortableContext items={entities.map(e => e.id)} strategy={verticalListSortingStrategy}>
@@ -106,7 +106,7 @@ function KanbanColumn({ stage, entities, onClick }: {
           ))}
         </SortableContext>
         {entities.length === 0 && (
-          <p className="text-xs text-muted-foreground text-center py-4">항목 없음</p>
+          <p className="text-xs text-slate-400 text-center py-4">항목 없음</p>
         )}
       </div>
     </div>
@@ -160,9 +160,9 @@ export function KanbanView({ entities, onStageChange, onClick }: KanbanViewProps
       </div>
       <DragOverlay>
         {activeEntity && (
-          <div className="rounded-lg border bg-card p-3 shadow-xl w-[240px]">
-            <span className="text-sm font-medium">{activeEntity.companyName}</span>
-            <p className="text-xs text-muted-foreground">{activeEntity.contactName}</p>
+          <div className="bg-white rounded-xl p-4 shadow-ambient w-[240px]">
+            <span className="text-sm font-bold text-slate-900">{activeEntity.companyName}</span>
+            <p className="text-xs text-slate-500">{activeEntity.contactName}</p>
           </div>
         )}
       </DragOverlay>

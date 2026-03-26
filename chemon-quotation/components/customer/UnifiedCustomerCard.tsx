@@ -1,7 +1,7 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
@@ -68,12 +68,11 @@ function StageBadge({
   const style = {
     backgroundColor: `${stageColor}20`, // 20% 투명도
     color: stageColor,
-    borderColor: `${stageColor}40`, // 40% 투명도
   };
 
   return (
     <span
-      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold border"
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
       style={style}
     >
       {displayStage}
@@ -128,9 +127,12 @@ export default function UnifiedCustomerCard({
   };
 
   return (
-    <Card 
+    <StitchCard 
+      variant="elevated"
+      hover
+      padding="sm"
       className={cn(
-        'cursor-pointer hover:border-foreground/15 transition-colors duration-150',
+        'cursor-pointer transition-colors duration-150',
         'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1',
         selectable && selected && 'ring-2 ring-primary bg-primary/5',
         className
@@ -141,7 +143,7 @@ export default function UnifiedCustomerCard({
       role="button"
       aria-label={`${entity.companyName} - ${entity.entityType === 'LEAD' ? '리드' : '고객'}`}
     >
-      <CardContent className="p-4">
+      <div>
         {/* 선택 체크박스 - 고객 타입만 선택 가능 */}
         {selectable && entity.entityType === 'CUSTOMER' && (
           <div className="flex items-center mb-2">
@@ -170,7 +172,7 @@ export default function UnifiedCustomerCard({
                   }}
                 >
                   <SelectTrigger
-                    className="h-6 w-auto px-2 text-xs font-semibold border rounded-full"
+                    className="h-6 w-auto px-2 text-xs font-semibold rounded-full bg-white border-none"
                     onClick={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
                   >
@@ -201,7 +203,7 @@ export default function UnifiedCustomerCard({
             </div>
             
             {/* 회사명 - Requirements 1.3, 1.4 */}
-            <h3 className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate">
+            <h3 className="font-semibold text-base text-slate-900 dark:text-slate-100 truncate">
               {entity.companyName}
             </h3>
           </div>
@@ -213,7 +215,7 @@ export default function UnifiedCustomerCard({
         {/* 중간: 담당자 정보 - Requirements 1.3, 1.4 */}
         <div className="space-y-1.5 text-sm">
           {/* 담당자명 */}
-          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
             <User className="h-4 w-4 flex-shrink-0" />
             <span className="truncate">{entity.contactName}</span>
           </div>
@@ -222,7 +224,7 @@ export default function UnifiedCustomerCard({
           <div className="flex items-center gap-4 flex-wrap">
             {/* 전화번호 */}
             {entity.contactPhone && (
-              <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
                 <Phone className="h-4 w-4 flex-shrink-0" />
                 <span className="truncate">{entity.contactPhone}</span>
               </div>
@@ -230,7 +232,7 @@ export default function UnifiedCustomerCard({
             
             {/* 이메일 */}
             {entity.contactEmail && (
-              <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
                 <Mail className="h-4 w-4 flex-shrink-0" />
                 <span className="truncate">{entity.contactEmail}</span>
               </div>
@@ -249,33 +251,33 @@ export default function UnifiedCustomerCard({
         {/* 하단: 추가 정보 (선택적) */}
         {(entity.entityType === 'LEAD' && entity.expectedAmount) || 
          (entity.entityType === 'CUSTOMER' && entity.quotationCount !== undefined) ? (
-          <div className="flex items-center gap-3 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-3 pt-3 mt-3 bg-[#FAF2E9] -mx-4 px-4 py-2 rounded-b-xl">
             {/* 리드: 예상 금액 */}
             {entity.entityType === 'LEAD' && entity.expectedAmount && (
-              <Badge variant="outline" className="text-xs">
+              <StitchBadge variant="primary">
                 예상 {formatCurrency(entity.expectedAmount)}
-              </Badge>
+              </StitchBadge>
             )}
             
             {/* 고객: 견적 수 및 총 금액 */}
             {entity.entityType === 'CUSTOMER' && (
               <>
                 {entity.quotationCount !== undefined && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-slate-500">
                     견적 {entity.quotationCount}건
                   </span>
                 )}
                 {entity.totalAmount !== undefined && entity.totalAmount > 0 && (
-                  <Badge variant="outline" className="text-xs">
+                  <StitchBadge variant="primary">
                     {formatCurrency(entity.totalAmount)}
-                  </Badge>
+                  </StitchBadge>
                 )}
               </>
             )}
           </div>
         ) : null}
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }
 
@@ -292,23 +294,21 @@ function formatCurrency(amount: number): string {
  */
 export function UnifiedCustomerCardSkeleton() {
   return (
-    <Card className="animate-pulse">
-      <CardContent className="p-4">
+    <StitchCard variant="elevated" padding="sm" className="animate-pulse">
         {/* 상단 배지 영역 */}
         <div className="flex items-center gap-2 mb-2">
-          <div className="h-5 w-12 bg-gray-200 dark:bg-gray-700 rounded-full" />
-          <div className="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full" />
+          <div className="h-5 w-12 bg-slate-200 dark:bg-slate-700 rounded-full" />
+          <div className="h-5 w-16 bg-slate-200 dark:bg-slate-700 rounded-full" />
         </div>
         
         {/* 회사명 */}
-        <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
+        <div className="h-5 w-3/4 bg-slate-200 dark:bg-slate-700 rounded mb-3" />
         
         {/* 담당자 정보 */}
         <div className="space-y-2">
-          <div className="h-4 w-1/3 bg-gray-200 dark:bg-gray-700 rounded" />
-          <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-4 w-1/3 bg-slate-200 dark:bg-slate-700 rounded" />
+          <div className="h-4 w-1/2 bg-slate-200 dark:bg-slate-700 rounded" />
         </div>
-      </CardContent>
-    </Card>
+    </StitchCard>
   );
 }

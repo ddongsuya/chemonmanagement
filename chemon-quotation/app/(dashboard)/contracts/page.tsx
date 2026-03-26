@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -13,14 +11,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { StitchCard } from '@/components/ui/StitchCard';
+import { StitchBadge } from '@/components/ui/StitchBadge';
+import { StitchPageHeader } from '@/components/ui/StitchPageHeader';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  StitchTable,
+  StitchTableBody,
+  StitchTableCell,
+  StitchTableHead,
+  StitchTableHeader,
+  StitchTableRow,
+} from '@/components/ui/StitchTable';
 import { Plus, Search, FileText, Building2, Calendar } from 'lucide-react';
 import WonSign from '@/components/icons/WonSign';
 import { getContracts, Contract } from '@/lib/contract-api';
@@ -88,236 +89,224 @@ export default function ContractsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold">계약 관리</h1>
-          <p className="text-sm text-muted-foreground">계약서 및 시험 진행 관리</p>
-        </div>
-        <div className="flex gap-2 flex-shrink-0">
-          <div className="hidden sm:block">
-            <ExcelImportExport defaultType="contracts" onImportSuccess={loadData} />
+      <StitchPageHeader
+        label="CONTRACTS"
+        title="계약 관리"
+        description="계약서 및 시험 진행 관리"
+        actions={
+          <div className="flex gap-2 flex-shrink-0">
+            <div className="hidden sm:block">
+              <ExcelImportExport defaultType="contracts" onImportSuccess={loadData} />
+            </div>
+            <Button size="sm" className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold" onClick={() => router.push('/contract/new')}>
+              <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">새 계약</span>
+              <span className="sm:hidden">추가</span>
+            </Button>
           </div>
-          <Button size="sm" onClick={() => router.push('/contract/new')}>
-            <Plus className="w-4 h-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">새 계약</span>
-            <span className="sm:hidden">추가</span>
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">전체 계약</p>
-                <p className="text-2xl font-bold">{contracts.length}</p>
-              </div>
-              <FileText className="w-8 h-8 text-muted-foreground" />
+        <StitchCard variant="surface-low">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">전체 계약</p>
+              <p className="text-2xl font-bold">{contracts.length}</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">진행중</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {contracts.filter(c => c.status === 'IN_PROGRESS').length}
-                </p>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-              </div>
+            <FileText className="w-8 h-8 text-slate-400" />
+          </div>
+        </StitchCard>
+        <StitchCard variant="surface-low">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">진행중</p>
+              <p className="text-2xl font-bold text-emerald-600">
+                {contracts.filter(c => c.status === 'IN_PROGRESS').length}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">완료</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {contracts.filter(c => c.status === 'COMPLETED').length}
-                </p>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full bg-blue-500" />
-              </div>
+            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+              <div className="w-3 h-3 rounded-full bg-emerald-500" />
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">총 계약금액</p>
-                <p className="text-xl font-bold">
-                  {formatAmount(contracts.reduce((sum, c) => sum + Number(c.totalAmount ?? c.total_amount ?? 0), 0))}
-                </p>
-              </div>
-              <WonSign className="w-8 h-8 text-muted-foreground" />
+          </div>
+        </StitchCard>
+        <StitchCard variant="surface-low">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">완료</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {contracts.filter(c => c.status === 'COMPLETED').length}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <div className="w-3 h-3 rounded-full bg-blue-500" />
+            </div>
+          </div>
+        </StitchCard>
+        <StitchCard variant="surface-low">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">총 계약금액</p>
+              <p className="text-xl font-bold">
+                {formatAmount(contracts.reduce((sum, c) => sum + Number(c.totalAmount ?? c.total_amount ?? 0), 0))}
+              </p>
+            </div>
+            <WonSign className="w-8 h-8 text-slate-400" />
+          </div>
+        </StitchCard>
       </div>
 
       {/* 필터 */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 flex-wrap">
-            <div className="flex-1 min-w-0 sm:min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="계약번호, 계약명 검색..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[150px]">
-                  <SelectValue placeholder="상태" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체 상태</SelectItem>
-                  {Object.entries(statusLabels).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button onClick={handleSearch} className="flex-shrink-0">검색</Button>
+      <StitchCard variant="surface-low">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 flex-wrap">
+          <div className="flex-1 min-w-0 sm:min-w-[200px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="계약번호, 계약명 검색..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="pl-10 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[150px] bg-white border-none rounded-xl">
+                <SelectValue placeholder="상태" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체 상태</SelectItem>
+                {Object.entries(statusLabels).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button onClick={handleSearch} className="flex-shrink-0 bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold">검색</Button>
+          </div>
+        </div>
+      </StitchCard>
 
       {/* 계약 목록 */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base sm:text-lg">계약 목록</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">로딩 중...</div>
-          ) : contracts.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              등록된 계약이 없습니다.
+      <div>
+        <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-4">계약 목록</h2>
+        {loading ? (
+          <div className="text-center py-8 text-slate-500 text-sm">로딩 중...</div>
+        ) : contracts.length === 0 ? (
+          <div className="text-center py-8 text-slate-500 text-sm">
+            등록된 계약이 없습니다.
+          </div>
+        ) : (
+          <>
+            {/* 모바일: 카드 리스트 */}
+            <div className="md:hidden space-y-3">
+              {contracts.map((contract) => {
+                const contractNumber = contract.contractNumber || contract.contract_number || '';
+                const title = contract.title || contract.project_name || '';
+                const contractType = contract.contractType || contract.contract_type || 'TOXICITY';
+                const totalAmount = contract.totalAmount ?? contract.total_amount ?? 0;
+                const signedDate = contract.signedDate || contract.signed_date;
+
+                return (
+                  <StitchCard
+                    key={contract.id}
+                    variant="elevated"
+                    hover
+                    padding="sm"
+                    className="touch-manipulation cursor-pointer"
+                    onClick={() => router.push(`/contracts/${contract.id}`)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <span className="text-xs font-mono text-slate-500">{contractNumber}</span>
+                      <StitchBadge status={contract.status}>
+                        {statusLabels[contract.status]}
+                      </StitchBadge>
+                    </div>
+                    <div className="font-medium text-sm mb-1 truncate">{title}</div>
+                    <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                      <Building2 className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{contract.customer?.company || (contract.customer as any)?.leads?.[0]?.companyName || contract.customer_name || contract.customer?.name || '-'}</span>
+                      <StitchBadge variant="neutral" className="text-[10px] px-1.5 py-0 flex-shrink-0">
+                        {contractType === 'TOXICITY' ? '독성' : contractType === 'EFFICACY' ? '효력' : '임상병리'}
+                      </StitchBadge>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">{formatDate(signedDate)}</span>
+                      <span className="font-semibold">{formatAmount(totalAmount)}</span>
+                    </div>
+                  </StitchCard>
+                );
+              })}
             </div>
-          ) : (
-            <>
-              {/* 모바일: 카드 리스트 */}
-              <div className="md:hidden space-y-3">
-                {contracts.map((contract) => {
-                  const contractNumber = contract.contractNumber || contract.contract_number || '';
-                  const title = contract.title || contract.project_name || '';
-                  const contractType = contract.contractType || contract.contract_type || 'TOXICITY';
-                  const totalAmount = contract.totalAmount ?? contract.total_amount ?? 0;
-                  const signedDate = contract.signedDate || contract.signed_date;
 
-                  return (
-                    <Card
-                      key={contract.id}
-                      className="touch-manipulation active:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => router.push(`/contracts/${contract.id}`)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <span className="text-xs font-mono text-muted-foreground">{contractNumber}</span>
-                          <Badge className={statusColors[contract.status]}>
+            {/* 데스크톱: 테이블 */}
+            <div className="hidden md:block">
+              <StitchTable>
+                <StitchTableHeader>
+                  <StitchTableRow>
+                    <StitchTableHead>계약번호</StitchTableHead>
+                    <StitchTableHead>계약명</StitchTableHead>
+                    <StitchTableHead>고객사</StitchTableHead>
+                    <StitchTableHead>유형</StitchTableHead>
+                    <StitchTableHead>계약금액</StitchTableHead>
+                    <StitchTableHead>상태</StitchTableHead>
+                    <StitchTableHead>체결일</StitchTableHead>
+                    <StitchTableHead>시험</StitchTableHead>
+                  </StitchTableRow>
+                </StitchTableHeader>
+                <StitchTableBody>
+                  {contracts.map((contract) => {
+                    const contractNumber = contract.contractNumber || contract.contract_number || '';
+                    const title = contract.title || contract.project_name || '';
+                    const contractType = contract.contractType || contract.contract_type || 'TOXICITY';
+                    const totalAmount = contract.totalAmount ?? contract.total_amount ?? 0;
+                    const signedDate = contract.signedDate || contract.signed_date;
+                    
+                    return (
+                      <StitchTableRow
+                        key={contract.id}
+                        className="cursor-pointer"
+                        onClick={() => router.push(`/contracts/${contract.id}`)}
+                      >
+                        <StitchTableCell className="font-bold text-primary">{contractNumber}</StitchTableCell>
+                        <StitchTableCell>{title}</StitchTableCell>
+                        <StitchTableCell>
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-slate-400" />
+                            {contract.customer?.company || (contract.customer as any)?.leads?.[0]?.companyName || contract.customer_name || contract.customer?.name || '-'}
+                          </div>
+                        </StitchTableCell>
+                        <StitchTableCell>
+                          <StitchBadge variant="neutral">
+                            {contractType === 'TOXICITY' ? '독성' : contractType === 'EFFICACY' ? '효력' : contractType === 'CLINICAL_PATHOLOGY' ? '임상병리' : contractType}
+                          </StitchBadge>
+                        </StitchTableCell>
+                        <StitchTableCell>{formatAmount(totalAmount)}</StitchTableCell>
+                        <StitchTableCell>
+                          <StitchBadge status={contract.status}>
                             {statusLabels[contract.status]}
-                          </Badge>
-                        </div>
-                        <div className="font-medium text-sm mb-1 truncate">{title}</div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                          <Building2 className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{contract.customer?.company || (contract.customer as any)?.leads?.[0]?.companyName || contract.customer_name || contract.customer?.name || '-'}</span>
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex-shrink-0">
-                            {contractType === 'TOXICITY' ? '독성' : contractType === 'EFFICACY' ? '효력' : '임상병리'}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">{formatDate(signedDate)}</span>
-                          <span className="font-semibold">{formatAmount(totalAmount)}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              {/* 데스크톱: 테이블 */}
-              <div className="hidden md:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>계약번호</TableHead>
-                      <TableHead>계약명</TableHead>
-                      <TableHead>고객사</TableHead>
-                      <TableHead>유형</TableHead>
-                      <TableHead>계약금액</TableHead>
-                      <TableHead>상태</TableHead>
-                      <TableHead>체결일</TableHead>
-                      <TableHead>시험</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {contracts.map((contract) => {
-                      const contractNumber = contract.contractNumber || contract.contract_number || '';
-                      const title = contract.title || contract.project_name || '';
-                      const contractType = contract.contractType || contract.contract_type || 'TOXICITY';
-                      const totalAmount = contract.totalAmount ?? contract.total_amount ?? 0;
-                      const signedDate = contract.signedDate || contract.signed_date;
-                      
-                      return (
-                        <TableRow
-                          key={contract.id}
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => router.push(`/contracts/${contract.id}`)}
-                        >
-                          <TableCell className="font-medium">{contractNumber}</TableCell>
-                          <TableCell>{title}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Building2 className="w-4 h-4 text-muted-foreground" />
-                              {contract.customer?.company || (contract.customer as any)?.leads?.[0]?.companyName || contract.customer_name || contract.customer?.name || '-'}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {contractType === 'TOXICITY' ? '독성' : contractType === 'EFFICACY' ? '효력' : contractType === 'CLINICAL_PATHOLOGY' ? '임상병리' : contractType}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{formatAmount(totalAmount)}</TableCell>
-                          <TableCell>
-                            <Badge className={statusColors[contract.status]}>
-                              {statusLabels[contract.status]}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Calendar className="w-3 h-3" />
-                              {formatDate(signedDate)}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {(contract as any)._count?.studies || contract.studies?.length || 0}건
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+                          </StitchBadge>
+                        </StitchTableCell>
+                        <StitchTableCell>
+                          <div className="flex items-center gap-1 text-sm text-slate-500">
+                            <Calendar className="w-3 h-3" />
+                            {formatDate(signedDate)}
+                          </div>
+                        </StitchTableCell>
+                        <StitchTableCell>
+                          {(contract as any)._count?.studies || contract.studies?.length || 0}건
+                        </StitchTableCell>
+                      </StitchTableRow>
+                    );
+                  })}
+                </StitchTableBody>
+              </StitchTable>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuotationStore } from '@/stores/quotationStore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,11 +63,9 @@ export default function StepCalculation() {
   return (
     <div className="space-y-6">
       {/* 견적 상세 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>견적 상세</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <StitchCard variant="surface-low" padding="lg">
+        <h3 className="text-xl font-bold mb-4">견적 상세</h3>
+        <div>
           <TooltipProvider>
             <Table>
               <TableHeader>
@@ -91,7 +89,7 @@ export default function StepCalculation() {
                       <TableCell className="p-1">
                         {!item.is_option && (
                           <div className="flex items-center gap-0.5">
-                            <GripVertical className="w-4 h-4 text-gray-300" />
+                            <GripVertical className="w-4 h-4 text-slate-300" />
                             <div className="flex flex-col">
                               <Button
                                 variant="ghost"
@@ -119,7 +117,7 @@ export default function StepCalculation() {
                         {item.is_option ? '' : mainIndex + 1}
                       </TableCell>
                       <TableCell
-                        className={item.is_option ? 'pl-8 text-gray-600' : ''}
+                        className={item.is_option ? 'pl-8 text-slate-600' : ''}
                       >
                         {item.is_option ? (
                           <>└ {item.test.option_type || title}</>
@@ -145,7 +143,7 @@ export default function StepCalculation() {
                     </TableRow>
                   );
                 })}
-                <TableRow className="bg-gray-50 dark:bg-gray-800 font-semibold">
+                <TableRow className="bg-[#F5EDE3] font-bold">
                   <TableCell colSpan={4} className="text-right">
                     시험비용 소계
                   </TableCell>
@@ -156,53 +154,51 @@ export default function StepCalculation() {
               </TableBody>
             </Table>
           </TooltipProvider>
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
 
       {/* 조제물분석 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
-            조제물분석 (자동계산)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <StitchCard variant="surface-low" padding="lg">
+        <h3 className="text-xl font-bold flex items-center gap-2 mb-4">
+          <Calculator className="w-5 h-5 text-primary" />
+          조제물분석 (자동계산)
+        </h3>
+        <div className="space-y-4">
           {/* Validation */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#F5EDE3]">
               <div className="flex items-center gap-2">
                 {analysisCost.validation_invivo ? (
                   <Check className="w-4 h-4 text-green-600" />
                 ) : (
-                  <X className="w-4 h-4 text-gray-300" />
+                  <X className="w-4 h-4 text-slate-300" />
                 )}
                 <span>Validation (in vivo)</span>
               </div>
               <span
                 className={
                   analysisCost.validation_invivo
-                    ? 'font-medium'
-                    : 'text-gray-400'
+                    ? 'font-bold'
+                    : 'text-slate-400'
                 }
               >
                 {formatCurrency(analysisCost.validation_invivo ? 10000000 : 0)}
               </span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#F5EDE3]">
               <div className="flex items-center gap-2">
                 {analysisCost.validation_invitro ? (
                   <Check className="w-4 h-4 text-green-600" />
                 ) : (
-                  <X className="w-4 h-4 text-gray-300" />
+                  <X className="w-4 h-4 text-slate-300" />
                 )}
                 <span>Validation (in vitro)</span>
               </div>
               <span
                 className={
                   analysisCost.validation_invitro
-                    ? 'font-medium'
-                    : 'text-gray-400'
+                    ? 'font-bold'
+                    : 'text-slate-400'
                 }
               >
                 {formatCurrency(analysisCost.validation_invitro ? 10000000 : 0)}
@@ -217,7 +213,7 @@ export default function StepCalculation() {
             <h4 className="font-medium mb-2">
               함량분석 내역 ({analysisCost.analysis_count}회)
             </h4>
-            <div className="space-y-1 text-sm text-gray-600">
+            <div className="space-y-1 text-sm text-slate-600">
               {selectedItems
                 .filter(
                   (item) =>
@@ -239,7 +235,7 @@ export default function StepCalculation() {
                   !item.test.analysis_excluded && 
                   (item.test.test_type === 'in vivo' || item.test.test_type === 'in vitro')
               ).length === 0 && (
-                <p className="text-gray-400">함량분석 대상 시험이 없습니다.</p>
+                <p className="text-slate-400">함량분석 대상 시험이 없습니다.</p>
               )}
             </div>
           </div>
@@ -247,24 +243,22 @@ export default function StepCalculation() {
           <Separator />
 
           {/* 조제물분석 소계 */}
-          <div className="flex justify-between font-semibold text-lg">
+          <div className="flex justify-between font-bold text-lg">
             <span>조제물분석 소계</span>
             <span className="text-primary">
               {formatCurrency(subtotalAnalysis)}
             </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
 
       {/* 할인 적용 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>할인 적용</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <StitchCard variant="surface-low" padding="lg">
+        <h3 className="text-xl font-bold mb-4">할인 적용</h3>
+        <div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>할인율 (%)</Label>
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">할인율 (%)</label>
               <Input
                 type="number"
                 min="0"
@@ -272,26 +266,26 @@ export default function StepCalculation() {
                 value={discountRate}
                 onChange={(e) => setDiscountRate(Number(e.target.value))}
                 placeholder="0"
+                className="bg-white border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/40"
               />
             </div>
             <div className="space-y-2">
-              <Label>할인 사유 (선택)</Label>
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">할인 사유 (선택)</label>
               <Input
                 value={discountReason}
                 onChange={(e) => setDiscountReason(e.target.value)}
                 placeholder="예: 장기 거래 고객"
+                className="bg-white border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/40"
               />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
 
       {/* 최종 금액 */}
-      <Card className="border-primary">
-        <CardHeader className="bg-primary/5">
-          <CardTitle>최종 견적 금액</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
+      <StitchCard variant="surface-container" padding="lg">
+        <h3 className="text-xl font-bold mb-4">최종 견적 금액</h3>
+        <div className="pt-2">
           <div className="space-y-3">
             <div className="flex justify-between">
               <span>시험비용</span>
@@ -301,8 +295,8 @@ export default function StepCalculation() {
               <span>조제물분석</span>
               <span>{formatCurrency(subtotalAnalysis)}</span>
             </div>
-            <Separator />
-            <div className="flex justify-between font-medium">
+            <div className="h-px bg-[#E9E1D8] my-2" />
+            <div className="flex justify-between font-bold">
               <span>합계</span>
               <span>{formatCurrency(subtotalTest + subtotalAnalysis)}</span>
             </div>
@@ -312,17 +306,17 @@ export default function StepCalculation() {
                 <span>-{formatCurrency(discountAmount)}</span>
               </div>
             )}
-            <Separator />
-            <div className="flex justify-between text-xl font-bold">
+            <div className="h-px bg-[#E9E1D8] my-2" />
+            <div className="flex justify-between text-xl font-black">
               <span>최종 견적금액</span>
               <span className="text-primary">{formatCurrency(totalAmount)}</span>
             </div>
-            <p className="text-sm text-gray-500 text-right">
+            <p className="text-sm text-slate-500 text-right">
               * 부가가치세 별도
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </StitchCard>
 
       {/* 버튼 */}
       <div className="flex justify-between">

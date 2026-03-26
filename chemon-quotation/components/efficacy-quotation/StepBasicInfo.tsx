@@ -4,14 +4,7 @@ import { useState } from 'react';
 import { useEfficacyQuotationStore } from '@/stores/efficacyQuotationStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
+import { StitchCard } from '@/components/ui/StitchCard';
 import {
   Select,
   SelectContent,
@@ -105,22 +98,22 @@ export default function StepBasicInfo() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Building2 className="w-5 h-5" />
+    <StitchCard variant="surface-low" padding="lg">
+      <div className="mb-6">
+        <h3 className="text-xl font-bold flex items-center gap-2">
+          <Building2 className="w-5 h-5 text-primary" />
           기본 정보 입력
-        </CardTitle>
-        <CardDescription>
+        </h3>
+        <p className="text-sm text-slate-500 mt-1">
           효력시험 견적서의 기본 정보를 입력해주세요
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </p>
+      </div>
+      <div className="space-y-6">
         {/* 고객사/리드 선택 - CustomerSelector 컴포넌트 사용 */}
         <div className="space-y-2">
-          <Label>
+          <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
             고객사 / 리드 <span className="text-red-500">*</span>
-          </Label>
+          </label>
           <CustomerSelector
             selectedCustomerId={customerId || null}
             selectedLeadId={leadId}
@@ -132,7 +125,7 @@ export default function StepBasicInfo() {
             <p className="text-sm text-red-500">{errors.customer}</p>
           )}
           {customerName && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               선택됨: {customerName}
               {leadId && <span className="ml-2 text-orange-600">(리드)</span>}
             </p>
@@ -141,9 +134,9 @@ export default function StepBasicInfo() {
 
         {/* Project name */}
         <div className="space-y-2">
-          <Label htmlFor="projectName">
+          <label htmlFor="projectName" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
             프로젝트명 <span className="text-red-500">*</span>
-          </Label>
+          </label>
           <Input
             id="projectName"
             value={projectName}
@@ -154,7 +147,7 @@ export default function StepBasicInfo() {
               }
             }}
             placeholder="예: ABC-001 효력시험"
-            className={errors.project ? 'border-red-500' : ''}
+            className={`bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40 ${errors.project ? 'ring-2 ring-red-500' : ''}`}
           />
           {errors.project && (
             <p className="text-sm text-red-500">{errors.project}</p>
@@ -163,12 +156,12 @@ export default function StepBasicInfo() {
 
         {/* Validity period */}
         <div className="space-y-2">
-          <Label htmlFor="validDays">견적 유효기간</Label>
+          <label htmlFor="validDays" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">견적 유효기간</label>
           <Select
             value={validDays.toString()}
             onValueChange={(value) => setValidDays(parseInt(value))}
           >
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className="w-full sm:w-48 bg-white border-none rounded-xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -179,29 +172,29 @@ export default function StepBasicInfo() {
               ))}
             </SelectContent>
           </Select>
-          <p className="text-sm text-gray-500">유효기한: {validUntil}</p>
+          <p className="text-sm text-slate-500">유효기한: {validUntil}</p>
         </div>
 
         {/* Notes */}
         <div className="space-y-2">
-          <Label htmlFor="notes">특이사항</Label>
+          <label htmlFor="notes" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">특이사항</label>
           <textarea
             id="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="견적 관련 특이사항이나 메모를 입력하세요"
-            className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex min-h-[100px] w-full rounded-xl bg-white border-none px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
 
         {/* Next button */}
         <div className="flex justify-end pt-4">
-          <Button onClick={handleNext} size="lg">
+          <Button onClick={handleNext} size="lg" className="bg-gradient-to-r from-primary to-orange-400 rounded-xl font-bold text-white">
             다음: 모델 선택
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </StitchCard>
   );
 }

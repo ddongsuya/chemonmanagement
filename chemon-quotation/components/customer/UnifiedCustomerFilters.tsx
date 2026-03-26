@@ -172,7 +172,7 @@ export default function UnifiedCustomerFilters({
             onValueChange={handleTypeChange}
             disabled={loading}
           >
-            <SelectTrigger aria-label="유형 필터">
+            <SelectTrigger aria-label="유형 필터" className="bg-white border-none rounded-xl">
               <SelectValue placeholder="유형 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -195,7 +195,7 @@ export default function UnifiedCustomerFilters({
             onValueChange={handleStageChange}
             disabled={loading}
           >
-            <SelectTrigger aria-label="단계 필터">
+            <SelectTrigger aria-label="단계 필터" className="bg-white border-none rounded-xl">
               <SelectValue placeholder="단계 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -224,7 +224,7 @@ export default function UnifiedCustomerFilters({
             placeholder="회사명, 담당자, 이메일, 전화번호 검색..."
             value={searchInput}
             onChange={handleSearchChange}
-            className="pl-9 pr-9"
+            className="pl-9 pr-9 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
             disabled={loading}
             aria-label="검색"
           />
@@ -247,7 +247,7 @@ export default function UnifiedCustomerFilters({
             size="default"
             onClick={handleResetFilters}
             disabled={loading}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 rounded-xl"
           >
             <Filter className="h-4 w-4" />
             <span>초기화</span>
@@ -269,9 +269,9 @@ export function UnifiedCustomerFiltersSkeleton() {
   return (
     <div className="space-y-4 animate-pulse">
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="w-full sm:w-40 h-10 bg-gray-200 dark:bg-gray-700 rounded-md" />
-        <div className="w-full sm:w-48 h-10 bg-gray-200 dark:bg-gray-700 rounded-md" />
-        <div className="flex-1 h-10 bg-gray-200 dark:bg-gray-700 rounded-md" />
+        <div className="w-full sm:w-40 h-10 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+        <div className="w-full sm:w-48 h-10 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+        <div className="flex-1 h-10 bg-slate-200 dark:bg-slate-700 rounded-xl" />
       </div>
     </div>
   );
