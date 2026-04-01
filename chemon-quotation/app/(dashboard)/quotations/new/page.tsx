@@ -5,20 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useQuotationStore } from '@/stores/quotationStore';
-import { useEfficacyQuotationStore } from '@/stores/efficacyQuotationStore';
 import QuotationWizard from '@/components/quotation/QuotationWizard';
-import EfficacyQuotationWizard from '@/components/efficacy-quotation/EfficacyQuotationWizard';
 import StepBasicInfo from '@/components/quotation/StepBasicInfo';
 import ToxicityV2Step from '@/components/toxicity-v2/ToxicityV2Step';
 import StepCalculationV2 from '@/components/toxicity-v2/StepCalculationV2';
 import StepPreviewV2 from '@/components/toxicity-v2/StepPreviewV2';
 import { useToxicityV2Store } from '@/stores/toxicityV2Store';
-import EfficacyStepBasicInfo from '@/components/efficacy-quotation/StepBasicInfo';
-import EfficacyStepModelSelection from '@/components/efficacy-quotation/StepModelSelection';
-import EfficacyStepItemConfiguration from '@/components/efficacy-quotation/StepItemConfiguration';
-import EfficacyStepStudyDesign from '@/components/efficacy-quotation/StepStudyDesign';
-import EfficacyStepCalculation from '@/components/efficacy-quotation/StepCalculation';
-import EfficacyStepPreview from '@/components/efficacy-quotation/StepPreview';
 import PageHeader from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { StitchCard } from '@/components/ui/StitchCard';
@@ -34,7 +26,6 @@ export default function NewQuotationPage() {
   const router = useRouter();
   
   const toxicityStore = useQuotationStore();
-  const efficacyStore = useEfficacyQuotationStore();
   const toxicityV2Store = useToxicityV2Store();
 
   // useQuery로 사용자 설정 조회 (캐시 공유)
@@ -57,8 +48,6 @@ export default function NewQuotationPage() {
   const handleStepClick = (step: number) => {
     if (quotationType === 'toxicity' && step < toxicityStore.currentStep) {
       toxicityStore.setCurrentStep(step);
-    } else if (quotationType === 'efficacy' && step < efficacyStore.currentStep) {
-      efficacyStore.setCurrentStep(step);
     }
   };
 
@@ -67,8 +56,6 @@ export default function NewQuotationPage() {
       if (quotationType === 'toxicity') {
         toxicityStore.reset();
         toxicityV2Store.reset();
-      } else if (quotationType === 'efficacy') {
-        efficacyStore.reset();
       }
     }
   };
@@ -78,8 +65,6 @@ export default function NewQuotationPage() {
       if (quotationType === 'toxicity') {
         toxicityStore.reset();
         toxicityV2Store.reset();
-      } else if (quotationType === 'efficacy') {
-        efficacyStore.reset();
       }
       setQuotationType(null);
     }
@@ -111,25 +96,6 @@ export default function NewQuotationPage() {
         return <StepPreviewV2 />;
       default:
         return <StepBasicInfo />;
-    }
-  };
-
-  const renderEfficacyStep = () => {
-    switch (efficacyStore.currentStep) {
-      case 1:
-        return <EfficacyStepBasicInfo />;
-      case 2:
-        return <EfficacyStepModelSelection />;
-      case 3:
-        return <EfficacyStepItemConfiguration />;
-      case 4:
-        return <EfficacyStepStudyDesign />;
-      case 5:
-        return <EfficacyStepCalculation />;
-      case 6:
-        return <EfficacyStepPreview />;
-      default:
-        return <EfficacyStepBasicInfo />;
     }
   };
 
@@ -223,7 +189,7 @@ export default function NewQuotationPage() {
               'bg-gradient-to-br from-emerald-50 to-teal-50',
               'touch-manipulation active:scale-[0.98]'
             )}
-            onClick={() => setQuotationType('efficacy')}
+            onClick={() => router.push('/efficacy-quotations/new')}
           >
             <div className="p-1 sm:p-2 text-center">
               <div className="w-14 h-14 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-ambient">
@@ -304,32 +270,11 @@ export default function NewQuotationPage() {
     );
   }
 
-  // 효력시험 견적서 작성
-  return (
-    <div className="max-w-5xl mx-auto">
-      <PageHeader
-        title="효력시험 견적서 작성"
-        description="단계별로 효력시험 견적서를 작성합니다"
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleBack}>
-              <ArrowLeft className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">유형 선택</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleReset}>
-              <RotateCcw className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">초기화</span>
-            </Button>
-          </div>
-        }
-      />
+  // 효력시험 → 전용 페이지로 리다이렉트
+  if (quotationType === 'efficacy') {
+    router.push('/efficacy-quotations/new');
+    return null;
+  }
 
-      <EfficacyQuotationWizard
-        currentStep={efficacyStore.currentStep}
-        onStepClick={handleStepClick}
-      />
-
-      {renderEfficacyStep()}
-    </div>
-  );
+  return null;
 }

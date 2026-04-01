@@ -1,0 +1,1163 @@
+{
+  "meta": {
+    "version": "2025-04",
+    "sources": [
+      "효력시험_단가_테이블.xlsx (내부 단가)",
+      "자바이오 실험동물 가격표 2025.01",
+      "오리엔트바이오 가격표 2023.01",
+      "코아텍 가격표 2025.01"
+    ]
+  },
+  "animal_prices": {
+    "jabio": {
+      "vendor": "자바이오",
+      "basis": "2025.01",
+      "contact": "031-212-8048",
+      "email": "info@jabio.co.kr",
+      "animals": [
+        {
+          "strain": "BALB/c-nu/ArcGem",
+          "type": "Mutant Mice",
+          "prices": {
+            "4W": 50000,
+            "5W": 55000,
+            "6W": 60000,
+            "7W": 65000,
+            "8W": 70000
+          }
+        },
+        {
+          "strain": "SID(NSGA)(LMO)",
+          "type": "Mutant Mice",
+          "prices": {
+            "4W": 155000,
+            "5W": 160000,
+            "6W": 165000,
+            "7W": 175000,
+            "8W": 185000
+          }
+        },
+        {
+          "strain": "RID(NRGA)(LMO)",
+          "type": "Mutant Mice",
+          "prices": {
+            "4W": 155000,
+            "5W": 160000,
+            "6W": 165000,
+            "7W": 175000,
+            "8W": 185000
+          }
+        },
+        {
+          "strain": "SCID/g(LMO)",
+          "type": "Mutant Mice",
+          "prices": {
+            "4W": 138000,
+            "5W": 143000,
+            "6W": 148000,
+            "7W": 158000,
+            "8W": 168000
+          }
+        },
+        {
+          "strain": "BALB/c D",
+          "type": "Inbred Mice",
+          "prices": {
+            "3W": 16500,
+            "4W": 17000,
+            "5W": 18500,
+            "6W": 19000,
+            "7W": 20600,
+            "8W": 21500
+          },
+          "tp10d": 95000
+        },
+        {
+          "strain": "C57BL/6N D",
+          "type": "Inbred Mice",
+          "prices": {
+            "3W": 16500,
+            "4W": 17000,
+            "5W": 18500,
+            "6W": 19000,
+            "7W": 20600,
+            "8W": 21500
+          },
+          "tp10d": 95000
+        },
+        {
+          "strain": "C57BL/6J D",
+          "type": "Inbred Mice",
+          "prices": {
+            "3W": 17500,
+            "4W": 18000,
+            "5W": 19200,
+            "6W": 19800,
+            "7W": 21500,
+            "8W": 22500
+          },
+          "tp10d": 99000
+        },
+        {
+          "strain": "D:ICR",
+          "type": "Outbred Mice",
+          "prices": {
+            "3W": 6500,
+            "4W": 7200,
+            "5W": 7900,
+            "6W": 7900,
+            "7W": 7900,
+            "8W": 7900
+          },
+          "tp10d": 50000
+        },
+        {
+          "strain": "D:SD",
+          "type": "Outbred Rats",
+          "prices": {
+            "3W": 16500,
+            "4W": 17000,
+            "5W": 18500,
+            "6W": 19000,
+            "7W": 20000,
+            "8W": 21000
+          },
+          "tp10d": 95000
+        },
+        {
+          "strain": "N:Clean NZW",
+          "type": "Rabbit",
+          "prices": {
+            "~2.0kg": 100000,
+            "2.1~2.5kg": 112000,
+            "2.6~3.0kg": 130000,
+            "3.1~3.5kg": 150000
+          }
+        }
+      ]
+    },
+    "orient": {
+      "vendor": "오리엔트바이오",
+      "basis": "2023.01",
+      "contact": "031-730-6100",
+      "email": "order@orient.co.kr",
+      "animals": [
+        {
+          "strain": "Crl:CD(SD)",
+          "type": "Outbred Rats",
+          "prices": {
+            "3W": 23000,
+            "4W": 20300,
+            "5W": 24400,
+            "6W": 28500,
+            "7W": 32500,
+            "8W": 36000,
+            "add/week": 3700
+          },
+          "tp": 94000
+        },
+        {
+          "strain": "CrlOri:WI(Wistar)",
+          "type": "Outbred Rats",
+          "prices": {
+            "3W": 20900,
+            "4W": 23600,
+            "5W": 25000,
+            "6W": 29300,
+            "7W": 33400,
+            "8W": 37000,
+            "add/week": 3700
+          }
+        },
+        {
+          "strain": "CrlOri:CD1(ICR)",
+          "type": "Outbred Mice",
+          "prices": {
+            "3W": 8300,
+            "4W": 7800,
+            "5W": 9200,
+            "6W": 9700,
+            "7W": 11100,
+            "8W": 12500,
+            "add/week": 1200
+          },
+          "tp": 47000
+        },
+        {
+          "strain": "CrlOri:SKH1-hairless",
+          "type": "Outbred Mice",
+          "prices": {
+            "5W": 64000,
+            "6W": 64000,
+            "7W": 64000,
+            "8W": 73800,
+            "add/week": 7000
+          }
+        },
+        {
+          "strain": "BALB/cAnNCrlOri",
+          "type": "Inbred Mice",
+          "prices": {
+            "3W": 21700,
+            "4W": 21700,
+            "5W": 23600,
+            "6W": 25000,
+            "7W": 27800,
+            "8W": 30700,
+            "add/week": 2500
+          }
+        },
+        {
+          "strain": "C57BL/6NCrlOri",
+          "type": "Inbred Mice",
+          "prices": {
+            "3W": 25000,
+            "4W": 25000,
+            "5W": 27800,
+            "6W": 29300,
+            "7W": 33400,
+            "8W": 37000,
+            "add/week": 3700
+          }
+        },
+        {
+          "strain": "DBA/1JNCrljOri",
+          "type": "Inbred Mice",
+          "prices": {
+            "3W": 41700,
+            "4W": 41700,
+            "5W": 46000,
+            "6W": 48700,
+            "7W": 52900,
+            "8W": 57100,
+            "add/week": 3700
+          }
+        },
+        {
+          "strain": "CAnN.Cg-Foxn1 nu/CrlOri",
+          "type": "Immunodeficient",
+          "prices": {
+            "5W": 64000,
+            "6W": 69000,
+            "7W": 74000,
+            "8W": 79000,
+            "add/week": 7000
+          }
+        }
+      ]
+    },
+    "koatech": {
+      "vendor": "코아텍",
+      "basis": "2025.01",
+      "contact": "031-611-8221",
+      "email": "order@koatech.co.kr",
+      "animals": [
+        {
+          "strain": "Sprague Dawley SD",
+          "type": "Outbred Rat",
+          "prices": {
+            "3W": 17000,
+            "4W": 18000,
+            "5W": 19000,
+            "6W": 20000,
+            "7W": 22000,
+            "8W": 24000,
+            "9W": 26000,
+            "10W": 29000,
+            "11W": 32000,
+            "12W": 35000,
+            "add/week": 5500
+          },
+          "tp": 92000
+        },
+        {
+          "strain": "ICR(CD-1)",
+          "type": "Outbred Mice",
+          "prices": {
+            "3W": 5300,
+            "4W": 5800,
+            "5W": 6300,
+            "6W": 6800,
+            "7W": 7300,
+            "8W": 7800,
+            "9W": 8300,
+            "10W": 9500,
+            "11W": 10500,
+            "12W": 12000,
+            "add/week": 2500
+          },
+          "tp": 52500
+        },
+        {
+          "strain": "C57BL/6N",
+          "type": "Inbred Mice",
+          "prices": {
+            "3W": 17000,
+            "4W": 18000,
+            "5W": 19000,
+            "6W": 20000,
+            "7W": 22000,
+            "8W": 24000,
+            "9W": 26000,
+            "10W": 29000,
+            "11W": 32000,
+            "12W": 35000,
+            "add/week": 5500
+          },
+          "tp": 110000
+        },
+        {
+          "strain": "BALB/c",
+          "type": "Inbred Mice",
+          "prices": {
+            "3W": 15000,
+            "4W": 16000,
+            "5W": 17000,
+            "6W": 18000,
+            "7W": 20000,
+            "8W": 22000,
+            "9W": 24000,
+            "10W": 26000,
+            "11W": 28000,
+            "12W": 30000,
+            "add/week": 4400
+          }
+        },
+        {
+          "strain": "CBA/J DBA/2",
+          "type": "Inbred Mice",
+          "prices": {
+            "3W": 29500,
+            "4W": 31500,
+            "5W": 33500,
+            "6W": 35500,
+            "7W": 38000,
+            "8W": 40500,
+            "9W": 43000,
+            "10W": 49000,
+            "11W": 57000,
+            "12W": 65000,
+            "add/week": 11000
+          }
+        },
+        {
+          "strain": "B6D2F1(BDF1)",
+          "type": "Hybrid Mice",
+          "prices": {
+            "3W": 15500,
+            "4W": 16500,
+            "5W": 17500,
+            "6W": 19000,
+            "7W": 20500
+          }
+        },
+        {
+          "strain": "Athymic nu/nu",
+          "type": "Immunodeficient Mice",
+          "prices": {
+            "3W": 42000,
+            "4W": 53000,
+            "5W": 58000,
+            "6W": 63000,
+            "7W": 69000
+          }
+        },
+        {
+          "strain": "SCID",
+          "type": "Immunodeficient Mice",
+          "prices": {
+            "4W": 95000,
+            "5W": 105000,
+            "6W": 115000,
+            "7W": 130000
+          }
+        },
+        {
+          "strain": "NOD.SCID",
+          "type": "Immunodeficient Mice",
+          "prices": {
+            "4W": 140000,
+            "5W": 150000,
+            "6W": 160000,
+            "7W": 170000
+          }
+        },
+        {
+          "strain": "NOG",
+          "type": "Super Immunodeficient",
+          "prices": {
+            "4W": 175000,
+            "5W": 185000,
+            "6W": 195000,
+            "7W": 205000
+          },
+          "note": "중량 지정 불가"
+        },
+        {
+          "strain": "Guinea Pig HlaKoat:HA",
+          "type": "SPF Guinea Pig",
+          "prices": {
+            "<200g": 60000,
+            "200~249g": 66000,
+            "250~299g": 72000,
+            "300~349g": 78000,
+            "350~399g": 84000
+          },
+          "pregnant": 204000
+        },
+        {
+          "strain": "NZW Rabbit",
+          "type": "SPF Rabbit",
+          "prices": {
+            "10~11W": 170000,
+            "12~15W": 190000,
+            "16~20W": 220000,
+            "2.5~2.99kg": 260000,
+            "3.0~3.49kg": 320000,
+            "3.5kg~": 640000
+          }
+        }
+      ],
+      "aged_animals": [
+        {
+          "strain": "SD",
+          "prices": {
+            "3M": 35000,
+            "4M": 50000,
+            "5M": 64000,
+            "6M": 79000,
+            "7M": 94000,
+            "8M": 122000,
+            "9M": 165000,
+            "10M": 208000,
+            "11M": 251000,
+            "12M": 294000,
+            "13M": 337000,
+            "14M": 408000,
+            "15M": 451000,
+            "16M": 523000,
+            "17M": 580000,
+            "18M": 651000,
+            "19M": 723000,
+            "20M": 794000
+          }
+        },
+        {
+          "strain": "C57BL/6N",
+          "prices": {
+            "3M": 35000,
+            "4M": 40000,
+            "5M": 45000,
+            "6M": 51000,
+            "7M": 65000,
+            "8M": 94000,
+            "9M": 122000,
+            "10M": 151000,
+            "11M": 179000,
+            "12M": 208000,
+            "13M": 237000,
+            "14M": 294000,
+            "15M": 351000,
+            "16M": 408000,
+            "17M": 465000,
+            "18M": 508000
+          }
+        },
+        {
+          "strain": "ICR(CD-1)",
+          "prices": {
+            "3M": 11000,
+            "4M": 20000,
+            "5M": 29000,
+            "6M": 40000,
+            "7M": 51000,
+            "8M": 65000,
+            "9M": 79000,
+            "10M": 100000,
+            "11M": 114000,
+            "12M": 136000,
+            "13M": 179000,
+            "14M": 222000,
+            "15M": 265000,
+            "16M": 294000,
+            "17M": 337000,
+            "18M": 380000
+          }
+        }
+      ],
+      "supplies": {
+        "diets": [
+          {
+            "name": "마우스사료",
+            "weight": "15kg",
+            "price": 27000
+          },
+          {
+            "name": "마우스사료(멸균)",
+            "weight": "15kg",
+            "price": 60000
+          },
+          {
+            "name": "토끼사료",
+            "weight": "15kg",
+            "price": 25000
+          },
+          {
+            "name": "기니픽사료",
+            "weight": "15kg",
+            "price": 31500
+          },
+          {
+            "name": "2018SC 설치류",
+            "weight": "15kg",
+            "price": 38000
+          },
+          {
+            "name": "2018SC 설치류(멸균)",
+            "weight": "15kg",
+            "price": 75000
+          },
+          {
+            "name": "2918C 설치류(멸균)",
+            "weight": "15kg",
+            "price": 85000
+          },
+          {
+            "name": "45% High Fat Diet",
+            "weight": "1kg",
+            "price": "별도문의"
+          },
+          {
+            "name": "60% High Fat Diet",
+            "weight": "1kg",
+            "price": "별도문의"
+          }
+        ],
+        "bedding": [
+          {
+            "name": "Aspen Bedding(L Type)",
+            "weight": "5kg",
+            "price": 24000
+          },
+          {
+            "name": "Aspen Bedding(S Type)",
+            "weight": "5kg",
+            "price": 24000
+          },
+          {
+            "name": "Aspen Bedding(멸균)",
+            "weight": "5kg",
+            "price": 60000
+          },
+          {
+            "name": "종이깔짚(Rectangle)",
+            "weight": "10kg",
+            "price": 32000
+          },
+          {
+            "name": "Sanichip(7090A)",
+            "weight": "11kg",
+            "price": 31500
+          },
+          {
+            "name": "Corncob 1/8(7092A)",
+            "weight": "18kg",
+            "price": 44000
+          },
+          {
+            "name": "Diamond soft(7089)",
+            "weight": "9kg",
+            "price": 49000
+          },
+          {
+            "name": "TEK-Fresh(7099)",
+            "weight": "6kg",
+            "price": 45000
+          }
+        ],
+        "cages": [
+          {
+            "name": "Rat Cage Set(500cc)",
+            "price": 59000
+          },
+          {
+            "name": "Rat Cage Set(250cc)",
+            "price": 51000
+          },
+          {
+            "name": "Rat Cage Body",
+            "price": 21000
+          },
+          {
+            "name": "Rat Cage Lid",
+            "price": 24000
+          },
+          {
+            "name": "Mice Cage Set(500cc)",
+            "price": 47000
+          },
+          {
+            "name": "Mice Cage Set(250cc)",
+            "price": 41000
+          },
+          {
+            "name": "Mice Cage Body",
+            "price": 14500
+          },
+          {
+            "name": "Mice Cage Lid",
+            "price": 19000
+          },
+          {
+            "name": "Water Bottle 500cc",
+            "price": 6100
+          },
+          {
+            "name": "Water Bottle 250cc",
+            "price": 3000
+          }
+        ],
+        "crate": [
+          {
+            "name": "Large Size",
+            "price": 30000
+          },
+          {
+            "name": "Small Size",
+            "price": 15000
+          },
+          {
+            "name": "디바이더 장착",
+            "price": 15000
+          }
+        ],
+        "enrichments": [
+          {
+            "name": "Nestlets",
+            "spec": "Box(100Pads)",
+            "price": 600000
+          },
+          {
+            "name": "iso-PADS(6105)",
+            "spec": "Box(500Pads)",
+            "price": 710000
+          },
+          {
+            "name": "Diamond Twist(7979C)",
+            "spec": "Box(1900ea)",
+            "price": 260000
+          }
+        ]
+      }
+    }
+  },
+  "internal_prices": {
+    "housing": [
+      {
+        "code": "HOUSING_RAT",
+        "name": "랫드 사육",
+        "price": 2000,
+        "unit": "/head/일"
+      },
+      {
+        "code": "HOUSING_MOUSE",
+        "name": "마우스 사육",
+        "price": 1500,
+        "unit": "/head/일"
+      },
+      {
+        "code": "HOUSING_GUINEA",
+        "name": "기니피그/햄스터 사육",
+        "price": 10000,
+        "unit": "/head/일"
+      },
+      {
+        "code": "HOUSING_RABBIT",
+        "name": "토끼 사육",
+        "price": 20000,
+        "unit": "/head/일"
+      },
+      {
+        "code": "HOUSING_BEAGLE",
+        "name": "비글 사육",
+        "price": 30000,
+        "unit": "/head/일"
+      },
+      {
+        "code": "HOUSING_PIG",
+        "name": "돼지 사육",
+        "price": 40000,
+        "unit": "/head/일"
+      }
+    ],
+    "disease_models": [
+      {
+        "code": "MODEL_CHEM",
+        "name": "화학물질 유도 모델",
+        "price": 30000,
+        "unit": "/head",
+        "note": "Formaline, SNL, CCI모델 각각 차이"
+      },
+      {
+        "code": "MODEL_TAC",
+        "name": "TAC 심부전모델 (난이도 최상)",
+        "price": 500000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_SNL",
+        "name": "SNL 통증모델 (난이도 상)",
+        "price": 300000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_CCI",
+        "name": "CCI 통증모델 (난이도 중)",
+        "price": 200000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_MIA",
+        "name": "MIA 골관절염 (난이도 저)",
+        "price": 50000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_AMYLOID",
+        "name": "치매 amyloid beta 뇌실내투여",
+        "price": 100000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_PARKINSON",
+        "name": "파킨슨 모델 (랫드 뇌실질내투여)",
+        "price": 120000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_HPD",
+        "name": "HPD(비글견) 위벽수술",
+        "price": 5000000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_HPD_TUBE",
+        "name": "HPD 금속관 제작비",
+        "price": 50000,
+        "unit": "/개",
+        "note": "100만원/20개"
+      },
+      {
+        "code": "MODEL_HPD_STAPLER",
+        "name": "HPD 스테이플러클립",
+        "price": 600000,
+        "unit": "/head",
+        "note": "3개/마리, 200,000원/개"
+      },
+      {
+        "code": "MODEL_HPD_MACHINE",
+        "name": "HPD 스테이플러기계",
+        "price": 300000,
+        "unit": "/대",
+        "note": "1대로 10번 수행"
+      },
+      {
+        "code": "MODEL_HPD_CARE",
+        "name": "HPD 수술후 특수케어",
+        "price": 50000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_OA_MOUSE",
+        "name": "골관절염 ACLT+DMM (마우스)",
+        "price": 100000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_OA_RAT",
+        "name": "골관절염 ACLT+DMM (랫드)",
+        "price": 100000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_OA_RABBIT",
+        "name": "골관절염 ACLT+DMM (토끼)",
+        "price": 200000,
+        "unit": "/head"
+      },
+      {
+        "code": "MODEL_OVA_ASTHMA",
+        "name": "OVA 만성천식모델",
+        "price": 100000,
+        "unit": "/head"
+      }
+    ],
+    "administration": [
+      {
+        "code": "ADMIN_ORAL_IP_IM",
+        "name": "소동물 일반 (경구/복강/근육)",
+        "price": 5000,
+        "unit": "/head"
+      },
+      {
+        "code": "ADMIN_IV_SMALL",
+        "name": "소동물 정맥",
+        "price": 20000,
+        "unit": "/head"
+      },
+      {
+        "code": "ADMIN_IV_INFUSION_SURGERY",
+        "name": "소동물 정맥 infusion (수술)",
+        "price": 100000,
+        "unit": "/head"
+      },
+      {
+        "code": "ADMIN_IV_INFUSION_HOURLY",
+        "name": "소동물 정맥 infusion (시간당)",
+        "price": 70000,
+        "unit": "/head/시간"
+      },
+      {
+        "code": "ADMIN_SPECIAL",
+        "name": "소동물 특수 (개복/수술)",
+        "price": 300000,
+        "unit": "/head"
+      },
+      {
+        "code": "ADMIN_LARGE_ORAL_IM",
+        "name": "대동물 일반 (경구/근육)",
+        "price": 10000,
+        "unit": "/head"
+      },
+      {
+        "code": "ADMIN_LARGE_IV_BOLUS",
+        "name": "대동물 정맥 bolus",
+        "price": 30000,
+        "unit": "/head"
+      },
+      {
+        "code": "ADMIN_LARGE_IV_INFUSION",
+        "name": "대동물 정맥 infusion (시간당)",
+        "price": 150000,
+        "unit": "/head/시간"
+      },
+      {
+        "code": "ADMIN_LARGE_SURGERY",
+        "name": "대동물 특수 (개복/수술)",
+        "price": 500000,
+        "unit": "/head"
+      }
+    ],
+    "anticancer": [
+      {
+        "code": "TUMOR_SC",
+        "name": "암세포 피하투여",
+        "price": 70000,
+        "unit": "/head"
+      },
+      {
+        "code": "TUMOR_IV",
+        "name": "암세포 정맥투여",
+        "price": 100000,
+        "unit": "/head"
+      },
+      {
+        "code": "CELL_CULTURE",
+        "name": "세포배양비",
+        "price": 100000,
+        "unit": "/일",
+        "note": "2주 소요"
+      },
+      {
+        "code": "TUMOR_SIZE",
+        "name": "종양크기측정",
+        "price": 5000,
+        "unit": "/head"
+      },
+      {
+        "code": "TUMOR_WEIGHT",
+        "name": "종양무게측정",
+        "price": 5000,
+        "unit": "/head"
+      },
+      {
+        "code": "CELL_ATCC",
+        "name": "암세포구입비(ATCC 미국)",
+        "price": 2000000,
+        "unit": "/세포주(vial)"
+      },
+      {
+        "code": "CELL_DOMESTIC",
+        "name": "암세포구입비(국내세포주은행)",
+        "price": 300000,
+        "unit": "/세포주(vial)"
+      }
+    ],
+    "body_measurement": [
+      {
+        "code": "BODY_WEIGHT_TEMP",
+        "name": "체중&체온측정 (무마취)",
+        "price": 10000,
+        "unit": "/head"
+      }
+    ],
+    "behavioral": [
+      {
+        "code": "WATER_MAZE",
+        "name": "Water maze (난이도 중)",
+        "price": 70000,
+        "unit": "/head"
+      },
+      {
+        "code": "Y_MAZE",
+        "name": "Y maze (난이도 하)",
+        "price": 50000,
+        "unit": "/head"
+      },
+      {
+        "code": "GRIP_STRENGTH",
+        "name": "Grip strength test",
+        "price": 70000,
+        "unit": "/head"
+      },
+      {
+        "code": "ROTAROD",
+        "name": "Rota-rod",
+        "price": 50000,
+        "unit": "/head",
+        "note": "3일 적응 필요"
+      },
+      {
+        "code": "TREADMILL",
+        "name": "Treadmill",
+        "price": 40000,
+        "unit": "/head",
+        "note": "2일 적응 필요"
+      },
+      {
+        "code": "HANGING_TEST",
+        "name": "Hanging test",
+        "price": 90000,
+        "unit": "/head"
+      },
+      {
+        "code": "PASSIVE_AVOIDANCE",
+        "name": "Passive avoidance",
+        "price": 70000,
+        "unit": "/head"
+      },
+      {
+        "code": "RANDALL_SELITTO",
+        "name": "Randall-Selitto test",
+        "price": 10000,
+        "unit": "/head",
+        "note": "압통 측정"
+      },
+      {
+        "code": "VON_FREY",
+        "name": "Von Frey",
+        "price": 60000,
+        "unit": "/head"
+      }
+    ],
+    "imaging": [
+      {
+        "code": "MRI_RAT",
+        "name": "MRI (랫드 1site)",
+        "price": 200000,
+        "unit": "/head"
+      },
+      {
+        "code": "MRI_RABBIT",
+        "name": "MRI (토끼 1site)",
+        "price": 300000,
+        "unit": "/head"
+      },
+      {
+        "code": "MRI_TRANSPORT",
+        "name": "MRI 운송비+출장비",
+        "price": 2000000,
+        "unit": "/회",
+        "note": "외부 진행"
+      },
+      {
+        "code": "DEXA",
+        "name": "DEXA 측정",
+        "price": 200000,
+        "unit": "/head"
+      },
+      {
+        "code": "MICRO_CT",
+        "name": "Micro-CT 측정",
+        "price": 250000,
+        "unit": "/head"
+      },
+      {
+        "code": "ECHO",
+        "name": "초음파 (echo)",
+        "price": 250000,
+        "unit": "/head"
+      },
+      {
+        "code": "HEMODYNAMICS",
+        "name": "Hemodynamics",
+        "price": 500000,
+        "unit": "/head"
+      }
+    ],
+    "molecular": [
+      {
+        "code": "PCR",
+        "name": "PCR",
+        "price": 60000,
+        "unit": "/head",
+        "note": "시약 포함"
+      },
+      {
+        "code": "GASTRIC_PH",
+        "name": "위산도측정",
+        "price": 20000,
+        "unit": "/head"
+      },
+      {
+        "code": "GASTRIC_COLLECT",
+        "name": "위산채취",
+        "price": 20000,
+        "unit": "/head"
+      },
+      {
+        "code": "BLOOD_BEAGLE",
+        "name": "채혈 (비글 경정맥)",
+        "price": 20000,
+        "unit": "/head/회"
+      },
+      {
+        "code": "BLOOD_RAT",
+        "name": "채혈 (랫드 경정맥)",
+        "price": 15000,
+        "unit": "/head/회"
+      },
+      {
+        "code": "BLOOD_PIG",
+        "name": "채혈 (돼지 경정맥)",
+        "price": 30000,
+        "unit": "/head/회"
+      },
+      {
+        "code": "BLOOD_GLUCOSE",
+        "name": "혈당측정용 채혈 (꼬리끝)",
+        "price": 10000,
+        "unit": "/head/회"
+      },
+      {
+        "code": "BLOOD_NECROPSY",
+        "name": "채혈 (부검시 복대정맥)",
+        "price": 15000,
+        "unit": "/head/회"
+      },
+      {
+        "code": "PLASMA_CK",
+        "name": "혈장 CK분석",
+        "price": 10000,
+        "unit": "/head"
+      },
+      {
+        "code": "QC",
+        "name": "QC",
+        "price": 200000,
+        "unit": "/head"
+      },
+      {
+        "code": "WESTERN_BLOT",
+        "name": "Western blot (수행비)",
+        "price": 50000,
+        "unit": "/head/단백질1종",
+        "note": "항체값 별도 600,000~1,000,000원/개"
+      },
+      {
+        "code": "ELISA_LABOR",
+        "name": "ELISA 측정비 (인건비)",
+        "price": 50000,
+        "unit": "/head"
+      },
+      {
+        "code": "ELISA_KIT",
+        "name": "ELISA kit",
+        "price": 1000000,
+        "unit": "/개"
+      },
+      {
+        "code": "NECROPSY",
+        "name": "부검 (장기무게/근육적출 등)",
+        "price": 20000,
+        "unit": "/head"
+      }
+    ],
+    "histopathology": [
+      {
+        "code": "HE_MT_STAIN",
+        "name": "H&E / MT staining",
+        "price": 100000,
+        "unit": "/head"
+      },
+      {
+        "code": "SAFRANIN_O",
+        "name": "Safranin-O staining",
+        "price": 90000,
+        "unit": "/head"
+      },
+      {
+        "code": "IHC_STAIN",
+        "name": "IHC staining",
+        "price": 200000,
+        "unit": "/head",
+        "note": "항체 별도"
+      },
+      {
+        "code": "UNSTAIN_SLIDE",
+        "name": "Unstaining slide 제작",
+        "price": 10000,
+        "unit": "/head",
+        "note": "기본 3장"
+      },
+      {
+        "code": "UNSTAIN_SLIDE_ADD",
+        "name": "Unstaining slide 추가",
+        "price": 2000,
+        "unit": "/장"
+      },
+      {
+        "code": "HISTOPATH_REPORT",
+        "name": "조직병리 보고서",
+        "price": 1000000,
+        "unit": "/건"
+      }
+    ],
+    "etc": [
+      {
+        "code": "REPORT_ETC",
+        "name": "기타 비용 + 보고서 작성",
+        "price": 3000000,
+        "unit": "/건",
+        "note": "영업이익 10% 반영"
+      }
+    ],
+    "positive_controls": [
+      {
+        "code": "PC_GABAPENTIN",
+        "name": "Gabapentin (시그마)",
+        "catalog": "1287303",
+        "amount": "250mg",
+        "price": 689896,
+        "unit": "/EA"
+      },
+      {
+        "code": "PC_PREGABALIN",
+        "name": "Pregabalin (시그마)",
+        "catalog": "Y0001805",
+        "price": 323379,
+        "unit": "/EA"
+      }
+    ]
+  }
+}

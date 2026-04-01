@@ -1,326 +1,171 @@
 /**
- * 효력시험 견적 Zustand Store
- * Requirements: 1.2, 2.2, 4.1
+ * 효력시험 견적 V2 Zustand Store
+ * 모델 기반 견적 시스템
  */
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type {
-  EfficacyModel,
-  ModelItem,
-  PriceItem,
-  SelectedEfficacyItem,
-  StudyGroup,
-  SchedulePhase,
-  ScheduleEvent,
+  StudyModelTemplate,
   StudyDesign,
-} from '@/types/efficacy';
-import { getEfficacyMasterData } from '@/lib/efficacy-storage';
+  ScheduleStep,
+  ScheduleStepType,
+  StudyGroup,
+  EvalItem,
+  CostItem,
+} from '@/types/efficacy-v2';
+import { STUDY_MODELS, getModelById } from '@/lib/efficacy-v2/study-models';
+import {
+  calculateCostItems,
+  calculateTotalCost,
+  calculateCostByCategory,
+  calculateTotalWeeks,
+} from '@/lib/efficacy-v2/cost-engine';
 
 // ============================================
-// Types
+// Helper
+// ============================================
+
+function uid(): string {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+/** scheduleDurations 문자열 → ScheduleStep 변환 */
+function parseDurations(durations: string[]): ScheduleStep[] {
+  const typeGuess: ScheduleStepType[] = ['acclimation', 'induction', 'administration', 'analysis', 'report', 'observation'];
+  return durations.map((d, i) => {
+    const match = d.match(/^(\d+)-(week|day|hour)$/);
+    const duration = match ? parseInt(match[1]) : 1;
+    const unit = (match?.[2] ?? 'week') as 'week' | 'day' | 'hour';
+    const type = typeGuess[i] ?? 'custom';
+    const labels: Record<ScheduleStepType, string> = {
+      acclimation: '순화', induction: '유발', administration: '투여',
+      observation: '관찰', sacrifice: '부검', analysis: '분석',
+      report: '보고서', cell_culture: '세포배양', custom: '기타',
+    };
+    return {
+      id: uid(),
+      order: i,
+      label: labels[type],
+      duration,
+      durationUnit: unit,
+      type,
+      evalItems: [],
+    };
+  });
+}
+
+/** 모델에서 평가항목 파싱 */
+function parseEvalItems(raw: string): EvalItem[] {
+  return raw.split(',').map(s => s.trim()).filter(Boolean).map(name => ({
+    id: uid(),
+    name,
+    code: '',
+    category: '기타' as const,
+    costBasis: 'PER_ANIMAL' as const,
+    isOutsourced: false,
+    isEnabled: true,
+  }));
+}
+
+/** 모델에서 기본 군구성 생성 */
+function createDefaultGroups(model: StudyModelTemplate): StudyGroup[] {
+  const groups: StudyGroup[] = [
+    { id: uid(), groupNumber: 1, treatment: 'NORMAL', label: '정상군', animalCount: 8 },
+    { id: uid(), groupNumber: 2, treatment: 'VEHICLE', label: '유발군 (Vehicle)', animalCount: 8 },
+    { id: uid(), groupNumber: 3, treatment: 'TEST', label: '시험군 1', animalCount: 8 },
+    { id: uid(), groupNumber: 4, treatment: 'TEST', label: '시험군 2', animalCount: 8 },
+  ];
+  if (model.positiveControl) {
+    groups.push({ id: uid(), groupNumber: 5, treatment: 'POSITIVE', label: '양성대조군', animalCount: 8 });
+  }
+  return groups;
+}
+
+// ============================================
+// State Interface
 // ============================================
 
 export interface EfficacyQuotationState {
-  // Step 1: Basic Info
-  customerId: string;
-  customerName: string;
-  leadId: string | null;
-  leadContactName: string;
-  leadContactEmail: string;
-  leadContactPhone: string;
-  projectName: string;
-  validDays: number;
-  notes: string;
+  // Tab navigation
+  currentTab: number;
 
-  // Step 2: Model Selection
-  selectedModelId: string | null;
-  selectedModel: EfficacyModel | null;
+  // Model selection
+  selectedModel: StudyModelTemplate | null;
+  selectedCategory: string;
 
-  // Step 3: Item Configuration
-  selectedItems: SelectedEfficacyItem[];
+  // Study design (editable)
+  scheduleSteps: ScheduleStep[];
+  groups: StudyGroup[];
+  evalItems: EvalItem[];
+  designInfo: {
+    species: string;
+    sex: string;
+    ageWeeks: number;
+    animalsPerGroup: number;
+    route: string;
+    inductionMethod: string;
+    positiveControl: string;
+  };
 
-  // Step 4: Study Design (군 구성 & 스케쥴)
-  studyDesign: StudyDesign;
+  // Client info
+  client: {
+    org: string;
+    name: string;
+    phone: string;
+    email: string;
+  };
 
-  // Calculations
-  subtotalByCategory: Record<string, number>;
-  subtotal: number;
-  vat: number;
-  grandTotal: number;
+  // Cost
+  costItems: CostItem[];
+  totalCost: number;
+  costByCategory: { name: string; value: number }[];
 
-  // Navigation
-  currentStep: number;
+  // Quotation
+  discount: number;   // 0~0.4
+  margin: number;     // 0~0.3
+
+  // Computed
+  withProfit: number;
+  discounted: number;
+  vatIncluded: number;
 
   // Actions
-  setCustomer: (id: string, name: string) => void;
-  setLead: (id: string, companyName: string, contactName: string, contactEmail: string, contactPhone: string) => void;
-  setProjectName: (name: string) => void;
-  setValidDays: (days: number) => void;
-  setNotes: (notes: string) => void;
-  setModel: (modelId: string) => void;
-  addItem: (item: ModelItem) => void;
-  removeItem: (itemId: string) => void;
-  updateItem: (itemId: string, quantity: number, multiplier: number) => void;
-  calculateTotals: () => void;
-  reset: () => void;
-  nextStep: () => void;
-  prevStep: () => void;
-  setCurrentStep: (step: number) => void;
-  
-  // Study Design Actions
-  setStudyDesignModelName: (name: string) => void;
-  setStudyDesignAnimalInfo: (info: StudyDesign['animalInfo']) => void;
+  setTab: (tab: number) => void;
+  setCategory: (cat: string) => void;
+  selectModel: (model: StudyModelTemplate) => void;
+  updateScheduleStep: (index: number, updates: Partial<ScheduleStep>) => void;
+  addScheduleStep: (atIndex?: number) => void;
+  removeScheduleStep: (index: number) => void;
   addGroup: () => void;
-  updateGroup: (id: string, updates: Partial<StudyGroup>) => void;
   removeGroup: (id: string) => void;
-  addPhase: () => void;
-  updatePhase: (id: string, updates: Partial<SchedulePhase>) => void;
-  removePhase: (id: string) => void;
-  addEvent: (phaseId: string) => void;
-  updateEvent: (id: string, updates: Partial<ScheduleEvent>) => void;
-  removeEvent: (id: string) => void;
-  
-  // Load from saved quotation
-  loadQuotation: (data: {
-    customerId: string;
-    customerName: string;
-    projectName: string;
-    validDays: number;
-    notes: string;
-    modelId: string;
-    items: SelectedEfficacyItem[];
-    studyDesign?: StudyDesign;
-  }) => void;
+  updateGroup: (id: string, updates: Partial<StudyGroup>) => void;
+  updateEvalItem: (id: string, updates: Partial<EvalItem>) => void;
+  addEvalItem: () => void;
+  removeEvalItem: (id: string) => void;
+  updateDesignInfo: (updates: Partial<EfficacyQuotationState['designInfo']>) => void;
+  updateClient: (updates: Partial<EfficacyQuotationState['client']>) => void;
+  setDiscount: (v: number) => void;
+  setMargin: (v: number) => void;
+  recalculate: () => void;
+  reset: () => void;
 }
 
 // ============================================
 // Initial State
 // ============================================
 
-/**
- * Convert number to Roman numeral
- */
-function toRoman(num: number): string {
-  const romanNumerals: [number, string][] = [
-    [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
-  ];
-  let result = '';
-  for (const [value, symbol] of romanNumerals) {
-    while (num >= value) {
-      result += symbol;
-      num -= value;
-    }
-  }
-  return result;
-}
-
-// Default study design
-const defaultStudyDesign: StudyDesign = {
-  modelName: '',
-  animalInfo: {
-    species: '',
-    sex: '',
-    age: '',
-  },
-  groups: [],
-  phases: [
-    {
-      id: 'phase-1',
-      name: 'Acclimation',
-      duration: 1,
-      durationUnit: 'week',
-      color: '#3B82F6', // blue
-      order: 1,
-    },
-    {
-      id: 'phase-2',
-      name: 'Test article treatment',
-      duration: 8,
-      durationUnit: 'week',
-      color: '#10B981', // green
-      order: 2,
-    },
-    {
-      id: 'phase-3',
-      name: 'Observation',
-      duration: 8,
-      durationUnit: 'week',
-      color: '#6366F1', // indigo
-      order: 3,
-    },
-    {
-      id: 'phase-4',
-      name: 'Final report',
-      duration: 4,
-      durationUnit: 'week',
-      color: '#F59E0B', // amber
-      order: 4,
-    },
-  ],
-  events: [],
+const initialDesignInfo = {
+  species: '',
+  sex: 'male',
+  ageWeeks: 7,
+  animalsPerGroup: 8,
+  route: 'SC',
+  inductionMethod: '',
+  positiveControl: '',
 };
 
-const initialState = {
-  // Step 1: Basic Info
-  customerId: '',
-  customerName: '',
-  leadId: null as string | null,
-  leadContactName: '',
-  leadContactEmail: '',
-  leadContactPhone: '',
-  projectName: '',
-  validDays: 30,
-  notes: '',
-
-  // Step 2: Model Selection
-  selectedModelId: null as string | null,
-  selectedModel: null as EfficacyModel | null,
-
-  // Step 3: Item Configuration
-  selectedItems: [] as SelectedEfficacyItem[],
-
-  // Step 4: Study Design
-  studyDesign: { ...defaultStudyDesign } as StudyDesign,
-
-  // Calculations
-  subtotalByCategory: {} as Record<string, number>,
-  subtotal: 0,
-  vat: 0,
-  grandTotal: 0,
-
-  // Navigation
-  currentStep: 1,
-};
-
-// ============================================
-// Helper Functions
-// ============================================
-
-/**
- * Calculate item amount: unit_price × quantity × multiplier
- * Property 1: Item Amount Calculation Invariant
- * Validates: Requirements 2.2, 4.1
- */
-export function calculateItemAmount(
-  unitPrice: number,
-  quantity: number,
-  multiplier: number
-): number {
-  return unitPrice * quantity * multiplier;
-}
-
-/**
- * Calculate category subtotals
- * Property 2: Category Subtotal Consistency
- * Validates: Requirements 4.2
- */
-export function calculateSubtotalByCategory(
-  items: SelectedEfficacyItem[]
-): Record<string, number> {
-  const subtotals: Record<string, number> = {};
-  
-  for (const item of items) {
-    const category = item.category;
-    if (!subtotals[category]) {
-      subtotals[category] = 0;
-    }
-    subtotals[category] += item.amount;
-  }
-  
-  return subtotals;
-}
-
-/**
- * Calculate VAT (10%) - rounded down
- * Property 3: VAT and Grand Total Calculation
- * Validates: Requirements 4.3
- */
-export function calculateVAT(subtotal: number): number {
-  return Math.floor(subtotal * 0.1);
-}
-
-/**
- * Calculate grand total: subtotal + VAT
- * Property 3: VAT and Grand Total Calculation
- * Validates: Requirements 4.3
- */
-export function calculateGrandTotal(subtotal: number, vat: number): number {
-  return subtotal + vat;
-}
-
-/**
- * Recalculate all totals from items
- */
-function recalculateAll(items: SelectedEfficacyItem[]) {
-  const subtotalByCategory = calculateSubtotalByCategory(items);
-  const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
-  const vat = calculateVAT(subtotal);
-  const grandTotal = calculateGrandTotal(subtotal, vat);
-
-  return {
-    subtotalByCategory,
-    subtotal,
-    vat,
-    grandTotal,
-  };
-}
-
-/**
- * Get price item from master data
- */
-function getPriceItem(itemId: string): PriceItem | undefined {
-  const masterData = getEfficacyMasterData();
-  return masterData.price_master.find((p) => p.item_id === itemId);
-}
-
-/**
- * Get model from master data
- */
-function getModel(modelId: string): EfficacyModel | undefined {
-  const masterData = getEfficacyMasterData();
-  return masterData.models.find((m) => m.model_id === modelId);
-}
-
-/**
- * Get default items for a model
- * Property 4: Model Selection Loads Correct Defaults
- * Validates: Requirements 1.2, 3.2
- */
-export function getDefaultItemsForModel(modelId: string): ModelItem[] {
-  const masterData = getEfficacyMasterData();
-  return masterData.model_items.filter(
-    (mi) => mi.model_id === modelId && mi.is_default === true
-  );
-}
-
-/**
- * Convert ModelItem to SelectedEfficacyItem
- * Note: Default quantity and multiplier are set to 0 for user input
- */
-function modelItemToSelectedItem(modelItem: ModelItem): SelectedEfficacyItem | null {
-  const priceItem = getPriceItem(modelItem.item_id);
-  if (!priceItem) return null;
-
-  // Set default quantity and multiplier to 0 for user input
-  const quantity = 0;
-  const multiplier = 0;
-  const amount = calculateItemAmount(priceItem.unit_price, quantity, multiplier);
-
-  return {
-    id: `${modelItem.item_id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    item_id: modelItem.item_id,
-    item_name: priceItem.item_name,
-    category: priceItem.category,
-    unit_price: priceItem.unit_price,
-    unit: priceItem.unit,
-    quantity,
-    multiplier,
-    amount,
-    is_default: modelItem.is_default,
-    usage_note: modelItem.usage_note,
-  };
-}
+const initialClient = { org: '', name: '', phone: '', email: '' };
 
 // ============================================
 // Store
@@ -329,318 +174,192 @@ function modelItemToSelectedItem(modelItem: ModelItem): SelectedEfficacyItem | n
 export const useEfficacyQuotationStore = create<EfficacyQuotationState>()(
   devtools(
     (set, get) => ({
-      ...initialState,
+      currentTab: 0,
+      selectedModel: null,
+      selectedCategory: '',
+      scheduleSteps: [],
+      groups: [],
+      evalItems: [],
+      designInfo: { ...initialDesignInfo },
+      client: { ...initialClient },
+      costItems: [],
+      totalCost: 0,
+      costByCategory: [],
+      discount: 0.25,
+      margin: 0.1,
+      withProfit: 0,
+      discounted: 0,
+      vatIncluded: 0,
 
-      // Step 1: Basic Info Actions
-      setCustomer: (id, name) => set({ 
-        customerId: id, 
-        customerName: name,
-        leadId: null,
-        leadContactName: '',
-        leadContactEmail: '',
-        leadContactPhone: '',
-      }),
-      
-      setLead: (id, companyName, contactName, contactEmail, contactPhone) => set({
-        leadId: id,
-        customerName: companyName,
-        customerId: '',
-        leadContactName: contactName,
-        leadContactEmail: contactEmail,
-        leadContactPhone: contactPhone,
-      }),
-      
-      setProjectName: (name) => set({ projectName: name }),
-      
-      setValidDays: (days) => set({ validDays: days }),
-      
-      setNotes: (notes) => set({ notes }),
+      setTab: (tab) => set({ currentTab: tab }),
+      setCategory: (cat) => set({ selectedCategory: cat }),
 
-      // Step 2: Model Selection
-      /**
-       * Set model and load default items
-       * Property 4: Model Selection Loads Correct Defaults
-       * Property 5: Model Change Clears Previous Selection
-       * Validates: Requirements 1.2, 1.4, 3.2
-       */
-      setModel: (modelId) => {
-        const model = getModel(modelId);
-        if (!model) return;
+      selectModel: (model) => {
+        const steps = parseDurations(model.scheduleDurations);
+        const evals = parseEvalItems(model.evalItemsRaw);
+        const groups = createDefaultGroups(model);
+        const info = {
+          species: model.species[0] || model.speciesRaw,
+          sex: model.sex,
+          ageWeeks: model.ageWeeks ?? 7,
+          animalsPerGroup: 8,
+          route: 'SC',
+          inductionMethod: model.inductionMethod,
+          positiveControl: model.positiveControl,
+        };
 
-        // Get default items for the model
-        const defaultModelItems = getDefaultItemsForModel(modelId);
-        
-        // Convert to selected items
-        const selectedItems: SelectedEfficacyItem[] = [];
-        for (const modelItem of defaultModelItems) {
-          const selectedItem = modelItemToSelectedItem(modelItem);
-          if (selectedItem) {
-            selectedItems.push(selectedItem);
-          }
-        }
-
-        // Calculate totals
-        const calculated = recalculateAll(selectedItems);
+        const costItems = calculateCostItems({
+          species: info.species,
+          ageWeeks: info.ageWeeks,
+          animalsPerGroup: info.animalsPerGroup,
+          groupCount: groups.length,
+          scheduleSteps: steps,
+          evalItems: evals.map(e => ({ name: e.name, enabled: e.isEnabled })),
+          reportWeeks: model.reportWeeks,
+        });
+        const totalCost = calculateTotalCost(costItems);
+        const costByCat = calculateCostByCategory(costItems);
+        const wp = Math.round(totalCost * (1 + get().margin));
+        const disc = Math.round(wp * (1 - get().discount));
 
         set({
-          selectedModelId: modelId,
           selectedModel: model,
-          selectedItems,
-          ...calculated,
+          scheduleSteps: steps,
+          groups,
+          evalItems: evals,
+          designInfo: info,
+          costItems,
+          totalCost,
+          costByCategory: costByCat,
+          withProfit: wp,
+          discounted: disc,
+          vatIncluded: Math.round(disc * 1.1),
+          currentTab: 1,
         });
       },
 
-      // Step 3: Item Configuration
-      /**
-       * Add an item to the quotation
-       * Validates: Requirements 3.2
-       */
-      addItem: (modelItem) => {
-        const state = get();
-        
-        // Check if item already exists
-        const exists = state.selectedItems.some(
-          (item) => item.item_id === modelItem.item_id
-        );
-        if (exists) return;
+      updateScheduleStep: (index, updates) => {
+        const steps = [...get().scheduleSteps];
+        steps[index] = { ...steps[index], ...updates };
+        set({ scheduleSteps: steps });
+        get().recalculate();
+      },
 
-        const selectedItem = modelItemToSelectedItem(modelItem);
-        if (!selectedItem) return;
+      addScheduleStep: (atIndex) => {
+        const steps = [...get().scheduleSteps];
+        const newStep: ScheduleStep = {
+          id: uid(), order: steps.length, label: '새 단계',
+          duration: 1, durationUnit: 'week', type: 'custom', evalItems: [],
+        };
+        if (atIndex !== undefined) {
+          steps.splice(atIndex, 0, newStep);
+        } else {
+          steps.push(newStep);
+        }
+        set({ scheduleSteps: steps.map((s, i) => ({ ...s, order: i })) });
+        get().recalculate();
+      },
 
-        const newItems = [...state.selectedItems, selectedItem];
-        const calculated = recalculateAll(newItems);
+      removeScheduleStep: (index) => {
+        const steps = get().scheduleSteps.filter((_, i) => i !== index);
+        if (steps.length === 0) return;
+        set({ scheduleSteps: steps.map((s, i) => ({ ...s, order: i })) });
+        get().recalculate();
+      },
 
+      addGroup: () => {
+        const groups = [...get().groups];
+        const n = groups.length + 1;
+        groups.push({
+          id: uid(), groupNumber: n, treatment: 'TEST',
+          label: `시험군 ${n - 2}`, animalCount: 8,
+        });
+        set({ groups });
+        get().recalculate();
+      },
+
+      removeGroup: (id) => {
+        const groups = get().groups.filter(g => g.id !== id);
+        set({ groups: groups.map((g, i) => ({ ...g, groupNumber: i + 1 })) });
+        get().recalculate();
+      },
+
+      updateGroup: (id, updates) => {
+        set({ groups: get().groups.map(g => g.id === id ? { ...g, ...updates } : g) });
+        get().recalculate();
+      },
+
+      updateEvalItem: (id, updates) => {
+        set({ evalItems: get().evalItems.map(e => e.id === id ? { ...e, ...updates } : e) });
+        get().recalculate();
+      },
+
+      addEvalItem: () => {
+        set({ evalItems: [...get().evalItems, {
+          id: uid(), name: '새 평가항목', code: '', category: '기타',
+          costBasis: 'PER_ANIMAL', isOutsourced: false, isEnabled: true,
+        }] });
+        get().recalculate();
+      },
+
+      removeEvalItem: (id) => {
+        set({ evalItems: get().evalItems.filter(e => e.id !== id) });
+        get().recalculate();
+      },
+
+      updateDesignInfo: (updates) => {
+        set({ designInfo: { ...get().designInfo, ...updates } });
+        get().recalculate();
+      },
+
+      updateClient: (updates) => set({ client: { ...get().client, ...updates } }),
+
+      setDiscount: (v) => {
+        set({ discount: v });
+        const { totalCost, margin } = get();
+        const wp = Math.round(totalCost * (1 + margin));
+        const disc = Math.round(wp * (1 - v));
+        set({ withProfit: wp, discounted: disc, vatIncluded: Math.round(disc * 1.1) });
+      },
+
+      setMargin: (v) => {
+        set({ margin: v });
+        const { totalCost, discount } = get();
+        const wp = Math.round(totalCost * (1 + v));
+        const disc = Math.round(wp * (1 - discount));
+        set({ withProfit: wp, discounted: disc, vatIncluded: Math.round(disc * 1.1) });
+      },
+
+      recalculate: () => {
+        const { designInfo, groups, scheduleSteps, evalItems, selectedModel, margin, discount } = get();
+        if (!selectedModel) return;
+        const costItems = calculateCostItems({
+          species: designInfo.species,
+          ageWeeks: designInfo.ageWeeks,
+          animalsPerGroup: designInfo.animalsPerGroup,
+          groupCount: groups.length,
+          scheduleSteps,
+          evalItems: evalItems.map(e => ({ name: e.name, enabled: e.isEnabled })),
+          reportWeeks: selectedModel.reportWeeks,
+        });
+        const totalCost = calculateTotalCost(costItems);
+        const costByCat = calculateCostByCategory(costItems);
+        const wp = Math.round(totalCost * (1 + margin));
+        const disc = Math.round(wp * (1 - discount));
         set({
-          selectedItems: newItems,
-          ...calculated,
+          costItems, totalCost, costByCategory: costByCat,
+          withProfit: wp, discounted: disc, vatIncluded: Math.round(disc * 1.1),
         });
       },
 
-      /**
-       * Remove an item from the quotation
-       * Property 6: Item Removal Decreases Total
-       * Validates: Requirements 2.3
-       */
-      removeItem: (itemId) => {
-        const state = get();
-        const newItems = state.selectedItems.filter((item) => item.id !== itemId);
-        const calculated = recalculateAll(newItems);
-
-        set({
-          selectedItems: newItems,
-          ...calculated,
-        });
-      },
-
-      /**
-       * Update item quantity and multiplier
-       * Property 1: Item Amount Calculation Invariant
-       * Validates: Requirements 2.2, 4.1
-       */
-      updateItem: (itemId, quantity, multiplier) => {
-        const state = get();
-        const newItems = state.selectedItems.map((item) => {
-          if (item.id !== itemId) return item;
-
-          const amount = calculateItemAmount(item.unit_price, quantity, multiplier);
-          return {
-            ...item,
-            quantity,
-            multiplier,
-            amount,
-          };
-        });
-
-        const calculated = recalculateAll(newItems);
-
-        set({
-          selectedItems: newItems,
-          ...calculated,
-        });
-      },
-
-      /**
-       * Recalculate all totals
-       */
-      calculateTotals: () => {
-        const state = get();
-        const calculated = recalculateAll(state.selectedItems);
-        set(calculated);
-      },
-
-      // Navigation
-      nextStep: () =>
-        set((state) => ({
-          currentStep: Math.min(state.currentStep + 1, 6),
-        })),
-
-      prevStep: () =>
-        set((state) => ({
-          currentStep: Math.max(state.currentStep - 1, 1),
-        })),
-
-      setCurrentStep: (step) => set({ currentStep: step }),
-
-      // Study Design Actions
-      setStudyDesignModelName: (name) =>
-        set((state) => ({
-          studyDesign: { ...state.studyDesign, modelName: name },
-        })),
-
-      setStudyDesignAnimalInfo: (info) =>
-        set((state) => ({
-          studyDesign: { ...state.studyDesign, animalInfo: info },
-        })),
-
-      addGroup: () =>
-        set((state) => {
-          const newGroupNumber = state.studyDesign.groups.length + 1;
-          const newGroup: StudyGroup = {
-            id: `group-${Date.now()}`,
-            groupNumber: newGroupNumber,
-            treatment: newGroupNumber === 1 ? 'Vehicle' : `Test article ${toRoman(newGroupNumber - 1)}`,
-            dose: 'TBD',
-            animalCount: 7,
-          };
-          return {
-            studyDesign: {
-              ...state.studyDesign,
-              groups: [...state.studyDesign.groups, newGroup],
-            },
-          };
-        }),
-
-      updateGroup: (id, updates) =>
-        set((state) => ({
-          studyDesign: {
-            ...state.studyDesign,
-            groups: state.studyDesign.groups.map((g) =>
-              g.id === id ? { ...g, ...updates } : g
-            ),
-          },
-        })),
-
-      removeGroup: (id) =>
-        set((state) => {
-          const filteredGroups = state.studyDesign.groups.filter((g) => g.id !== id);
-          // Renumber groups
-          const renumberedGroups = filteredGroups.map((g, idx) => ({
-            ...g,
-            groupNumber: idx + 1,
-          }));
-          return {
-            studyDesign: {
-              ...state.studyDesign,
-              groups: renumberedGroups,
-            },
-          };
-        }),
-
-      addPhase: () =>
-        set((state) => {
-          const newOrder = state.studyDesign.phases.length + 1;
-          const newPhase: SchedulePhase = {
-            id: `phase-${Date.now()}`,
-            name: 'New Phase',
-            duration: 1,
-            durationUnit: 'week',
-            color: '#6B7280', // gray
-            order: newOrder,
-          };
-          return {
-            studyDesign: {
-              ...state.studyDesign,
-              phases: [...state.studyDesign.phases, newPhase],
-            },
-          };
-        }),
-
-      updatePhase: (id, updates) =>
-        set((state) => ({
-          studyDesign: {
-            ...state.studyDesign,
-            phases: state.studyDesign.phases.map((p) =>
-              p.id === id ? { ...p, ...updates } : p
-            ),
-          },
-        })),
-
-      removePhase: (id) =>
-        set((state) => {
-          const filteredPhases = state.studyDesign.phases.filter((p) => p.id !== id);
-          // Reorder phases
-          const reorderedPhases = filteredPhases.map((p, idx) => ({
-            ...p,
-            order: idx + 1,
-          }));
-          // Remove events associated with this phase
-          const filteredEvents = state.studyDesign.events.filter((e) => e.phaseId !== id);
-          return {
-            studyDesign: {
-              ...state.studyDesign,
-              phases: reorderedPhases,
-              events: filteredEvents,
-            },
-          };
-        }),
-
-      addEvent: (phaseId) =>
-        set((state) => {
-          const newEvent: ScheduleEvent = {
-            id: `event-${Date.now()}`,
-            name: 'New Event',
-            phaseId,
-            position: 50,
-            color: '#EF4444', // red
-          };
-          return {
-            studyDesign: {
-              ...state.studyDesign,
-              events: [...state.studyDesign.events, newEvent],
-            },
-          };
-        }),
-
-      updateEvent: (id, updates) =>
-        set((state) => ({
-          studyDesign: {
-            ...state.studyDesign,
-            events: state.studyDesign.events.map((e) =>
-              e.id === id ? { ...e, ...updates } : e
-            ),
-          },
-        })),
-
-      removeEvent: (id) =>
-        set((state) => ({
-          studyDesign: {
-            ...state.studyDesign,
-            events: state.studyDesign.events.filter((e) => e.id !== id),
-          },
-        })),
-
-      // Reset
-      reset: () => set({ ...initialState, studyDesign: { ...defaultStudyDesign } }),
-
-      // Load from saved quotation
-      loadQuotation: (data) => {
-        const model = getModel(data.modelId);
-        const calculated = recalculateAll(data.items);
-
-        set({
-          customerId: data.customerId,
-          customerName: data.customerName,
-          projectName: data.projectName,
-          validDays: data.validDays,
-          notes: data.notes,
-          selectedModelId: data.modelId,
-          selectedModel: model || null,
-          selectedItems: data.items,
-          studyDesign: data.studyDesign || { ...defaultStudyDesign },
-          ...calculated,
-        });
-      },
+      reset: () => set({
+        currentTab: 0, selectedModel: null, selectedCategory: '',
+        scheduleSteps: [], groups: [], evalItems: [],
+        designInfo: { ...initialDesignInfo }, client: { ...initialClient },
+        costItems: [], totalCost: 0, costByCategory: [],
+        discount: 0.25, margin: 0.1, withProfit: 0, discounted: 0, vatIncluded: 0,
+      }),
     }),
-    { name: 'efficacy-quotation-store' }
+    { name: 'efficacy-quotation-v2-store' }
   )
 );
