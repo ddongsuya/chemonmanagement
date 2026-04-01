@@ -44,7 +44,7 @@ export default function NewEfficacyQuotationPage() {
 
   return (
     <QuotationCodeGuard userCode={userCode} quotationType="EFFICACY">
-      <div className="max-w-[1100px] mx-auto">
+      <div className="max-w-[1400px] mx-auto">
         <StitchPageHeader
           label="EFFICACY QUOTATION V2"
           title="비임상 효력시험 견적 시스템"
@@ -52,11 +52,11 @@ export default function NewEfficacyQuotationPage() {
           actions={
             <div className="flex items-center gap-2">
               {selectedModel && (
-                <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-medium rounded-full">
+                <span className="px-2.5 py-0.5 border border-blue-200 text-blue-700 text-[10px] font-medium rounded">
                   {selectedModel.category}
                 </span>
               )}
-              <Button variant="outline" size="sm" onClick={handleReset} className="bg-white border-none rounded-xl font-bold">
+              <Button variant="outline" size="sm" onClick={handleReset} className="bg-white border-border rounded-lg font-semibold">
                 <RotateCcw className="w-4 h-4 mr-2" />
                 초기화
               </Button>
@@ -77,7 +77,7 @@ export default function NewEfficacyQuotationPage() {
             >
               <span className="flex items-center gap-1.5">
                 <span
-                  className="w-4 h-4 rounded-full text-[9px] flex items-center justify-center font-bold"
+                  className="w-4 h-4 rounded text-[9px] flex items-center justify-center font-semibold"
                   style={{
                     background: currentTab === i ? '#3b82f6' : '#e5e7eb',
                     color: currentTab === i ? '#fff' : '#9ca3af',

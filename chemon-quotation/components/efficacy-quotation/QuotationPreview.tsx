@@ -123,9 +123,9 @@ export default function QuotationPreview() {
       </div>
 
       {/* Formal Quotation Document */}
-      <div className="bg-white border-2 border-gray-200 rounded-2xl p-6 space-y-5">
+      <div className="bg-white border border-border rounded-lg p-6 space-y-5">
         <div className="text-center border-b pb-3">
-          <div className="text-xl font-bold tracking-widest text-gray-800">견 적 서</div>
+          <div className="text-lg font-semibold tracking-widest text-gray-800">견 적 서</div>
           <div className="text-[10px] text-gray-400">코아스템켐온㈜ 비임상CRO사업부</div>
         </div>
 
@@ -172,19 +172,19 @@ export default function QuotationPreview() {
         </div>
 
         {/* Price Summary */}
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4">
+        <div className="bg-slate-50 border border-border rounded-lg p-4">
           <div className="grid grid-cols-3 gap-3 text-center">
             <div>
-              <div className="text-[10px] text-blue-500">견적가</div>
-              <div className="text-lg font-bold text-blue-800" style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(withProfit)}원</div>
+              <div className="text-[10px] text-muted-foreground">견적가</div>
+              <div className="text-lg font-semibold text-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(withProfit)}원</div>
             </div>
             <div>
-              <div className="text-[10px] text-green-600">할인가 ({(discount * 100).toFixed(0)}%)</div>
-              <div className="text-lg font-bold text-green-700" style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(discounted)}원</div>
+              <div className="text-[10px] text-muted-foreground">할인가 ({(discount * 100).toFixed(0)}%)</div>
+              <div className="text-lg font-semibold text-green-700" style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(discounted)}원</div>
             </div>
             <div>
-              <div className="text-[10px] text-gray-500">VAT 포함</div>
-              <div className="text-lg font-bold text-gray-800" style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(vatIncluded)}원</div>
+              <div className="text-[10px] text-muted-foreground">VAT 포함</div>
+              <div className="text-lg font-semibold text-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(vatIncluded)}원</div>
             </div>
           </div>
         </div>
@@ -226,7 +226,7 @@ export default function QuotationPreview() {
         <button
           onClick={handleSave}
           disabled={saving || saved}
-          className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+          className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
             saved ? 'bg-green-500 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
           } disabled:opacity-60`}
         >
