@@ -14,7 +14,7 @@ export interface StudyModelTemplate {
   categoryCode: string;
   species: string[];
   speciesRaw: string;
-  sex: 'male' | 'female' | 'both';
+  sex: 'male' | 'female' | 'both' | '';
   ageWeeks: number | null;
   inductionMethod: string;
   durationWeeks: number | null;
@@ -25,6 +25,7 @@ export interface StudyModelTemplate {
   cellLine: string;
   cultureCondition: string;
   scheduleDurations: string[];
+  page?: number;
 }
 
 // ============================================================
