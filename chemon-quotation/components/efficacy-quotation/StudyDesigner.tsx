@@ -17,78 +17,90 @@ function InteractiveTimeline() {
 
   return (
     <div className="relative">
-      <div className="flex items-end gap-0 overflow-x-auto pb-8 pt-10">
+      <div className="flex items-end gap-1 overflow-x-auto pb-10 pt-12 px-1" style={{ minHeight: '120px' }}>
         {scheduleSteps.map((st, i) => {
           const days = st.durationUnit === 'week' ? st.duration * 7 : st.durationUnit === 'day' ? st.duration : 1;
-          const pct = Math.max((days / totalDays) * 100, 8);
+          const pct = Math.max((days / totalDays) * 100, 12);
           const color = STEP_TYPE_CONFIG[st.type]?.color ?? '#64748b';
 
           return (
-            <div key={st.id} className="flex flex-col items-center group relative" style={{ flex: `${pct} 0 0%`, minWidth: '80px' }}>
-              <div className="absolute -top-1 text-[10px] text-gray-400 whitespace-nowrap">
+            <div key={st.id} className="flex flex-col items-center group relative" style={{ flex: `${pct} 0 0%`, minWidth: '110px' }}>
+              <div className="absolute -top-2 text-[11px] font-medium text-gray-500 whitespace-nowrap">
                 {st.duration}{st.durationUnit === 'week' ? '주' : st.durationUnit === 'day' ? '일' : 'h'}
               </div>
               <div
                 className="w-full relative cursor-pointer"
-                style={{ height: '44px' }}
+                style={{ height: '52px' }}
                 onClick={() => setEditIdx(editIdx === i ? null : i)}
               >
                 <div
-                  className="absolute inset-0 rounded-lg flex items-center justify-center text-white font-medium px-1.5 transition-all hover:brightness-110"
-                  style={{ background: color, fontSize: '11px' }}
+                  className="absolute inset-0 rounded-xl flex items-center justify-center text-white font-semibold px-2 transition-all hover:brightness-110 shadow-sm"
+                  style={{ background: color, fontSize: '12px' }}
                 >
                   <span className="truncate">{st.label}</span>
                 </div>
                 {i < scheduleSteps.length - 1 && (
-                  <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 z-10">
-                    <svg width="12" height="12" viewBox="0 0 16 16"><path d="M4 2l8 6-8 6z" fill={STEP_TYPE_CONFIG[scheduleSteps[i + 1]?.type]?.color ?? '#94a3b8'} /></svg>
+                  <div className="absolute -right-2 top-1/2 -translate-y-1/2 z-10">
+                    <svg width="14" height="14" viewBox="0 0 16 16"><path d="M4 2l8 6-8 6z" fill={STEP_TYPE_CONFIG[scheduleSteps[i + 1]?.type]?.color ?? '#94a3b8'} /></svg>
                   </div>
                 )}
               </div>
 
               {editIdx === i && (
-                <div className="absolute top-14 z-30 bg-white border border-gray-200 rounded-xl shadow-xl p-3 w-60" onClick={e => e.stopPropagation()}>
-                  <div className="space-y-2">
-                    <input
-                      value={st.label}
-                      onChange={e => updateScheduleStep(i, { label: e.target.value })}
-                      className="w-full px-2 py-1 border rounded text-sm"
-                      placeholder="단계명"
-                    />
-                    <div className="flex gap-2">
+                <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-72" onClick={e => e.stopPropagation()}>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">단계명</label>
                       <input
-                        type="number"
-                        value={st.duration}
-                        onChange={e => updateScheduleStep(i, { duration: Number(e.target.value) || 1 })}
-                        className="w-20 px-2 py-1 border rounded text-sm"
-                        min="1"
+                        value={st.label}
+                        onChange={e => updateScheduleStep(i, { label: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                        placeholder="단계명"
                       />
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">기간</label>
+                        <input
+                          type="number"
+                          value={st.duration}
+                          onChange={e => updateScheduleStep(i, { duration: Number(e.target.value) || 1 })}
+                          className="w-full px-3 py-2 border rounded-lg text-sm"
+                          min="1"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">단위</label>
+                        <select
+                          value={st.durationUnit}
+                          onChange={e => updateScheduleStep(i, { durationUnit: e.target.value as 'week' | 'day' | 'hour' })}
+                          className="w-full px-3 py-2 border rounded-lg text-sm"
+                        >
+                          <option value="week">주</option>
+                          <option value="day">일</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">유형</label>
                       <select
-                        value={st.durationUnit}
-                        onChange={e => updateScheduleStep(i, { durationUnit: e.target.value as 'week' | 'day' | 'hour' })}
-                        className="flex-1 px-2 py-1 border rounded text-sm"
+                        value={st.type}
+                        onChange={e => updateScheduleStep(i, { type: e.target.value as ScheduleStepType })}
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
                       >
-                        <option value="week">주</option>
-                        <option value="day">일</option>
+                        {Object.entries(STEP_TYPE_CONFIG).map(([k, v]) => (
+                          <option key={k} value={k}>{v.icon} {v.label}</option>
+                        ))}
                       </select>
                     </div>
-                    <select
-                      value={st.type}
-                      onChange={e => updateScheduleStep(i, { type: e.target.value as ScheduleStepType })}
-                      className="w-full px-2 py-1 border rounded text-sm"
-                    >
-                      {Object.entries(STEP_TYPE_CONFIG).map(([k, v]) => (
-                        <option key={k} value={k}>{v.label}</option>
-                      ))}
-                    </select>
-                    <div className="flex gap-1">
+                    <div className="flex gap-2 pt-1">
                       <button
                         onClick={() => { addScheduleStep(i); setEditIdx(null); }}
-                        className="flex-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs"
-                      >앞에 추가</button>
+                        className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors"
+                      >+ 앞에 추가</button>
                       <button
                         onClick={() => { removeScheduleStep(i); setEditIdx(null); }}
-                        className="flex-1 px-2 py-1 bg-red-50 text-red-600 rounded text-xs"
+                        className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors"
                         disabled={scheduleSteps.length <= 1}
                       >삭제</button>
                     </div>
@@ -99,8 +111,8 @@ function InteractiveTimeline() {
           );
         })}
       </div>
-      <button onClick={() => addScheduleStep()} className="text-xs text-blue-600 hover:text-blue-800">+ 단계 추가</button>
-      <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
+      <button onClick={() => addScheduleStep()} className="text-sm text-blue-600 hover:text-blue-800 font-semibold mt-1">+ 단계 추가</button>
+      <div className="flex justify-between text-[10px] text-gray-400 mt-1">
         <span>시작</span>
         <span>총 {Math.ceil(totalDays / 7)}주 ({totalDays}일)</span>
       </div>
