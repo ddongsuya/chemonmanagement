@@ -216,6 +216,11 @@ export const useEfficacyQuotationStore = create<EfficacyQuotationState>()(
           scheduleSteps: steps,
           evalItems: evals.map(e => ({ name: e.name, enabled: e.isEnabled })),
           reportWeeks: model.reportWeeks,
+          inductionMethod: model.inductionMethod,
+          isInVitro: model.isInVitro,
+          cellLine: model.cellLine,
+          categoryCode: model.categoryCode,
+          positiveControl: model.positiveControl,
         });
         const totalCost = calculateTotalCost(costItems);
         const costByCat = calculateCostByCategory(costItems);
@@ -341,6 +346,11 @@ export const useEfficacyQuotationStore = create<EfficacyQuotationState>()(
           scheduleSteps,
           evalItems: evalItems.map(e => ({ name: e.name, enabled: e.isEnabled })),
           reportWeeks: selectedModel.reportWeeks,
+          inductionMethod: selectedModel.inductionMethod,
+          isInVitro: selectedModel.isInVitro,
+          cellLine: selectedModel.cellLine,
+          categoryCode: selectedModel.categoryCode,
+          positiveControl: selectedModel.positiveControl,
         });
         const totalCost = calculateTotalCost(costItems);
         const costByCat = calculateCostByCategory(costItems);
