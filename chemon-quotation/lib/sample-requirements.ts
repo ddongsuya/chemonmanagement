@@ -44,6 +44,7 @@ export interface SampleRequirementTest {
   species: string;
   note: string;
   unit?: string;
+  formulaType?: string;
 
   // formula 타입
   defaultParams?: {
