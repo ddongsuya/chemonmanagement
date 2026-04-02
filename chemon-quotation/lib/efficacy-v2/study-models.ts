@@ -1438,18 +1438,6 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   },
 ];
 
-
-export function getModelsByCategory(code: CategoryCode): StudyModel[] { return STUDY_MODELS.filter(m => m.categoryCode === code); }
-export function getModelsBySpecies(species: string): StudyModel[] { return STUDY_MODELS.filter(m => m.species.some(s => s.toLowerCase().includes(species.toLowerCase()))); }
-export function getModelById(id: string): StudyModel | undefined { return STUDY_MODELS.find(m => m.id === id); }
-export function searchModels(keyword: string): StudyModel[] {
-  const kw = keyword.toLowerCase();
-  return STUDY_MODELS.filter(m => m.title.toLowerCase().includes(kw) || m.evalItemsRaw.toLowerCase().includes(kw) || m.inductionMethod.toLowerCase().includes(kw) || m.titleEn.toLowerCase().includes(kw) || m.titleKr.includes(keyword));
-}
-export function getInVivoModels(): StudyModel[] { return STUDY_MODELS.filter(m => !m.isInVitro); }
-export function getInVitroModels(): StudyModel[] { return STUDY_MODELS.filter(m => m.isInVitro); }
-
-
 export const STUDY_CATEGORIES = [
   { code: 'I', name: '심혈관 질환' },
   { code: 'II', name: '혈전·지혈' },
