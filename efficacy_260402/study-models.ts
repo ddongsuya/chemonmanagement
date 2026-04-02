@@ -1,15 +1,68 @@
-// lib/efficacy-v2/study-models.ts
-// 110개 효력시험 모델 데이터 (최종본 - efficacy_260402)
-// schedule_durations: 주령혼입 제거, 순화기간(1-week) 반영 완료
+// ============================================================
+// 코아스템켐온 효력시험 모델 데이터 (110개 전체)
 // 원본: 코아스템켐온_신약개발지원본부_2025_유효성시험_국문.pdf
+// schedule_durations: 주령혼입 제거, 순화기간(1-week) 반영 완료
+// ============================================================
 
-import type { StudyModelTemplate } from '@/types/efficacy-v2';
+export type CategoryCode =
+  | 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII'
+  | 'IX' | 'X' | 'XI' | 'XII' | 'XIII' | 'XIV' | 'XV' | 'XVI' | 'ETC';
 
-export const STUDY_MODELS: StudyModelTemplate[] = [
+export interface StudyModel {
+  id: string;
+  title: string;
+  titleEn: string;
+  titleKr: string;
+  categoryCode: CategoryCode;
+  category: string;
+  species: string[];
+  speciesRaw: string;
+  sex: 'male' | 'female' | 'both' | '';
+  ageWeeks: number;
+  inductionMethod: string;
+  durationWeeks: number;
+  reportWeeks: number;
+  evalItemsRaw: string;
+  positiveControl: string;
+  isInVitro: boolean;
+  cellLine: string;
+  cultureCondition: string;
+  scheduleDurations: string[];
+  page: number;
+}
+
+export interface CategoryInfo {
+  code: CategoryCode;
+  name: string;
+  nameEn: string;
+  modelCount: number;
+}
+
+export const CATEGORIES: CategoryInfo[] = [
+  { code: 'I', name: '심혈관 질환', nameEn: 'Cardiovascular', modelCount: 2 },
+  { code: 'II', name: '혈전·지혈', nameEn: 'Thrombosis & Hemostasis', modelCount: 2 },
+  { code: 'III', name: '비뇨기 질환', nameEn: 'Urology', modelCount: 2 },
+  { code: 'IV', name: '신장 질환', nameEn: 'Nephrology', modelCount: 2 },
+  { code: 'V', name: '호흡기 질환', nameEn: 'Respiratory', modelCount: 6 },
+  { code: 'VI', name: '중추신경계 질환', nameEn: 'Neuroscience', modelCount: 9 },
+  { code: 'VII', name: '진통·소염', nameEn: 'Pain & Analgesia', modelCount: 9 },
+  { code: 'VIII', name: '관절염·면역', nameEn: 'Musculoskeletal & Immune', modelCount: 8 },
+  { code: 'IX', name: '소화기 질환', nameEn: 'Gastroenterology', modelCount: 10 },
+  { code: 'X', name: '대사성 질환', nameEn: 'Metabolic Disease', modelCount: 9 },
+  { code: 'XI', name: '내분비 질환', nameEn: 'Menopause', modelCount: 2 },
+  { code: 'XII', name: '피부 질환', nameEn: 'Dermatology', modelCount: 11 },
+  { code: 'XIII', name: '항암', nameEn: 'Oncology', modelCount: 15 },
+  { code: 'XIV', name: '항균', nameEn: 'Anti-infection', modelCount: 4 },
+  { code: 'XV', name: '간질환', nameEn: 'Hepatology', modelCount: 6 },
+  { code: 'XVI', name: '기타 질환', nameEn: 'Others', modelCount: 11 },
+  { code: 'ETC', name: '', nameEn: 'ETC', modelCount: 2 },
+];
+
+export const STUDY_MODELS: StudyModel[] = [
   {
     id: 'I-1', title: 'I-1. Heart Failure (심부전) - TAC',
     titleEn: 'Heart Failure', titleKr: '심부전',
-    categoryCode: 'I', category: '심혈관 질환',
+    categoryCode: 'I' as CategoryCode, category: '심혈관 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 mice (male, 9-week)',
     sex: 'male', ageWeeks: 9,
     inductionMethod: 'Transverse Aortic Constriction (TAC) 모델',
@@ -22,7 +75,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'I-2', title: 'I-2. Hypertension (고혈압) - SHR',
     titleEn: 'Hypertension', titleKr: '고혈압',
-    categoryCode: 'I', category: '심혈관 질환',
+    categoryCode: 'I' as CategoryCode, category: '심혈관 질환',
     species: ["SHR rat"], speciesRaw: 'SHR rat (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: '고혈압 자연 발생',
@@ -35,7 +88,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'II-1', title: 'II-1. Thrombosis (항혈전) - ADP',
     titleEn: 'Thrombosis', titleKr: '항혈전',
-    categoryCode: 'II', category: '혈전·지혈',
+    categoryCode: 'II' as CategoryCode, category: '혈전·지혈',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Adenosine Diphosphate (ADP; 응고제)',
@@ -48,7 +101,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'II-2', title: 'II-2. Thrombosis (항혈전) - Collagen',
     titleEn: 'Thrombosis', titleKr: '항혈전',
-    categoryCode: 'II', category: '혈전·지혈',
+    categoryCode: 'II' as CategoryCode, category: '혈전·지혈',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Collagen + Epinephrine',
@@ -61,7 +114,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'III-1', title: 'III-1. Overactive Bladder (과민성 방광염)',
     titleEn: 'Overactive Bladder', titleKr: '과민성 방광염',
-    categoryCode: 'III', category: '비뇨기 질환',
+    categoryCode: 'III' as CategoryCode, category: '비뇨기 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 9-week)',
     sex: 'male', ageWeeks: 9,
     inductionMethod: '요도폐색 수술',
@@ -74,7 +127,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'III-2', title: 'III-2. CYP induced cystitis (CYP유도 방광염)',
     titleEn: '', titleKr: '',
-    categoryCode: 'III', category: '비뇨기 질환',
+    categoryCode: 'III' as CategoryCode, category: '비뇨기 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 9-week)',
     sex: 'male', ageWeeks: 9,
     inductionMethod: 'CYP(cyclophosphamide) 75 mg/kg 투여(IP)',
@@ -87,7 +140,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VI-1', title: 'VI-1. Renal Failure (신부전) - Nephrectomy',
     titleEn: 'Renal Failure', titleKr: '신부전',
-    categoryCode: 'IV', category: '신장 질환',
+    categoryCode: 'IV' as CategoryCode, category: '신장 질환',
     species: ["Wistar rat"], speciesRaw: 'Wistar rat (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: '5/6 신장 적출 모델 (Nephrectomy)',
@@ -100,7 +153,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IV-2', title: 'IV-2. Diabetic Nephropathy (당뇨병성 신증)',
     titleEn: 'Diabetic Nephropathy', titleKr: '당뇨병성 신증',
-    categoryCode: 'IV', category: '신장 질환',
+    categoryCode: 'IV' as CategoryCode, category: '신장 질환',
     species: ["BTBR ob/ob mouse"], speciesRaw: 'BTBR W/T (wild type) mice, BTBR ob/ob mice (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: '',
@@ -113,7 +166,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'V-1', title: 'V-1. Chronic Bronchitis (만성 기관지염)',
     titleEn: 'Chronic Bronchitis', titleKr: '만성 기관지염',
-    categoryCode: 'V', category: '호흡기 질환',
+    categoryCode: 'V' as CategoryCode, category: '호흡기 질환',
     species: ["BALB/c mouse"], speciesRaw: 'BALB/c mice (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: 'Ovalbumin',
@@ -126,7 +179,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'V-2', title: 'V-2. Bronchus Relaxation (기관지 이완)',
     titleEn: 'Bronchus Relaxation', titleKr: '기관지 이완',
-    categoryCode: 'V', category: '호흡기 질환',
+    categoryCode: 'V' as CategoryCode, category: '호흡기 질환',
     species: ["Guinea pig"], speciesRaw: 'Guinea Pig (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: '',
@@ -139,7 +192,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'V-3', title: 'V-3. Cough (기침)',
     titleEn: 'Cough', titleKr: '기침',
-    categoryCode: 'V', category: '호흡기 질환',
+    categoryCode: 'V' as CategoryCode, category: '호흡기 질환',
     species: ["Guinea pig"], speciesRaw: 'Guinea Pig (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: 'Citric Acid 분무',
@@ -152,7 +205,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'V-4', title: 'V-4. Expectorant Effect, in vivo (거담)',
     titleEn: 'in vivo', titleKr: '거담',
-    categoryCode: 'V', category: '호흡기 질환',
+    categoryCode: 'V' as CategoryCode, category: '호흡기 질환',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: 'Phenol Red',
@@ -165,7 +218,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'V-5', title: 'V-5. Fibrosis of lung (폐섬유화_Therapeutic)',
     titleEn: '', titleKr: '',
-    categoryCode: 'V', category: '호흡기 질환',
+    categoryCode: 'V' as CategoryCode, category: '호흡기 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 mice (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: 'Bleomycin',
@@ -178,7 +231,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'V-6', title: 'V-6. Fibrosis of lung (폐섬유화_Preventive)',
     titleEn: '', titleKr: '',
-    categoryCode: 'V', category: '호흡기 질환',
+    categoryCode: 'V' as CategoryCode, category: '호흡기 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 mice (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: 'Bleomycin',
@@ -191,7 +244,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VI-1', title: 'VI-1. Dementia (치매) - Scopolamine, ICR',
     titleEn: 'Dementia', titleKr: '치매',
-    categoryCode: 'VI', category: '중추신경계 질환',
+    categoryCode: 'VI' as CategoryCode, category: '중추신경계 질환',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 12-week)',
     sex: 'male', ageWeeks: 12,
     inductionMethod: 'Scopolamine',
@@ -204,7 +257,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VI-2', title: 'VI-2. Dementia (치매) - b-amyloid, C57BL/6',
     titleEn: 'Dementia', titleKr: '치매',
-    categoryCode: 'VI', category: '중추신경계 질환',
+    categoryCode: 'VI' as CategoryCode, category: '중추신경계 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 mice (male, 12-week)',
     sex: 'male', ageWeeks: 12,
     inductionMethod: 'b-amyloid (1-42) / 뇌실내 투여',
@@ -217,7 +270,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VI-3', title: 'VI-3. Dementia (치매) - b-amyloid, ICR',
     titleEn: 'Dementia', titleKr: '치매',
-    categoryCode: 'VI', category: '중추신경계 질환',
+    categoryCode: 'VI' as CategoryCode, category: '중추신경계 질환',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'b-amyloid (1-42) / 뇌실내 투여',
@@ -230,7 +283,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VI-4', title: 'VI-4. Dementia (치매) - b-amyloid, BALB/c',
     titleEn: 'Dementia', titleKr: '치매',
-    categoryCode: 'VI', category: '중추신경계 질환',
+    categoryCode: 'VI' as CategoryCode, category: '중추신경계 질환',
     species: ["BALB/c mouse"], speciesRaw: 'BALB/c mice (male, 12-week)',
     sex: 'male', ageWeeks: 12,
     inductionMethod: 'b-amyloid (1-42) / 뇌실내 투여',
@@ -243,7 +296,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VI-5', title: 'VI-5. Stroke (뇌졸중) - MCAO',
     titleEn: 'Stroke', titleKr: '뇌졸중',
-    categoryCode: 'VI', category: '중추신경계 질환',
+    categoryCode: 'VI' as CategoryCode, category: '중추신경계 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rats (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Middle Cerebral Artery Occlusion (MCAO) 수술',
@@ -256,7 +309,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VI-6', title: 'VI-6. Motor Coordination (운동협조능) - Rotarod',
     titleEn: 'Motor Coordination', titleKr: '운동협조능',
-    categoryCode: 'VI', category: '중추신경계 질환',
+    categoryCode: 'VI' as CategoryCode, category: '중추신경계 질환',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: '',
@@ -269,7 +322,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VI-7', title: 'VI-7. Multiple System Atrophy (다계통 위축증)',
     titleEn: 'Multiple System Atrophy', titleKr: '다계통 위축증',
-    categoryCode: 'VI', category: '중추신경계 질환',
+    categoryCode: 'VI' as CategoryCode, category: '중추신경계 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male/female, 9-week)',
     sex: 'male', ageWeeks: 9,
     inductionMethod: '6-Hydroxydopamine hydrochloride (6-OHDA) 또는',
@@ -282,7 +335,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VI-8', title: 'VI-8. Spinal cord injury (척추 손상 모델)',
     titleEn: 'Spinal cord injury', titleKr: '척추 손상 모델',
-    categoryCode: 'VI', category: '중추신경계 질환',
+    categoryCode: 'VI' as CategoryCode, category: '중추신경계 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rats (female, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Thoracic vertebrae #10에 Impactor 장비로 contusion',
@@ -295,7 +348,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VI-9', title: 'VI-9. Amyotrophic Lateral Sclerosis (ALS, 루게릭)',
     titleEn: '', titleKr: '',
-    categoryCode: 'VI', category: '중추신경계 질환',
+    categoryCode: 'VI' as CategoryCode, category: '중추신경계 질환',
     species: ["ALS transgenic mouse (SOD1-G93A)"], speciesRaw: 'ALS transgenic mouse (B6SJL-Tg(SOD1-G93A)1Gru/J)',
     sex: '', ageWeeks: 0,
     inductionMethod: '모체를 수입하여 breeding 후 8 주차부터 실험)',
@@ -308,7 +361,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VII-1', title: 'VII-1. Analgesia (진통) - Hot Plate',
     titleEn: 'Analgesia', titleKr: '진통',
-    categoryCode: 'VII', category: '진통·소염',
+    categoryCode: 'VII' as CategoryCode, category: '진통·소염',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: 'Hot Plate',
@@ -321,7 +374,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VII-2', title: 'VII-2. Analgesia (진통) - 자발운동량',
     titleEn: 'Analgesia', titleKr: '진통',
-    categoryCode: 'VII', category: '진통·소염',
+    categoryCode: 'VII' as CategoryCode, category: '진통·소염',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: '',
@@ -334,7 +387,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VII-3', title: 'VII-3. Analgesia (진통) - Formalin Test',
     titleEn: 'Analgesia', titleKr: '진통',
-    categoryCode: 'VII', category: '진통·소염',
+    categoryCode: 'VII' as CategoryCode, category: '진통·소염',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: '1 % 포르말린 용액 발바닥 피하투여',
@@ -347,7 +400,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VII-4', title: 'VII-4. Analgesia (진통) - Acetic Acid',
     titleEn: 'Analgesia', titleKr: '진통',
-    categoryCode: 'VII', category: '진통·소염',
+    categoryCode: 'VII' as CategoryCode, category: '진통·소염',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: 'Acetic Acid',
@@ -360,7 +413,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VII-5', title: 'VII-5. Analgesia (진통) - Yeast',
     titleEn: 'Analgesia', titleKr: '진통',
-    categoryCode: 'VII', category: '진통·소염',
+    categoryCode: 'VII' as CategoryCode, category: '진통·소염',
     species: ["SD rat"], speciesRaw: 'SD rat (male, 4-week)',
     sex: 'male', ageWeeks: 4,
     inductionMethod: 'Yeast',
@@ -373,7 +426,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VII-6', title: 'VII-6. Chronic Pain (만성통증) - CCI',
     titleEn: 'Chronic Pain', titleKr: '만성통증',
-    categoryCode: 'VII', category: '진통·소염',
+    categoryCode: 'VII' as CategoryCode, category: '진통·소염',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Chronic Constriction Injury (CCI)',
@@ -386,7 +439,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VII-7', title: 'VII-7. Diabetic Neuropathy (당뇨병성 신경병증)',
     titleEn: 'Diabetic Neuropathy', titleKr: '당뇨병성 신경병증',
-    categoryCode: 'VII', category: '진통·소염',
+    categoryCode: 'VII' as CategoryCode, category: '진통·소염',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Streptozotocin (STZ)',
@@ -399,7 +452,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VII-8', title: 'VII-8. Analgesia (진통) – Capsaicin 유도',
     titleEn: 'Analgesia', titleKr: '진통',
-    categoryCode: 'VII', category: '진통·소염',
+    categoryCode: 'VII' as CategoryCode, category: '진통·소염',
     species: ["SD rat"], speciesRaw: 'SD rat (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: '0.3 % Capsaicin 뒷 발바닥 피하 투여',
@@ -412,7 +465,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VII-9', title: 'VII-9. Analgesia (진통) – 수술 후 통증 유도 모델',
     titleEn: 'Analgesia', titleKr: '진통',
-    categoryCode: 'VII', category: '진통·소염',
+    categoryCode: 'VII' as CategoryCode, category: '진통·소염',
     species: ["SD rat"], speciesRaw: 'SD rat (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: '뒷발바닥 피부 및 근육 절개',
@@ -425,7 +478,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VIII-1', title: 'VIII-1. Antioxidant Effect, in vitro (피로회복)',
     titleEn: 'in vitro', titleKr: '피로회복',
-    categoryCode: 'VIII', category: '관절염·면역',
+    categoryCode: 'VIII' as CategoryCode, category: '관절염·면역',
     species: ["C2C12 cell"], speciesRaw: 'C2C12 cell',
     sex: '', ageWeeks: 0,
     inductionMethod: '근육세포 분화, H2O2 로 산화적 손상 유발',
@@ -438,7 +491,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VIII-2', title: 'VIII-2. Forced Swimming, in vivo (피로회복)',
     titleEn: 'in vivo', titleKr: '피로회복',
-    categoryCode: 'VIII', category: '관절염·면역',
+    categoryCode: 'VIII' as CategoryCode, category: '관절염·면역',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: '강제 수영 (Forced swimming)',
@@ -451,7 +504,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VIII-3', title: 'VIII-3. Immune Activation (면역활성)',
     titleEn: 'Immune Activation', titleKr: '면역활성',
-    categoryCode: 'VIII', category: '관절염·면역',
+    categoryCode: 'VIII' as CategoryCode, category: '관절염·면역',
     species: ["BALB/c mouse"], speciesRaw: 'BALB/c mice (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: '시험물질 처리 후 비장세포 및 복강대식세포 분리',
@@ -464,7 +517,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VIII-4', title: 'VIII-4. Osteoarthritis (퇴행성 관절염) - MIA',
     titleEn: 'Osteoarthritis', titleKr: '퇴행성 관절염',
-    categoryCode: 'VIII', category: '관절염·면역',
+    categoryCode: 'VIII' as CategoryCode, category: '관절염·면역',
     species: ["SD rat"], speciesRaw: 'SD rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Monosodium iodoacetate (MIA)',
@@ -477,7 +530,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VIII-5', title: 'VIII-5. Rheumatoid Arthritis (류마티스 관절염)',
     titleEn: 'Rheumatoid Arthritis', titleKr: '류마티스 관절염',
-    categoryCode: 'VIII', category: '관절염·면역',
+    categoryCode: 'VIII' as CategoryCode, category: '관절염·면역',
     species: ["Lewis rat"], speciesRaw: 'Lewis rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Adjuvant-induced Arthritis (AIA) 모델',
@@ -490,7 +543,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VIII-6', title: 'VIII-6. Rheumatoid Arthritis (류마티스 관절염)',
     titleEn: 'Rheumatoid Arthritis', titleKr: '류마티스 관절염',
-    categoryCode: 'VIII', category: '관절염·면역',
+    categoryCode: 'VIII' as CategoryCode, category: '관절염·면역',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Carrageenan',
@@ -503,7 +556,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VIII-7', title: 'VIII-7. Rheumatoid Arthritis (류마티스 관절염)',
     titleEn: 'Rheumatoid Arthritis', titleKr: '류마티스 관절염',
-    categoryCode: 'VIII', category: '관절염·면역',
+    categoryCode: 'VIII' as CategoryCode, category: '관절염·면역',
     species: ["DBA/1J mouse"], speciesRaw: 'DBA1/J mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'Collagen-induced Arthritis (CIA) 모델, 콜라겐 투여',
@@ -516,7 +569,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'VIII-8', title: 'VIII-8. Osteoarthritis -ACLT',
     titleEn: '', titleKr: '',
-    categoryCode: 'VIII', category: '관절염·면역',
+    categoryCode: 'VIII' as CategoryCode, category: '관절염·면역',
     species: ["NZW rabbit"], speciesRaw: 'New zealand white rabbit (male, 최소 9-month)',
     sex: 'male', ageWeeks: 0,
     inductionMethod: 'ACLT (전방 십자인대 절단, 반월판 ½ 제거)',
@@ -529,7 +582,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IX-1', title: 'IX-1. Constipation (변비)',
     titleEn: 'Constipation', titleKr: '변비',
-    categoryCode: 'IX', category: '소화기 질환',
+    categoryCode: 'IX' as CategoryCode, category: '소화기 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (female, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: 'Loperamide',
@@ -542,7 +595,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IX-2', title: 'IX-2. Gastric Activity (위액분비능)',
     titleEn: 'Gastric Activity', titleKr: '위액분비능',
-    categoryCode: 'IX', category: '소화기 질환',
+    categoryCode: 'IX' as CategoryCode, category: '소화기 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rats (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: '유문부 및 분문부 결찰',
@@ -555,7 +608,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IX-3', title: 'IX-3. Gastric Lesions (위염) - Aspirin',
     titleEn: 'Gastric Lesions', titleKr: '위염',
-    categoryCode: 'IX', category: '소화기 질환',
+    categoryCode: 'IX' as CategoryCode, category: '소화기 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Aspirin',
@@ -568,7 +621,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IX-4', title: 'IX-4. Gastric Lesions (위염 (예방)) - HCl-EtOH',
     titleEn: '', titleKr: '예방',
-    categoryCode: 'IX', category: '소화기 질환',
+    categoryCode: 'IX' as CategoryCode, category: '소화기 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: 'HCl-EtOH',
@@ -581,7 +634,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IX-5', title: 'IX-5. Gastric Lesions (위염 (치료)) - HCl-EtOH',
     titleEn: '', titleKr: '치료',
-    categoryCode: 'IX', category: '소화기 질환',
+    categoryCode: 'IX' as CategoryCode, category: '소화기 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: 'HCl-EtOH',
@@ -594,7 +647,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IX-6', title: 'IX-6. Gastric Lesions (위염 (치료)) - 에탄올',
     titleEn: '', titleKr: '치료',
-    categoryCode: 'IX', category: '소화기 질환',
+    categoryCode: 'IX' as CategoryCode, category: '소화기 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: '70 % 에탄올',
@@ -607,7 +660,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IX-7', title: 'IX-7. Gastrointestinal Transport (장내 수송능)',
     titleEn: 'Gastrointestinal Transport', titleKr: '장내 수송능',
-    categoryCode: 'IX', category: '소화기 질환',
+    categoryCode: 'IX' as CategoryCode, category: '소화기 질환',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: '',
@@ -620,7 +673,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IX-8', title: 'IX-8. Hangover (숙취해소)',
     titleEn: 'Hangover', titleKr: '숙취해소',
-    categoryCode: 'IX', category: '소화기 질환',
+    categoryCode: 'IX' as CategoryCode, category: '소화기 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Ethanol',
@@ -633,7 +686,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IX-9', title: 'IX-9. HPD & Gastric Activity',
     titleEn: '', titleKr: '',
-    categoryCode: 'IX', category: '소화기 질환',
+    categoryCode: 'IX' as CategoryCode, category: '소화기 질환',
     species: ["Beagle dog"], speciesRaw: 'Beagle dog (Male, 10-12 kg 내외)',
     sex: 'male', ageWeeks: 0,
     inductionMethod: 'HPD 모델 제작',
@@ -646,7 +699,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'IX-10', title: 'IX-10. Improvement of Digestive Function',
     titleEn: '', titleKr: '',
-    categoryCode: 'IX', category: '소화기 질환',
+    categoryCode: 'IX' as CategoryCode, category: '소화기 질환',
     species: ["C57BL/6 mouse"], speciesRaw: '노령쥐 (12 개월령, C57BL/6N, male)',
     sex: 'male', ageWeeks: 0,
     inductionMethod: '',
@@ -659,7 +712,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'X-1', title: 'X-1. Glut 4 Expression on Differentiated L6',
     titleEn: '', titleKr: '',
-    categoryCode: 'X', category: '대사성 질환',
+    categoryCode: 'X' as CategoryCode, category: '대사성 질환',
     species: ["L6 cell"], speciesRaw: 'L6 cell',
     sex: '', ageWeeks: 0,
     inductionMethod: '',
@@ -672,7 +725,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'X-2', title: 'X-2. Hyperlipidemia (고지혈증) - Rat',
     titleEn: 'Hyperlipidemia', titleKr: '고지혈증',
-    categoryCode: 'X', category: '대사성 질환',
+    categoryCode: 'X' as CategoryCode, category: '대사성 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'AIN-76 + 1 % cholesterol + 0.5 % cholic acid',
@@ -685,7 +738,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'X-3', title: 'X-3. Hyperlipidemia (고지혈증) - Mouse',
     titleEn: 'Hyperlipidemia', titleKr: '고지혈증',
-    categoryCode: 'X', category: '대사성 질환',
+    categoryCode: 'X' as CategoryCode, category: '대사성 질환',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: 'Triton WR-1339 300 mg/10 mL/kg',
@@ -698,7 +751,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'X-4', title: 'X-4. Obesity (비만) - DIO',
     titleEn: 'Obesity', titleKr: '비만',
-    categoryCode: 'X', category: '대사성 질환',
+    categoryCode: 'X' as CategoryCode, category: '대사성 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 mice (male, 3-week)',
     sex: 'male', ageWeeks: 3,
     inductionMethod: 'Diet induced obesity (DIO)모델, 60 % 고지방식이 섭취',
@@ -711,7 +764,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'X-5', title: 'X-5. OGTT (당부하검사) - db/db',
     titleEn: 'OGTT', titleKr: '당부하검사',
-    categoryCode: 'X', category: '대사성 질환',
+    categoryCode: 'X' as CategoryCode, category: '대사성 질환',
     species: ["db/db mouse"], speciesRaw: 'db/db mice (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: 'db/db mice',
@@ -724,7 +777,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'X-6', title: 'X-6. OGTT (당부하검사) - ICR',
     titleEn: 'OGTT', titleKr: '당부하검사',
-    categoryCode: 'X', category: '대사성 질환',
+    categoryCode: 'X' as CategoryCode, category: '대사성 질환',
     species: ["ICR mouse"], speciesRaw: 'ICR mice (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: 'Glucose',
@@ -737,7 +790,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'X-7', title: 'X-7. Type 1 DM (제 1형 당뇨)',
     titleEn: '', titleKr: '',
-    categoryCode: 'X', category: '대사성 질환',
+    categoryCode: 'X' as CategoryCode, category: '대사성 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Streptozotocin (STZ)',
@@ -750,7 +803,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'X-8', title: 'X-8. Type 2 DM (제 2형 당뇨)',
     titleEn: '', titleKr: '',
-    categoryCode: 'X', category: '대사성 질환',
+    categoryCode: 'X' as CategoryCode, category: '대사성 질환',
     species: ["db/db mouse"], speciesRaw: 'db/db mice (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: 'db/db mice',
@@ -763,7 +816,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'X-9', title: 'X-9. 통풍 - Rat',
     titleEn: '', titleKr: '',
-    categoryCode: 'X', category: '대사성 질환',
+    categoryCode: 'X' as CategoryCode, category: '대사성 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: 'Potassium oxonate 투여(IP)',
@@ -776,7 +829,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XI-1', title: 'XI-1. Menopause (갱년기) - Hot Flashes Test',
     titleEn: 'Menopause', titleKr: '갱년기',
-    categoryCode: 'XI', category: '내분비 질환',
+    categoryCode: 'XI' as CategoryCode, category: '내분비 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (female, 12-week)',
     sex: 'male', ageWeeks: 12,
     inductionMethod: 'Oophorectomy (난소적출)',
@@ -789,7 +842,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XI-2', title: 'XI-2. Menopause (갱년기)',
     titleEn: 'Menopause', titleKr: '갱년기',
-    categoryCode: 'XI', category: '내분비 질환',
+    categoryCode: 'XI' as CategoryCode, category: '내분비 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (female, 12-week)',
     sex: 'male', ageWeeks: 12,
     inductionMethod: 'Cisplatin 1 회/일, 총 10 회, 2 mg/kg/day',
@@ -802,7 +855,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-1', title: 'XII-1. Atopic Dermatitis (아토피성 피부염)',
     titleEn: 'Atopic Dermatitis', titleKr: '아토피성 피부염',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["NC/Nga mouse"], speciesRaw: 'NC/Nga mice (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: 'Dinitrochlorobenzene (DNCB)',
@@ -815,7 +868,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-2', title: 'XII-2. Anti Wrinkle Effect, in vitro (주름개선)',
     titleEn: 'in vitro', titleKr: '주름개선',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["CCD986sk cell"], speciesRaw: 'CCD986sk cells',
     sex: '', ageWeeks: 0,
     inductionMethod: '',
@@ -828,7 +881,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-3', title: 'XII-3. Anti Wrinkle Effect, in vivo (주름개선)',
     titleEn: 'in vivo', titleKr: '주름개선',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["SKH-1 hairless mouse"], speciesRaw: 'Hairless mice (female, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: '0.3 mg/0.1 mL/head Calcitriol 1 회/일, 5 회/주 도포',
@@ -841,7 +894,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-4', title: 'XII-4. Burn Wound (화상)',
     titleEn: 'Burn Wound', titleKr: '화상',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: '80 ºC 인두기로 화상 유발',
@@ -854,7 +907,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-5', title: 'XII-5. Wound (창상)',
     titleEn: 'Wound', titleKr: '창상',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: '8 mm biopsy punch로 창상 유발',
@@ -867,7 +920,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-6', title: 'XII-6. Hair Growth (발모)',
     titleEn: 'Hair Growth', titleKr: '발모',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 mice (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: '제모',
@@ -880,7 +933,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-7', title: 'XII-7. Hair Loss (탈모)',
     titleEn: 'Hair Loss', titleKr: '탈모',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 mice (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: '제모, Testosterone Propionate (TP) 투여',
@@ -893,7 +946,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-8', title: 'XII-8. Skin Infection (피부감염)',
     titleEn: 'Skin Infection', titleKr: '피부감염',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["Guinea pig"], speciesRaw: 'Guinea Pig (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: '진균 감염',
@@ -906,7 +959,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-9', title: 'XII-9. Whitening, in vitro (미백)',
     titleEn: 'in vitro', titleKr: '미백',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["B16F1 cell"], speciesRaw: 'B16F1 (murine melanoma cell)',
     sex: '', ageWeeks: 0,
     inductionMethod: '',
@@ -919,7 +972,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-10', title: 'XII-10. Photoaging (광노화) – UVB',
     titleEn: 'Photoaging', titleKr: '광노화',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["SKH-1 hairless mouse"], speciesRaw: 'Hairless mice (female, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'Ultraviolet-B (UVB) radiation',
@@ -932,7 +985,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XII-11', title: 'XII-11. Skin atrophy (피부위축증) – Psoriasis',
     titleEn: 'Skin atrophy', titleKr: '피부위축증',
-    categoryCode: 'XII', category: '피부 질환',
+    categoryCode: 'XII' as CategoryCode, category: '피부 질환',
     species: ["SKH-1 hairless mouse"], speciesRaw: 'Hairless mice (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: 'Imiquimod (건선유발), clobetasol propionate (스테로이드 처리)',
@@ -945,7 +998,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-1', title: 'XIII-1. Breast Cancer (유방암) - MCF-7',
     titleEn: 'Breast Cancer', titleKr: '유방암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (female, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'MCF-7 cell, xenograft',
@@ -958,7 +1011,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-2', title: 'XIII-2. Breast Cancer (유방암) - MDA-MB-231',
     titleEn: 'Breast Cancer', titleKr: '유방암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (female, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'MDA-MB-231 cell, xenograft',
@@ -971,7 +1024,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-3', title: 'XIII-3. Colon Cancer (대장암)',
     titleEn: 'Colon Cancer', titleKr: '대장암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'Colo 205 cell, xenograft',
@@ -984,11 +1037,11 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-4', title: 'XIII-4. Gastric Cancer (위암)',
     titleEn: 'Gastric Cancer', titleKr: '위암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'MKN-45 cell, xenograft',
-    durationWeeks: null, reportWeeks: 4,
+    durationWeeks: None, reportWeeks: 4,
     evalItemsRaw: '종양부피, 종양무게, 사진촬영',
     positiveControl: 'Adriamycin (Doxorubicin)',
     isInVitro: false, cellLine: '', cultureCondition: '10 % FBS in RPMI 1640',
@@ -997,7 +1050,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-5', title: 'XIII-5. Hepatocellular Carcinoma (간암)',
     titleEn: 'Hepatocellular Carcinoma', titleKr: '간암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'Huh7 cell, xenograft',
@@ -1010,7 +1063,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-6', title: 'XIII-6. Lung Cancer (폐암)',
     titleEn: 'Lung Cancer', titleKr: '폐암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'A549 cell, xenograft',
@@ -1023,7 +1076,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-7', title: 'XIII-7. Nasopharyngeal Cancer (비인두암)',
     titleEn: 'Nasopharyngeal Cancer', titleKr: '비인두암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'KB cell, xenograft',
@@ -1036,7 +1089,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-8', title: 'XIII-8. Prostate Cancer (전립선암)',
     titleEn: 'Prostate Cancer', titleKr: '전립선암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'DU145 cell, xenograft',
@@ -1049,7 +1102,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-9', title: 'XIII-9. Pancreatic Cancer (췌장암)',
     titleEn: 'Pancreatic Cancer', titleKr: '췌장암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'PANC-1 cell, xenograft',
@@ -1062,7 +1115,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-10', title: 'XIII-10. Breast Cancer (유방암)',
     titleEn: 'Breast Cancer', titleKr: '유방암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["mouse"], speciesRaw: 'NOD SCID mice (female, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'BT-474 cell, xenograft',
@@ -1075,7 +1128,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-11', title: 'XIII-11. Brain Cancer (뇌암)',
     titleEn: 'Brain Cancer', titleKr: '뇌암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["mouse"], speciesRaw: 'NOG or NOD SCID mice (female, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'U87-MG cell, xenograft',
@@ -1088,7 +1141,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-12', title: 'XIII-12. Gallbladder Cancer (담낭암)',
     titleEn: 'Gallbladder Cancer', titleKr: '담낭암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["mouse"], speciesRaw: 'NOG or NOD SCID mice (female, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'JHH-5 cell, xenograft',
@@ -1101,7 +1154,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-13', title: 'XIII-13. Laryngeal Cancer (후두암)',
     titleEn: 'Laryngeal Cancer', titleKr: '후두암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["mouse"], speciesRaw: 'NOG mice (female, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'HEp-2 cell, xenograft',
@@ -1114,7 +1167,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-14', title: 'XIII-14. Bile duct carcinoma (담도암)',
     titleEn: 'Bile duct carcinoma', titleKr: '담도암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'HuCCT1 cell, xenograft',
@@ -1127,7 +1180,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIII-15', title: 'XIII-15. Biliary tract cancer (담관암)',
     titleEn: 'Biliary tract cancer', titleKr: '담관암',
-    categoryCode: 'XIII', category: '항암',
+    categoryCode: 'XIII' as CategoryCode, category: '항암',
     species: ["BALB/c nude mouse"], speciesRaw: 'BALB/c nude mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'SNU-869 cell, xenograft',
@@ -1140,7 +1193,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIV-1', title: 'XIV-1. Antibacterial Effect (항균) - MIC',
     titleEn: 'Antibacterial Effect', titleKr: '항균',
-    categoryCode: 'XIV', category: '항균',
+    categoryCode: 'XIV' as CategoryCode, category: '항균',
     species: ["in vitro (bacteria)"], speciesRaw: 'Staphylococcus epidermidis, Corynebacterium glutamicum,',
     sex: '', ageWeeks: 0,
     inductionMethod: '균 배양',
@@ -1153,7 +1206,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIV-2', title: 'XIV-2. Anti Fungal Effect (항진균효과)',
     titleEn: 'Anti Fungal Effect', titleKr: '항진균효과',
-    categoryCode: 'XIV', category: '항균',
+    categoryCode: 'XIV' as CategoryCode, category: '항균',
     species: ["in vitro"], speciesRaw: 'ICR mice (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'Candida albican ATCC 36082',
@@ -1166,7 +1219,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIV-3', title: 'XIV-3. Anti Fungal Effect (항진균효과)',
     titleEn: 'Anti Fungal Effect', titleKr: '항진균효과',
-    categoryCode: 'XIV', category: '항균',
+    categoryCode: 'XIV' as CategoryCode, category: '항균',
     species: ["in vitro"], speciesRaw: 'ICR mice (female, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'Aspergillus fumigates ATCC16424',
@@ -1179,7 +1232,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XIV-4', title: 'XIV-4. Anti Onychomycosis Effect (항진균)',
     titleEn: 'Anti Onychomycosis Effect', titleKr: '항진균',
-    categoryCode: 'XIV', category: '항균',
+    categoryCode: 'XIV' as CategoryCode, category: '항균',
     species: ["in vitro"], speciesRaw: 'Guinea pig (male, 5-week)',
     sex: 'male', ageWeeks: 5,
     inductionMethod: 'Trichophyton mentagrophytes, ATCC 32457',
@@ -1192,7 +1245,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XV-1', title: 'XV-1. Alcoholic Fatty Liver (알코올성 지방간)',
     titleEn: 'Alcoholic Fatty Liver', titleKr: '알코올성 지방간',
-    categoryCode: 'XV', category: '간질환',
+    categoryCode: 'XV' as CategoryCode, category: '간질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6J mice (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: 'Alcoholic Diet',
@@ -1205,7 +1258,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XV-2', title: 'XV-2. Liver Cirrhosis (간경화) - BDL',
     titleEn: 'Liver Cirrhosis', titleKr: '간경화',
-    categoryCode: 'XV', category: '간질환',
+    categoryCode: 'XV' as CategoryCode, category: '간질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 9-week)',
     sex: 'male', ageWeeks: 9,
     inductionMethod: 'Bile Duct Ligation (BDL) 수술',
@@ -1218,7 +1271,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XV-3', title: 'XV-3. Liver Fibrosis (간섬유화) - DMN',
     titleEn: 'Liver Fibrosis', titleKr: '간섬유화',
-    categoryCode: 'XV', category: '간질환',
+    categoryCode: 'XV' as CategoryCode, category: '간질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Dimethylnitrosamine (DMN)',
@@ -1231,7 +1284,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XV-4', title: 'XV-4. Liver Injury (간손상)',
     titleEn: 'Liver Injury', titleKr: '간손상',
-    categoryCode: 'XV', category: '간질환',
+    categoryCode: 'XV' as CategoryCode, category: '간질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rats (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'D-galactosamine',
@@ -1244,7 +1297,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XV-5', title: 'XV-5. NAFLD (비알콜성 지방간) - MCD diet',
     titleEn: 'NAFLD', titleKr: '비알콜성 지방간',
-    categoryCode: 'XV', category: '간질환',
+    categoryCode: 'XV' as CategoryCode, category: '간질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 4-week)',
     sex: 'male', ageWeeks: 4,
     inductionMethod: 'Choline Def.&Iron Suppl. L-AA without L-Methionine (MCD diet)',
@@ -1257,7 +1310,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XV-6', title: 'XV-6. Hepatic IRI(간허헐)',
     titleEn: 'Hepatic IRI', titleKr: '간허헐',
-    categoryCode: 'XV', category: '간질환',
+    categoryCode: 'XV' as CategoryCode, category: '간질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rats (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: 'Liver의 left lateral lobe와 median lobe에 간동맥과 간문맥 차단',
@@ -1270,7 +1323,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-1', title: 'XVI-1. Angiogenesis (혈관신생) - CPA',
     titleEn: 'Angiogenesis', titleKr: '혈관신생',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 mice (male, 9-week)',
     sex: 'male', ageWeeks: 9,
     inductionMethod: 'Corneal Pocket Assay (CPA)',
@@ -1283,7 +1336,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-2', title: 'XVI-2. Bone Growth (골 성장)',
     titleEn: 'Bone Growth', titleKr: '골 성장',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 mice 8 weeks male/female',
     sex: 'male', ageWeeks: 0,
     inductionMethod: '',
@@ -1296,7 +1349,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-3', title: 'XVI-3. Intestinal Adhesions (장유착)',
     titleEn: 'Intestinal Adhesions', titleKr: '장유착',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: '대장과 그에 맞닿은 내측 복벽을 찰과상을 내어 맞닿게 하여',
@@ -1309,7 +1362,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-4', title: 'XVI-4. Sepsis (패혈증) - LPS',
     titleEn: 'Sepsis', titleKr: '패혈증',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: 'LPS',
@@ -1322,7 +1375,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-5', title: 'XVI-5. Sepsis (패혈증) - CLP',
     titleEn: 'Sepsis', titleKr: '패혈증',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["C57BL/6 mouse"], speciesRaw: 'C57BL/6 (male, 8-week)',
     sex: 'male', ageWeeks: 8,
     inductionMethod: 'CLP (cecal ligation and puncture)',
@@ -1335,7 +1388,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-6', title: 'XVI-6. Periodontitis (치주염) - 대구치 결찰',
     titleEn: 'Periodontitis', titleKr: '치주염',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["Wistar rat"], speciesRaw: 'Wistar rat (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: '제 1 대구치 결찰',
@@ -1348,7 +1401,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-7', title: 'XVI-7. Biodegradability Test (생분해성)',
     titleEn: 'Biodegradability Test', titleKr: '생분해성',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["SD rat"], speciesRaw: 'Sprague Dawley rat (male, 6-week)',
     sex: 'male', ageWeeks: 6,
     inductionMethod: '물질 투여 (피내, 피하)',
@@ -1361,7 +1414,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-8', title: 'XVI-8. 토끼 부비동염 유발',
     titleEn: '', titleKr: '',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["NZW rabbit"], speciesRaw: 'Newzealand white rabbit, 9 weeks female',
     sex: 'male', ageWeeks: 0,
     inductionMethod: '',
@@ -1374,7 +1427,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-9', title: 'XVI-9. 수면유도 모델 (불면증 효력)',
     titleEn: '', titleKr: '불면증 효력',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["ICR mouse"], speciesRaw: 'ICR mice 7 weeks male',
     sex: 'male', ageWeeks: 0,
     inductionMethod: '',
@@ -1387,7 +1440,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-10', title: 'XVI-10. Muscle Improvement (근력개선)',
     titleEn: 'Muscle Improvement', titleKr: '근력개선',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["C57BL/6 mouse"], speciesRaw: '노령쥐 (12 개월령, C57BL/6N, male)',
     sex: 'male', ageWeeks: 0,
     inductionMethod: '',
@@ -1400,7 +1453,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'XVI-11', title: 'XVI-11. Medical device equivalence Test',
     titleEn: '', titleKr: '',
-    categoryCode: 'XVI', category: '기타 질환',
+    categoryCode: 'XVI' as CategoryCode, category: '기타 질환',
     species: ["Yucatan mini pig"], speciesRaw: 'Yucatan Mini Pig (Female, 10-20 kg 내외)',
     sex: 'male', ageWeeks: 0,
     inductionMethod: '장기(간, 신장, 대퇴근육, 피부)내 probe (≒cannula) 삽입 후 전기자극',
@@ -1413,7 +1466,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'ADME Center', title: 'ADME Center',
     titleEn: '', titleKr: '',
-    categoryCode: 'ETC', category: '',
+    categoryCode: 'ETC' as CategoryCode, category: '',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: '',
@@ -1426,7 +1479,7 @@ export const STUDY_MODELS: StudyModelTemplate[] = [
   {
     id: 'ADME Center', title: 'ADME Center',
     titleEn: '', titleKr: '',
-    categoryCode: 'ETC', category: '',
+    categoryCode: 'ETC' as CategoryCode, category: '',
     species: ["SD rat"], speciesRaw: 'Sprague-Dawley (SD) rat (male, 7-week)',
     sex: 'male', ageWeeks: 7,
     inductionMethod: '',
@@ -1448,56 +1501,3 @@ export function searchModels(keyword: string): StudyModel[] {
 }
 export function getInVivoModels(): StudyModel[] { return STUDY_MODELS.filter(m => !m.isInVitro); }
 export function getInVitroModels(): StudyModel[] { return STUDY_MODELS.filter(m => m.isInVitro); }
-
-
-export const STUDY_CATEGORIES = [
-  { code: 'I', name: '심혈관 질환' },
-  { code: 'II', name: '혈전·지혈' },
-  { code: 'III', name: '비뇨기 질환' },
-  { code: 'IV', name: '신장 질환' },
-  { code: 'V', name: '호흡기 질환' },
-  { code: 'VI', name: '중추신경계 질환' },
-  { code: 'VII', name: '진통·소염' },
-  { code: 'VIII', name: '관절염·면역' },
-  { code: 'IX', name: '소화기 질환' },
-  { code: 'X', name: '대사성 질환' },
-  { code: 'XI', name: '내분비 질환' },
-  { code: 'XII', name: '피부 질환' },
-  { code: 'XIII', name: '항암' },
-  { code: 'XIV', name: '항균' },
-  { code: 'XV', name: '간질환' },
-  { code: 'XVI', name: '기타 질환' },
-  { code: 'ETC', name: '' },
-] as const;
-
-export const CATEGORIES: { code: string; name: string; nameEn: string; modelCount: number }[] = [
-  { code: 'I', name: '심혈관 질환', nameEn: 'Cardiovascular', modelCount: 2 },
-  { code: 'II', name: '혈전·지혈', nameEn: 'Thrombosis & Hemostasis', modelCount: 2 },
-  { code: 'III', name: '비뇨기 질환', nameEn: 'Urology', modelCount: 2 },
-  { code: 'IV', name: '신장 질환', nameEn: 'Nephrology', modelCount: 2 },
-  { code: 'V', name: '호흡기 질환', nameEn: 'Respiratory', modelCount: 6 },
-  { code: 'VI', name: '중추신경계 질환', nameEn: 'Neuroscience', modelCount: 9 },
-  { code: 'VII', name: '진통·소염', nameEn: 'Pain & Analgesia', modelCount: 9 },
-  { code: 'VIII', name: '관절염·면역', nameEn: 'Musculoskeletal & Immune', modelCount: 8 },
-  { code: 'IX', name: '소화기 질환', nameEn: 'Gastroenterology', modelCount: 10 },
-  { code: 'X', name: '대사성 질환', nameEn: 'Metabolic Disease', modelCount: 9 },
-  { code: 'XI', name: '내분비 질환', nameEn: 'Menopause', modelCount: 2 },
-  { code: 'XII', name: '피부 질환', nameEn: 'Dermatology', modelCount: 11 },
-  { code: 'XIII', name: '항암', nameEn: 'Oncology', modelCount: 15 },
-  { code: 'XIV', name: '항균', nameEn: 'Anti-infection', modelCount: 4 },
-  { code: 'XV', name: '간질환', nameEn: 'Hepatology', modelCount: 6 },
-  { code: 'XVI', name: '기타 질환', nameEn: 'Others', modelCount: 11 },
-  { code: 'ETC', name: '', nameEn: 'ETC', modelCount: 2 },
-];
-
-export function getModelsByCategory(category: string): StudyModelTemplate[] {
-  return STUDY_MODELS.filter(m => m.category === category);
-}
-
-export function getModelById(id: string): StudyModelTemplate | undefined {
-  return STUDY_MODELS.find(m => m.id === id);
-}
-
-export function getModelsByCategoryCode(code: string): StudyModelTemplate[] {
-  return STUDY_MODELS.filter(m => m.categoryCode === code);
-}
