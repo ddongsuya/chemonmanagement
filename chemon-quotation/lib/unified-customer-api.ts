@@ -317,11 +317,29 @@ export async function getWeeklySummary() {
 export async function uploadImportFile(file: File) {
   const formData = new FormData();
   formData.append('file', file);
-  return apiFetch('/api/customer-import-export/upload', {
-    method: 'POST',
-    body: formData,
-    // Don't set Content-Type - browser will set it with boundary
-  });
+
+  // apiFetch는 Content-Type: application/json을 강제 설정하므로
+  // FormData 업로드 시 직접 fetch를 사용 (브라우저가 multipart boundary를 자동 설정)
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+  try {
+    const response = await fetch(`${baseUrl}/api/customer-import-export/upload`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { success: false, error: { message: data.error?.message || '파일 업로드에 실패했습니다' } };
+    }
+
+    return { success: true, data: data.data || data };
+  } catch (err) {
+    return { success: false, error: { message: '서버에 연결할 수 없습니다' } };
+  }
 }
 
 export async function validateImport(filePath: string, mapping: unknown[]) {
