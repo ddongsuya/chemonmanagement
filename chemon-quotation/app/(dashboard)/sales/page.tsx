@@ -71,6 +71,7 @@ export default function SalesDashboardPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedDepartment, setSelectedDepartment] = useState<Department>('ALL');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // API 데이터 상태
   const [revenueData, setRevenueData] = useState<RevenueAnalyticsResponse | null>(null);
@@ -123,6 +124,7 @@ export default function SalesDashboardPage() {
       setPerformanceData(performance);
     } catch (error) {
       console.error('Failed to load sales data:', error);
+      setError('영업 데이터를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -156,6 +158,18 @@ export default function SalesDashboardPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <p className="text-slate-500">{error}</p>
+        <Button variant="outline" onClick={() => { setError(null); loadData(); }}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          다시 시도
+        </Button>
       </div>
     );
   }

@@ -220,6 +220,9 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         notes,
         status: signedDate ? ContractStatus.SIGNED : ContractStatus.NEGOTIATING,
         quotations: quotationIds ? { connect: quotationIds.map((id: string) => ({ id })) } : undefined,
+        advancePaymentRate: advanceRate != null ? advanceRate : undefined,
+        advancePaymentAmount: advanceAmount != null ? advanceAmount : undefined,
+        balancePaymentAmount: remainingAmount != null ? remainingAmount : undefined,
       },
       include: { customer: true, quotations: true },
     });

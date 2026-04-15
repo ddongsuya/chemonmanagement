@@ -23,6 +23,36 @@ import {
 } from '@/lib/efficacy-v2/cost-engine';
 
 // ============================================
+// Exported calculation helpers (used by tests)
+// ============================================
+
+import type { SelectedEfficacyItem } from '@/types/efficacy';
+
+/** 항목 금액 계산: unit_price × quantity × multiplier */
+export function calculateItemAmount(unitPrice: number, quantity: number, multiplier: number): number {
+  return unitPrice * quantity * multiplier;
+}
+
+/** 카테고리별 소계 계산 */
+export function calculateSubtotalByCategory(items: SelectedEfficacyItem[]): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const item of items) {
+    result[item.category] = (result[item.category] || 0) + item.amount;
+  }
+  return result;
+}
+
+/** VAT 계산 (소수점 이하 버림) */
+export function calculateVAT(subtotal: number): number {
+  return Math.floor(subtotal * 0.1);
+}
+
+/** 합계 계산 */
+export function calculateGrandTotal(subtotal: number, vat: number): number {
+  return subtotal + vat;
+}
+
+// ============================================
 // Helper
 // ============================================
 

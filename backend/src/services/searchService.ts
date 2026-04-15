@@ -207,6 +207,7 @@ export async function globalSearch(params: GlobalSearchParams): Promise<GlobalSe
   if (shouldSearch('test_reception')) {
     const receptions = await prisma.testReception.findMany({
       where: {
+        customer: { userId },
         OR: [
           { testNumber: { contains: q, mode: 'insensitive' } },
           { testTitle: { contains: q, mode: 'insensitive' } },

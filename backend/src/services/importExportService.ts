@@ -10,10 +10,9 @@
 import ExcelJS from 'exceljs';
 import path from 'path';
 import fs from 'fs';
-import { PrismaClient, CustomerGrade, SegmentType } from '@prisma/client';
+import { CustomerGrade, SegmentType } from '@prisma/client';
 import { AppError, ErrorCodes } from '../types/error';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 interface ColumnMapping {
   excelColumn: number;
@@ -30,12 +29,25 @@ interface ValidationResult {
   preview: Record<string, string>[];
 }
 
-interface ImportResult {
-  success: number;
-  failed: number;
-  skippedDuplicates: number;
-  errors: { row: number; message: string }[];
+type DuplicateAction = 'skip' | 'update';
+type RowStatus = 'created' | 'skipped' | 'updated' | 'failed';
+
+interface ImportRowResult {
+  row: number;
+  status: RowStatus;
+  name: string;
+  message?: string;
 }
+
+interface ImportResult {
+  created: number;
+  updated: number;
+  skipped: number;
+  failed: number;
+  rows: ImportRowResult[];
+}
+
+const MAX_IMPORT_ROWS = 500;
 
 interface ExportOptions {
   userId: string;
@@ -192,73 +204,145 @@ export async function validateImport(
 
 /**
  * 가져오기 실행
+ * - 중복 판정: 이메일 우선, 이메일 없으면 name+company
+ * - duplicateAction: skip(건너뛰기) / update(값 있는 필드만 덮어쓰기)
+ * - 단일 트랜잭션, best-effort (개별 행 실패는 기록 후 계속)
+ * - 최대 500행 제한
  */
 export async function executeImport(
   filePath: string,
   mapping: ColumnMapping[],
   userId: string,
-  skipDuplicates = true
+  duplicateAction: DuplicateAction = 'skip'
 ): Promise<ImportResult> {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(filePath);
   const sheet = workbook.worksheets[0];
   if (!sheet) throw new AppError('시트가 없습니다', 400, ErrorCodes.VALIDATION_ERROR);
 
-  const result: ImportResult = { success: 0, failed: 0, skippedDuplicates: 0, errors: [] };
-
   const getCellValue = (row: ExcelJS.Row, col: number): string => {
     const cell = row.getCell(col);
     return cell.value != null ? String(cell.value).trim() : '';
   };
 
+  // 행 수집
   const rows: { row: ExcelJS.Row; rowNumber: number }[] = [];
   sheet.eachRow((row, rowNumber) => {
     if (rowNumber > 1) rows.push({ row, rowNumber });
   });
 
-  for (const { row, rowNumber } of rows) {
-    try {
-      const record: Record<string, string> = {};
-      for (const col of mapping) {
-        record[col.field] = getCellValue(row, col.excelColumn);
-      }
+  // 행 수 상한 체크
+  if (rows.length > MAX_IMPORT_ROWS) {
+    throw new AppError(
+      `한 번에 최대 ${MAX_IMPORT_ROWS}행까지 가져올 수 있습니다. 현재 파일: ${rows.length}행`,
+      400,
+      ErrorCodes.VALIDATION_ERROR
+    );
+  }
 
-      if (!record.name) {
-        result.errors.push({ row: rowNumber, message: '고객명이 필요합니다' });
-        result.failed++;
-        continue;
-      }
+  const result: ImportResult = { created: 0, updated: 0, skipped: 0, failed: 0, rows: [] };
 
-      // 중복 체크
-      if (skipDuplicates) {
-        const existing = await prisma.customer.findFirst({
-          where: { userId, name: record.name, deletedAt: null },
-        });
-        if (existing) {
-          result.skippedDuplicates++;
+  await prisma.$transaction(async (tx) => {
+    for (const { row, rowNumber } of rows) {
+      try {
+        const record: Record<string, string> = {};
+        for (const col of mapping) {
+          record[col.field] = getCellValue(row, col.excelColumn);
+        }
+
+        const name = record.name || '';
+        if (!name) {
+          result.failed++;
+          result.rows.push({ row: rowNumber, status: 'failed', name: '(빈 행)', message: '고객명이 필요합니다' });
           continue;
         }
-      }
 
-      await prisma.customer.create({
-        data: {
-          userId,
-          name: record.name,
-          company: record.company || null,
-          email: record.email || null,
-          phone: record.phone || null,
-          address: record.address || null,
-          notes: record.notes || null,
-          grade: record.grade ? (GRADE_MAP[record.grade] || 'PROSPECT') : 'PROSPECT',
-          segment: record.segment ? (SEGMENT_MAP[record.segment] || null) : null,
-        },
-      });
-      result.success++;
-    } catch (error: any) {
-      result.errors.push({ row: rowNumber, message: error.message || '알 수 없는 오류' });
-      result.failed++;
+        // 중복 판정
+        const email = record.email || '';
+        const company = record.company || '';
+        let existing: { id: string } | null = null;
+        let matchReason = '';
+
+        if (email) {
+          // 1순위: 이메일 일치
+          existing = await tx.customer.findFirst({
+            where: { userId, email, deletedAt: null },
+            select: { id: true },
+          });
+          if (existing) matchReason = `이메일 중복 (${email})`;
+        }
+
+        if (!existing && !email) {
+          // 2순위: 이메일이 둘 다 없으면 name + company
+          existing = await tx.customer.findFirst({
+            where: { userId, name, company: company || null, deletedAt: null },
+            select: { id: true },
+          });
+          if (existing) matchReason = `name+company 중복 (${name} / ${company || '-'})`;
+        }
+
+        if (existing) {
+          if (duplicateAction === 'skip') {
+            result.skipped++;
+            result.rows.push({ row: rowNumber, status: 'skipped', name, message: matchReason });
+          } else {
+            // update: 파일에 값이 있는 필드만 덮어쓰기
+            const updateData: Record<string, string | null> = {};
+            if (record.name) updateData.name = record.name;
+            if (record.company) updateData.company = record.company;
+            if (record.email) updateData.email = record.email;
+            if (record.phone) updateData.phone = record.phone;
+            if (record.address) updateData.address = record.address;
+            if (record.notes) updateData.notes = record.notes;
+
+            const gradeUpdate: Record<string, unknown> = {};
+            if (record.grade && GRADE_MAP[record.grade]) {
+              gradeUpdate.grade = GRADE_MAP[record.grade];
+            }
+            const segmentUpdate: Record<string, unknown> = {};
+            if (record.segment && SEGMENT_MAP[record.segment]) {
+              segmentUpdate.segment = SEGMENT_MAP[record.segment];
+            }
+
+            await tx.customer.update({
+              where: { id: existing.id },
+              data: { ...updateData, ...gradeUpdate, ...segmentUpdate },
+            });
+            result.updated++;
+            result.rows.push({ row: rowNumber, status: 'updated', name, message: `${matchReason} → 업데이트` });
+          }
+        } else {
+          // 새 레코드 생성
+          await tx.customer.create({
+            data: {
+              userId,
+              name,
+              company: company || null,
+              email: email || null,
+              phone: record.phone || null,
+              address: record.address || null,
+              notes: record.notes || null,
+              grade: record.grade ? (GRADE_MAP[record.grade] || 'PROSPECT') : 'PROSPECT',
+              segment: record.segment ? (SEGMENT_MAP[record.segment] || null) : null,
+            },
+          });
+          result.created++;
+          result.rows.push({ row: rowNumber, status: 'created', name });
+        }
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : '알 수 없는 오류';
+        const name = (() => {
+          try {
+            const nameCol = mapping.find(c => c.field === 'name');
+            if (nameCol) return getCellValue(row, nameCol.excelColumn) || '(알 수 없음)';
+          } catch { /* ignore */ }
+          return '(알 수 없음)';
+        })();
+        result.failed++;
+        result.rows.push({ row: rowNumber, status: 'failed', name, message });
+      }
     }
-  }
+  });
 
   return result;
 }

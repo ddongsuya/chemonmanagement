@@ -103,11 +103,14 @@ router.post('/validate', authenticate, async (req: Request, res: Response, next:
 // POST /api/customer-import-export/execute - 가져오기 실행
 router.post('/execute', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { filePath, mapping, skipDuplicates = true } = req.body;
+    const { filePath, mapping, duplicateAction = 'skip' } = req.body;
     if (!filePath || !mapping) {
       return res.status(400).json({ success: false, error: { message: 'filePath와 mapping이 필요합니다' } });
     }
-    const result = await importExportService.executeImport(filePath, mapping, req.user!.id, skipDuplicates);
+    if (duplicateAction !== 'skip' && duplicateAction !== 'update') {
+      return res.status(400).json({ success: false, error: { message: 'duplicateAction은 skip 또는 update여야 합니다' } });
+    }
+    const result = await importExportService.executeImport(filePath, mapping, req.user!.id, duplicateAction);
 
     // 임시 파일 정리
     try { fs.unlinkSync(filePath); } catch {}

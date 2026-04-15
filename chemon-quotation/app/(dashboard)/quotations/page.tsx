@@ -55,6 +55,8 @@ import {
   QuotationType,
   QuotationStatus,
 } from '@/lib/data-api';
+import { getQuotations as getClinicalQuotations } from '@/lib/clinical-pathology-api';
+import type { ClinicalQuotation } from '@/types/clinical-pathology';
 import { useToast } from '@/hooks/use-toast';
 import ExcelImportExport from '@/components/excel/ExcelImportExport';
 
@@ -66,6 +68,53 @@ const STATUS_LABELS: Record<string, string> = {
   REJECTED: '실주',
   EXPIRED: '만료',
 };
+
+/** 임상병리 견적을 Quotation 형태로 매핑 */
+function mapClinicalToQuotation(c: ClinicalQuotation): Quotation {
+  return {
+    id: c.id,
+    quotationNumber: c.quotationNumber,
+    quotationType: 'CLINICAL_PATHOLOGY' as QuotationType,
+    userId: c.createdById,
+    customerId: c.customerId ?? null,
+    customerName: c.customerName,
+    projectName: [
+      '임상병리',
+      c.customerName,
+      c.animalSpecies,
+      c.totalSamples && c.totalSamples > 0 ? `${c.totalSamples}검체` : null,
+    ]
+      .filter(Boolean)
+      .join(' '),
+    modality: null,
+    modelId: null,
+    modelCategory: null,
+    indication: null,
+    items: [],
+    subtotalTest: null,
+    subtotalAnalysis: null,
+    subtotal: c.subtotal,
+    discountRate: null,
+    discountAmount: c.discountAmount,
+    vat: c.vatAmount,
+    totalAmount: c.totalAmount,
+    validDays: c.validDays,
+    validUntil: c.validUntil,
+    notes: c.notes,
+    status: c.status as QuotationStatus,
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt,
+    deletedAt: null,
+  };
+}
+
+/** 견적 유형에 따른 상세 페이지 경로 */
+function getQuotationDetailPath(q: Quotation): string {
+  if (q.quotationType === 'CLINICAL_PATHOLOGY') {
+    return `/clinical-pathology/quotations/${q.id}`;
+  }
+  return `/quotations/${q.id}`;
+}
 
 
 function QuotationsContent() {
@@ -97,30 +146,68 @@ function QuotationsContent() {
   const loadQuotations = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await getQuotations({
-        type: typeFilter !== 'all' ? (typeFilter.toUpperCase() as QuotationType) : undefined,
-        status: statusFilter !== 'all' ? (statusFilter.toUpperCase() as QuotationStatus) : undefined,
-        search: searchQuery || undefined,
-        page: pagination.page,
-        limit: pagination.limit,
-      });
+      const isClinicalOnly = typeFilter === 'clinical_pathology';
+      const isAll = typeFilter === 'all';
+      const needsMainApi = !isClinicalOnly;
+      const needsClinicalApi = isAll || isClinicalOnly;
 
-      if (response.success && response.data) {
-        setQuotations(response.data.data || []);
-        setPagination(prev => ({
-          ...prev,
-          total: response.data?.pagination?.total || 0,
-          totalPages: response.data?.pagination?.totalPages || 0,
-        }));
-      } else {
-        toast({
-          title: '오류',
-          description: response.error?.message || '견적서 목록을 불러오는데 실패했습니다.',
-          variant: 'destructive',
-        });
+      const statusParam = statusFilter !== 'all' ? statusFilter.toUpperCase() : undefined;
+
+      // 두 API 병렬 호출
+      const [mainResult, clinicalResult] = await Promise.all([
+        needsMainApi
+          ? getQuotations({
+              type: (typeFilter !== 'all' && typeFilter !== 'clinical_pathology')
+                ? (typeFilter.toUpperCase() as QuotationType)
+                : undefined,
+              status: statusParam as QuotationStatus | undefined,
+              search: searchQuery || undefined,
+              page: pagination.page,
+              limit: pagination.limit,
+            })
+          : null,
+        needsClinicalApi
+          ? getClinicalQuotations({
+              status: statusParam as 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | undefined,
+              search: searchQuery || undefined,
+              page: pagination.page,
+              limit: pagination.limit,
+            }).catch(() => null)
+          : null,
+      ]);
+
+      // 결과 합치기
+      let allQuotations: Quotation[] = [];
+      let mainTotal = 0;
+      let clinicalTotal = 0;
+
+      if (mainResult?.success && mainResult.data) {
+        allQuotations = mainResult.data.data || [];
+        mainTotal = mainResult.data.pagination?.total || 0;
       }
+
+      if (clinicalResult && 'quotations' in clinicalResult) {
+        const mapped = clinicalResult.quotations.map(mapClinicalToQuotation);
+        allQuotations = [...allQuotations, ...mapped];
+        clinicalTotal = clinicalResult.pagination?.total || 0;
+      }
+
+      // 생성일 기준 내림차순 정렬
+      allQuotations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      setQuotations(allQuotations);
+      setPagination(prev => ({
+        ...prev,
+        total: mainTotal + clinicalTotal,
+        totalPages: Math.ceil((mainTotal + clinicalTotal) / prev.limit),
+      }));
     } catch (error) {
       console.error('Failed to load quotations:', error);
+      toast({
+        title: '오류',
+        description: '견적서 목록을 불러오는데 실패했습니다.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -342,7 +429,7 @@ function QuotationsContent() {
               </div>
             ) : (
               quotations.map((quotation) => {
-                const detailPath = `/quotations/${quotation.id}`;
+                const detailPath = getQuotationDetailPath(quotation);
                 return (
                   <Link key={quotation.id} href={detailPath} className="block">
                     <StitchCard variant="elevated" hover padding="sm">
@@ -409,8 +496,10 @@ function QuotationsContent() {
                   </StitchTableRow>
                 ) : (
                   quotations.map((quotation) => {
-                    const detailPath = `/quotations/${quotation.id}`;
-                    const editPath = `/quotations/${quotation.id}/edit`;
+                    const detailPath = getQuotationDetailPath(quotation);
+                    const editPath = quotation.quotationType === 'CLINICAL_PATHOLOGY'
+                      ? `/clinical-pathology/quotations/${quotation.id}`
+                      : `/quotations/${quotation.id}/edit`;
 
                     return (
                       <StitchTableRow key={quotation.id}>
@@ -478,7 +567,7 @@ function QuotationsContent() {
                                   <Edit className="w-4 h-4 mr-2" /> 수정
                                 </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleCopy(quotation)}>
+                              <DropdownMenuItem onClick={() => handleCopy(quotation)} disabled={quotation.quotationType === 'CLINICAL_PATHOLOGY'}>
                                 <Copy className="w-4 h-4 mr-2" /> 복사
                               </DropdownMenuItem>
                               <DropdownMenuItem>
@@ -487,6 +576,7 @@ function QuotationsContent() {
                               <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => handleDelete(quotation)}
+                                disabled={quotation.quotationType === 'CLINICAL_PATHOLOGY'}
                               >
                                 <Trash2 className="w-4 h-4 mr-2" /> 삭제
                               </DropdownMenuItem>

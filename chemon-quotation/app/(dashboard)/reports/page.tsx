@@ -73,13 +73,16 @@ export default function ReportsPage() {
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 데이터 로드
+  // 데이터 로드 (연도별 서버 사이드 필터링)
   useEffect(() => {
     const loadQuotations = async () => {
       setLoading(true);
       try {
-        // 모든 견적서 가져오기 (최대 1000개)
-        const response = await getQuotations({ limit: 1000 });
+        const response = await getQuotations({
+          startDate: `${year}-01-01`,
+          endDate: `${year}-12-31`,
+          limit: 5000,
+        });
         if (response.success && response.data) {
           setQuotations(response.data.data || []);
         }
@@ -91,13 +94,13 @@ export default function ReportsPage() {
     };
 
     loadQuotations();
-  }, []);
+  }, [year]);
 
-  // 연도별 필터링
+  // 연도별 필터링 (서버에서 이미 필터링됨)
   const filteredQuotations = useMemo(() => {
     if (!quotations || quotations.length === 0) return [];
-    return quotations.filter(q => q.createdAt.startsWith(year));
-  }, [quotations, year]);
+    return quotations;
+  }, [quotations]);
 
   // 요약 통계 계산
   const summary = useMemo(() => {
@@ -246,7 +249,7 @@ export default function ReportsPage() {
             </SelectContent>
           </Select>
           <span className="text-sm text-slate-500">
-            총 {quotations?.length || 0}건의 견적 데이터
+            {year}년 {quotations?.length || 0}건의 견적 데이터
           </span>
         </div>
       </StitchCard>

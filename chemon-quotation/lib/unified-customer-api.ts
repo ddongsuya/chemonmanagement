@@ -331,10 +331,10 @@ export async function validateImport(filePath: string, mapping: unknown[]) {
   });
 }
 
-export async function executeImport(filePath: string, mapping: unknown[], skipDuplicates = true) {
+export async function executeImport(filePath: string, mapping: unknown[], duplicateAction: 'skip' | 'update' = 'skip') {
   return apiFetch('/api/customer-import-export/execute', {
     method: 'POST',
-    body: JSON.stringify({ filePath, mapping, skipDuplicates }),
+    body: JSON.stringify({ filePath, mapping, duplicateAction }),
   });
 }
 

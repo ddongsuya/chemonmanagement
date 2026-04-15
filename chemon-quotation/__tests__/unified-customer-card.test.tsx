@@ -76,21 +76,21 @@ describe('UnifiedCustomerCard Component', () => {
    */
   describe('Entity Type Badge Display', () => {
     it('should display "리드" badge for LEAD entity type', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockLeadEntity} onClick={onClick} />);
       
       expect(screen.getByText('리드')).toBeInTheDocument();
     });
 
     it('should display "고객" badge for CUSTOMER entity type', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockCustomerEntity} onClick={onClick} />);
       
       expect(screen.getByText('고객')).toBeInTheDocument();
     });
 
     it('should apply correct CSS classes for LEAD badge', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockLeadEntity} onClick={onClick} />);
       
       const badge = screen.getByText('리드');
@@ -98,7 +98,7 @@ describe('UnifiedCustomerCard Component', () => {
     });
 
     it('should apply correct CSS classes for CUSTOMER badge', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockCustomerEntity} onClick={onClick} />);
       
       const badge = screen.getByText('고객');
@@ -111,21 +111,21 @@ describe('UnifiedCustomerCard Component', () => {
    */
   describe('Pipeline Stage Badge Display', () => {
     it('should display pipeline stage name for LEAD', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockLeadEntity} onClick={onClick} />);
       
       expect(screen.getByText('문의접수')).toBeInTheDocument();
     });
 
     it('should display grade-based stage name for CUSTOMER', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockCustomerEntity} onClick={onClick} />);
       
       expect(screen.getByText('계약완료')).toBeInTheDocument();
     });
 
     it('should apply stage color to badge', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockLeadEntity} onClick={onClick} />);
       
       const stageBadge = screen.getByText('문의접수');
@@ -139,42 +139,42 @@ describe('UnifiedCustomerCard Component', () => {
    */
   describe('Contact Information Display', () => {
     it('should display company name', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockLeadEntity} onClick={onClick} />);
       
       expect(screen.getByText('테스트 회사')).toBeInTheDocument();
     });
 
     it('should display contact name', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockLeadEntity} onClick={onClick} />);
       
       expect(screen.getByText('홍길동')).toBeInTheDocument();
     });
 
     it('should display contact phone when available', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockLeadEntity} onClick={onClick} />);
       
       expect(screen.getByText('010-1234-5678')).toBeInTheDocument();
     });
 
     it('should display contact email when available', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockLeadEntity} onClick={onClick} />);
       
       expect(screen.getByText('hong@test.com')).toBeInTheDocument();
     });
 
     it('should display "연락처 없음" when no contact info is available', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockEntityWithoutContact} onClick={onClick} />);
       
       expect(screen.getByText('연락처 없음')).toBeInTheDocument();
     });
 
     it('should display lead number for LEAD entity', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockLeadEntity} onClick={onClick} />);
       
       expect(screen.getByText('L-2024-001')).toBeInTheDocument();
@@ -240,25 +240,23 @@ describe('UnifiedCustomerCard Component', () => {
    */
   describe('Additional Information Display', () => {
     it('should display expected amount for LEAD with expectedAmount', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockLeadEntity} onClick={onClick} />);
       
-      // Check for formatted currency (₩5,000,000)
       expect(screen.getByText(/예상.*₩5,000,000/)).toBeInTheDocument();
     });
 
     it('should display quotation count for CUSTOMER', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockCustomerEntity} onClick={onClick} />);
       
       expect(screen.getByText('견적 5건')).toBeInTheDocument();
     });
 
     it('should display total amount for CUSTOMER with totalAmount', () => {
-      const onClick = vi.fn();
+      const onClick = jest.fn();
       render(<UnifiedCustomerCard entity={mockCustomerEntity} onClick={onClick} />);
       
-      // Check for formatted currency (₩15,000,000)
       expect(screen.getByText('₩15,000,000')).toBeInTheDocument();
     });
   });
@@ -268,7 +266,6 @@ describe('UnifiedCustomerCardSkeleton Component', () => {
   it('should render skeleton with animation', () => {
     render(<UnifiedCustomerCardSkeleton />);
     
-    // Check that the skeleton container has animate-pulse class
     const skeleton = document.querySelector('.animate-pulse');
     expect(skeleton).toBeInTheDocument();
   });
@@ -276,7 +273,6 @@ describe('UnifiedCustomerCardSkeleton Component', () => {
   it('should render placeholder elements', () => {
     render(<UnifiedCustomerCardSkeleton />);
     
-    // Check for placeholder divs with bg-gray-200 class
     const placeholders = document.querySelectorAll('.bg-gray-200');
     expect(placeholders.length).toBeGreaterThan(0);
   });

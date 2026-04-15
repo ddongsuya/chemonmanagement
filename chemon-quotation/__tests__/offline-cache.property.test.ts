@@ -161,14 +161,17 @@ class MockIDBTransaction {
 
 class MockIDBDatabase {
   private stores: Map<string, MockIDBObjectStore> = new Map();
-  objectStoreNames: DOMStringList = {
-    length: 0,
-    contains: (name: string) => this.stores.has(name),
-    item: (index: number) => Array.from(this.stores.keys())[index] || null,
-    [Symbol.iterator]: function* () {
-      yield* Array.from(this.stores?.keys() || []);
-    },
-  } as DOMStringList;
+  objectStoreNames: DOMStringList = (() => {
+    const self = this;
+    return {
+      length: 0,
+      contains: (name: string) => self.stores.has(name),
+      item: (index: number) => Array.from(self.stores.keys())[index] || null,
+      [Symbol.iterator]: function* () {
+        yield* Array.from(self.stores.keys());
+      },
+    } as DOMStringList;
+  })();
 
   createObjectStore(name: string, options?: IDBObjectStoreParameters): MockIDBObjectStore {
     const store = new MockIDBObjectStore(name);

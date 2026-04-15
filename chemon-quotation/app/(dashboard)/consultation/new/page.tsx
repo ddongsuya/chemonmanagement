@@ -18,6 +18,7 @@ import {
 } from '@/lib/consultation/types';
 import { getQuotationById } from '@/lib/data-api';
 import { efficacyQuotationApi } from '@/lib/efficacy-api';
+import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft,
   FileText,
@@ -31,6 +32,7 @@ import {
 function ConsultationNewContent() {
   const searchParams = useSearchParams();
   const store = useQuotationStore();
+  const { toast } = useToast();
 
   const [consultationData, setConsultationData] =
     useState<ConsultationRecordData | null>(null);
@@ -159,6 +161,11 @@ function ConsultationNewContent() {
         }
       } catch (error) {
         console.error('Failed to load quotation:', error);
+        toast({
+          title: '오류',
+          description: '견적서 데이터를 불러오는데 실패했습니다.',
+          variant: 'destructive',
+        });
       } finally {
         setIsLoading(false);
       }
