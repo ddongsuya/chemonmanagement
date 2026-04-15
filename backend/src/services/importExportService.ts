@@ -242,7 +242,8 @@ export async function executeImport(
 
   const result: ImportResult = { created: 0, updated: 0, skipped: 0, failed: 0, rows: [] };
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(
+    async (tx) => {
     for (const { row, rowNumber } of rows) {
       try {
         const record: Record<string, string> = {};
@@ -342,7 +343,9 @@ export async function executeImport(
         result.rows.push({ row: rowNumber, status: 'failed', name, message });
       }
     }
-  });
+  },
+  { timeout: 60000 }
+  );
 
   return result;
 }

@@ -116,7 +116,11 @@ router.post('/execute', authenticate, async (req: Request, res: Response, next: 
     try { fs.unlinkSync(filePath); } catch {}
 
     res.json({ success: true, data: result });
-  } catch (error) { next(error); }
+  } catch (error) {
+    // 임시 파일 정리 (에러 시에도)
+    try { if (req.body.filePath) fs.unlinkSync(req.body.filePath); } catch {}
+    next(error);
+  }
 });
 
 /**
