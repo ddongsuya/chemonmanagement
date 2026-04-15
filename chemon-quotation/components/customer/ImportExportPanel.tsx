@@ -150,6 +150,15 @@ export function ImportExportPanel({ onImportSuccess }: ImportExportPanelProps) {
       setUploadedFilePath(filePath);
       setUploadedMapping(suggestedMapping);
       setUploadedRowCount(rowCount);
+
+      // 필수 필드(고객명) 매핑 확인
+      const nameMapping = (suggestedMapping as Array<{ field: string; excelColumn: number }>).find(m => m.field === 'name');
+      if (!nameMapping || nameMapping.excelColumn === 0) {
+        setImportError('파일에서 "고객명" 열을 찾을 수 없습니다. 고객 가져오기 템플릿을 사용해주세요. (첫 번째 열: 고객명*, 두 번째 열: 회사명, ...)');
+        setProcessing(false);
+        return;
+      }
+
       setImportStep('options');
     } catch (err) {
       const message = err instanceof Error ? err.message : '파일 업로드에 실패했습니다';

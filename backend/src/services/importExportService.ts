@@ -124,7 +124,8 @@ export async function parseUploadedFile(filePath: string): Promise<{
     );
     return {
       ...col,
-      excelColumn: matchIdx >= 0 ? matchIdx + 1 : col.excelColumn,
+      // 매칭 실패 시 0(미매핑)으로 설정하여 잘못된 데이터 삽입 방지
+      excelColumn: matchIdx >= 0 ? matchIdx + 1 : 0,
     };
   });
 
@@ -248,7 +249,8 @@ export async function executeImport(
       try {
         const record: Record<string, string> = {};
         for (const col of mapping) {
-          record[col.field] = getCellValue(row, col.excelColumn);
+          // excelColumn이 0이면 미매핑 → 빈 값
+          record[col.field] = col.excelColumn > 0 ? getCellValue(row, col.excelColumn) : '';
         }
 
         const name = record.name || '';
