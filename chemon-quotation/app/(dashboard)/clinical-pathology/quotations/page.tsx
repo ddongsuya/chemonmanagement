@@ -201,6 +201,35 @@ export default function ClinicalQuotationsPage() {
             </div>
           ) : (
             <>
+              {/* 모바일: 카드 리스트 */}
+              <div className="md:hidden space-y-3">
+                {quotations.map((quotation) => (
+                  <StitchCard
+                    key={quotation.id}
+                    variant="elevated"
+                    hover
+                    padding="sm"
+                    className="touch-manipulation cursor-pointer"
+                    onClick={() => router.push(`/clinical-pathology/quotations/${quotation.id}`)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <span className="text-xs font-mono text-slate-500">{quotation.quotationNumber}</span>
+                      {getStatusBadge(quotation.status)}
+                    </div>
+                    <div className="font-medium text-sm mb-1 truncate">{quotation.customerName}</div>
+                    <div className="text-xs text-slate-500 mb-2">
+                      {[quotation.contactName, quotation.animalSpecies, quotation.totalSamples ? `${quotation.totalSamples}검체` : null].filter(Boolean).join(' · ')}
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">{new Date(quotation.createdAt).toLocaleDateString('ko-KR')}</span>
+                      <span className="font-semibold">{formatCurrency(quotation.totalAmount)}</span>
+                    </div>
+                  </StitchCard>
+                ))}
+              </div>
+
+              {/* 데스크톱: 테이블 */}
+              <div className="hidden md:block">
               <StitchTable>
                 <StitchTableHeader>
                   <StitchTableRow>
@@ -275,6 +304,7 @@ export default function ClinicalQuotationsPage() {
                   ))}
                 </StitchTableBody>
               </StitchTable>
+              </div>
 
               {pagination.totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-4">
