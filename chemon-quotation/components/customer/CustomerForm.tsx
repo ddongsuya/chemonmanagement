@@ -136,6 +136,8 @@ export default function CustomerForm({ customer, onSuccess }: CustomerFormProps)
             <Label htmlFor="contact_phone">연락처</Label>
             <Input
               id="contact_phone"
+              type="tel"
+              autoComplete="tel"
               value={formData.contact_phone}
               onChange={(e) =>
                 setFormData({ ...formData, contact_phone: e.target.value })
@@ -149,6 +151,7 @@ export default function CustomerForm({ customer, onSuccess }: CustomerFormProps)
             <Input
               id="contact_email"
               type="email"
+              autoComplete="email"
               value={formData.contact_email}
               onChange={(e) =>
                 setFormData({ ...formData, contact_email: e.target.value })

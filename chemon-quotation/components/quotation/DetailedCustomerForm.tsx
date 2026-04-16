@@ -252,6 +252,8 @@ export default function DetailedCustomerForm({
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     id="contactPhone"
+                    type="tel"
+                    autoComplete="tel"
                     value={formData.contactPhone}
                     onChange={(e) => handleChange('contactPhone', e.target.value)}
                     placeholder="010-0000-0000"
@@ -267,6 +269,7 @@ export default function DetailedCustomerForm({
                   <Input
                     id="contactEmail"
                     type="email"
+                    autoComplete="email"
                     value={formData.contactEmail}
                     onChange={(e) => handleChange('contactEmail', e.target.value)}
                     placeholder="email@example.com"

@@ -141,6 +141,7 @@ export function MobileLeadForm({ onSubmit, isSubmitting }: MobileLeadFormProps) 
               <Input
                 id="contactPhone"
                 type="tel"
+                autoComplete="tel"
                 placeholder="010-0000-0000"
                 {...register('contactPhone')}
                 className="h-12 text-base bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"
@@ -155,6 +156,7 @@ export function MobileLeadForm({ onSubmit, isSubmitting }: MobileLeadFormProps) 
               <Input
                 id="contactEmail"
                 type="email"
+                autoComplete="email"
                 placeholder="email@example.com"
                 {...register('contactEmail')}
                 className="h-12 text-base bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40"

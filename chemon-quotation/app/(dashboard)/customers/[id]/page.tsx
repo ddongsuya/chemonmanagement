@@ -443,7 +443,7 @@ export default function CustomerDetailPage() {
           <div className="lg:col-span-2">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)}>
               <div className="bg-white rounded-xl shadow-ambient">
-                <TabsList className="w-full justify-start rounded-none bg-transparent h-auto p-0 overflow-x-auto no-scrollbar">
+                <TabsList className="w-full justify-start rounded-none bg-transparent h-auto p-0 overflow-x-auto">
                   {PRIMARY_TABS.map(tab => (
                     <TabsTrigger
                       key={tab.value}
