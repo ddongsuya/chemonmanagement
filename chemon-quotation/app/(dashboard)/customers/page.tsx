@@ -288,7 +288,7 @@ export default function CustomersPage() {
   }
 
   return (
-    <div className="space-y-3 px-4 md:px-0">
+    <div className="space-y-3 overflow-x-hidden">
       {/* ─── 모바일 헤더 ─── */}
       <div className="md:hidden">
         <div className="flex items-center justify-between gap-2">
