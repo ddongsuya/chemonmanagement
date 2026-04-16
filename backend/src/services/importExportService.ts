@@ -73,6 +73,18 @@ const DEFAULT_COLUMNS: ColumnMapping[] = [
   { excelColumn: 8, field: 'notes', label: '비고', required: false },
 ];
 
+// 헤더 매칭용 별칭 — 견적 대장 등 다양한 엑셀 형식 지원
+const HEADER_ALIASES: Record<string, string[]> = {
+  name: ['고객명', '의뢰자명', '의뢰자', '담당자명', 'name', '이름'],
+  company: ['회사명', '의뢰기관명', '의뢰기관', '기관명', 'company', '회사'],
+  email: ['이메일', 'e-mail', 'email', '의뢰자 e-mail', '메일'],
+  phone: ['전화번호', '연락처', '의뢰자 연락처', 'phone', '전화', '핸드폰'],
+  address: ['주소', 'address'],
+  grade: ['등급', 'grade'],
+  segment: ['세그먼트', 'segment', '산업군'],
+  notes: ['비고', '견적서명', 'notes', '메모', '참고'],
+};
+
 const GRADE_MAP: Record<string, CustomerGrade> = {
   '리드': 'LEAD', 'LEAD': 'LEAD',
   '잠재고객': 'PROSPECT', 'PROSPECT': 'PROSPECT',
@@ -119,9 +131,11 @@ export async function parseUploadedFile(filePath: string): Promise<{
 
   // 자동 매핑 제안
   const suggestedMapping: ColumnMapping[] = DEFAULT_COLUMNS.map((col) => {
-    const matchIdx = headers.findIndex(
-      (h) => h.includes(col.label) || h.toLowerCase().includes(col.field.toLowerCase())
-    );
+    const aliases = HEADER_ALIASES[col.field] || [col.label];
+    const matchIdx = headers.findIndex((h) => {
+      const lower = h.toLowerCase().trim();
+      return aliases.some((alias) => lower === alias.toLowerCase() || lower.includes(alias.toLowerCase()));
+    });
     return {
       ...col,
       // 매칭 실패 시 0(미매핑)으로 설정하여 잘못된 데이터 삽입 방지
