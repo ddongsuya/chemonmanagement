@@ -86,11 +86,11 @@ export default function InlineRequesterForm({ customerId, onSuccess }: InlineReq
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">전화번호</Label>
-              <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="010-0000-0000" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
+              <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="010-0000-0000" type="tel" autoComplete="tel" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
             <div>
               <Label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">이메일</Label>
-              <Input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="email@example.com" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
+              <Input type="email" autoComplete="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="email@example.com" className="bg-white border-none rounded-xl focus:ring-2 focus:ring-primary/40" />
             </div>
           </div>
           <div className="flex items-center gap-2">

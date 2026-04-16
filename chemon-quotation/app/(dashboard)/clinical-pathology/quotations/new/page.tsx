@@ -397,6 +397,8 @@ export default function NewClinicalQuotationPage() {
             <Label htmlFor="contactPhone">연락처</Label>
             <Input
               id="contactPhone"
+              type="tel"
+              autoComplete="tel"
               value={formData.contactPhone}
               onChange={e => setFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
               placeholder="010-0000-0000"
@@ -407,6 +409,7 @@ export default function NewClinicalQuotationPage() {
             <Input
               id="contactEmail"
               type="email"
+              autoComplete="email"
               value={formData.contactEmail}
               onChange={e => setFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
               placeholder="email@example.com"

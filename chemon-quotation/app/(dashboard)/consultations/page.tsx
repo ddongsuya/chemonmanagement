@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Plus, Search, MessageSquare, Building2, Calendar, FileText } from 'lucide-react';
+import { StitchCard } from '@/components/ui/StitchCard';
 import { getConsultations, ConsultationRecord } from '@/lib/contract-api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -141,6 +142,52 @@ export default function ConsultationsPage() {
               등록된 상담기록이 없습니다.
             </div>
           ) : (
+            <>
+              {/* 모바일: 카드 리스트 */}
+              <div className="md:hidden space-y-3">
+                {records.map((record) => {
+                  const recordNumber = (record as any).recordNumber || record.record_number || '';
+                  const substanceName = (record as any).substanceName || record.substance_name || '';
+                  const consultDate = (record as any).consultDate || record.consult_date;
+                  const clientRequests = (record as any).clientRequests || record.client_requests || '';
+
+                  return (
+                    <StitchCard
+                      key={record.id}
+                      variant="elevated"
+                      hover
+                      padding="sm"
+                      className="touch-manipulation cursor-pointer"
+                      onClick={() => router.push(`/consultations/${record.id}`)}
+                    >
+                      <div className="mb-1">
+                        <span className="text-xs font-mono text-slate-500">{recordNumber}</span>
+                      </div>
+                      <div className="font-medium text-sm mb-1 truncate">
+                        <span className="inline-flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                          {(record as any).customer?.company || (record as any).customer?.name || '-'}
+                        </span>
+                      </div>
+                      {substanceName && (
+                        <div className="text-xs text-slate-500 mb-2">{substanceName}</div>
+                      )}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-1 text-slate-500">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(consultDate)}
+                        </span>
+                        {clientRequests && (
+                          <span className="text-blue-600 text-xs">요청사항 있음</span>
+                        )}
+                      </div>
+                    </StitchCard>
+                  );
+                })}
+              </div>
+
+              {/* 데스크톱: 테이블 */}
+              <div className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -200,6 +247,8 @@ export default function ConsultationsPage() {
                 })}
               </TableBody>
             </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

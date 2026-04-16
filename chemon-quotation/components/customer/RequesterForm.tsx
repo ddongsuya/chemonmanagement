@@ -150,6 +150,8 @@ export default function RequesterForm({
             <Label htmlFor="phone">연락처</Label>
             <Input
               id="phone"
+              type="tel"
+              autoComplete="tel"
               value={formData.phone}
               onChange={(e) =>
                 setFormData({ ...formData, phone: e.target.value })
@@ -167,6 +169,7 @@ export default function RequesterForm({
             <Input
               id="email"
               type="email"
+              autoComplete="email"
               value={formData.email}
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })

@@ -403,6 +403,40 @@ export default function ReportsPage() {
                 <TrendingUp className="w-5 h-5 text-primary" />
                 고객사별 견적 순위 (Top 5)
               </h3>
+
+              {/* 모바일: 카드 리스트 */}
+              <div className="md:hidden space-y-3">
+                {customerData.map((customer) => (
+                  <StitchCard key={customer.name} variant="elevated" padding="sm">
+                    <div className="flex items-start justify-between mb-2">
+                      <StitchBadge
+                        variant={customer.rank === 1 ? 'warning' : 'neutral'}
+                      >
+                        {customer.rank}
+                      </StitchBadge>
+                      <span
+                        className={
+                          customer.winRate >= 70
+                            ? 'text-emerald-600 font-bold text-xs'
+                            : customer.winRate >= 50
+                            ? 'text-blue-600 font-bold text-xs'
+                            : 'text-slate-600 text-xs'
+                        }
+                      >
+                        수주율 {customer.winRate}%
+                      </span>
+                    </div>
+                    <div className="font-medium text-sm mb-2">{customer.name}</div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">견적 {customer.quotations}건</span>
+                      <span className="font-semibold">{formatCurrency(customer.amount)}</span>
+                    </div>
+                  </StitchCard>
+                ))}
+              </div>
+
+              {/* 데스크톱: 테이블 */}
+              <div className="hidden md:block">
               <div className="bg-[#FAF2E9] rounded-xl md:rounded-[2.5rem] p-4 md:p-8">
                 <table className="w-full text-left">
                   <thead>
@@ -450,6 +484,7 @@ export default function ReportsPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
               </div>
             </StitchCard>
           )}

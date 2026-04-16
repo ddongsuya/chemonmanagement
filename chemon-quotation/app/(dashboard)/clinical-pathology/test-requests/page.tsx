@@ -182,6 +182,35 @@ export default function ClinicalTestRequestsPage() {
             </div>
           ) : (
             <>
+              {/* 모바일: 카드 리스트 */}
+              {/* TODO: /clinical-pathology/test-requests/[id] 상세 페이지 미구현. 클릭 시 404 가능성 있음. 별도 이슈로 처리 예정. */}
+              <div className="md:hidden space-y-3">
+                {requests.map((request) => (
+                  <StitchCard
+                    key={request.id}
+                    variant="elevated"
+                    hover
+                    padding="sm"
+                    className="touch-manipulation cursor-pointer"
+                    onClick={() => router.push(`/clinical-pathology/test-requests/${request.id}`)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <span className="text-xs font-mono text-slate-500">{request.testNumber || '-'}</span>
+                      {getStatusBadge(request.status)}
+                    </div>
+                    <div className="font-medium text-sm mb-1 truncate">{request.customerName}</div>
+                    <div className="text-xs text-slate-500 mb-2">
+                      {[request.contactName, `${request.totalSamples}검체`, request.quotation?.quotationNumber].filter(Boolean).join(' · ')}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {new Date(request.requestDate).toLocaleDateString('ko-KR')}
+                    </div>
+                  </StitchCard>
+                ))}
+              </div>
+
+              {/* 데스크톱: 테이블 */}
+              <div className="hidden md:block">
               <StitchTable>
                 <StitchTableHeader>
                   <StitchTableRow>
@@ -256,6 +285,7 @@ export default function ClinicalTestRequestsPage() {
                   ))}
                 </StitchTableBody>
               </StitchTable>
+              </div>
 
               {pagination.totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-4">
