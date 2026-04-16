@@ -30,11 +30,15 @@ import { KeyboardShortcutsOverlay } from '@/components/customer/KeyboardShortcut
 import { useCustomerKeyboardShortcuts } from '@/hooks/useCustomerKeyboardShortcuts';
 import { useCustomerManagementStore } from '@/stores/customerManagementStore';
 import { VirtualizedCardGrid } from '@/components/customer/VirtualizedCardGrid';
-import { Plus, RefreshCw, Users, Loader2 } from 'lucide-react';
+import { Plus, RefreshCw, Users, Loader2, MoreHorizontal, Upload, Download, Phone, Mail, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
-  getUnifiedCustomers, getPipelineStagesForFilter, updateCustomerStage,
-  type UnifiedEntity, type UnifiedCustomerFilters as FilterType, type PipelineStageInfo,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { StitchBadge } from '@/components/ui/StitchBadge';
+import {
+  getUnifiedCustomers, getPipelineStagesForFilter, updateCustomerStage, getMonthlyStats,
+  type UnifiedEntity, type UnifiedCustomerFilters as FilterType, type PipelineStageInfo, type MonthlyStats,
 } from '@/lib/unified-customer-api';
 import { updateCustomer, bulkUpdateCustomerGrade, bulkDeleteCustomers } from '@/lib/data-api';
 import type { CustomerGrade } from '@/lib/data-api';
@@ -65,6 +69,12 @@ export default function CustomersPage() {
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
   const { showHelp, setShowHelp } = useCustomerKeyboardShortcuts({ entities });
+
+  // Mobile-specific state
+  const [monthlyStats, setMonthlyStats] = useState<MonthlyStats | null>(null);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [mobileShowImport, setMobileShowImport] = useState(false);
+  const [mobileShowExport, setMobileShowExport] = useState(false);
 
   const [filters, setFilters] = useState<FilterType>(() => {
     const type = searchParams.get('type') as 'all' | 'lead' | 'customer' | null;
@@ -98,6 +108,21 @@ export default function CustomersPage() {
       }
     }
     loadStages();
+  }, []);
+
+  // Load monthly stats for mobile KPI
+  useEffect(() => {
+    async function loadMonthlyStats() {
+      try {
+        const response = await getMonthlyStats();
+        if (response.success && response.data) {
+          setMonthlyStats(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to load monthly stats:', error);
+      }
+    }
+    loadMonthlyStats();
   }, []);
 
   const loadData = useCallback(async () => {
@@ -222,6 +247,22 @@ export default function CustomersPage() {
     loadData();
   }, [loadData]);
 
+  const toggleCardExpand = useCallback((id: string) => {
+    setExpandedCards(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const formatDaysAgo = (dateStr?: string): string => {
+    if (!dateStr) return '';
+    const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
+    if (days === 0) return '오늘';
+    if (days === 1) return '어제';
+    return `${days}일 전`;
+  };
+
   // 로딩 스켈레톤
   if (loading && entities.length === 0) {
     return (
@@ -247,33 +288,108 @@ export default function CustomersPage() {
   }
 
   return (
-    <div className="space-y-3">
-      {/* 페이지 헤더 */}
-      <StitchPageHeader
-        label="CUSTOMERS"
-        title="고객사 관리"
-        description="리드와 고객을 통합하여 관리합니다"
-        actions={
-          <div className="flex items-center gap-2">
-            <ImportExportPanel onImportSuccess={loadData} />
-            <Button variant="outline" size="sm" onClick={loadData} disabled={loading} className="rounded-xl">
-              <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-              새로고침
-            </Button>
+    <div className="space-y-3 px-4 md:px-0">
+      {/* ─── 모바일 헤더 ─── */}
+      <div className="md:hidden">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">CUSTOMERS</p>
+            <h1 className="text-xl font-extrabold tracking-tight">고객사 관리</h1>
+            <p className="text-xs text-slate-500">리드와 고객을 통합 관리</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-xl min-w-[44px] min-h-[44px]">
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setMobileShowImport(true)}>
+                  <Upload className="w-4 h-4 mr-2" />가져오기
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setMobileShowExport(true)}>
+                  <Download className="w-4 h-4 mr-2" />내보내기
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={loadData} disabled={loading}>
+                  <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />새로고침
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
-                <Button size="sm" className="rounded-xl bg-gradient-to-r from-primary to-orange-400 font-bold"><Plus className="w-4 h-4 mr-1" />신규 등록</Button>
+                <Button size="sm" className="rounded-xl bg-gradient-to-r from-primary to-orange-400 font-bold min-h-[44px] px-4">
+                  <Plus className="w-4 h-4 mr-1" />추가
+                </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <CustomerForm onSuccess={handleAddSuccess} />
               </DialogContent>
             </Dialog>
           </div>
-        }
-      />
+        </div>
+      </div>
 
-      {/* KPI 요약 바 */}
-      <CustomerSummaryBar onFilterByGrade={handleFilterByGrade} />
+      {/* ─── 데스크톱 헤더 ─── */}
+      <div className="hidden md:block">
+        <StitchPageHeader
+          label="CUSTOMERS"
+          title="고객사 관리"
+          description="리드와 고객을 통합하여 관리합니다"
+          actions={
+            <div className="flex items-center gap-2">
+              <ImportExportPanel onImportSuccess={loadData} />
+              <Button variant="outline" size="sm" onClick={loadData} disabled={loading} className="rounded-xl">
+                <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                새로고침
+              </Button>
+              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="rounded-xl bg-gradient-to-r from-primary to-orange-400 font-bold"><Plus className="w-4 h-4 mr-1" />신규 등록</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg">
+                  <CustomerForm onSuccess={handleAddSuccess} />
+                </DialogContent>
+              </Dialog>
+            </div>
+          }
+        />
+      </div>
+
+      {/* 모바일 전용 ImportExportPanel (버튼 숨김, 다이얼로그만) */}
+      <div className="md:hidden">
+        <ImportExportPanel
+          onImportSuccess={loadData}
+          hideButtons
+          externalShowImport={mobileShowImport}
+          externalShowExport={mobileShowExport}
+          onExternalClose={() => { setMobileShowImport(false); setMobileShowExport(false); }}
+        />
+      </div>
+
+      {/* ─── 모바일 월간 지표 ─── */}
+      <div className="md:hidden">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">이번 달</div>
+        <div className="grid grid-cols-3 gap-3">
+          <StitchCard variant="elevated" padding="sm">
+            <p className="text-[11px] font-bold text-slate-500 mb-1">신규 고객사</p>
+            <p className="text-xl font-black tracking-tighter">{monthlyStats?.newCustomers ?? '-'}<span className="text-xs font-normal text-slate-500 ml-0.5">건</span></p>
+          </StitchCard>
+          <StitchCard variant="elevated" padding="sm">
+            <p className="text-[11px] font-bold text-slate-500 mb-1">견적 송부</p>
+            <p className="text-xl font-black tracking-tighter">{monthlyStats?.sentQuotations ?? '-'}<span className="text-xs font-normal text-slate-500 ml-0.5">건</span></p>
+          </StitchCard>
+          <StitchCard variant="elevated" padding="sm">
+            <p className="text-[11px] font-bold text-slate-500 mb-1">계약 체결</p>
+            <p className="text-xl font-black tracking-tighter">{monthlyStats?.newContracts ?? '-'}<span className="text-xs font-normal text-slate-500 ml-0.5">건</span></p>
+          </StitchCard>
+        </div>
+      </div>
+
+      {/* ─── 데스크톱 KPI 요약 바 ─── */}
+      <div className="hidden md:block">
+        <CustomerSummaryBar onFilterByGrade={handleFilterByGrade} />
+      </div>
 
       {/* 뷰 탭 + 필터 통합 카드 */}
       <StitchCard variant="surface-low" padding="sm">
@@ -314,12 +430,87 @@ export default function CustomersPage() {
       ) : (
         <>
           {viewMode === 'card' && (
-            <VirtualizedCardGrid
-              entities={entities}
-              selectedIds={storeSelectedIds}
-              onToggleSelection={toggleSelection}
-              onClick={handleEntityClick}
-            />
+            <>
+              {/* 모바일: 아코디언 카드 */}
+              <div className="md:hidden space-y-3">
+                {entities.map((entity) => {
+                  const isExpanded = expandedCards.has(entity.id);
+                  const badge = entity.entityType === 'LEAD'
+                    ? { label: '리드', className: 'bg-slate-100 text-slate-700' }
+                    : { label: entity.grade === 'VIP' ? 'VIP' : '고객', className: entity.grade === 'VIP' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700' };
+
+                  return (
+                    <StitchCard key={`${entity.entityType}-${entity.id}`} variant="elevated" padding="sm" className="touch-manipulation">
+                      {/* 기본 상태 (항상 표시) */}
+                      <div
+                        className="cursor-pointer active:bg-slate-50 transition-colors rounded-lg"
+                        onClick={() => toggleCardExpand(entity.id)}
+                      >
+                        <div className="flex items-start justify-between mb-1.5">
+                          <h3 className="font-medium text-sm truncate flex-1 mr-2">{entity.companyName}</h3>
+                          <StitchBadge variant="neutral" className="text-[10px] shrink-0">{badge.label}</StitchBadge>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-[10px] font-medium shrink-0">
+                            {entity.contactName.slice(0, 2)}
+                          </div>
+                          <span className="text-xs text-slate-700">{entity.contactName}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-500">
+                            {(entity.activeQuotationCount ?? 0) > 0
+                              ? `견적 ${entity.activeQuotationCount}건 진행중`
+                              : (entity.activeContractCount ?? 0) > 0
+                                ? `계약 ${entity.activeContractCount}건 진행중`
+                                : entity.displayStage}
+                          </span>
+                          <span className="text-slate-500">
+                            {entity.lastActivityAt ? `최근 접촉: ${formatDaysAgo(entity.lastActivityAt)}` : ''}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 펼친 상태 */}
+                      <div className={`overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-60 mt-3 pt-3 border-t border-slate-100' : 'max-h-0'}`}>
+                        <div className="space-y-2">
+                          {entity.contactPhone && (
+                            <a href={`tel:${entity.contactPhone}`} className="flex items-center gap-2 text-sm text-blue-600 active:text-blue-800 min-h-[44px]">
+                              <Phone className="w-4 h-4 shrink-0" />{entity.contactPhone}
+                            </a>
+                          )}
+                          {entity.contactEmail && (
+                            <a href={`mailto:${entity.contactEmail}`} className="flex items-center gap-2 text-sm text-blue-600 active:text-blue-800 min-h-[44px]">
+                              <Mail className="w-4 h-4 shrink-0" /><span className="truncate">{entity.contactEmail}</span>
+                            </a>
+                          )}
+                          <div className="text-xs text-slate-500">
+                            최근 접촉: {entity.lastActivityAt ? formatDaysAgo(entity.lastActivityAt) : '기록 없음'}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full rounded-xl min-h-[44px]"
+                            onClick={(e) => { e.stopPropagation(); handleEntityClick(entity); }}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-1" />상세 페이지 열기
+                          </Button>
+                        </div>
+                      </div>
+                    </StitchCard>
+                  );
+                })}
+              </div>
+
+              {/* 데스크톱: 기존 카드 그리드 */}
+              <div className="hidden md:block">
+                <VirtualizedCardGrid
+                  entities={entities}
+                  selectedIds={storeSelectedIds}
+                  onToggleSelection={toggleSelection}
+                  onClick={handleEntityClick}
+                />
+              </div>
+            </>
           )}
 
           {viewMode === 'table' && (

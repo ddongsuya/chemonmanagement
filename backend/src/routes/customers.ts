@@ -183,6 +183,39 @@ router.delete(
 );
 
 /**
+ * GET /api/customers/monthly-stats
+ * 이번 달 신규 고객사, 견적 송부, 계약 체결 건수 집계
+ */
+router.get(
+  '/monthly-stats',
+  authenticate,
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const [newCustomers, sentQuotations, sentClinicalQuotations, newContracts] = await Promise.all([
+        prisma.customer.count({ where: { createdAt: { gte: monthStart } } }),
+        prisma.quotation.count({ where: { createdAt: { gte: monthStart } } }),
+        prisma.clinicalQuotation.count({ where: { createdAt: { gte: monthStart } } }),
+        prisma.contract.count({ where: { createdAt: { gte: monthStart } } }),
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          newCustomers,
+          sentQuotations: sentQuotations + sentClinicalQuotations,
+          newContracts,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
  * GET /api/customers
  * Get customers list with pagination and filters
  * Supports grade filtering via query parameter
