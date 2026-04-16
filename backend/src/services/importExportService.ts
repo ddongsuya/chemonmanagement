@@ -110,6 +110,20 @@ const SEGMENT_LABEL: Record<string, string> = {
   MEDICAL_DEVICE: '의료기기', OTHER: '기타',
 };
 
+/** ExcelJS 셀 값을 문자열로 안전하게 변환 (하이퍼링크, 리치텍스트, 날짜 등 처리) */
+function getCellValue(row: ExcelJS.Row, col: number): string {
+  const cell = row.getCell(col);
+  const val = cell.value;
+  if (val == null) return '';
+  if (typeof val === 'object' && 'text' in val) return String((val as { text: unknown }).text).trim();
+  if (typeof val === 'object' && 'richText' in val) {
+    return ((val as { richText: { text: string }[] }).richText || []).map(r => r.text).join('').trim();
+  }
+  if (typeof val === 'object' && 'error' in val) return '';
+  if (val instanceof Date) return val.toISOString().split('T')[0];
+  return String(val).trim();
+}
+
 /**
  * 업로드된 Excel 파일의 헤더를 파싱하여 열 매핑 제안
  */
@@ -172,11 +186,6 @@ export async function validateImport(
     preview: [],
   };
 
-  const getCellValue = (row: ExcelJS.Row, col: number): string => {
-    const cell = row.getCell(col);
-    return cell.value != null ? String(cell.value).trim() : '';
-  };
-
   sheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
     result.totalRows++;
@@ -234,11 +243,6 @@ export async function executeImport(
   await workbook.xlsx.readFile(filePath);
   const sheet = workbook.worksheets[0];
   if (!sheet) throw new AppError('시트가 없습니다', 400, ErrorCodes.VALIDATION_ERROR);
-
-  const getCellValue = (row: ExcelJS.Row, col: number): string => {
-    const cell = row.getCell(col);
-    return cell.value != null ? String(cell.value).trim() : '';
-  };
 
   // 행 수집
   const rows: { row: ExcelJS.Row; rowNumber: number }[] = [];
