@@ -264,6 +264,16 @@ export async function updateCustomFieldValues(customerId: string, values: { fiel
 
 // ==================== 분석 API ====================
 
+export interface MonthlyStats {
+  newCustomers: number;
+  sentQuotations: number;
+  newContracts: number;
+}
+
+export async function getMonthlyStats() {
+  return apiFetch<MonthlyStats>('/api/customers/monthly-stats');
+}
+
 export async function getKPIData() {
   return apiFetch('/api/customer-analytics/kpi');
 }

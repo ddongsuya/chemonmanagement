@@ -4,7 +4,7 @@
  * ImportExportPanel - 가져오기/내보내기 패널
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle, XCircle, ArrowRightLeft, SkipForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -54,6 +54,10 @@ const MAX_IMPORT_ROWS = 500;
 
 interface ImportExportPanelProps {
   onImportSuccess?: () => void;
+  externalShowImport?: boolean;
+  externalShowExport?: boolean;
+  onExternalClose?: () => void;
+  hideButtons?: boolean;
 }
 
 const EXPORT_COLUMNS = [
@@ -76,7 +80,7 @@ const STATUS_CONFIG: Record<RowStatus, { label: string; color: string; bg: strin
   failed: { label: '실패', color: 'text-red-700', bg: 'bg-red-50' },
 };
 
-export function ImportExportPanel({ onImportSuccess }: ImportExportPanelProps) {
+export function ImportExportPanel({ onImportSuccess, externalShowImport, externalShowExport, onExternalClose, hideButtons }: ImportExportPanelProps) {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -219,10 +223,31 @@ export function ImportExportPanel({ onImportSuccess }: ImportExportPanelProps) {
     setExportColumns(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
   };
 
+  // Respond to external dialog triggers
+  useEffect(() => {
+    if (externalShowImport) { setShowImport(true); resetImport(); }
+  }, [externalShowImport]);
+
+  useEffect(() => {
+    if (externalShowExport) { setShowExport(true); }
+  }, [externalShowExport]);
+
   // ==================== Render ====================
+
+  // Respond to external dialog triggers via useEffect
+  // (handled by parent passing externalShowImport/externalShowExport)
+  // We use a simple pattern: parent sets external flag, we sync to internal state
+
+  const handleImportClose = (open: boolean) => {
+    if (!open) { setShowImport(false); onExternalClose?.(); }
+  };
+  const handleExportClose = (open: boolean) => {
+    if (!open) { setShowExport(false); onExternalClose?.(); }
+  };
 
   return (
     <>
+      {!hideButtons && (
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={() => { setShowImport(true); resetImport(); }}>
           <Upload className="h-3.5 w-3.5 mr-1" /> 가져오기
@@ -231,9 +256,10 @@ export function ImportExportPanel({ onImportSuccess }: ImportExportPanelProps) {
           <Download className="h-3.5 w-3.5 mr-1" /> 내보내기
         </Button>
       </div>
+      )}
 
       {/* 가져오기 다이얼로그 */}
-      <Dialog open={showImport} onOpenChange={(open) => { if (!open) setShowImport(false); }}>
+      <Dialog open={showImport} onOpenChange={handleImportClose}>
         <DialogContent className="max-w-lg bg-[#E9E1D8] rounded-xl">
           <DialogHeader><DialogTitle>고객 데이터 가져오기</DialogTitle></DialogHeader>
 
@@ -393,7 +419,7 @@ export function ImportExportPanel({ onImportSuccess }: ImportExportPanelProps) {
       </Dialog>
 
       {/* 내보내기 다이얼로그 (unchanged) */}
-      <Dialog open={showExport} onOpenChange={setShowExport}>
+      <Dialog open={showExport} onOpenChange={handleExportClose}>
         <DialogContent className="max-w-sm bg-[#E9E1D8] rounded-xl">
           <DialogHeader><DialogTitle>고객 데이터 내보내기</DialogTitle></DialogHeader>
           <div className="space-y-3">
