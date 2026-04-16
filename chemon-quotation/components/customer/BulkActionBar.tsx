@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { bulkTags, updateSegment } from '@/lib/unified-customer-api';
+import { bulkDeleteCustomers } from '@/lib/data-api';
 import type { SegmentType } from '@/types/unified-customer';
 
 interface BulkActionBarProps {
@@ -44,6 +45,7 @@ export function BulkActionBar({ selectedIds, onClearSelection, onRefresh }: Bulk
   const { toast } = useToast();
   const [showTagDialog, setShowTagDialog] = useState(false);
   const [showSegmentDialog, setShowSegmentDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [tagName, setTagName] = useState('');
   const [tagAction, setTagAction] = useState<'add' | 'remove'>('add');
   const [segment, setSegment] = useState<SegmentType>('PHARMACEUTICAL');
@@ -90,6 +92,9 @@ export function BulkActionBar({ selectedIds, onClearSelection, onRefresh }: Bulk
           <Button variant="outline" size="sm" onClick={() => setShowSegmentDialog(true)}>
             <Layers className="h-3.5 w-3.5 mr-1" /> 세그먼트
           </Button>
+          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setShowDeleteDialog(true)}>
+            <Trash2 className="h-3.5 w-3.5 mr-1" /> 삭제
+          </Button>
           <Button variant="ghost" size="sm" onClick={onClearSelection}>
             <X className="h-3.5 w-3.5 mr-1" /> 해제
           </Button>
@@ -128,6 +133,43 @@ export function BulkActionBar({ selectedIds, onClearSelection, onRefresh }: Bulk
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSegmentDialog(false)}>취소</Button>
             <Button onClick={handleBulkSegment} disabled={processing}>적용</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-sm bg-[#E9E1D8] rounded-xl">
+          <DialogHeader><DialogTitle>고객 일괄 삭제</DialogTitle></DialogHeader>
+          <p className="text-sm text-slate-700">
+            선택한 <span className="font-bold text-red-600">{selectedIds.length}건</span>의 고객을 삭제하시겠습니까?
+          </p>
+          <p className="text-xs text-slate-500">삭제된 고객은 복구할 수 없습니다. 연결된 견적서, 계약 등은 유지됩니다.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>취소</Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                setProcessing(true);
+                try {
+                  const res = await bulkDeleteCustomers(selectedIds);
+                  if (res.success) {
+                    toast({ title: `${res.data?.deletedCount || selectedIds.length}건 삭제 완료` });
+                    onClearSelection();
+                    onRefresh();
+                  } else {
+                    toast({ title: '삭제 실패', description: res.error?.message, variant: 'destructive' });
+                  }
+                } catch {
+                  toast({ title: '삭제 실패', variant: 'destructive' });
+                }
+                setProcessing(false);
+                setShowDeleteDialog(false);
+              }}
+              disabled={processing}
+            >
+              {processing ? '삭제 중...' : `${selectedIds.length}건 삭제`}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
