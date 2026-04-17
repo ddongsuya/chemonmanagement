@@ -101,7 +101,7 @@ export function FilterPresetManager({ filters, onApplyPreset }: FilterPresetMana
     <div className="flex items-center gap-2">
       {presets.length > 0 && (
         <Select onValueChange={handleApply}>
-          <SelectTrigger className="w-40 bg-white border-none rounded-xl">
+          <SelectTrigger className="w-28 md:w-40 bg-white border-none rounded-xl">
             <SelectValue placeholder="프리셋 선택" />
           </SelectTrigger>
           <SelectContent>

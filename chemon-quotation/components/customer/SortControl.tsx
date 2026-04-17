@@ -42,7 +42,7 @@ export function SortControl({ filters, onFilterChange }: SortControlProps) {
         value={filters.sortBy || 'updatedAt'}
         onValueChange={(v) => onFilterChange({ ...filters, sortBy: v as UnifiedCustomerFilters['sortBy'], page: 1 })}
       >
-        <SelectTrigger className="w-36 h-8 text-xs bg-white border-none rounded-xl">
+        <SelectTrigger className="w-28 md:w-36 h-8 text-xs bg-white border-none rounded-xl">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

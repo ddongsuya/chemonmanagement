@@ -393,7 +393,7 @@ export default function CustomersPage() {
 
       {/* 뷰 탭 + 필터 통합 카드 */}
       <StitchCard variant="surface-low" padding="sm">
-        <div className="flex items-center justify-between px-1 py-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1 py-1">
           <ViewModeToggle />
           <div className="flex items-center gap-2">
             <SortControl filters={filters} onFilterChange={handleFilterChange} />

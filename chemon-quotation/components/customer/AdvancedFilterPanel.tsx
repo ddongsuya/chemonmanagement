@@ -95,7 +95,7 @@ export function AdvancedFilterPanel({ filters, stages, onFilterChange, loading }
           disabled={loading}
         />
         <Select value={filters.type || 'all'} onValueChange={(v) => updateFilter('type', v)}>
-          <SelectTrigger className="w-28 bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-20 md:w-28 bg-white border-none rounded-xl"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">전체</SelectItem>
             <SelectItem value="lead">리드</SelectItem>
@@ -103,7 +103,7 @@ export function AdvancedFilterPanel({ filters, stages, onFilterChange, loading }
           </SelectContent>
         </Select>
         <Select value={filters.stageId || '_all'} onValueChange={(v) => updateFilter('stageId', v === '_all' ? undefined : v)}>
-          <SelectTrigger className="w-36 bg-white border-none rounded-xl"><SelectValue placeholder="단계 선택" /></SelectTrigger>
+          <SelectTrigger className="w-28 md:w-36 bg-white border-none rounded-xl"><SelectValue placeholder="단계 선택" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="_all">전체 단계</SelectItem>
             {stages.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
